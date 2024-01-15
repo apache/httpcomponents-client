@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
+import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteTracker;
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -176,11 +177,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                     }));
         } else {
             if (execRuntime.isEndpointConnected()) {
-                try {
-                    chain.proceed(request, entityProducer, scope, asyncExecCallback);
-                } catch (final HttpException | IOException ex) {
-                    asyncExecCallback.failed(ex);
-                }
+                proceedConnected(request, entityProducer, scope, chain, asyncExecCallback);
             } else {
                 proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
             }
@@ -363,11 +360,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} route fully established", exchangeId);
                 }
-                try {
-                    chain.proceed(request, entityProducer, scope, asyncExecCallback);
-                } catch (final HttpException | IOException ex) {
-                    asyncExecCallback.failed(ex);
-                }
+                proceedConnected(request, entityProducer, scope, chain, asyncExecCallback);
                 break;
 
             default:
@@ -541,6 +534,26 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             }
         }
         return false;
+    }
+
+    private void proceedConnected(
+            final HttpRequest request,
+            final AsyncEntityProducer entityProducer,
+            final AsyncExecChain.Scope scope,
+            final AsyncExecChain chain,
+            final AsyncExecCallback asyncExecCallback) {
+        final AsyncExecRuntime execRuntime = scope.execRuntime;
+        final HttpClientContext clientContext = scope.clientContext;
+        final EndpointInfo endpointInfo = execRuntime.getEndpointInfo();
+        if (endpointInfo != null) {
+            clientContext.setProtocolVersion(endpointInfo.getProtocol());
+            clientContext.setAttribute(HttpCoreContext.SSL_SESSION, endpointInfo.getSslSession());
+        }
+        try {
+            chain.proceed(request, entityProducer, scope, asyncExecCallback);
+        } catch (final HttpException | IOException ex) {
+            asyncExecCallback.failed(ex);
+        }
     }
 
 }
