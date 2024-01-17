@@ -37,6 +37,7 @@ import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.io.HttpResponseInformationCallback;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
@@ -140,6 +141,24 @@ public interface ExecRuntime {
             String id,
             ClassicHttpRequest request,
             HttpClientContext context) throws IOException, HttpException;
+
+    /**
+     * Executes HTTP request using the given context.
+     *
+     * @param id unique operation ID or {@code null}.
+     * @param request the request message.
+     * @param informationCallback information (1xx) response handler
+     * @param context the execution context.
+     *
+     * @since 5.4
+     */
+    default ClassicHttpResponse execute(
+            String id,
+            ClassicHttpRequest request,
+            HttpResponseInformationCallback informationCallback,
+            HttpClientContext context) throws IOException, HttpException {
+        return execute(id, request, context);
+    }
 
     /**
      * Determines of the connection is considered re-usable.
