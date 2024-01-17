@@ -113,7 +113,7 @@ public final class MainClientExec implements ExecChainHandler {
 
             httpProcessor.process(request, request.getEntity(), context);
 
-            final ClassicHttpResponse response = execRuntime.execute(exchangeId, request, context);
+            final ClassicHttpResponse response = execRuntime.execute(exchangeId, request, null, context);
 
             context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
             httpProcessor.process(response, response.getEntity(), context);

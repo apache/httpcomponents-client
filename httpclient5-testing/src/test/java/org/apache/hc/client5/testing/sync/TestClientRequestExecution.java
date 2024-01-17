@@ -57,6 +57,7 @@ import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.HttpResponseInformationCallback;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
@@ -137,8 +138,17 @@ public abstract class TestClientRequestExecution {
                 final ClassicHttpRequest request,
                 final HttpClientConnection conn,
                 final HttpContext context) throws IOException, HttpException {
+            return execute(request, conn, null, context);
+        }
 
-            final ClassicHttpResponse response = super.execute(request, conn, context);
+        @Override
+        public ClassicHttpResponse execute(
+                final ClassicHttpRequest request,
+                final HttpClientConnection conn,
+                final HttpResponseInformationCallback informationCallback,
+                final HttpContext context) throws IOException, HttpException {
+
+            final ClassicHttpResponse response = super.execute(request, conn, informationCallback, context);
             final Object marker = context.getAttribute(MARKER);
             if (marker == null) {
                 context.setAttribute(MARKER, Boolean.TRUE);

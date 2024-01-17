@@ -48,6 +48,7 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ConnectionRequestTimeoutException;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
+import org.apache.hc.core5.http.io.HttpResponseInformationCallback;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
@@ -205,6 +206,15 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             final String id,
             final ClassicHttpRequest request,
             final HttpClientContext context) throws IOException, HttpException {
+        return execute(id, request, null, context);
+    }
+
+    @Override
+    public ClassicHttpResponse execute(
+            final String id,
+            final ClassicHttpRequest request,
+            final HttpResponseInformationCallback informationCallback,
+            final HttpClientContext context) throws IOException, HttpException {
         final ConnectionEndpoint endpoint = ensureValid();
         if (!endpoint.isConnected()) {
             connectEndpoint(endpoint, context);
@@ -223,7 +233,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         return endpoint.execute(
                 id,
                 request,
-                requestExecutor::execute,
+                (r, conn, c) -> requestExecutor.execute(r, conn, informationCallback, c),
                 context);
     }
 
