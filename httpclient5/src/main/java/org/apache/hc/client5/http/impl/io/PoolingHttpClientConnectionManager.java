@@ -710,11 +710,32 @@ public class PoolingHttpClientConnectionManager
             getValidatedPoolEntry().getConnection().setSocketTimeout(timeout);
         }
 
+        /**
+         * @deprecated Use {@link #execute(String, ClassicHttpRequest, RequestExecutor, HttpContext)}
+         */
+        @Deprecated
         @Override
         public ClassicHttpResponse execute(
                 final String exchangeId,
                 final ClassicHttpRequest request,
                 final HttpRequestExecutor requestExecutor,
+                final HttpContext context) throws IOException, HttpException {
+            Args.notNull(request, "HTTP request");
+            Args.notNull(requestExecutor, "Request executor");
+            final ManagedHttpClientConnection connection = getValidatedPoolEntry().getConnection();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} executing exchange {} over {}", id, exchangeId, ConnPoolSupport.getId(connection));
+            }
+            return requestExecutor.execute(request, connection, context);
+        }
+
+        /**
+         * @since 5.4
+         */
+        public ClassicHttpResponse execute(
+                final String exchangeId,
+                final ClassicHttpRequest request,
+                final RequestExecutor requestExecutor,
                 final HttpContext context) throws IOException, HttpException {
             Args.notNull(request, "HTTP request");
             Args.notNull(requestExecutor, "Request executor");

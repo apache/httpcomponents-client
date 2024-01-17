@@ -213,7 +213,11 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         if (log.isDebugEnabled()) {
             log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
         }
-        return endpoint.execute(id, request, requestExecutor, context);
+        return endpoint.execute(
+                id,
+                request,
+                requestExecutor::execute,
+                context);
     }
 
     @Override

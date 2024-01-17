@@ -30,11 +30,13 @@ package org.apache.hc.client5.http.io;
 import java.io.IOException;
 
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
+import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.util.Timeout;
@@ -52,6 +54,16 @@ import org.apache.hc.core5.util.Timeout;
 public abstract class ConnectionEndpoint implements ModalCloseable {
 
     /**
+     * @deprecated Use {@link #execute(String, ClassicHttpRequest, RequestExecutor, HttpContext)}
+     */
+    @Deprecated
+    public abstract ClassicHttpResponse execute(
+            String id,
+            ClassicHttpRequest request,
+            HttpRequestExecutor executor,
+            HttpContext context) throws IOException, HttpException;
+
+    /**
      * Executes HTTP request using the provided request executor.
      * <p>
      * Once the endpoint is no longer needed it MUST be released with {@link #close(org.apache.hc.core5.io.CloseMode)}.
@@ -59,14 +71,19 @@ public abstract class ConnectionEndpoint implements ModalCloseable {
      *
      * @param id unique operation ID or {@code null}.
      * @param request the request message.
-     * @param executor the request executor.
+     * @param requestExecutor the request executor.
      * @param context the execution context.
+     *
+     * @since 5.4
      */
-    public abstract ClassicHttpResponse execute(
-            String id,
-            ClassicHttpRequest request,
-            HttpRequestExecutor executor,
-            HttpContext context) throws IOException, HttpException;
+    // In the next major release this method must be made abstract.
+    public ClassicHttpResponse execute(
+            final String id,
+            final ClassicHttpRequest request,
+            final RequestExecutor requestExecutor,
+            final HttpContext context) throws IOException, HttpException {
+        return requestExecutor.execute(request,null, context);
+    }
 
     /**
      * Determines if the connection to the remote endpoint is still open and valid.
@@ -79,5 +96,18 @@ public abstract class ConnectionEndpoint implements ModalCloseable {
      * @param timeout timeout value
      */
     public abstract void setSocketTimeout(Timeout timeout);
+
+    /**
+     * @since 5.4
+     */
+    @Internal
+    public interface RequestExecutor {
+
+        ClassicHttpResponse execute(
+                ClassicHttpRequest request,
+                HttpClientConnection conn,
+                HttpContext context) throws IOException, HttpException;
+
+    }
 
 }

@@ -40,10 +40,12 @@ import org.apache.hc.client5.testing.classic.RandomHandler;
 import org.apache.hc.client5.testing.sync.extension.TestClientResources;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
+import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
@@ -58,6 +60,7 @@ import org.apache.hc.core5.testing.classic.ClassicTestServer;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -71,6 +74,28 @@ public class TestConnectionManagement {
 
     @RegisterExtension
     private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
+
+    ConnectionEndpoint.RequestExecutor exec;
+
+    @BeforeEach
+    public void setup() {
+        exec = new ConnectionEndpoint.RequestExecutor() {
+
+            final HttpRequestExecutor requestExecutor = new HttpRequestExecutor();
+            final HttpProcessor httpProcessor = new DefaultHttpProcessor(
+                    new RequestTargetHost(), new RequestContent(), new RequestConnControl());
+            @Override
+            public ClassicHttpResponse execute(final ClassicHttpRequest request,
+                                               final HttpClientConnection conn,
+                                               final HttpContext context) throws IOException, HttpException {
+                requestExecutor.preProcess(request, httpProcessor, context);
+                final ClassicHttpResponse response = requestExecutor.execute(request, conn, context);
+                requestExecutor.postProcess(response, httpProcessor, context);
+                return response;
+            }
+
+        };
+    }
 
     public ClassicTestServer startServer() throws IOException {
         return testResources.startServer(null, null, null);
@@ -110,11 +135,6 @@ public class TestConnectionManagement {
 
         connManager.connect(endpoint1, null, context);
 
-        final HttpProcessor httpProcessor = new DefaultHttpProcessor(
-                new RequestTargetHost(), new RequestContent(), new RequestConnControl());
-
-        final HttpRequestExecutor exec = new HttpRequestExecutor();
-        exec.preProcess(request, httpProcessor, context);
         try (final ClassicHttpResponse response1 = endpoint1.execute("id1", request, exec, context)) {
             Assertions.assertEquals(HttpStatus.SC_OK, response1.getCode());
         }
@@ -178,11 +198,6 @@ public class TestConnectionManagement {
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
         connManager.connect(endpoint1, null, context);
 
-        final HttpProcessor httpProcessor = new DefaultHttpProcessor(
-                new RequestTargetHost(), new RequestContent(), new RequestConnControl());
-
-        final HttpRequestExecutor exec = new HttpRequestExecutor();
-        exec.preProcess(request, httpProcessor, context);
         try (final ClassicHttpResponse response1 = endpoint1.execute("id1", request, exec, context)) {
             Assertions.assertEquals(HttpStatus.SC_OK, response1.getCode());
         }

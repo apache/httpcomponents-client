@@ -610,11 +610,32 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             getValidatedConnection().setSocketTimeout(timeout);
         }
 
+        /**
+         * @deprecated Use {@link #execute(String, ClassicHttpRequest, RequestExecutor, HttpContext)}
+         */
+        @Deprecated
         @Override
         public ClassicHttpResponse execute(
                 final String exchangeId,
                 final ClassicHttpRequest request,
                 final HttpRequestExecutor requestExecutor,
+                final HttpContext context) throws IOException, HttpException {
+            Args.notNull(request, "HTTP request");
+            Args.notNull(requestExecutor, "Request executor");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Executing exchange {}", id, exchangeId);
+            }
+            return requestExecutor.execute(request, getValidatedConnection(), context);
+        }
+
+        /**
+         * @since 5.4
+         */
+        @Override
+        public ClassicHttpResponse execute(
+                final String exchangeId,
+                final ClassicHttpRequest request,
+                final RequestExecutor requestExecutor,
                 final HttpContext context) throws IOException, HttpException {
             Args.notNull(request, "HTTP request");
             Args.notNull(requestExecutor, "Request executor");
