@@ -1,4 +1,36 @@
-﻿Release 5.3
+﻿Release 5.3.1
+-------------------
+
+This is a maintenance release that fixes several minor defects and a regression in the Fluent module
+causing the response body truncation discovered since release 5.3.
+
+
+Change Log
+-------------------
+
+* Restored backwards-compatible #createSocket calls in
+  Contributed by Clayton Walker <cwalker at sofi.org>
+
+* HTTPCLIENT-2315: Client builders fail to apply system properties to the default connection manager.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2314: Handle gracefully a failure of DnsResolver to return a list of resolved
+  addresses (#533).
+  Contributed by Philip Helger <philip at helger.com>
+
+* HTTPCLIENT-2314: Throw ConnectionShutdownException in case of pooled connection having been closed or
+  discarded instead of plain IllegalStateException.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2312: Fixed response body truncation in the fluent API (#521).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2313: Fixed NullPointerException in PoolingHttpClientConnectionManager when debug
+  logging is enabled.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+Release 5.3
 -------------------
 
 This is the first GA release in the 5.3 release series. This release finalizes the 5.3 APIs
