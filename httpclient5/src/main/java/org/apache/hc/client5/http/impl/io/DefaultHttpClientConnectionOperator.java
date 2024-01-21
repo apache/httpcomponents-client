@@ -42,9 +42,9 @@ import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
+import org.apache.hc.client5.http.io.DetachedSocketFactory;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.annotation.Contract;
@@ -52,9 +52,11 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ConnectionClosedException;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.Closer;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
@@ -72,35 +74,41 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultHttpClientConnectionOperator implements HttpClientConnectionOperator {
 
-    static final String SOCKET_FACTORY_REGISTRY = "http.socket-factory-registry";
-
     private static final Logger LOG = LoggerFactory.getLogger(DefaultHttpClientConnectionOperator.class);
 
+    static final DetachedSocketFactory PLAIN_SOCKET_FACTORY = new DetachedSocketFactory() {
+
+        @Override
+        public Socket create(final Proxy socksProxy) throws IOException {
+            return socksProxy == null ? new Socket() : new Socket(socksProxy);
+        }
+
+    };
+
+    private final DetachedSocketFactory detachedSocketFactory;
     private final Lookup<ConnectionSocketFactory> socketFactoryRegistry;
     private final SchemePortResolver schemePortResolver;
     private final DnsResolver dnsResolver;
 
     public DefaultHttpClientConnectionOperator(
+            final DetachedSocketFactory detachedSocketFactory,
             final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
         super();
-        Args.notNull(socketFactoryRegistry, "Socket factory registry");
-        this.socketFactoryRegistry = socketFactoryRegistry;
+        this.detachedSocketFactory = Args.notNull(detachedSocketFactory, "Plain socket factory");
+        this.socketFactoryRegistry = Args.notNull(socketFactoryRegistry, "Socket factory registry");
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver :
             DefaultSchemePortResolver.INSTANCE;
         this.dnsResolver = dnsResolver != null ? dnsResolver :
             SystemDefaultDnsResolver.INSTANCE;
     }
 
-    @SuppressWarnings("unchecked")
-    private Lookup<ConnectionSocketFactory> getSocketFactoryRegistry(final HttpContext context) {
-        Lookup<ConnectionSocketFactory> reg = (Lookup<ConnectionSocketFactory>) context.getAttribute(
-                SOCKET_FACTORY_REGISTRY);
-        if (reg == null) {
-            reg = this.socketFactoryRegistry;
-        }
-        return reg;
+    public DefaultHttpClientConnectionOperator(
+            final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver) {
+        this(PLAIN_SOCKET_FACTORY, socketFactoryRegistry, schemePortResolver, dnsResolver);
     }
 
     @Override
@@ -128,11 +136,6 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         Args.notNull(host, "Host");
         Args.notNull(socketConfig, "Socket config");
         Args.notNull(context, "Context");
-        final Lookup<ConnectionSocketFactory> registry = getSocketFactoryRegistry(context);
-        final ConnectionSocketFactory sf = registry.lookup(host.getSchemeName());
-        if (sf == null) {
-            throw new UnsupportedSchemeException(host.getSchemeName() + " protocol is not supported");
-        }
         final InetAddress[] remoteAddresses;
         if (host.getAddress() != null) {
             remoteAddresses = new InetAddress[] { host.getAddress() };
@@ -154,47 +157,59 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
 
         final Timeout soTimeout = socketConfig.getSoTimeout();
         final SocketAddress socksProxyAddress = socketConfig.getSocksProxyAddress();
-        final Proxy proxy = socksProxyAddress != null ? new Proxy(Proxy.Type.SOCKS, socksProxyAddress) : null;
+        final Proxy socksProxy = socksProxyAddress != null ? new Proxy(Proxy.Type.SOCKS, socksProxyAddress) : null;
         final int port = this.schemePortResolver.resolve(host);
         for (int i = 0; i < remoteAddresses.length; i++) {
             final InetAddress address = remoteAddresses[i];
             final boolean last = i == remoteAddresses.length - 1;
-
-            Socket sock = sf.createSocket(proxy, context);
-            if (soTimeout != null) {
-                sock.setSoTimeout(soTimeout.toMillisecondsIntBound());
-            }
-            sock.setReuseAddress(socketConfig.isSoReuseAddress());
-            sock.setTcpNoDelay(socketConfig.isTcpNoDelay());
-            sock.setKeepAlive(socketConfig.isSoKeepAlive());
-            if (socketConfig.getRcvBufSize() > 0) {
-                sock.setReceiveBufferSize(socketConfig.getRcvBufSize());
-            }
-            if (socketConfig.getSndBufSize() > 0) {
-                sock.setSendBufferSize(socketConfig.getSndBufSize());
-            }
-
-            final int linger = socketConfig.getSoLinger().toMillisecondsIntBound();
-            if (linger >= 0) {
-                sock.setSoLinger(true, linger);
-            }
-            conn.bind(sock);
-
             final InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{}:{} connecting {}->{} ({})",
                         host.getHostName(), host.getPort(), localAddress, remoteAddress, connectTimeout);
             }
+            final Socket socket = detachedSocketFactory.create(socksProxy);
             try {
-                sock = sf.connectSocket(sock, host, remoteAddress, localAddress, connectTimeout, attachment, context);
-                conn.bind(sock);
+                conn.bind(socket);
+                if (soTimeout != null) {
+                    socket.setSoTimeout(soTimeout.toMillisecondsIntBound());
+                }
+                socket.setReuseAddress(socketConfig.isSoReuseAddress());
+                socket.setTcpNoDelay(socketConfig.isTcpNoDelay());
+                socket.setKeepAlive(socketConfig.isSoKeepAlive());
+                if (socketConfig.getRcvBufSize() > 0) {
+                    socket.setReceiveBufferSize(socketConfig.getRcvBufSize());
+                }
+                if (socketConfig.getSndBufSize() > 0) {
+                    socket.setSendBufferSize(socketConfig.getSndBufSize());
+                }
+
+                final int linger = socketConfig.getSoLinger().toMillisecondsIntBound();
+                if (linger >= 0) {
+                    socket.setSoLinger(true, linger);
+                }
+
+                if (localAddress != null) {
+                    socket.bind(localAddress);
+                }
+                socket.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisecondsIntBound() : 0);
+                conn.bind(socket);
                 conn.setSocketTimeout(soTimeout);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{}:{} connected {}->{} as {}",
                             host.getHostName(), host.getPort(), localAddress, remoteAddress, ConnPoolSupport.getId(conn));
                 }
+                final ConnectionSocketFactory connectionSocketFactory = socketFactoryRegistry != null ? socketFactoryRegistry.lookup(host.getSchemeName()) : null;
+                if (connectionSocketFactory instanceof LayeredConnectionSocketFactory && URIScheme.HTTPS.same(host.getSchemeName())) {
+                    final LayeredConnectionSocketFactory lsf = (LayeredConnectionSocketFactory) connectionSocketFactory;
+                    final Socket upgradedSocket = lsf.createLayeredSocket(socket, host.getHostName(), port, attachment, context);
+                    conn.bind(upgradedSocket);
+                }
                 return;
+            } catch (final RuntimeException ex) {
+                Closer.closeQuietly(socket);
+                throw ex;
             } catch (final IOException ex) {
+                Closer.closeQuietly(socket);
                 if (last) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{}:{} connection to {} failed ({}); terminating operation",
@@ -225,9 +240,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final HttpHost host,
             final Object attachment,
             final HttpContext context) throws IOException {
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
-        final Lookup<ConnectionSocketFactory> registry = getSocketFactoryRegistry(clientContext);
-        final ConnectionSocketFactory sf = registry.lookup(host.getSchemeName());
+        final ConnectionSocketFactory sf = socketFactoryRegistry.lookup(host.getSchemeName());
         if (sf == null) {
             throw new UnsupportedSchemeException(host.getSchemeName() +
                     " protocol is not supported");

@@ -95,7 +95,6 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
         final ComplexFuture<ManagedAsyncClientConnection> future = new ComplexFuture<>(callback);
         final HttpHost remoteEndpoint = RoutingSupport.normalize(host, schemePortResolver);
         final InetAddress remoteAddress = host.getAddress();
-        final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
         final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
         final Future<IOSession> sessionFuture = sessionRequester.connect(
                 connectionInitiator,
@@ -109,6 +108,7 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                     @Override
                     public void completed(final IOSession session) {
                         final DefaultManagedAsyncClientConnection connection = new DefaultManagedAsyncClientConnection(session);
+                        final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
                         if (tlsStrategy != null && URIScheme.HTTPS.same(host.getSchemeName())) {
                             try {
                                 final Timeout socketTimeout = connection.getSocketTimeout();

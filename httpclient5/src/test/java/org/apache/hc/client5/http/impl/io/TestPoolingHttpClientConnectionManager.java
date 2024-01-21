@@ -40,6 +40,7 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
+import org.apache.hc.client5.http.io.DetachedSocketFactory;
 import org.apache.hc.client5.http.io.LeaseRequest;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -62,7 +63,6 @@ import org.mockito.MockitoAnnotations;
 /**
  * {@link PoolingHttpClientConnectionManager} tests.
  */
-@SuppressWarnings({"boxing","static-access","resource"}) // test code
 public class TestPoolingHttpClientConnectionManager {
 
     @Mock
@@ -70,9 +70,9 @@ public class TestPoolingHttpClientConnectionManager {
     @Mock
     private Lookup<ConnectionSocketFactory> socketFactoryRegistry;
     @Mock
-    private ConnectionSocketFactory plainSocketFactory;
+    private DetachedSocketFactory detachedSocketFactory;
     @Mock
-    private ConnectionSocketFactory sslSocketFactory;
+    private LayeredConnectionSocketFactory sslSocketFactory;
     @Mock
     private Socket socket;
     @Mock
@@ -83,13 +83,15 @@ public class TestPoolingHttpClientConnectionManager {
     private Future<PoolEntry<HttpRoute, ManagedHttpClientConnection>> future;
     @Mock
     private StrictConnPool<HttpRoute, ManagedHttpClientConnection> pool;
+
     private PoolingHttpClientConnectionManager mgr;
 
     @BeforeEach
     public void setup() throws Exception {
         MockitoAnnotations.openMocks(this);
-        mgr = new PoolingHttpClientConnectionManager(
-                new DefaultHttpClientConnectionOperator(socketFactoryRegistry, schemePortResolver, dnsResolver), pool, null);
+        mgr = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperator(
+                detachedSocketFactory, socketFactoryRegistry, schemePortResolver, dnsResolver), pool,
+                null);
     }
 
     @Test
@@ -259,14 +261,13 @@ public class TestPoolingHttpClientConnectionManager {
 
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[]{remote});
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(8443);
-        Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(plainSocketFactory);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.any(), Mockito.any())).thenReturn(socket);
-        Mockito.when(plainSocketFactory.connectSocket(
-                Mockito.eq(socket),
-                Mockito.any(),
-                Mockito.any(),
-                Mockito.any(),
-                Mockito.any(),
+        Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
+
+        Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(sslSocketFactory);
+        Mockito.when(sslSocketFactory.createLayeredSocket(
+                Mockito.same(socket),
+                Mockito.eq("somehost"),
+                Mockito.eq(8443),
                 Mockito.any(),
                 Mockito.any())).thenReturn(socket);
 
@@ -274,29 +275,17 @@ public class TestPoolingHttpClientConnectionManager {
 
         Mockito.verify(dnsResolver, Mockito.times(1)).resolve("somehost");
         Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target);
-        Mockito.verify(plainSocketFactory, Mockito.times(1)).createSocket(null, context);
-        Mockito.verify(plainSocketFactory, Mockito.times(1)).connectSocket(
-                socket,
-                target,
-                new InetSocketAddress(remote, 8443),
-                new InetSocketAddress(local, 0),
-                Timeout.ofMilliseconds(234),
-                tlsConfig,
-                context);
+        Mockito.verify(detachedSocketFactory, Mockito.times(1)).create(null);
+        Mockito.verify(socket, Mockito.times(1)).connect(new InetSocketAddress(remote, 8443), 234);
+        Mockito.verify(sslSocketFactory).createLayeredSocket(socket, "somehost", 8443, tlsConfig, context);
 
         mgr.connect(endpoint1, TimeValue.ofMilliseconds(123), context);
 
         Mockito.verify(dnsResolver, Mockito.times(2)).resolve("somehost");
         Mockito.verify(schemePortResolver, Mockito.times(2)).resolve(target);
-        Mockito.verify(plainSocketFactory, Mockito.times(2)).createSocket(null, context);
-        Mockito.verify(plainSocketFactory, Mockito.times(1)).connectSocket(
-                socket,
-                target,
-                new InetSocketAddress(remote, 8443),
-                new InetSocketAddress(local, 0),
-                Timeout.ofMilliseconds(123),
-                tlsConfig,
-                context);
+        Mockito.verify(detachedSocketFactory, Mockito.times(2)).create(null);
+        Mockito.verify(socket, Mockito.times(1)).connect(new InetSocketAddress(remote, 8443), 123);
+        Mockito.verify(sslSocketFactory, Mockito.times(2)).createLayeredSocket(socket, "somehost", 8443, tlsConfig, context);
     }
 
     @Test
@@ -323,9 +312,7 @@ public class TestPoolingHttpClientConnectionManager {
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
         Assertions.assertNotNull(endpoint1);
 
-        final ConnectionSocketFactory plainsf = Mockito.mock(ConnectionSocketFactory.class);
         final LayeredConnectionSocketFactory sslsf = Mockito.mock(LayeredConnectionSocketFactory.class);
-        final Socket mockSock = Mockito.mock(Socket.class);
         final HttpClientContext context = HttpClientContext.create();
         final SocketConfig sconfig = SocketConfig.custom().build();
 
@@ -343,40 +330,24 @@ public class TestPoolingHttpClientConnectionManager {
         Mockito.when(dnsResolver.resolve("someproxy")).thenReturn(new InetAddress[] {remote});
         Mockito.when(schemePortResolver.resolve(proxy)).thenReturn(8080);
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(8443);
-        Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainsf);
         Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(sslsf);
-        Mockito.when(plainsf.createSocket(Mockito.any(), Mockito.any())).thenReturn(mockSock);
-        Mockito.when(plainsf.connectSocket(
-                Mockito.eq(mockSock),
-                Mockito.any(),
-                Mockito.any(),
-                Mockito.any(),
-                Mockito.any(),
-                Mockito.any(),
-                Mockito.any())).thenReturn(mockSock);
+        Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
 
         mgr.connect(endpoint1, null, context);
 
         Mockito.verify(dnsResolver, Mockito.times(1)).resolve("someproxy");
         Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(proxy);
-        Mockito.verify(plainsf, Mockito.times(1)).createSocket(null, context);
-        Mockito.verify(plainsf, Mockito.times(1)).connectSocket(
-                mockSock,
-                proxy,
-                new InetSocketAddress(remote, 8080),
-                new InetSocketAddress(local, 0),
-                Timeout.ofMilliseconds(234),
-                tlsConfig,
-                context);
+        Mockito.verify(detachedSocketFactory, Mockito.times(1)).create(null);
+        Mockito.verify(socket, Mockito.times(1)).connect(new InetSocketAddress(remote, 8080), 234);
 
         Mockito.when(conn.isOpen()).thenReturn(true);
-        Mockito.when(conn.getSocket()).thenReturn(mockSock);
+        Mockito.when(conn.getSocket()).thenReturn(socket);
 
         mgr.upgrade(endpoint1, context);
 
         Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target);
         Mockito.verify(sslsf, Mockito.times(1)).createLayeredSocket(
-                mockSock, "somehost", 8443, tlsConfig, context);
+                socket, "somehost", 8443, tlsConfig, context);
     }
 
 }
