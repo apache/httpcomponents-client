@@ -27,8 +27,16 @@
 
 package org.apache.hc.client5.http.ssl;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.net.SocketAddress;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -36,7 +44,10 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.security.auth.x500.X500Principal;
 
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.core5.annotation.Contract;
@@ -44,6 +55,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.http.ssl.TlsCiphers;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
@@ -59,7 +71,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Contract(threading = ThreadingBehavior.STATELESS)
-abstract class AbstractClientTlsStrategy implements TlsStrategy {
+abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrategy {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractClientTlsStrategy.class);
 
@@ -68,7 +80,6 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
     private final String[] supportedCipherSuites;
     private final SSLBufferMode sslBufferManagement;
     private final HostnameVerifier hostnameVerifier;
-    private final TlsSessionValidator tlsSessionValidator;
 
     AbstractClientTlsStrategy(
             final SSLContext sslContext,
@@ -82,7 +93,6 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
         this.supportedCipherSuites = supportedCipherSuites;
         this.sslBufferManagement = sslBufferManagement != null ? sslBufferManagement : SSLBufferMode.STATIC;
         this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : HttpsSupport.getDefaultHostnameVerifier();
-        this.tlsSessionValidator = new TlsSessionValidator(LOG);
     }
 
     /**
@@ -165,10 +175,128 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
     protected void initializeEngine(final SSLEngine sslEngine) {
     }
 
+    protected void initializeSocket(final SSLSocket socket) {
+    }
+
     protected void verifySession(
             final String hostname,
             final SSLSession sslsession) throws SSLException {
-        tlsSessionValidator.verifySession(hostname, sslsession, hostnameVerifier);
+        verifySession(hostname, sslsession, hostnameVerifier);
+    }
+
+    @Override
+    public SSLSocket upgrade(final Socket socket,
+                             final String target,
+                             final int port,
+                             final Object attachment,
+                             final HttpContext context) throws IOException {
+        final SSLSocket upgradedSocket = (SSLSocket) sslContext.getSocketFactory().createSocket(
+                socket,
+                target,
+                port,
+                true);
+        executeHandshake(upgradedSocket, target, attachment);
+        return upgradedSocket;
+    }
+
+    private void executeHandshake(
+            final SSLSocket upgradedSocket,
+            final String target,
+            final Object attachment) throws IOException {
+        final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
+        if (supportedProtocols != null) {
+            upgradedSocket.setEnabledProtocols(supportedProtocols);
+        } else {
+            upgradedSocket.setEnabledProtocols((TLS.excludeWeak(upgradedSocket.getEnabledProtocols())));
+        }
+        if (supportedCipherSuites != null) {
+            upgradedSocket.setEnabledCipherSuites(supportedCipherSuites);
+        } else {
+            upgradedSocket.setEnabledCipherSuites(TlsCiphers.excludeWeak(upgradedSocket.getEnabledCipherSuites()));
+        }
+        final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout();
+        if (handshakeTimeout != null) {
+            upgradedSocket.setSoTimeout(handshakeTimeout.toMillisecondsIntBound());
+        }
+
+        initializeSocket(upgradedSocket);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Enabled protocols: {}", (Object) upgradedSocket.getEnabledProtocols());
+            LOG.debug("Enabled cipher suites: {}", (Object) upgradedSocket.getEnabledCipherSuites());
+            LOG.debug("Starting handshake ({})", handshakeTimeout);
+        }
+        upgradedSocket.startHandshake();
+        verifySession(target, upgradedSocket.getSession());
+    }
+
+    void verifySession(
+            final String hostname,
+            final SSLSession sslsession,
+            final HostnameVerifier hostnameVerifier) throws SSLException {
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Secure session established");
+            LOG.debug(" negotiated protocol: {}", sslsession.getProtocol());
+            LOG.debug(" negotiated cipher suite: {}", sslsession.getCipherSuite());
+
+            try {
+
+                final Certificate[] certs = sslsession.getPeerCertificates();
+                final Certificate cert = certs[0];
+                if (cert instanceof X509Certificate) {
+                    final X509Certificate x509 = (X509Certificate) cert;
+                    final X500Principal peer = x509.getSubjectX500Principal();
+
+                    LOG.debug(" peer principal: {}", peer);
+                    final Collection<List<?>> altNames1 = x509.getSubjectAlternativeNames();
+                    if (altNames1 != null) {
+                        final List<String> altNames = new ArrayList<>();
+                        for (final List<?> aC : altNames1) {
+                            if (!aC.isEmpty()) {
+                                altNames.add(Objects.toString(aC.get(1), null));
+                            }
+                        }
+                        LOG.debug(" peer alternative names: {}", altNames);
+                    }
+
+                    final X500Principal issuer = x509.getIssuerX500Principal();
+                    LOG.debug(" issuer principal: {}", issuer);
+                    final Collection<List<?>> altNames2 = x509.getIssuerAlternativeNames();
+                    if (altNames2 != null) {
+                        final List<String> altNames = new ArrayList<>();
+                        for (final List<?> aC : altNames2) {
+                            if (!aC.isEmpty()) {
+                                altNames.add(Objects.toString(aC.get(1), null));
+                            }
+                        }
+                        LOG.debug(" issuer alternative names: {}", altNames);
+                    }
+                }
+            } catch (final Exception ignore) {
+            }
+        }
+
+        if (hostnameVerifier != null) {
+            final Certificate[] certs = sslsession.getPeerCertificates();
+            if (certs.length < 1) {
+                throw new SSLPeerUnverifiedException("Peer certificate chain is empty");
+            }
+            final Certificate peerCertificate = certs[0];
+            final X509Certificate x509Certificate;
+            if (peerCertificate instanceof X509Certificate) {
+                x509Certificate = (X509Certificate) peerCertificate;
+            } else {
+                throw new SSLPeerUnverifiedException("Unexpected certificate type: " + peerCertificate.getType());
+            }
+            if (hostnameVerifier instanceof HttpClientHostnameVerifier) {
+                ((HttpClientHostnameVerifier) hostnameVerifier).verify(hostname, x509Certificate);
+            } else if (!hostnameVerifier.verify(hostname, sslsession)) {
+                final List<SubjectName> subjectAlts = DefaultHostnameVerifier.getSubjectAltNames(x509Certificate);
+                throw new SSLPeerUnverifiedException("Certificate for <" + hostname + "> doesn't match any " +
+                        "of the subject alternative names: " + subjectAlts);
+            }
+        }
     }
 
 }
