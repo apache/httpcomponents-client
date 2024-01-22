@@ -56,7 +56,6 @@ import javax.net.ssl.SSLSocket;
 import javax.security.auth.x500.X500Principal;
 
 import org.apache.hc.client5.http.config.TlsConfig;
-import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
@@ -79,10 +78,11 @@ import org.slf4j.LoggerFactory;
  * SSLSocketFactory can be used to validate the identity of the HTTPS server against a list of
  * trusted certificates and to authenticate to the HTTPS server using a private key.
  *
- * @since 4.3
+ * @deprecated Use {@link DefaultClientTlsStrategy}.
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
-public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactory {
+public class SSLConnectionSocketFactory implements org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory {
 
     private static final String WEAK_KEY_EXCHANGES
             = "^(TLS|SSL)_(NULL|ECDH_anon|DH_anon|DH_anon_EXPORT|DHE_RSA_EXPORT|DHE_DSS_EXPORT|"

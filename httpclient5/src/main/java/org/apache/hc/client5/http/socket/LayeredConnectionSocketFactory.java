@@ -37,8 +37,9 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 /**
  * Extended {@link ConnectionSocketFactory} interface for layered sockets such as SSL/TLS.
  *
- * @since 4.3
+ * @deprecated Use {@link org.apache.hc.client5.http.ssl.TlsSocketStrategy}.
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
 public interface LayeredConnectionSocketFactory extends ConnectionSocketFactory {
 

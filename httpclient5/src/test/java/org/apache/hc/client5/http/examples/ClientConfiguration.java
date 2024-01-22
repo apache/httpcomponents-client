@@ -57,7 +57,8 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
@@ -150,7 +151,7 @@ public class ClientConfiguration {
 
         // Create a registry of custom connection socket factories for supported
         // protocol schemes.
-        final SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext);
+        final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(sslContext);
 
         // Use custom DNS resolver to override the system DNS resolution.
         final DnsResolver dnsResolver = new SystemDefaultDnsResolver() {
@@ -168,7 +169,7 @@ public class ClientConfiguration {
 
         // Create a connection manager with custom configuration.
         final PoolingHttpClientConnectionManager connManager = PoolingHttpClientConnectionManagerBuilder.create()
-                .setSSLSocketFactory(sslConnectionSocketFactory)
+                .setTlsSocketStrategy(tlsStrategy)
                 .setConnectionFactory(connFactory)
                 .setDnsResolver(dnsResolver)
                 .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)

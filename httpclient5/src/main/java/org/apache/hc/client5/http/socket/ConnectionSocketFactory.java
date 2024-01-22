@@ -43,9 +43,10 @@ import org.apache.hc.core5.util.Timeout;
 /**
  * A factory for creating and connecting connection sockets.
  *
- * @since 4.3
+ * @deprecated Do not use.
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
+@Deprecated
 public interface ConnectionSocketFactory {
 
     /**

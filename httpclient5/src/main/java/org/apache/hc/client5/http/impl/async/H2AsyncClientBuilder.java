@@ -843,9 +843,9 @@ public class H2AsyncClientBuilder {
         TlsStrategy tlsStrategyCopy = this.tlsStrategy;
         if (tlsStrategyCopy == null) {
             if (systemProperties) {
-                tlsStrategyCopy = DefaultClientTlsStrategy.getSystemDefault();
+                tlsStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
             } else {
-                tlsStrategyCopy = DefaultClientTlsStrategy.getDefault();
+                tlsStrategyCopy = DefaultClientTlsStrategy.createDefault();
             }
         }
 

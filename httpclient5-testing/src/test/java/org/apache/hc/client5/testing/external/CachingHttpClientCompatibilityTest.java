@@ -40,7 +40,7 @@ import org.apache.hc.client5.http.impl.cache.HeapResourceFactory;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -76,7 +76,7 @@ public class CachingHttpClientCompatibilityTest {
         final SSLContext sslContext = SSLContexts.custom()
                 .loadTrustMaterial(getClass().getResource("/test-ca.keystore"), "nopassword".toCharArray()).build();
         this.connManager = PoolingHttpClientConnectionManagerBuilder.create()
-                .setSSLSocketFactory(new SSLConnectionSocketFactory(sslContext))
+                .setTlsSocketStrategy(new DefaultClientTlsStrategy(sslContext))
                 .build();
         this.client = CachingHttpClients.custom()
                 .setCacheConfig(CacheConfig.custom()

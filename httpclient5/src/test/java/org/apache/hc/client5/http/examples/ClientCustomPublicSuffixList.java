@@ -38,8 +38,9 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuil
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -66,11 +67,11 @@ public class ClientCustomPublicSuffixList {
                 .register(StandardCookieSpec.RELAXED, cookieSpecFactory)
                 .register(StandardCookieSpec.STRICT, cookieSpecFactory)
                 .build();
-        final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+        final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                 SSLContexts.createDefault(),
                 new DefaultHostnameVerifier(publicSuffixMatcher));
         final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
-                .setSSLSocketFactory(sslsf)
+                .setTlsSocketStrategy(tlsStrategy)
                 .build();
         try (final CloseableHttpClient httpclient = HttpClients.custom()
                 .setConnectionManager(cm)

@@ -46,8 +46,13 @@ import org.apache.hc.core5.util.TimeValue;
 /**
  * The default class for creating plain (unencrypted) sockets.
  *
- * @since 4.3
+ * @deprecated Use {@link org.apache.hc.client5.http.io.DetachedSocketFactory}.
+ * Please note this interface is considered internal.
+ *
+ * @see org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator
+ * @see org.apache.hc.client5.http.io.DetachedSocketFactory
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
 

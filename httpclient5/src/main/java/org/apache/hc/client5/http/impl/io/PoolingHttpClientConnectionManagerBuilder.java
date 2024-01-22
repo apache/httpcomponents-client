@@ -27,16 +27,16 @@
 
 package org.apache.hc.client5.http.impl.io;
 
+import javax.net.ssl.SSLSocket;
+
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
@@ -76,7 +76,7 @@ import org.apache.hc.core5.util.TimeValue;
 public class PoolingHttpClientConnectionManagerBuilder {
 
     private HttpConnectionFactory<ManagedHttpClientConnection> connectionFactory;
-    private LayeredConnectionSocketFactory sslSocketFactory;
+    private TlsSocketStrategy tlsSocketStrategy;
     private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
     private PoolConcurrencyPolicy poolConcurrencyPolicy;
@@ -108,11 +108,23 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link LayeredConnectionSocketFactory} instance.
+     * Assigns {@link org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory} instance.
+     *
+     * @deprecated Use {@link #setTlsSocketStrategy(TlsSocketStrategy)}
      */
+    @Deprecated
     public final PoolingHttpClientConnectionManagerBuilder setSSLSocketFactory(
-            final LayeredConnectionSocketFactory sslSocketFactory) {
-        this.sslSocketFactory = sslSocketFactory;
+            final org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory sslSocketFactory) {
+        this.tlsSocketStrategy = (socket, target, port, attachment, context) ->
+                (SSLSocket) sslSocketFactory.createLayeredSocket(socket, target, port, context);
+        return this;
+    }
+
+    /**
+     * Assigns {@link TlsSocketStrategy} instance.
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setTlsSocketStrategy(final TlsSocketStrategy tlsSocketStrategy) {
+        this.tlsSocketStrategy = tlsSocketStrategy;
         return this;
     }
 
@@ -262,19 +274,17 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     public PoolingHttpClientConnectionManager build() {
-        @SuppressWarnings("resource") final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
-                RegistryBuilder.<ConnectionSocketFactory>create()
-                        .register(URIScheme.HTTP.id, PlainConnectionSocketFactory.getSocketFactory())
-                        .register(URIScheme.HTTPS.id, sslSocketFactory != null ? sslSocketFactory :
-                                (systemProperties ?
-                                        SSLConnectionSocketFactory.getSystemSocketFactory() :
-                                        SSLConnectionSocketFactory.getSocketFactory()))
-                        .build(),
+        final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
+                new DefaultHttpClientConnectionOperator(schemePortResolver, dnsResolver,
+                        RegistryBuilder.<TlsSocketStrategy>create()
+                                .register(URIScheme.HTTPS.id, tlsSocketStrategy != null ? tlsSocketStrategy :
+                                        (systemProperties ?
+                                                DefaultClientTlsStrategy.createSystemDefault() :
+                                                DefaultClientTlsStrategy.createDefault()))
+                                .build()),
                 poolConcurrencyPolicy,
                 poolReusePolicy,
                 null,
-                schemePortResolver,
-                dnsResolver,
                 connectionFactory);
         poolingmgr.setSocketConfigResolver(socketConfigResolver);
         poolingmgr.setConnectionConfigResolver(connectionConfigResolver);
