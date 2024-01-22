@@ -35,6 +35,8 @@ import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
+import javax.net.ssl.SSLSocket;
+
 import org.apache.hc.client5.http.ConnectExceptionSupport;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -45,8 +47,7 @@ import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.io.DetachedSocketFactory;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -86,29 +87,55 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
     };
 
     private final DetachedSocketFactory detachedSocketFactory;
-    private final Lookup<ConnectionSocketFactory> socketFactoryRegistry;
+    private final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup;
     private final SchemePortResolver schemePortResolver;
     private final DnsResolver dnsResolver;
 
+    /**
+     * @deprecated Provided for backward compatibility
+     */
+    @Deprecated
+    static Lookup<TlsSocketStrategy> adapt(final Lookup<org.apache.hc.client5.http.socket.ConnectionSocketFactory> lookup) {
+
+        return name -> {
+            final org.apache.hc.client5.http.socket.ConnectionSocketFactory sf = lookup.lookup(name);
+            return sf instanceof org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory ? (socket, target, port, attachment, context) ->
+                    (SSLSocket) ((org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory) sf).createLayeredSocket(socket, target, port, attachment, context) : null;
+        };
+
+    }
+
+
     public DefaultHttpClientConnectionOperator(
             final DetachedSocketFactory detachedSocketFactory,
-            final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
             final SchemePortResolver schemePortResolver,
-            final DnsResolver dnsResolver) {
+            final DnsResolver dnsResolver,
+            final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup) {
         super();
         this.detachedSocketFactory = Args.notNull(detachedSocketFactory, "Plain socket factory");
-        this.socketFactoryRegistry = Args.notNull(socketFactoryRegistry, "Socket factory registry");
+        this.tlsSocketStrategyLookup = Args.notNull(tlsSocketStrategyLookup, "Socket factory registry");
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver :
-            DefaultSchemePortResolver.INSTANCE;
+                DefaultSchemePortResolver.INSTANCE;
         this.dnsResolver = dnsResolver != null ? dnsResolver :
-            SystemDefaultDnsResolver.INSTANCE;
+                SystemDefaultDnsResolver.INSTANCE;
+    }
+
+    /**
+     * @deprecated Do not use.
+     */
+    @Deprecated
+    public DefaultHttpClientConnectionOperator(
+            final Lookup<org.apache.hc.client5.http.socket.ConnectionSocketFactory> socketFactoryRegistry,
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver) {
+        this(PLAIN_SOCKET_FACTORY, schemePortResolver, dnsResolver, adapt(socketFactoryRegistry));
     }
 
     public DefaultHttpClientConnectionOperator(
-            final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
             final SchemePortResolver schemePortResolver,
-            final DnsResolver dnsResolver) {
-        this(PLAIN_SOCKET_FACTORY, socketFactoryRegistry, schemePortResolver, dnsResolver);
+            final DnsResolver dnsResolver,
+            final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup) {
+        this(PLAIN_SOCKET_FACTORY, schemePortResolver, dnsResolver, tlsSocketStrategyLookup);
     }
 
     @Override
@@ -198,10 +225,9 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                     LOG.debug("{}:{} connected {}->{} as {}",
                             host.getHostName(), host.getPort(), localAddress, remoteAddress, ConnPoolSupport.getId(conn));
                 }
-                final ConnectionSocketFactory connectionSocketFactory = socketFactoryRegistry != null ? socketFactoryRegistry.lookup(host.getSchemeName()) : null;
-                if (connectionSocketFactory instanceof LayeredConnectionSocketFactory && URIScheme.HTTPS.same(host.getSchemeName())) {
-                    final LayeredConnectionSocketFactory lsf = (LayeredConnectionSocketFactory) connectionSocketFactory;
-                    final Socket upgradedSocket = lsf.createLayeredSocket(socket, host.getHostName(), port, attachment, context);
+                final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(host.getSchemeName()) : null;
+                if (tlsSocketStrategy != null && URIScheme.HTTPS.same(host.getSchemeName())) {
+                    final Socket upgradedSocket = tlsSocketStrategy.upgrade(socket, host.getHostName(), port, attachment, context);
                     conn.bind(upgradedSocket);
                 }
                 return;
@@ -240,23 +266,18 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final HttpHost host,
             final Object attachment,
             final HttpContext context) throws IOException {
-        final ConnectionSocketFactory sf = socketFactoryRegistry.lookup(host.getSchemeName());
-        if (sf == null) {
+        final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(host.getSchemeName()) : null;
+        if (tlsSocketStrategy == null) {
             throw new UnsupportedSchemeException(host.getSchemeName() +
                     " protocol is not supported");
         }
-        if (!(sf instanceof LayeredConnectionSocketFactory)) {
-            throw new UnsupportedSchemeException(host.getSchemeName() +
-                    " protocol does not support connection upgrade");
-        }
-        final LayeredConnectionSocketFactory lsf = (LayeredConnectionSocketFactory) sf;
-        Socket sock = conn.getSocket();
-        if (sock == null) {
+        final Socket socket = conn.getSocket();
+        if (socket == null) {
             throw new ConnectionClosedException("Connection is closed");
         }
         final int port = this.schemePortResolver.resolve(host);
-        sock = lsf.createLayeredSocket(sock, host.getHostName(), port, attachment, context);
-        conn.bind(sock);
+        final SSLSocket upgradedSocket = tlsSocketStrategy.upgrade(socket, host.getHostName(), port, attachment, context);
+        conn.bind(upgradedSocket);
     }
 
 }

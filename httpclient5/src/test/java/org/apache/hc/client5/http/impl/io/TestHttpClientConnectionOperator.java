@@ -34,6 +34,8 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLSocket;
+
 import org.apache.hc.client5.http.ConnectTimeoutException;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpHostConnectException;
@@ -42,8 +44,7 @@ import org.apache.hc.client5.http.UnsupportedSchemeException;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.io.DetachedSocketFactory;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.io.SocketConfig;
@@ -62,8 +63,8 @@ public class TestHttpClientConnectionOperator {
     private ManagedHttpClientConnection conn;
     private Socket socket;
     private DetachedSocketFactory detachedSocketFactory;
-    private LayeredConnectionSocketFactory sslSocketFactory;
-    private Lookup<ConnectionSocketFactory> socketFactoryRegistry;
+    private TlsSocketStrategy tlsSocketStrategy;
+    private Lookup<TlsSocketStrategy> tlsSocketStrategyLookup;
     private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
     private DefaultHttpClientConnectionOperator connectionOperator;
@@ -73,12 +74,12 @@ public class TestHttpClientConnectionOperator {
         conn = Mockito.mock(ManagedHttpClientConnection.class);
         socket = Mockito.mock(Socket.class);
         detachedSocketFactory = Mockito.mock(DetachedSocketFactory.class);
-        sslSocketFactory = Mockito.mock(LayeredConnectionSocketFactory.class);
-        socketFactoryRegistry = Mockito.mock(Lookup.class);
+        tlsSocketStrategy = Mockito.mock(TlsSocketStrategy.class);
+        tlsSocketStrategyLookup = Mockito.mock(Lookup.class);
         schemePortResolver = Mockito.mock(SchemePortResolver.class);
         dnsResolver = Mockito.mock(DnsResolver.class);
         connectionOperator = new DefaultHttpClientConnectionOperator(
-                detachedSocketFactory, socketFactoryRegistry, schemePortResolver, dnsResolver);
+                detachedSocketFactory, schemePortResolver, dnsResolver, tlsSocketStrategyLookup);
     }
 
     @Test
@@ -131,9 +132,9 @@ public class TestHttpClientConnectionOperator {
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(443);
         Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
 
-        Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(sslSocketFactory);
-        final Socket upgradedSocket = Mockito.mock(Socket.class);
-        Mockito.when(sslSocketFactory.createLayeredSocket(
+        Mockito.when(tlsSocketStrategyLookup.lookup("https")).thenReturn(tlsSocketStrategy);
+        final SSLSocket upgradedSocket = Mockito.mock(SSLSocket.class);
+        Mockito.when(tlsSocketStrategy.upgrade(
                 Mockito.same(socket),
                 Mockito.eq("somehost"),
                 Mockito.eq(443),
@@ -146,7 +147,7 @@ public class TestHttpClientConnectionOperator {
 
         Mockito.verify(socket).connect(new InetSocketAddress(ip1, 443), 123);
         Mockito.verify(conn, Mockito.times(2)).bind(socket);
-        Mockito.verify(sslSocketFactory).createLayeredSocket(socket, "somehost", 443, tlsConfig, context);
+        Mockito.verify(tlsSocketStrategy).upgrade(socket, "somehost", 443, tlsConfig, context);
         Mockito.verify(conn, Mockito.times(1)).bind(upgradedSocket);
     }
 
@@ -240,19 +241,20 @@ public class TestHttpClientConnectionOperator {
 
         Mockito.when(conn.isOpen()).thenReturn(true);
         Mockito.when(conn.getSocket()).thenReturn(socket);
-        Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(sslSocketFactory);
+        Mockito.when(tlsSocketStrategyLookup.lookup("https")).thenReturn(tlsSocketStrategy);
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(443);
-        Mockito.when(sslSocketFactory.createSocket(Mockito.any())).thenReturn(socket);
-        Mockito.when(sslSocketFactory.createLayeredSocket(
+
+        final SSLSocket upgradedSocket = Mockito.mock(SSLSocket.class);
+        Mockito.when(tlsSocketStrategy.upgrade(
                 Mockito.any(),
                 Mockito.eq("somehost"),
                 Mockito.eq(443),
                 Mockito.eq(Timeout.ofMilliseconds(345)),
-                Mockito.any())).thenReturn(socket);
+                Mockito.any())).thenReturn(upgradedSocket);
 
         connectionOperator.upgrade(conn, host, Timeout.ofMilliseconds(345), context);
 
-        Mockito.verify(conn).bind(socket);
+        Mockito.verify(conn).bind(upgradedSocket);
     }
 
     @Test

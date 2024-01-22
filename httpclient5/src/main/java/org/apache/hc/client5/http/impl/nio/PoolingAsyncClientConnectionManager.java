@@ -129,7 +129,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
     public PoolingAsyncClientConnectionManager() {
         this(RegistryBuilder.<TlsStrategy>create()
-                .register(URIScheme.HTTPS.getId(), DefaultClientTlsStrategy.getDefault())
+                .register(URIScheme.HTTPS.getId(), DefaultClientTlsStrategy.createDefault())
                 .build());
     }
 

@@ -48,9 +48,8 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
 import org.apache.hc.client5.http.io.LeaseRequest;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -120,41 +119,65 @@ public class PoolingHttpClientConnectionManager
     private volatile Resolver<HttpHost, TlsConfig> tlsConfigResolver;
 
     public PoolingHttpClientConnectionManager() {
-        this(RegistryBuilder.<ConnectionSocketFactory>create()
-                .register(URIScheme.HTTP.id, PlainConnectionSocketFactory.getSocketFactory())
-                .register(URIScheme.HTTPS.id, SSLConnectionSocketFactory.getSocketFactory())
-                .build());
+        this(new DefaultHttpClientConnectionOperator(null, null,
+                RegistryBuilder.<TlsSocketStrategy>create()
+                    .register(URIScheme.HTTPS.id, DefaultClientTlsStrategy.createDefault())
+                    .build()),
+                PoolConcurrencyPolicy.STRICT,
+                PoolReusePolicy.LIFO,
+                TimeValue.NEG_ONE_MILLISECOND,
+                null);
     }
 
+    /**
+     * @deprecated Use {@link PoolingHttpClientConnectionManagerBuilder}
+     */
+    @Deprecated
     public PoolingHttpClientConnectionManager(
-            final Registry<ConnectionSocketFactory> socketFactoryRegistry) {
+            final Registry<org.apache.hc.client5.http.socket.ConnectionSocketFactory> socketFactoryRegistry) {
         this(socketFactoryRegistry, null);
     }
 
+    /**
+     * @deprecated Use {@link PoolingHttpClientConnectionManagerBuilder}
+     */
+    @Deprecated
     public PoolingHttpClientConnectionManager(
-            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final Registry<org.apache.hc.client5.http.socket.ConnectionSocketFactory> socketFactoryRegistry,
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
         this(socketFactoryRegistry, PoolConcurrencyPolicy.STRICT, TimeValue.NEG_ONE_MILLISECOND, connFactory);
     }
 
+    /**
+     * @deprecated Use {@link PoolingHttpClientConnectionManagerBuilder}
+     */
+    @Deprecated
     public PoolingHttpClientConnectionManager(
-            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final Registry<org.apache.hc.client5.http.socket.ConnectionSocketFactory> socketFactoryRegistry,
             final PoolConcurrencyPolicy poolConcurrencyPolicy,
             final TimeValue timeToLive,
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
         this(socketFactoryRegistry, poolConcurrencyPolicy, PoolReusePolicy.LIFO, timeToLive, connFactory);
     }
 
+    /**
+     * @deprecated Use {@link PoolingHttpClientConnectionManagerBuilder}
+     */
+    @Deprecated
     public PoolingHttpClientConnectionManager(
-            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final Registry<org.apache.hc.client5.http.socket.ConnectionSocketFactory> socketFactoryRegistry,
             final PoolConcurrencyPolicy poolConcurrencyPolicy,
             final PoolReusePolicy poolReusePolicy,
             final TimeValue timeToLive) {
         this(socketFactoryRegistry, poolConcurrencyPolicy, poolReusePolicy, timeToLive, null);
     }
 
+    /**
+     * @deprecated Use {@link PoolingHttpClientConnectionManagerBuilder}
+     */
+    @Deprecated
     public PoolingHttpClientConnectionManager(
-            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final Registry<org.apache.hc.client5.http.socket.ConnectionSocketFactory> socketFactoryRegistry,
             final PoolConcurrencyPolicy poolConcurrencyPolicy,
             final PoolReusePolicy poolReusePolicy,
             final TimeValue timeToLive,
@@ -162,8 +185,12 @@ public class PoolingHttpClientConnectionManager
         this(socketFactoryRegistry, poolConcurrencyPolicy, poolReusePolicy, timeToLive, null, null, connFactory);
     }
 
+    /**
+     * @deprecated Use {@link PoolingHttpClientConnectionManagerBuilder}
+     */
+    @Deprecated
     public PoolingHttpClientConnectionManager(
-            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final Registry<org.apache.hc.client5.http.socket.ConnectionSocketFactory> socketFactoryRegistry,
             final PoolConcurrencyPolicy poolConcurrencyPolicy,
             final PoolReusePolicy poolReusePolicy,
             final TimeValue timeToLive,

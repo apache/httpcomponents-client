@@ -42,7 +42,7 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -102,7 +102,7 @@ public class HttpClientCompatibilityTest {
         final SSLContext sslContext = SSLContexts.custom()
                 .loadTrustMaterial(getClass().getResource("/test-ca.keystore"), "nopassword".toCharArray()).build();
         this.connManager = PoolingHttpClientConnectionManagerBuilder.create()
-                .setSSLSocketFactory(new SSLConnectionSocketFactory(sslContext))
+                .setTlsSocketStrategy(new DefaultClientTlsStrategy(sslContext))
                 .build();
         this.client = HttpClients.custom()
                 .setConnectionManager(this.connManager)

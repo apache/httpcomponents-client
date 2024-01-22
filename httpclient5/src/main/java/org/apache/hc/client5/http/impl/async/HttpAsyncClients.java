@@ -314,7 +314,7 @@ public final class HttpAsyncClients {
     public static MinimalH2AsyncClient createHttp2Minimal(
             final H2Config h2Config,
             final IOReactorConfig ioReactorConfig) {
-        return createHttp2Minimal(h2Config, ioReactorConfig, DefaultClientTlsStrategy.getDefault());
+        return createHttp2Minimal(h2Config, ioReactorConfig, DefaultClientTlsStrategy.createDefault());
     }
 
     /**

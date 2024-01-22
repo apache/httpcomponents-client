@@ -57,8 +57,9 @@ import org.apache.hc.core5.ssl.SSLContexts;
  *  <li>https.cipherSuites</li>
  * </ul>
  *
- * @since 5.0
+ * @deprecated Use {@link DefaultClientTlsStrategy}
  */
+@Deprecated
 public class SSLConnectionSocketFactoryBuilder {
 
     public static SSLConnectionSocketFactoryBuilder create() {

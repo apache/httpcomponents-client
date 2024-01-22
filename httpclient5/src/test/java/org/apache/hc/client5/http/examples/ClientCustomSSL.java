@@ -38,8 +38,8 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.ssl.TLS;
@@ -67,12 +67,10 @@ public class ClientCustomSSL {
                     return "CN=httpbin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
                 })
                 .build();
-        final SSLConnectionSocketFactory sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
-                .setSslContext(sslContext)
-                .build();
+        final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(sslContext);
         // Allow TLSv1.3 protocol only
         final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
-                .setSSLSocketFactory(sslSocketFactory)
+                .setTlsSocketStrategy(tlsStrategy)
                 .setDefaultTlsConfig(TlsConfig.custom()
                         .setHandshakeTimeout(Timeout.ofSeconds(30))
                         .setSupportedProtocols(TLS.V_1_3)

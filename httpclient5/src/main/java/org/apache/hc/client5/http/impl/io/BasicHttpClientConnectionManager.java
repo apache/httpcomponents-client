@@ -49,9 +49,8 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
 import org.apache.hc.client5.http.io.LeaseRequest;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -60,7 +59,6 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
-import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
@@ -119,22 +117,6 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     private final AtomicBoolean closed;
 
-    private static Registry<ConnectionSocketFactory> getDefaultRegistry() {
-        return RegistryBuilder.<ConnectionSocketFactory>create()
-                .register(URIScheme.HTTP.id, PlainConnectionSocketFactory.getSocketFactory())
-                .register(URIScheme.HTTPS.id, SSLConnectionSocketFactory.getSocketFactory())
-                .build();
-    }
-
-    public BasicHttpClientConnectionManager(
-            final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
-            final SchemePortResolver schemePortResolver,
-            final DnsResolver dnsResolver) {
-      this(new DefaultHttpClientConnectionOperator(
-              socketFactoryRegistry, schemePortResolver, dnsResolver), connFactory);
-    }
-
     /**
      * @since 4.4
      */
@@ -153,19 +135,76 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         this.lock = new ReentrantLock();
     }
 
+    /**
+     * @since 5.4
+     */
+    public static BasicHttpClientConnectionManager create(
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver,
+            final Lookup<TlsSocketStrategy> tlsSocketStrategyRegistry,
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
+        return new BasicHttpClientConnectionManager(
+                new DefaultHttpClientConnectionOperator(schemePortResolver, dnsResolver, tlsSocketStrategyRegistry),
+                connFactory);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public static BasicHttpClientConnectionManager create(
+            final Lookup<TlsSocketStrategy> tlsSocketStrategyRegistry,
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
+        return new BasicHttpClientConnectionManager(
+                new DefaultHttpClientConnectionOperator(null, null, tlsSocketStrategyRegistry), connFactory);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public static BasicHttpClientConnectionManager create(
+            final Lookup<TlsSocketStrategy> tlsSocketStrategyRegistry) {
+        return new BasicHttpClientConnectionManager(
+                new DefaultHttpClientConnectionOperator(null, null, tlsSocketStrategyRegistry), null);
+    }
+
+    /**
+     * @deprecated Use {@link #create(SchemePortResolver, DnsResolver, Lookup, HttpConnectionFactory)}
+     */
+    @Deprecated
     public BasicHttpClientConnectionManager(
-            final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
+            final Lookup<org.apache.hc.client5.http.socket.ConnectionSocketFactory> socketFactoryRegistry,
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver) {
+        this(new DefaultHttpClientConnectionOperator(
+                socketFactoryRegistry, schemePortResolver, dnsResolver), connFactory);
+    }
+
+    /**
+     * @deprecated Use {@link #create(Lookup, HttpConnectionFactory)}
+     */
+    @Deprecated
+    public BasicHttpClientConnectionManager(
+            final Lookup<org.apache.hc.client5.http.socket.ConnectionSocketFactory> socketFactoryRegistry,
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
         this(socketFactoryRegistry, connFactory, null, null);
     }
 
+    /**
+     * @deprecated Use {@link #create(Lookup)}
+     */
+    @Deprecated
     public BasicHttpClientConnectionManager(
-            final Lookup<ConnectionSocketFactory> socketFactoryRegistry) {
+            final Lookup<org.apache.hc.client5.http.socket.ConnectionSocketFactory> socketFactoryRegistry) {
         this(socketFactoryRegistry, null, null, null);
     }
 
     public BasicHttpClientConnectionManager() {
-        this(getDefaultRegistry(), null, null, null);
+        this(new DefaultHttpClientConnectionOperator(null, null,
+                RegistryBuilder.<TlsSocketStrategy>create()
+                        .register(URIScheme.HTTPS.id, DefaultClientTlsStrategy.createDefault())
+                        .build()),
+                null);
     }
 
     @Override

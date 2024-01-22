@@ -48,19 +48,41 @@ import org.apache.hc.core5.ssl.SSLContexts;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
 
-    public static TlsStrategy getDefault() {
+    /**
+     * @since 5.4
+     */
+    public static DefaultClientTlsStrategy createDefault() {
         return new DefaultClientTlsStrategy(
                 SSLContexts.createDefault(),
                 HttpsSupport.getDefaultHostnameVerifier());
     }
 
-    public static TlsStrategy getSystemDefault() {
+    /**
+     * @since 5.4
+     */
+    public static DefaultClientTlsStrategy createSystemDefault() {
         return new DefaultClientTlsStrategy(
                 SSLContexts.createSystemDefault(),
                 HttpsSupport.getSystemProtocols(),
                 HttpsSupport.getSystemCipherSuits(),
                 SSLBufferMode.STATIC,
                 HttpsSupport.getDefaultHostnameVerifier());
+    }
+
+    /**
+     * @deprecated Use {@link #createDefault()}.
+     */
+    @Deprecated
+    public static TlsStrategy getDefault() {
+        return createDefault();
+    }
+
+    /**
+     * @deprecated Use {@link #createSystemDefault()}.
+     */
+    @Deprecated
+    public static TlsStrategy getSystemDefault() {
+        return createSystemDefault();
     }
 
     /**

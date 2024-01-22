@@ -242,9 +242,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
                 }
             } else {
                 if (systemProperties) {
-                    tlsStrategyCopy = DefaultClientTlsStrategy.getSystemDefault();
+                    tlsStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
                 } else {
-                    tlsStrategyCopy = DefaultClientTlsStrategy.getDefault();
+                    tlsStrategyCopy = DefaultClientTlsStrategy.createDefault();
                 }
             }
         }
