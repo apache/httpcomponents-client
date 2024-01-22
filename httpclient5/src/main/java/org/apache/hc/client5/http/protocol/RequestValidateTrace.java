@@ -100,19 +100,19 @@ import org.slf4j.LoggerFactory;
  * @see HttpHeaders#COOKIE
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
-public class RequestTraceInterceptor implements HttpRequestInterceptor {
+public class RequestValidateTrace implements HttpRequestInterceptor {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RequestTraceInterceptor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RequestValidateTrace.class);
 
     /**
-     * Singleton instance of {@link RequestTraceInterceptor}.
+     * Singleton instance of {@link RequestValidateTrace}.
      */
-    public static final HttpRequestInterceptor INSTANCE = new RequestTraceInterceptor();
+    public static final HttpRequestInterceptor INSTANCE = new RequestValidateTrace();
 
     /**
      * Default constructor.
      */
-    public RequestTraceInterceptor() {
+    public RequestValidateTrace() {
         super();
     }
 

@@ -77,11 +77,10 @@ import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.protocol.RequestAddCookies;
-import org.apache.hc.client5.http.protocol.RequestTraceInterceptor;
 import org.apache.hc.client5.http.protocol.RequestClientConnControl;
 import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
 import org.apache.hc.client5.http.protocol.RequestExpectContinue;
-import org.apache.hc.client5.http.protocol.RequestIfRange;
+import org.apache.hc.client5.http.protocol.RequestValidateTrace;
 import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.core5.annotation.Internal;
@@ -819,15 +818,13 @@ public class HttpClientBuilder {
             }
         }
         b.addAll(
+                new RequestTargetHost(),
+                new RequestValidateTrace(),
                 new RequestDefaultHeaders(defaultHeaders),
                 new RequestContent(),
-                new RequestTargetHost(),
                 new RequestClientConnControl(),
                 new RequestUserAgent(userAgentCopy),
-                new RequestExpectContinue(),
-                new RequestTraceInterceptor(),
-                new RequestExpectContinue(),
-                new RequestIfRange());
+                new RequestExpectContinue());
         if (!cookieManagementDisabled) {
             b.add(RequestAddCookies.INSTANCE);
         }

@@ -45,15 +45,15 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class TestRequestTraceInterceptor {
+class TestRequestValidateTrace {
 
-    private RequestTraceInterceptor interceptor;
+    private RequestValidateTrace interceptor;
     private HttpRequest request;
     private HttpContext context;
 
     @BeforeEach
     void setUp() {
-        interceptor = new RequestTraceInterceptor();
+        interceptor = new RequestValidateTrace();
         context = new BasicHttpContext();
     }
 
