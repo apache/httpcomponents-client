@@ -53,7 +53,6 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ConnectionClosedException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -226,7 +225,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                             host.getHostName(), host.getPort(), localAddress, remoteAddress, ConnPoolSupport.getId(conn));
                 }
                 final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(host.getSchemeName()) : null;
-                if (tlsSocketStrategy != null && URIScheme.HTTPS.same(host.getSchemeName())) {
+                if (tlsSocketStrategy != null) {
                     final Socket upgradedSocket = tlsSocketStrategy.upgrade(socket, host.getHostName(), port, attachment, context);
                     conn.bind(upgradedSocket);
                 }
@@ -266,18 +265,18 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final HttpHost host,
             final Object attachment,
             final HttpContext context) throws IOException {
-        final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(host.getSchemeName()) : null;
-        if (tlsSocketStrategy == null) {
-            throw new UnsupportedSchemeException(host.getSchemeName() +
-                    " protocol is not supported");
-        }
         final Socket socket = conn.getSocket();
         if (socket == null) {
             throw new ConnectionClosedException("Connection is closed");
         }
-        final int port = this.schemePortResolver.resolve(host);
-        final SSLSocket upgradedSocket = tlsSocketStrategy.upgrade(socket, host.getHostName(), port, attachment, context);
-        conn.bind(upgradedSocket);
+        final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(host.getSchemeName()) : null;
+        if (tlsSocketStrategy != null) {
+            final int port = this.schemePortResolver.resolve(host);
+            final SSLSocket upgradedSocket = tlsSocketStrategy.upgrade(socket, host.getHostName(), port, attachment, context);
+            conn.bind(upgradedSocket);
+        } else {
+            throw new UnsupportedSchemeException(host.getSchemeName() + " protocol is not supported");
+        }
     }
 
 }
