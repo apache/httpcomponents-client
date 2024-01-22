@@ -34,6 +34,7 @@ import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.UnsupportedSchemeException;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
@@ -44,7 +45,6 @@ import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.concurrent.FutureContribution;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -109,7 +109,7 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                     public void completed(final IOSession session) {
                         final DefaultManagedAsyncClientConnection connection = new DefaultManagedAsyncClientConnection(session);
                         final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
-                        if (tlsStrategy != null && URIScheme.HTTPS.same(host.getSchemeName())) {
+                        if (tlsStrategy != null) {
                             try {
                                 final Timeout socketTimeout = connection.getSocketTimeout();
                                 final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout();
@@ -191,8 +191,9 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                         }
 
                     });
+        } else {
+            callback.failed(new UnsupportedSchemeException(host.getSchemeName() + " protocol is not supported"));
         }
-
     }
 
 }

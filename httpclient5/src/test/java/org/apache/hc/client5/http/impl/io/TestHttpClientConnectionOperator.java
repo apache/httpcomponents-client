@@ -262,6 +262,9 @@ public class TestHttpClientConnectionOperator {
         final HttpContext context = new BasicHttpContext();
         final HttpHost host = new HttpHost("httpsssss", "somehost", -1);
 
+        Mockito.when(conn.isOpen()).thenReturn(true);
+        Mockito.when(conn.getSocket()).thenReturn(socket);
+
         Assertions.assertThrows(UnsupportedSchemeException.class, () ->
                 connectionOperator.upgrade(conn, host, context));
     }
@@ -270,6 +273,9 @@ public class TestHttpClientConnectionOperator {
     public void testUpgradeNonLayeringScheme() throws Exception {
         final HttpContext context = new BasicHttpContext();
         final HttpHost host = new HttpHost("http", "somehost", -1);
+
+        Mockito.when(conn.isOpen()).thenReturn(true);
+        Mockito.when(conn.getSocket()).thenReturn(socket);
 
         Assertions.assertThrows(UnsupportedSchemeException.class, () ->
                 connectionOperator.upgrade(conn, host, context));
