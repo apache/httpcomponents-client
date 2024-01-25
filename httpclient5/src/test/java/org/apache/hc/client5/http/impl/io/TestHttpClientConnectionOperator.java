@@ -91,7 +91,7 @@ public class TestHttpClientConnectionOperator {
         final InetAddress ip2 = InetAddress.getByAddress(new byte[] {127, 0, 0, 2});
 
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
-        Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
+        Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(80);
         Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
 
         final SocketConfig socketConfig = SocketConfig.custom()
@@ -129,7 +129,7 @@ public class TestHttpClientConnectionOperator {
                 .build();
 
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
-        Mockito.when(schemePortResolver.resolve(host)).thenReturn(443);
+        Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(443);
         Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
 
         Mockito.when(tlsSocketStrategyLookup.lookup("https")).thenReturn(tlsSocketStrategy);
@@ -194,7 +194,7 @@ public class TestHttpClientConnectionOperator {
         final InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
 
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
-        Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
+        Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(80);
         Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
         Mockito.doThrow(new ConnectException()).when(socket).connect(
                 Mockito.eq(new InetSocketAddress(ip1, 80)),
@@ -219,7 +219,7 @@ public class TestHttpClientConnectionOperator {
         final InetAddress ip = InetAddress.getByAddress(new byte[] {127, 0, 0, 23});
         final HttpHost host = new HttpHost(ip);
 
-        Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
+        Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(80);
         Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
 
         final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
@@ -242,7 +242,7 @@ public class TestHttpClientConnectionOperator {
         Mockito.when(conn.isOpen()).thenReturn(true);
         Mockito.when(conn.getSocket()).thenReturn(socket);
         Mockito.when(tlsSocketStrategyLookup.lookup("https")).thenReturn(tlsSocketStrategy);
-        Mockito.when(schemePortResolver.resolve(host)).thenReturn(443);
+        Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(443);
 
         final SSLSocket upgradedSocket = Mockito.mock(SSLSocket.class);
         Mockito.when(tlsSocketStrategy.upgrade(

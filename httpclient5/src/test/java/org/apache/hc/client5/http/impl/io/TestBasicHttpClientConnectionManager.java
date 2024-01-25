@@ -385,7 +385,7 @@ public class TestBasicHttpClientConnectionManager {
         mgr.setTlsConfig(tlsConfig);
 
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] {remote});
-        Mockito.when(schemePortResolver.resolve(target)).thenReturn(8443);
+        Mockito.when(schemePortResolver.resolve(target.getSchemeName(), target)).thenReturn(8443);
         Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
 
         Mockito.when(tlsSocketStrategyLookup.lookup("https")).thenReturn(tlsSocketStrategy);
@@ -399,7 +399,7 @@ public class TestBasicHttpClientConnectionManager {
         mgr.connect(endpoint1, null, context);
 
         Mockito.verify(dnsResolver, Mockito.times(1)).resolve("somehost");
-        Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target);
+        Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target.getSchemeName(), target);
         Mockito.verify(detachedSocketFactory, Mockito.times(1)).create(null);
         Mockito.verify(socket, Mockito.times(1)).connect(new InetSocketAddress(remote, 8443), 234);
         Mockito.verify(tlsSocketStrategy).upgrade(socket, "somehost", 8443, tlsConfig, context);
@@ -407,7 +407,7 @@ public class TestBasicHttpClientConnectionManager {
         mgr.connect(endpoint1, TimeValue.ofMilliseconds(123), context);
 
         Mockito.verify(dnsResolver, Mockito.times(2)).resolve("somehost");
-        Mockito.verify(schemePortResolver, Mockito.times(2)).resolve(target);
+        Mockito.verify(schemePortResolver, Mockito.times(2)).resolve(target.getSchemeName(), target);
         Mockito.verify(detachedSocketFactory, Mockito.times(2)).create(null);
         Mockito.verify(socket, Mockito.times(1)).connect(new InetSocketAddress(remote, 8443), 123);
         Mockito.verify(tlsSocketStrategy, Mockito.times(2)).upgrade(socket, "somehost", 8443, tlsConfig, context);
@@ -442,15 +442,15 @@ public class TestBasicHttpClientConnectionManager {
         mgr.setTlsConfig(tlsConfig);
 
         Mockito.when(dnsResolver.resolve("someproxy")).thenReturn(new InetAddress[] {remote});
-        Mockito.when(schemePortResolver.resolve(proxy)).thenReturn(8080);
-        Mockito.when(schemePortResolver.resolve(target)).thenReturn(8443);
+        Mockito.when(schemePortResolver.resolve(proxy.getSchemeName(), proxy)).thenReturn(8080);
+        Mockito.when(schemePortResolver.resolve(target.getSchemeName(), target)).thenReturn(8443);
         Mockito.when(tlsSocketStrategyLookup.lookup("https")).thenReturn(tlsSocketStrategy);
         Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
 
         mgr.connect(endpoint1, null, context);
 
         Mockito.verify(dnsResolver, Mockito.times(1)).resolve("someproxy");
-        Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(proxy);
+        Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(proxy.getSchemeName(), proxy);
         Mockito.verify(detachedSocketFactory, Mockito.times(1)).create(null);
         Mockito.verify(socket, Mockito.times(1)).connect(new InetSocketAddress(remote, 8080), 234);
 
@@ -458,7 +458,7 @@ public class TestBasicHttpClientConnectionManager {
 
         mgr.upgrade(endpoint1, context);
 
-        Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target);
+        Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target.getSchemeName(), target);
         Mockito.verify(tlsSocketStrategy, Mockito.times(1)).upgrade(
                 socket, "somehost", 8443, tlsConfig, context);
     }

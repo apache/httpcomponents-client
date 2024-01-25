@@ -37,6 +37,7 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
+import org.apache.hc.client5.http.impl.ProtocolSwitchStrategy;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
@@ -47,6 +48,9 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
@@ -74,6 +78,7 @@ public final class MainClientExec implements ExecChainHandler {
     private final ConnectionReuseStrategy reuseStrategy;
     private final ConnectionKeepAliveStrategy keepAliveStrategy;
     private final UserTokenHandler userTokenHandler;
+    private final ProtocolSwitchStrategy protocolSwitchStrategy;
 
     /**
      * @since 4.4
@@ -89,6 +94,7 @@ public final class MainClientExec implements ExecChainHandler {
         this.reuseStrategy = Args.notNull(reuseStrategy, "Connection reuse strategy");
         this.keepAliveStrategy = Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
         this.userTokenHandler = Args.notNull(userTokenHandler, "User token handler");
+        this.protocolSwitchStrategy = new ProtocolSwitchStrategy();
     }
 
     @Override
@@ -113,7 +119,27 @@ public final class MainClientExec implements ExecChainHandler {
 
             httpProcessor.process(request, request.getEntity(), context);
 
-            final ClassicHttpResponse response = execRuntime.execute(exchangeId, request, null, context);
+            final ClassicHttpResponse response = execRuntime.execute(
+                    exchangeId,
+                    request,
+                    (r, connection, c) -> {
+                        if (r.getCode() == HttpStatus.SC_SWITCHING_PROTOCOLS) {
+                            final ProtocolVersion upgradeProtocol = protocolSwitchStrategy.switchProtocol(r);
+                            if (upgradeProtocol == null || !upgradeProtocol.getProtocol().equals("TLS")) {
+                                throw new ProtocolException("Failure switching protocols");
+                            }
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("Switching to {}", upgradeProtocol);
+                            }
+                            try {
+                                execRuntime.upgradeTls(context);
+                            } catch (final IOException ex) {
+                                throw new HttpException("Failure upgrading to TLS", ex);
+                            }
+                            LOG.debug("Successfully switched to {}", upgradeProtocol);
+                        }
+                    },
+                    context);
 
             context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
             httpProcessor.process(response, response.getEntity(), context);

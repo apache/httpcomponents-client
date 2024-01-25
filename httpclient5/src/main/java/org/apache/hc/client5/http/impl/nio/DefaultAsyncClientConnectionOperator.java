@@ -45,6 +45,7 @@ import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.concurrent.FutureContribution;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -174,11 +175,13 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             final Object attachment,
             final HttpContext context,
             final FutureCallback<ManagedAsyncClientConnection> callback) {
-        final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
+        final String newProtocol = URIScheme.HTTP.same(host.getSchemeName()) ? URIScheme.HTTPS.id : host.getSchemeName();
+        final HttpHost remoteEndpoint = RoutingSupport.normalize(host, schemePortResolver);
+        final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(newProtocol) : null;
         if (tlsStrategy != null) {
             tlsStrategy.upgrade(
                     connection,
-                    host,
+                    remoteEndpoint,
                     attachment,
                     null,
                     new CallbackContribution<TransportSecurityLayer>(callback) {
@@ -192,7 +195,7 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
 
                     });
         } else {
-            callback.failed(new UnsupportedSchemeException(host.getSchemeName() + " protocol is not supported"));
+            callback.failed(new UnsupportedSchemeException(newProtocol + " protocol is not supported"));
         }
     }
 

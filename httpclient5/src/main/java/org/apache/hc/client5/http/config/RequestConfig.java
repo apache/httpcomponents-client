@@ -62,13 +62,14 @@ public class RequestConfig implements Cloneable {
     private final TimeValue connectionKeepAlive;
     private final boolean contentCompressionEnabled;
     private final boolean hardCancellationEnabled;
+    private final boolean protocolUpgradeEnabled;
 
     /**
      * Intended for CDI compatibility
     */
     protected RequestConfig() {
         this(false, null, null, false, false, 0, false, null, null,
-                DEFAULT_CONNECTION_REQUEST_TIMEOUT, null, null, DEFAULT_CONN_KEEP_ALIVE, false, false);
+                DEFAULT_CONNECTION_REQUEST_TIMEOUT, null, null, DEFAULT_CONN_KEEP_ALIVE, false, false, false);
     }
 
     RequestConfig(
@@ -86,7 +87,8 @@ public class RequestConfig implements Cloneable {
             final Timeout responseTimeout,
             final TimeValue connectionKeepAlive,
             final boolean contentCompressionEnabled,
-            final boolean hardCancellationEnabled) {
+            final boolean hardCancellationEnabled,
+            final boolean protocolUpgradeEnabled) {
         super();
         this.expectContinueEnabled = expectContinueEnabled;
         this.proxy = proxy;
@@ -103,6 +105,7 @@ public class RequestConfig implements Cloneable {
         this.connectionKeepAlive = connectionKeepAlive;
         this.contentCompressionEnabled = contentCompressionEnabled;
         this.hardCancellationEnabled = hardCancellationEnabled;
+        this.protocolUpgradeEnabled = protocolUpgradeEnabled;
     }
 
     /**
@@ -217,6 +220,13 @@ public class RequestConfig implements Cloneable {
         return hardCancellationEnabled;
     }
 
+    /**
+     * @see Builder#setProtocolUpgradeEnabled(boolean) (boolean)
+     */
+    public boolean isProtocolUpgradeEnabled() {
+        return protocolUpgradeEnabled;
+    }
+
     @Override
     protected RequestConfig clone() throws CloneNotSupportedException {
         return (RequestConfig) super.clone();
@@ -241,6 +251,7 @@ public class RequestConfig implements Cloneable {
         builder.append(", connectionKeepAlive=").append(connectionKeepAlive);
         builder.append(", contentCompressionEnabled=").append(contentCompressionEnabled);
         builder.append(", hardCancellationEnabled=").append(hardCancellationEnabled);
+        builder.append(", protocolUpgradeEnabled=").append(protocolUpgradeEnabled);
         builder.append("]");
         return builder.toString();
     }
@@ -265,7 +276,8 @@ public class RequestConfig implements Cloneable {
             .setResponseTimeout(config.getResponseTimeout())
             .setConnectionKeepAlive(config.getConnectionKeepAlive())
             .setContentCompressionEnabled(config.isContentCompressionEnabled())
-            .setHardCancellationEnabled(config.isHardCancellationEnabled());
+            .setHardCancellationEnabled(config.isHardCancellationEnabled())
+            .setProtocolUpgradeEnabled(config.isProtocolUpgradeEnabled());
     }
 
     public static class Builder {
@@ -285,6 +297,7 @@ public class RequestConfig implements Cloneable {
         private TimeValue connectionKeepAlive;
         private boolean contentCompressionEnabled;
         private boolean hardCancellationEnabled;
+        private boolean protocolUpgradeEnabled;
 
         Builder() {
             super();
@@ -294,6 +307,7 @@ public class RequestConfig implements Cloneable {
             this.connectionRequestTimeout = DEFAULT_CONNECTION_REQUEST_TIMEOUT;
             this.contentCompressionEnabled = true;
             this.hardCancellationEnabled = true;
+            this.protocolUpgradeEnabled = true;
         }
 
         /**
@@ -570,6 +584,23 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * Determines whether the client server should automatically attempt to upgrade
+         * to a safer or a newer version of the protocol, whenever possible.
+         * <p>
+         * Presently supported: HTTP/1.1 TLS upgrade
+         * </p>
+         * <p>
+         * Default: {@code true}
+         * </p>
+         *
+         * @since 5.4
+         */
+        public Builder setProtocolUpgradeEnabled(final boolean protocolUpgradeEnabled) {
+            this.protocolUpgradeEnabled = protocolUpgradeEnabled;
+            return this;
+        }
+
         public RequestConfig build() {
             return new RequestConfig(
                     expectContinueEnabled,
@@ -586,7 +617,8 @@ public class RequestConfig implements Cloneable {
                     responseTimeout,
                     connectionKeepAlive != null ? connectionKeepAlive : DEFAULT_CONN_KEEP_ALIVE,
                     contentCompressionEnabled,
-                    hardCancellationEnabled);
+                    hardCancellationEnabled,
+                    protocolUpgradeEnabled);
         }
 
     }

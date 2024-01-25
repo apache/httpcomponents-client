@@ -40,17 +40,21 @@ import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
+import org.apache.hc.client5.http.impl.ProtocolSwitchStrategy;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
@@ -82,6 +86,7 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
     private final HttpProcessor httpProcessor;
     private final ConnectionKeepAliveStrategy keepAliveStrategy;
     private final UserTokenHandler userTokenHandler;
+    private final ProtocolSwitchStrategy protocolSwitchStrategy;
 
     HttpAsyncMainClientExec(final HttpProcessor httpProcessor,
                             final ConnectionKeepAliveStrategy keepAliveStrategy,
@@ -89,6 +94,7 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
         this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
         this.keepAliveStrategy = keepAliveStrategy;
         this.userTokenHandler = userTokenHandler;
+        this.protocolSwitchStrategy = new ProtocolSwitchStrategy();
     }
 
     @Override
@@ -195,7 +201,35 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
             public void consumeInformation(
                     final HttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
-                asyncExecCallback.handleInformationResponse(response);
+                if (response.getCode() == HttpStatus.SC_SWITCHING_PROTOCOLS) {
+                    final ProtocolVersion upgradeProtocol = protocolSwitchStrategy.switchProtocol(response);
+                    if (upgradeProtocol == null || !upgradeProtocol.getProtocol().equals("TLS")) {
+                        throw new ProtocolException("Failure switching protocols");
+                    }
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Switching to {}", upgradeProtocol);
+                    }
+                    execRuntime.upgradeTls(clientContext, new FutureCallback<AsyncExecRuntime>() {
+
+                        @Override
+                        public void completed(final AsyncExecRuntime result) {
+                            LOG.debug("Successfully switched to {}", upgradeProtocol);
+                        }
+
+                        @Override
+                        public void failed(final Exception ex) {
+                            asyncExecCallback.failed(ex);
+                        }
+
+                        @Override
+                        public void cancelled() {
+                            asyncExecCallback.failed(new InterruptedIOException());
+                        }
+
+                    });
+                } else {
+                    asyncExecCallback.handleInformationResponse(response);
+                }
             }
 
             @Override
