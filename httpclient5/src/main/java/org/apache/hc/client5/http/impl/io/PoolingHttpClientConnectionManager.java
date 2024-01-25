@@ -505,10 +505,9 @@ public class PoolingHttpClientConnectionManager
         Args.notNull(endpoint, "Managed endpoint");
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
         final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry = internalEndpoint.getValidatedPoolEntry();
-        final HttpRoute route = poolEntry.getRoute();
-        final HttpHost host = route.getProxyHost() != null ? route.getProxyHost() : route.getTargetHost();
-        final TlsConfig tlsConfig = resolveTlsConfig(host);
-        this.connectionOperator.upgrade(poolEntry.getConnection(), route.getTargetHost(), tlsConfig, context);
+        final HttpHost target = poolEntry.getRoute().getTargetHost();
+        final TlsConfig tlsConfig = resolveTlsConfig(target);
+        this.connectionOperator.upgrade(poolEntry.getConnection(), target, tlsConfig, context);
     }
 
     @Override

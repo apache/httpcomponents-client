@@ -56,7 +56,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestMainClientExec {
 
     @Mock
@@ -104,7 +103,7 @@ public class TestMainClientExec {
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
 
         Mockito.verify(httpProcessor).process(request, null, context);
-        Mockito.verify(execRuntime).execute("test", request, null, context);
+        Mockito.verify(execRuntime).execute(Mockito.eq("test"), Mockito.same(request), Mockito.any(), Mockito.any());
         Mockito.verify(httpProcessor).process(response, responseEntity, context);
 
         Assertions.assertEquals(route, context.getHttpRoute());
@@ -134,7 +133,7 @@ public class TestMainClientExec {
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
-        Mockito.verify(execRuntime).execute("test", request, null, context);
+        Mockito.verify(execRuntime).execute(Mockito.eq("test"), Mockito.same(request), Mockito.any(), Mockito.any());
         Mockito.verify(execRuntime, Mockito.times(1)).markConnectionNonReusable();
         Mockito.verify(execRuntime, Mockito.never()).releaseEndpoint();
 
@@ -164,7 +163,7 @@ public class TestMainClientExec {
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
 
-        Mockito.verify(execRuntime).execute("test", request, null, context);
+        Mockito.verify(execRuntime).execute(Mockito.eq("test"), Mockito.same(request), Mockito.any(), Mockito.any());
         Mockito.verify(execRuntime).markConnectionNonReusable();
         Mockito.verify(execRuntime).releaseEndpoint();
 
@@ -200,7 +199,7 @@ public class TestMainClientExec {
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
 
-        Mockito.verify(execRuntime).execute("test", request, null, context);
+        Mockito.verify(execRuntime).execute(Mockito.eq("test"), Mockito.same(request), Mockito.any(), Mockito.any());
         Mockito.verify(execRuntime).markConnectionReusable(null, TimeValue.ofMilliseconds(678L));
         Mockito.verify(execRuntime, Mockito.never()).releaseEndpoint();
 
@@ -231,7 +230,7 @@ public class TestMainClientExec {
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
 
-        Mockito.verify(execRuntime).execute("test", request, null, context);
+        Mockito.verify(execRuntime).execute(Mockito.eq("test"), Mockito.same(request), Mockito.any(), Mockito.any());
         Mockito.verify(execRuntime).releaseEndpoint();
 
         Assertions.assertNotNull(finalResponse);
@@ -261,7 +260,7 @@ public class TestMainClientExec {
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
-        Mockito.verify(execRuntime, Mockito.times(1)).execute("test", request, null, context);
+        Mockito.verify(execRuntime, Mockito.times(1)).execute(Mockito.eq("test"), Mockito.same(request), Mockito.any(), Mockito.any());
         Mockito.verify(execRuntime, Mockito.never()).disconnectEndpoint();
         Mockito.verify(execRuntime, Mockito.never()).releaseEndpoint();
 

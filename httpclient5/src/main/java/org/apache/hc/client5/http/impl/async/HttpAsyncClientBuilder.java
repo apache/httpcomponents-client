@@ -76,6 +76,7 @@ import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.protocol.RequestAddCookies;
 import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
 import org.apache.hc.client5.http.protocol.RequestExpectContinue;
+import org.apache.hc.client5.http.protocol.RequestUpgrade;
 import org.apache.hc.client5.http.protocol.RequestValidateTrace;
 import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
@@ -843,7 +844,8 @@ public class HttpAsyncClientBuilder {
                 new H2RequestContent(),
                 new H2RequestConnControl(),
                 new RequestUserAgent(userAgentCopy),
-                new RequestExpectContinue());
+                new RequestExpectContinue(),
+                new RequestUpgrade());
         if (!cookieManagementDisabled) {
             b.add(RequestAddCookies.INSTANCE);
         }

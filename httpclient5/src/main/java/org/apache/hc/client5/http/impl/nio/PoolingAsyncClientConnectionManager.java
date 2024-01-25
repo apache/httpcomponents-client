@@ -245,13 +245,21 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         return connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
     }
 
-    private TlsConfig resolveTlsConfig(final HttpHost host, final Object attachment) {
-        if (attachment instanceof TlsConfig) {
-            return (TlsConfig) attachment;
-         }
+    private TlsConfig resolveTlsConfig(final HttpHost host) {
         final Resolver<HttpHost, TlsConfig> resolver = this.tlsConfigResolver;
-        final TlsConfig tlsConfig = resolver != null ? resolver.resolve(host) : null;
-        return tlsConfig != null ? tlsConfig : TlsConfig.DEFAULT;
+        TlsConfig tlsConfig = resolver != null ? resolver.resolve(host) : null;
+        if (tlsConfig == null) {
+            tlsConfig = TlsConfig.DEFAULT;
+        }
+        if (URIScheme.HTTP.same(host.getSchemeName())
+                && tlsConfig.getHttpVersionPolicy() == HttpVersionPolicy.NEGOTIATE) {
+            // Plain HTTP does not support protocol negotiation.
+            // Fall back to HTTP/1.1
+            tlsConfig = TlsConfig.copy(tlsConfig)
+                    .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_1)
+                    .build();
+        }
+        return tlsConfig;
     }
 
     @Override
@@ -441,7 +449,6 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         }
         final InetSocketAddress localAddress = route.getLocalSocketAddress();
         final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
-        final TlsConfig tlsConfig = resolveTlsConfig(host, attachment);
         final Timeout connectTimeout = timeout != null ? timeout : connectionConfig.getConnectTimeout();
 
         if (LOG.isDebugEnabled()) {
@@ -452,9 +459,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 host,
                 localAddress,
                 connectTimeout,
-                route.isTunnelled() ? TlsConfig.copy(tlsConfig)
-                        .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_1)
-                        .build() : tlsConfig,
+                route.isTunnelled() ? null : resolveTlsConfig(host),
                 context,
                 new FutureCallback<ManagedAsyncClientConnection>() {
 
@@ -499,12 +504,11 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
         final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = internalEndpoint.getValidatedPoolEntry();
         final HttpRoute route = poolEntry.getRoute();
-        final HttpHost host = route.getProxyHost() != null ? route.getProxyHost() : route.getTargetHost();
-        final TlsConfig tlsConfig = resolveTlsConfig(host, attachment);
+        final HttpHost target = route.getTargetHost();
         connectionOperator.upgrade(
                 poolEntry.getConnection(),
-                route.getTargetHost(),
-                attachment != null ? attachment : tlsConfig,
+                target,
+                attachment != null ? attachment : resolveTlsConfig(target),
                 context,
                 new CallbackContribution<ManagedAsyncClientConnection>(callback) {
 

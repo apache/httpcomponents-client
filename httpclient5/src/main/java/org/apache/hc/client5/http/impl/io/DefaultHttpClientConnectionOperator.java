@@ -53,6 +53,7 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ConnectionClosedException;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -184,7 +185,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         final Timeout soTimeout = socketConfig.getSoTimeout();
         final SocketAddress socksProxyAddress = socketConfig.getSocksProxyAddress();
         final Proxy socksProxy = socksProxyAddress != null ? new Proxy(Proxy.Type.SOCKS, socksProxyAddress) : null;
-        final int port = this.schemePortResolver.resolve(host);
+        final int port = this.schemePortResolver.resolve(host.getSchemeName(), host);
         for (int i = 0; i < remoteAddresses.length; i++) {
             final InetAddress address = remoteAddresses[i];
             final boolean last = i == remoteAddresses.length - 1;
@@ -269,13 +270,14 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         if (socket == null) {
             throw new ConnectionClosedException("Connection is closed");
         }
-        final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(host.getSchemeName()) : null;
+        final String newProtocol = URIScheme.HTTP.same(host.getSchemeName()) ? URIScheme.HTTPS.id : host.getSchemeName();
+        final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(newProtocol) : null;
         if (tlsSocketStrategy != null) {
-            final int port = this.schemePortResolver.resolve(host);
+            final int port = this.schemePortResolver.resolve(newProtocol, host);
             final SSLSocket upgradedSocket = tlsSocketStrategy.upgrade(socket, host.getHostName(), port, attachment, context);
             conn.bind(upgradedSocket);
         } else {
-            throw new UnsupportedSchemeException(host.getSchemeName() + " protocol is not supported");
+            throw new UnsupportedSchemeException(newProtocol + " protocol is not supported");
         }
     }
 

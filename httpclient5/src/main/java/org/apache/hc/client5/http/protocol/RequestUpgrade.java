@@ -33,47 +33,50 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
-import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
-import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * RequestExpectContinue is responsible for enabling the 'expect-continue'
- * handshake by adding {@code Expect} header.
- * <p>
- * This interceptor takes into account {@link RequestConfig#isExpectContinueEnabled()}
- * setting.
- * </p>
- *
- * @since 4.3
+ * @since 5.4
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
-public class RequestExpectContinue implements HttpRequestInterceptor {
+public final class RequestUpgrade implements HttpRequestInterceptor {
 
-    public RequestExpectContinue() {
-        super();
+    private static final Logger LOG = LoggerFactory.getLogger(RequestUpgrade.class);
+
+    public RequestUpgrade() {
     }
 
     @Override
-    public void process(final HttpRequest request, final EntityDetails entity, final HttpContext context)
-            throws HttpException, IOException {
+    public void process(
+            final HttpRequest request,
+            final EntityDetails entity,
+            final HttpContext context) throws HttpException, IOException {
         Args.notNull(request, "HTTP request");
+        Args.notNull(context, "HTTP context");
 
-        if (!request.containsHeader(HttpHeaders.EXPECT)) {
-            final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final RequestConfig requestConfig = clientContext.getRequestConfig();
+        if (requestConfig.isProtocolUpgradeEnabled()) {
             final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : clientContext.getProtocolVersion();
-            // Do not send the expect header if request body is known to be empty
-            if (entity != null
-                    && entity.getContentLength() != 0 && !version.lessEquals(HttpVersion.HTTP_1_0)) {
-                final RequestConfig config = clientContext.getRequestConfig();
-                if (config.isExpectContinueEnabled()) {
-                    request.addHeader(HttpHeaders.EXPECT, HeaderElements.CONTINUE);
+            if (!request.containsHeader(HttpHeaders.UPGRADE) && version.getMajor() == 1 && version.getMinor() >= 1) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Connection is upgradable: protocol version = {}", version);
+                }
+                final String method = request.getMethod();
+                if ((Method.OPTIONS.isSame(method) || Method.HEAD.isSame(method) || Method.GET.isSame(method)) &&
+                        clientContext.getSSLSession() == null) {
+                    LOG.debug("Connection is upgradable to TLS: method = {}", method);
+                    request.addHeader(HttpHeaders.UPGRADE, "TLS/1.2");
+                    request.addHeader(HttpHeaders.CONNECTION, HttpHeaders.UPGRADE);
                 }
             }
         }
