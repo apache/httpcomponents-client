@@ -30,6 +30,7 @@ package org.apache.hc.client5.http;
 import java.net.InetAddress;
 
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.net.NamedEndpoint;
 
 /**
  * Connection route information.
@@ -70,6 +71,15 @@ public interface RouteInfo {
      * @return the target host
      */
     HttpHost getTargetHost();
+
+    /**
+     * Obtains the target name, if different from the target host, {@code null} otherwise.
+     *
+     * @since 5.4
+     */
+    default NamedEndpoint getTargetName() {
+        return null;
+    }
 
     /**
      * Obtains the local address to connect from.
