@@ -57,7 +57,6 @@ import org.mockito.MockitoAnnotations;
 /**
  *  Simple tests for {@link InternalHttpClient}.
  */
-@SuppressWarnings({"static-access"}) // test code
 public class TestInternalHttpClient {
 
     @Mock
@@ -101,6 +100,7 @@ public class TestInternalHttpClient {
 
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
+                Mockito.any(),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
         Mockito.when(execChain.execute(
                 Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(
@@ -121,6 +121,7 @@ public class TestInternalHttpClient {
 
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
+                Mockito.any(),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
         Mockito.when(execChain.execute(
                 Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(
@@ -141,6 +142,7 @@ public class TestInternalHttpClient {
 
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
+                Mockito.any(),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
         Mockito.when(execChain.execute(
                 Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(
@@ -163,6 +165,7 @@ public class TestInternalHttpClient {
 
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
+                Mockito.any(),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
         Mockito.when(execChain.execute(
                 Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(
@@ -183,6 +186,7 @@ public class TestInternalHttpClient {
 
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
+                Mockito.any(),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
         Mockito.when(execChain.execute(
                 Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(

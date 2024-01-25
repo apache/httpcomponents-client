@@ -32,9 +32,12 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.URIAuthority;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +46,6 @@ import org.mockito.Mockito;
 /**
  * Tests for {@link DefaultRoutePlanner}.
  */
-@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestDefaultRoutePlanner {
 
     private SchemePortResolver schemePortResolver;
@@ -105,4 +107,35 @@ public class TestDefaultRoutePlanner {
                 routePlanner.determineRoute(null, context));
     }
 
+    @Test
+    public void testVirtualSecureHost() throws Exception {
+        final HttpHost target = new HttpHost("https", "somehost", 443);
+        final URIAuthority virtualHost = new URIAuthority("someotherhost", 443);
+        final HttpRequest request = new BasicHttpRequest("https", "GET", virtualHost, "/");
+
+        final HttpContext context = new BasicHttpContext();
+        final HttpRoute route = routePlanner.determineRoute(target, request, context);
+
+        Assertions.assertEquals(target, route.getTargetHost());
+        Assertions.assertEquals(virtualHost, route.getTargetName());
+        Assertions.assertEquals(1, route.getHopCount());
+        Assertions.assertTrue(route.isSecure());
+        Mockito.verify(schemePortResolver, Mockito.never()).resolve(Mockito.any());
+    }
+
+    @Test
+    public void testVirtualInsecureHost() throws Exception {
+        final HttpHost target = new HttpHost("http", "somehost", 80);
+        final URIAuthority virtualHost = new URIAuthority("someotherhost", 80);
+        final HttpRequest request = new BasicHttpRequest("http", "GET", virtualHost, "/");
+
+        final HttpContext context = new BasicHttpContext();
+        final HttpRoute route = routePlanner.determineRoute(target, request, context);
+
+        Assertions.assertEquals(target, route.getTargetHost());
+        Assertions.assertNull(route.getTargetName());
+        Assertions.assertEquals(1, route.getHopCount());
+        Assertions.assertFalse(route.isSecure());
+        Mockito.verify(schemePortResolver, Mockito.never()).resolve(Mockito.any());
+    }
 }
