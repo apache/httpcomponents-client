@@ -926,7 +926,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             //            log.info( "SSSSS validateSignature("+seqNumber+")\n"
             //                + "  received: " + DebugUtil.dump( signature ) + "\n"
             //                + "  computed: " + DebugUtil.dump( computedSignature ) );
-            return Arrays.equals( signature, computedSignature );
+            return MessageDigest.isEqual( signature, computedSignature );
         }
 
         public byte[] signAndEncryptMessage( final byte[] cleartextMessage ) throws NTLMEngineException
