@@ -55,6 +55,7 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
@@ -116,8 +117,8 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
         this.closeables = closeables != null ?  new ConcurrentLinkedQueue<>(closeables) : null;
     }
 
-    private HttpRoute determineRoute(final HttpHost target, final HttpContext context) throws HttpException {
-        return this.routePlanner.determineRoute(target, context);
+    private HttpRoute determineRoute(final HttpHost target, final HttpRequest request, final HttpContext context) throws HttpException {
+        return this.routePlanner.determineRoute(target, request, context);
     }
 
     private void setupContext(final HttpClientContext context) {
@@ -157,6 +158,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             setupContext(localcontext);
             final HttpRoute route = determineRoute(
                     target != null ? target : RoutingSupport.determineHost(request),
+                    request,
                     localcontext);
             final String exchangeId = ExecSupport.getNextExchangeId();
             localcontext.setExchangeId(exchangeId);

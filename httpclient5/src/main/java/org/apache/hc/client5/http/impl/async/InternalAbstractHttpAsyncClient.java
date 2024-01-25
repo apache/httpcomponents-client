@@ -184,7 +184,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
     abstract AsyncExecRuntime createAsyncExecRuntime(HandlerFactory<AsyncPushConsumer> pushHandlerFactory);
 
-    abstract HttpRoute determineRoute(HttpHost httpHost, HttpClientContext clientContext) throws HttpException;
+    abstract HttpRoute determineRoute(HttpHost httpHost, HttpRequest request, HttpClientContext clientContext) throws HttpException;
 
     @Override
     protected <T> Future<T> doExecute(
@@ -214,6 +214,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
                 final HttpRoute route = determineRoute(
                         httpHost != null ? httpHost : RoutingSupport.determineHost(request),
+                        request,
                         clientContext);
                 final String exchangeId = ExecSupport.getNextExchangeId();
                 clientContext.setExchangeId(exchangeId);

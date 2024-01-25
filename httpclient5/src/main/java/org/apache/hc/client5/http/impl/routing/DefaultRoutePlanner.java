@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.impl.routing;
 
 import java.net.InetAddress;
+import java.util.Objects;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -40,9 +41,12 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.NamedEndpoint;
+import org.apache.hc.core5.net.URIAuthority;
 
 /**
  * Default implementation of an {@link HttpRoutePlanner}. It will not make use of
@@ -60,8 +64,15 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
     }
 
+    private static boolean sameNamedEndpoint(final NamedEndpoint n1, final NamedEndpoint n2) {
+        if (n1 == null || n2 == null) {
+            return false;
+        }
+        return Objects.equals(n1.getHostName(), n2.getHostName()) && n1.getPort() == n2.getPort();
+    }
+
     @Override
-    public final HttpRoute determineRoute(final HttpHost host, final HttpContext context) throws HttpException {
+    public final HttpRoute determineRoute(final HttpHost host, final HttpRequest request, final HttpContext context) throws HttpException {
         if (host == null) {
             throw new ProtocolException("Target host is not specified");
         }
@@ -76,11 +87,24 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         if (target.getPort() < 0) {
             throw new ProtocolException("Unroutable protocol scheme: " + target);
         }
-        final boolean secure = target.getSchemeName().equalsIgnoreCase(URIScheme.HTTPS.getId());
-        if (proxy == null) {
-            return new HttpRoute(target, determineLocalAddress(target, context), secure);
+        final boolean secure = URIScheme.HTTPS.same(target.getSchemeName());
+        final URIAuthority authority;
+        if (secure && request != null && !sameNamedEndpoint(request.getAuthority(), host)) {
+            authority = request.getAuthority();
+        } else {
+            authority = null;
         }
-        return new HttpRoute(target, determineLocalAddress(proxy, context), proxy, secure);
+        final InetAddress inetAddress = determineLocalAddress(target, context);
+
+        if (proxy == null) {
+            return new HttpRoute(target, authority, inetAddress, secure);
+        }
+        return new HttpRoute(target, authority, inetAddress, proxy, secure);
+    }
+
+    @Override
+    public final HttpRoute determineRoute(final HttpHost host, final HttpContext context) throws HttpException {
+        return determineRoute(host, null, context);
     }
 
     /**

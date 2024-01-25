@@ -32,6 +32,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -61,5 +62,21 @@ public interface HttpRoutePlanner {
      * @throws HttpException    in case of a problem
      */
     HttpRoute determineRoute(HttpHost target, HttpContext context) throws HttpException;
+
+    /**
+     * Determines the route for the given host.
+     *
+     * @param target    the target host for the request.
+     * @param request   the request message. Can be {@code null} if not given / known.
+     * @param context   the context to use for the subsequent execution.
+     *                  Implementations may accept {@code null}.
+     *
+     * @return  the route that the request should take
+     *
+     * @since 5.4
+     */
+    default HttpRoute determineRoute(HttpHost target, HttpRequest request, HttpContext context) throws HttpException {
+        return determineRoute(target, context);
+    }
 
 }
