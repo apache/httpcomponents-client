@@ -34,6 +34,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -141,7 +142,7 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                 final Timeout connectTimeout = requestConfig.getConnectTimeout();
                 final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
 
-                final Future<IOSession> sessionFuture = connPool.getSession(target, connectTimeout,
+                final Future<IOSession> sessionFuture = connPool.getSession(new HttpRoute(target), connectTimeout,
                     new FutureCallback<IOSession>() {
 
                     @Override

@@ -36,6 +36,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
@@ -70,24 +71,27 @@ public interface HttpClientConnectionOperator {
      * Connect the given managed connection to the remote endpoint.
      *
      * @param conn the managed connection.
-     * @param host the address of the opposite endpoint.
+     * @param endpointHost the address of the remote endpoint.
+     * @param endpointName the name of the remote endpoint, if different from the endpoint host name,
+     *                   {@code null} otherwise. Usually taken from the request URU authority.
      * @param localAddress the address of the local endpoint.
      * @param connectTimeout the timeout of the connect operation.
      * @param socketConfig the socket configuration.
      * @param attachment connect request attachment.
      * @param context the execution context.
      *
-     * @since 5.2
+     * @since 5.4
      */
     default void connect(
             ManagedHttpClientConnection conn,
-            HttpHost host,
+            HttpHost endpointHost,
+            NamedEndpoint endpointName,
             InetSocketAddress localAddress,
             Timeout connectTimeout,
             SocketConfig socketConfig,
             Object attachment,
             HttpContext context) throws IOException {
-        connect(conn, host, localAddress, connectTimeout, socketConfig, context);
+        connect(conn, endpointHost, localAddress, connectTimeout, socketConfig, context);
     }
 
     /**
@@ -108,7 +112,9 @@ public interface HttpClientConnectionOperator {
      * by using the TLS security protocol.
      *
      * @param conn the managed connection.
-     * @param host the address of the opposite endpoint with TLS security.
+     * @param endpointHost the address of the remote endpoint.
+     * @param endpointName the name of the remote endpoint, if different from the endpoint host name,
+     *                   {@code null} otherwise. Usually taken from the request URU authority.
      * @param attachment connect request attachment.
      * @param context the execution context.
      *
@@ -116,10 +122,11 @@ public interface HttpClientConnectionOperator {
      */
     default void upgrade(
             ManagedHttpClientConnection conn,
-            HttpHost host,
+            HttpHost endpointHost,
+            NamedEndpoint endpointName,
             Object attachment,
             HttpContext context) throws IOException {
-        upgrade(conn, host, context);
+        upgrade(conn, endpointHost, context);
     }
 
 }

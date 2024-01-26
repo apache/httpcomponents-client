@@ -36,6 +36,7 @@ import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
 import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
@@ -49,13 +50,18 @@ import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Timeout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectionOperator {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultAsyncClientConnectionOperator.class);
 
     private final SchemePortResolver schemePortResolver;
     private final MultihomeIOSessionRequester sessionRequester;
@@ -78,25 +84,31 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             final Timeout connectTimeout,
             final Object attachment,
             final FutureCallback<ManagedAsyncClientConnection> callback) {
-        return connect(connectionInitiator, host, localAddress, connectTimeout,
+        return connect(connectionInitiator, host, null, localAddress, connectTimeout,
             attachment, null, callback);
     }
 
     @Override
     public Future<ManagedAsyncClientConnection> connect(
             final ConnectionInitiator connectionInitiator,
-            final HttpHost host,
+            final HttpHost endpointHost,
+            final NamedEndpoint endpointName,
             final SocketAddress localAddress,
             final Timeout connectTimeout,
             final Object attachment,
             final HttpContext context,
             final FutureCallback<ManagedAsyncClientConnection> callback) {
         Args.notNull(connectionInitiator, "Connection initiator");
-        Args.notNull(host, "Host");
+        Args.notNull(endpointHost, "Host");
         final ComplexFuture<ManagedAsyncClientConnection> future = new ComplexFuture<>(callback);
-        final HttpHost remoteEndpoint = RoutingSupport.normalize(host, schemePortResolver);
-        final InetAddress remoteAddress = host.getAddress();
+        final HttpHost remoteEndpoint = RoutingSupport.normalize(endpointHost, schemePortResolver);
+        final InetAddress remoteAddress = endpointHost.getAddress();
         final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} connecting {}->{} ({})", endpointHost, localAddress, remoteAddress, connectTimeout);
+        }
+
         final Future<IOSession> sessionFuture = sessionRequester.connect(
                 connectionInitiator,
                 remoteEndpoint,
@@ -109,14 +121,22 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                     @Override
                     public void completed(final IOSession session) {
                         final DefaultManagedAsyncClientConnection connection = new DefaultManagedAsyncClientConnection(session);
-                        final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} {} connected {}->{}", ConnPoolSupport.getId(connection), endpointHost,
+                                    connection.getLocalAddress(), connection.getRemoteAddress());
+                        }
+                        final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(endpointHost.getSchemeName()) : null;
                         if (tlsStrategy != null) {
                             try {
                                 final Timeout socketTimeout = connection.getSocketTimeout();
                                 final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout();
+                                final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
+                                if (LOG.isDebugEnabled()) {
+                                    LOG.debug("{} {} upgrading to TLS", ConnPoolSupport.getId(connection), tlsName);
+                                }
                                 tlsStrategy.upgrade(
                                         connection,
-                                        host,
+                                        tlsName,
                                         attachment,
                                         handshakeTimeout != null ? handshakeTimeout : connectTimeout,
                                         new FutureContribution<TransportSecurityLayer>(future) {
@@ -156,32 +176,27 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             final ManagedAsyncClientConnection connection,
             final HttpHost host,
             final Object attachment) {
-        upgrade(connection, host, attachment, null, null);
+        upgrade(connection, host, null, attachment, null, null);
     }
 
     @Override
     public void upgrade(
             final ManagedAsyncClientConnection connection,
-            final HttpHost host,
-            final Object attachment,
-            final HttpContext context) {
-        upgrade(connection, host, attachment, context, null);
-    }
-
-    @Override
-    public void upgrade(
-            final ManagedAsyncClientConnection connection,
-            final HttpHost host,
+            final HttpHost endpointHost,
+            final NamedEndpoint endpointName,
             final Object attachment,
             final HttpContext context,
             final FutureCallback<ManagedAsyncClientConnection> callback) {
-        final String newProtocol = URIScheme.HTTP.same(host.getSchemeName()) ? URIScheme.HTTPS.id : host.getSchemeName();
-        final HttpHost remoteEndpoint = RoutingSupport.normalize(host, schemePortResolver);
+        final String newProtocol = URIScheme.HTTP.same(endpointHost.getSchemeName()) ? URIScheme.HTTPS.id : endpointHost.getSchemeName();
         final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(newProtocol) : null;
         if (tlsStrategy != null) {
+            final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} {} upgrading to TLS", ConnPoolSupport.getId(connection), tlsName);
+            }
             tlsStrategy.upgrade(
                     connection,
-                    remoteEndpoint,
+                    tlsName,
                     attachment,
                     null,
                     new CallbackContribution<TransportSecurityLayer>(callback) {

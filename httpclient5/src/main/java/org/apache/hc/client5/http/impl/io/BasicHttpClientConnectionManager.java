@@ -477,24 +477,20 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 return;
             }
             final HttpRoute route = internalEndpoint.getRoute();
-            final HttpHost host;
-            if (route.getProxyHost() != null) {
-                host = route.getProxyHost();
-            } else {
-                host = route.getTargetHost();
-            }
+            final HttpHost firstHop = route.getProxyHost() != null ? route.getProxyHost() : route.getTargetHost();
             final Timeout connectTimeout = timeout != null ? Timeout.of(timeout.getDuration(), timeout.getTimeUnit()) : connectionConfig.getConnectTimeout();
             final ManagedHttpClientConnection connection = internalEndpoint.getConnection();
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{} connecting endpoint to {} ({})", ConnPoolSupport.getId(endpoint), host, connectTimeout);
+                LOG.debug("{} connecting endpoint to {} ({})", ConnPoolSupport.getId(endpoint), firstHop, connectTimeout);
             }
             this.connectionOperator.connect(
                     connection,
-                    host,
+                    firstHop,
+                    route.getTargetName(),
                     route.getLocalSocketAddress(),
                     connectTimeout,
                     socketConfig,
-                    tlsConfig,
+                    route.isTunnelled() ? null : tlsConfig,
                     context);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} connected {}", ConnPoolSupport.getId(endpoint), ConnPoolSupport.getId(conn));
@@ -517,9 +513,11 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             Args.notNull(endpoint, "Endpoint");
             Args.notNull(route, "HTTP route");
             final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
+            final HttpRoute route = internalEndpoint.getRoute();
             this.connectionOperator.upgrade(
                     internalEndpoint.getConnection(),
-                    internalEndpoint.getRoute().getTargetHost(),
+                    route.getTargetHost(),
+                    route.getTargetName(),
                     tlsConfig,
                     context);
         } finally {

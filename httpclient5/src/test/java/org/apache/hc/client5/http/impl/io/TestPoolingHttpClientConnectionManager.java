@@ -270,7 +270,7 @@ public class TestPoolingHttpClientConnectionManager {
         Mockito.when(tlsSocketStrategy.upgrade(
                 Mockito.same(socket),
                 Mockito.eq("somehost"),
-                Mockito.eq(8443),
+                Mockito.anyInt(),
                 Mockito.any(),
                 Mockito.any())).thenReturn(upgradedSocket);
 
@@ -280,7 +280,7 @@ public class TestPoolingHttpClientConnectionManager {
         Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target.getSchemeName(), target);
         Mockito.verify(detachedSocketFactory, Mockito.times(1)).create(null);
         Mockito.verify(socket, Mockito.times(1)).connect(new InetSocketAddress(remote, 8443), 234);
-        Mockito.verify(tlsSocketStrategy).upgrade(socket, "somehost", 8443, tlsConfig, context);
+        Mockito.verify(tlsSocketStrategy).upgrade(socket, "somehost", 443, tlsConfig, context);
 
         mgr.connect(endpoint1, TimeValue.ofMilliseconds(123), context);
 
@@ -288,7 +288,7 @@ public class TestPoolingHttpClientConnectionManager {
         Mockito.verify(schemePortResolver, Mockito.times(2)).resolve(target.getSchemeName(), target);
         Mockito.verify(detachedSocketFactory, Mockito.times(2)).create(null);
         Mockito.verify(socket, Mockito.times(1)).connect(new InetSocketAddress(remote, 8443), 123);
-        Mockito.verify(tlsSocketStrategy, Mockito.times(2)).upgrade(socket, "somehost", 8443, tlsConfig, context);
+        Mockito.verify(tlsSocketStrategy, Mockito.times(2)).upgrade(socket, "somehost", 443, tlsConfig, context);
     }
 
     @Test
@@ -347,9 +347,8 @@ public class TestPoolingHttpClientConnectionManager {
 
         mgr.upgrade(endpoint1, context);
 
-        Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target.getSchemeName(), target);
         Mockito.verify(tlsSocketStrategy, Mockito.times(1)).upgrade(
-                socket, "somehost", 8443, tlsConfig, context);
+                socket, "somehost", 443, tlsConfig, context);
     }
 
 }
