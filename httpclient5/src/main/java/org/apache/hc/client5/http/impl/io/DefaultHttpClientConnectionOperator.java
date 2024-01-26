@@ -58,6 +58,7 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.Closer;
+import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
@@ -147,52 +148,52 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final SocketConfig socketConfig,
             final HttpContext context) throws IOException {
         final Timeout timeout = connectTimeout != null ? Timeout.of(connectTimeout.getDuration(), connectTimeout.getTimeUnit()) : null;
-        connect(conn, host, localAddress, timeout, socketConfig, null, context);
+        connect(conn, host, null, localAddress, timeout, socketConfig, null, context);
     }
 
     @Override
     public void connect(
             final ManagedHttpClientConnection conn,
-            final HttpHost host,
+            final HttpHost endpointHost,
+            final NamedEndpoint endpointName,
             final InetSocketAddress localAddress,
             final Timeout connectTimeout,
             final SocketConfig socketConfig,
             final Object attachment,
             final HttpContext context) throws IOException {
         Args.notNull(conn, "Connection");
-        Args.notNull(host, "Host");
+        Args.notNull(endpointHost, "Host");
         Args.notNull(socketConfig, "Socket config");
         Args.notNull(context, "Context");
         final InetAddress[] remoteAddresses;
-        if (host.getAddress() != null) {
-            remoteAddresses = new InetAddress[] { host.getAddress() };
+        if (endpointHost.getAddress() != null) {
+            remoteAddresses = new InetAddress[] { endpointHost.getAddress() };
         } else {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{} resolving remote address", host.getHostName());
+                LOG.debug("{} resolving remote address", endpointHost.getHostName());
             }
 
-            remoteAddresses = this.dnsResolver.resolve(host.getHostName());
+            remoteAddresses = this.dnsResolver.resolve(endpointHost.getHostName());
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{} resolved to {}", host.getHostName(), remoteAddresses == null ? "null" : Arrays.asList(remoteAddresses));
+                LOG.debug("{} resolved to {}", endpointHost.getHostName(), remoteAddresses == null ? "null" : Arrays.asList(remoteAddresses));
             }
 
             if (remoteAddresses == null || remoteAddresses.length == 0) {
-              throw new UnknownHostException(host.getHostName());
+              throw new UnknownHostException(endpointHost.getHostName());
           }
         }
 
         final Timeout soTimeout = socketConfig.getSoTimeout();
         final SocketAddress socksProxyAddress = socketConfig.getSocksProxyAddress();
         final Proxy socksProxy = socksProxyAddress != null ? new Proxy(Proxy.Type.SOCKS, socksProxyAddress) : null;
-        final int port = this.schemePortResolver.resolve(host.getSchemeName(), host);
+        final int port = this.schemePortResolver.resolve(endpointHost.getSchemeName(), endpointHost);
         for (int i = 0; i < remoteAddresses.length; i++) {
             final InetAddress address = remoteAddresses[i];
             final boolean last = i == remoteAddresses.length - 1;
             final InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{}:{} connecting {}->{} ({})",
-                        host.getHostName(), host.getPort(), localAddress, remoteAddress, connectTimeout);
+                LOG.debug("{} connecting {}->{} ({})", endpointHost, localAddress, remoteAddress, connectTimeout);
             }
             final Socket socket = detachedSocketFactory.create(socksProxy);
             try {
@@ -220,14 +221,18 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 }
                 socket.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisecondsIntBound() : 0);
                 conn.bind(socket);
-                conn.setSocketTimeout(soTimeout);
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("{}:{} connected {}->{} as {}",
-                            host.getHostName(), host.getPort(), localAddress, remoteAddress, ConnPoolSupport.getId(conn));
+                    LOG.debug("{} {} connected {}->{}", ConnPoolSupport.getId(conn), endpointHost,
+                            conn.getLocalAddress(), conn.getRemoteAddress());
                 }
-                final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(host.getSchemeName()) : null;
+                conn.setSocketTimeout(soTimeout);
+                final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(endpointHost.getSchemeName()) : null;
                 if (tlsSocketStrategy != null) {
-                    final Socket upgradedSocket = tlsSocketStrategy.upgrade(socket, host.getHostName(), port, attachment, context);
+                    final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} {} upgrading to TLS", ConnPoolSupport.getId(conn), tlsName);
+                    }
+                    final Socket upgradedSocket = tlsSocketStrategy.upgrade(socket, tlsName.getHostName(), tlsName.getPort(), attachment, context);
                     conn.bind(upgradedSocket);
                 }
                 return;
@@ -238,14 +243,12 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 Closer.closeQuietly(socket);
                 if (last) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{}:{} connection to {} failed ({}); terminating operation",
-                                host.getHostName(), host.getPort(), remoteAddress, ex.getClass());
+                        LOG.debug("{} connection to {} failed ({}); terminating operation", endpointHost, remoteAddress, ex.getClass());
                     }
-                    throw ConnectExceptionSupport.enhance(ex, host, remoteAddresses);
+                    throw ConnectExceptionSupport.enhance(ex, endpointHost, remoteAddresses);
                 } else {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{}:{} connection to {} failed ({}); retrying connection to the next address",
-                                host.getHostName(), host.getPort(), remoteAddress, ex.getClass());
+                        LOG.debug("{} connection to {} failed ({}); retrying connection to the next address", endpointHost, remoteAddress, ex.getClass());
                     }
                 }
             }
@@ -257,24 +260,28 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final ManagedHttpClientConnection conn,
             final HttpHost host,
             final HttpContext context) throws IOException {
-        upgrade(conn, host, null, context);
+        upgrade(conn, host, null, null, context);
     }
 
     @Override
     public void upgrade(
             final ManagedHttpClientConnection conn,
-            final HttpHost host,
+            final HttpHost endpointHost,
+            final NamedEndpoint endpointName,
             final Object attachment,
             final HttpContext context) throws IOException {
         final Socket socket = conn.getSocket();
         if (socket == null) {
             throw new ConnectionClosedException("Connection is closed");
         }
-        final String newProtocol = URIScheme.HTTP.same(host.getSchemeName()) ? URIScheme.HTTPS.id : host.getSchemeName();
+        final String newProtocol = URIScheme.HTTP.same(endpointHost.getSchemeName()) ? URIScheme.HTTPS.id : endpointHost.getSchemeName();
         final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(newProtocol) : null;
         if (tlsSocketStrategy != null) {
-            final int port = this.schemePortResolver.resolve(newProtocol, host);
-            final SSLSocket upgradedSocket = tlsSocketStrategy.upgrade(socket, host.getHostName(), port, attachment, context);
+            final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} upgrading to TLS {}:{}", ConnPoolSupport.getId(conn), tlsName.getHostName(), tlsName.getPort());
+            }
+            final SSLSocket upgradedSocket = tlsSocketStrategy.upgrade(socket, tlsName.getHostName(), tlsName.getPort(), attachment, context);
             conn.bind(upgradedSocket);
         } else {
             throw new UnsupportedSchemeException(newProtocol + " protocol is not supported");

@@ -474,22 +474,22 @@ public class PoolingHttpClientConnectionManager
             poolEntry.assignConnection(connFactory.createConnection(null));
         }
         final HttpRoute route = poolEntry.getRoute();
-        final HttpHost host = route.getProxyHost() != null ? route.getProxyHost() : route.getTargetHost();
+        final HttpHost firstHop = route.getProxyHost() != null ? route.getProxyHost() : route.getTargetHost();
         final SocketConfig socketConfig = resolveSocketConfig(route);
         final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
-        final TlsConfig tlsConfig = resolveTlsConfig(host);
         final Timeout connectTimeout = timeout != null ? Timeout.of(timeout.getDuration(), timeout.getTimeUnit()) : connectionConfig.getConnectTimeout();
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{} connecting endpoint to {} ({})", ConnPoolSupport.getId(endpoint), host, connectTimeout);
+            LOG.debug("{} connecting endpoint to {} ({})", ConnPoolSupport.getId(endpoint), firstHop, connectTimeout);
         }
         final ManagedHttpClientConnection conn = poolEntry.getConnection();
         this.connectionOperator.connect(
                 conn,
-                host,
+                firstHop,
+                route.getTargetName(),
                 route.getLocalSocketAddress(),
                 connectTimeout,
                 socketConfig,
-                tlsConfig,
+                route.isTunnelled() ? null : resolveTlsConfig(route.getTargetHost()),
                 context);
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} connected {}", ConnPoolSupport.getId(endpoint), ConnPoolSupport.getId(conn));
@@ -505,9 +505,15 @@ public class PoolingHttpClientConnectionManager
         Args.notNull(endpoint, "Managed endpoint");
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
         final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry = internalEndpoint.getValidatedPoolEntry();
-        final HttpHost target = poolEntry.getRoute().getTargetHost();
+        final HttpRoute route = poolEntry.getRoute();
+        final HttpHost target = route.getTargetHost();
         final TlsConfig tlsConfig = resolveTlsConfig(target);
-        this.connectionOperator.upgrade(poolEntry.getConnection(), target, tlsConfig, context);
+        this.connectionOperator.upgrade(
+                poolEntry.getConnection(),
+                target,
+                route.getTargetName(),
+                tlsConfig,
+                context);
     }
 
     @Override

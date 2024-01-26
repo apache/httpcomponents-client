@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.impl.nio;
 
-import java.net.InetSocketAddress;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -441,25 +440,20 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         }
         final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = internalEndpoint.getPoolEntry();
         final HttpRoute route = poolEntry.getRoute();
-        final HttpHost host;
-        if (route.getProxyHost() != null) {
-            host = route.getProxyHost();
-        } else {
-            host = route.getTargetHost();
-        }
-        final InetSocketAddress localAddress = route.getLocalSocketAddress();
+        final HttpHost firstHop = route.getProxyHost() != null ? route.getProxyHost(): route.getTargetHost();
         final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
         final Timeout connectTimeout = timeout != null ? timeout : connectionConfig.getConnectTimeout();
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{} connecting endpoint to {} ({})", ConnPoolSupport.getId(endpoint), host, connectTimeout);
+            LOG.debug("{} connecting endpoint to {} ({})", ConnPoolSupport.getId(endpoint), firstHop, connectTimeout);
         }
         final Future<ManagedAsyncClientConnection> connectFuture = connectionOperator.connect(
                 connectionInitiator,
-                host,
-                localAddress,
+                firstHop,
+                route.getTargetName(),
+                route.getLocalSocketAddress(),
                 connectTimeout,
-                route.isTunnelled() ? null : resolveTlsConfig(host),
+                route.isTunnelled() ? null : resolveTlsConfig(route.getTargetHost()),
                 context,
                 new FutureCallback<ManagedAsyncClientConnection>() {
 
@@ -508,6 +502,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         connectionOperator.upgrade(
                 poolEntry.getConnection(),
                 target,
+                route.getTargetName(),
                 attachment != null ? attachment : resolveTlsConfig(target),
                 context,
                 new CallbackContribution<ManagedAsyncClientConnection>(callback) {

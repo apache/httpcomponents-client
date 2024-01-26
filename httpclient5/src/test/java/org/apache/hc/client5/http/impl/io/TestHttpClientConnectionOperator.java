@@ -102,7 +102,7 @@ public class TestHttpClientConnectionOperator {
             .setSoLinger(50, TimeUnit.MILLISECONDS)
             .build();
         final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
-        connectionOperator.connect(conn, host, localAddress, Timeout.ofMilliseconds(123), socketConfig, null, context);
+        connectionOperator.connect(conn, host, null, localAddress, Timeout.ofMilliseconds(123), socketConfig, null, context);
 
         Mockito.verify(socket).setKeepAlive(true);
         Mockito.verify(socket).setReuseAddress(true);
@@ -137,17 +137,17 @@ public class TestHttpClientConnectionOperator {
         Mockito.when(tlsSocketStrategy.upgrade(
                 Mockito.same(socket),
                 Mockito.eq("somehost"),
-                Mockito.eq(443),
+                Mockito.anyInt(),
                 Mockito.any(),
                 Mockito.any())).thenReturn(upgradedSocket);
 
         final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
-        connectionOperator.connect(conn, host, localAddress,
+        connectionOperator.connect(conn, host, null, localAddress,
                 Timeout.ofMilliseconds(123), SocketConfig.DEFAULT, tlsConfig, context);
 
         Mockito.verify(socket).connect(new InetSocketAddress(ip1, 443), 123);
         Mockito.verify(conn, Mockito.times(2)).bind(socket);
-        Mockito.verify(tlsSocketStrategy).upgrade(socket, "somehost", 443, tlsConfig, context);
+        Mockito.verify(tlsSocketStrategy).upgrade(socket, "somehost", -1, tlsConfig, context);
         Mockito.verify(conn, Mockito.times(1)).bind(upgradedSocket);
     }
 
@@ -203,7 +203,7 @@ public class TestHttpClientConnectionOperator {
         final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
         final TlsConfig tlsConfig = TlsConfig.custom()
                 .build();
-        connectionOperator.connect(conn, host, localAddress,
+        connectionOperator.connect(conn, host, null, localAddress,
                 Timeout.ofMilliseconds(123), SocketConfig.DEFAULT, tlsConfig, context);
 
         Mockito.verify(socket, Mockito.times(2)).bind(localAddress);
@@ -225,7 +225,7 @@ public class TestHttpClientConnectionOperator {
         final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
         final TlsConfig tlsConfig = TlsConfig.custom()
                 .build();
-        connectionOperator.connect(conn, host, localAddress,
+        connectionOperator.connect(conn, host, null, localAddress,
                 Timeout.ofMilliseconds(123), SocketConfig.DEFAULT, tlsConfig, context);
 
         Mockito.verify(socket).bind(localAddress);
@@ -242,17 +242,16 @@ public class TestHttpClientConnectionOperator {
         Mockito.when(conn.isOpen()).thenReturn(true);
         Mockito.when(conn.getSocket()).thenReturn(socket);
         Mockito.when(tlsSocketStrategyLookup.lookup("https")).thenReturn(tlsSocketStrategy);
-        Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(443);
 
         final SSLSocket upgradedSocket = Mockito.mock(SSLSocket.class);
         Mockito.when(tlsSocketStrategy.upgrade(
                 Mockito.any(),
                 Mockito.eq("somehost"),
-                Mockito.eq(443),
+                Mockito.anyInt(),
                 Mockito.eq(Timeout.ofMilliseconds(345)),
                 Mockito.any())).thenReturn(upgradedSocket);
 
-        connectionOperator.upgrade(conn, host, Timeout.ofMilliseconds(345), context);
+        connectionOperator.upgrade(conn, host, null, Timeout.ofMilliseconds(345), context);
 
         Mockito.verify(conn).bind(upgradedSocket);
     }
