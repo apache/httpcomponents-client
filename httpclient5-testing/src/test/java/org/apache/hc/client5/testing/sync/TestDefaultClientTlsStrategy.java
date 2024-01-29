@@ -30,18 +30,24 @@ package org.apache.hc.client5.testing.sync;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Objects;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
+import org.apache.hc.client5.http.ssl.HttpsSupport;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
@@ -54,6 +60,8 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -345,4 +353,111 @@ public class TestDefaultClientTlsStrategy {
                     context);
         }
     }
+
+    @Test
+    public void testHostnameVerificationClient() throws Exception {
+        // @formatter:off
+        this.server = ServerBootstrap.bootstrap()
+                .setSslContext(SSLTestContexts.createServerSSLContext())
+                .create();
+        // @formatter:on
+        this.server.start();
+
+        final HttpHost target1 = new HttpHost("https", "localhost", server.getLocalPort());
+
+        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+            final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
+                    SSLTestContexts.createClientSSLContext(),
+                    HostnameVerificationPolicy.CLIENT,
+                    HttpsSupport.getDefaultHostnameVerifier());
+            final HttpContext context = new BasicHttpContext();
+            final SSLSocket upgradedSocket = tlsStrategy.upgrade(
+                    socket,
+                    target1.getHostName(),
+                    target1.getPort(),
+                    null,
+                    context);
+            final SSLSession session = upgradedSocket.getSession();
+            MatcherAssert.assertThat(Objects.toString(session.getPeerPrincipal()), Matchers.startsWith("CN=localhost"));
+        }
+
+        final HttpHost target2 = new HttpHost("https", "some-other-host", server.getLocalPort());
+
+        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+            final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
+                    SSLTestContexts.createClientSSLContext(),
+                    HostnameVerificationPolicy.CLIENT,
+                    HttpsSupport.getDefaultHostnameVerifier());
+            final HttpContext context = new BasicHttpContext();
+            Assertions.assertThrows(SSLPeerUnverifiedException.class, () ->
+                    tlsStrategy.upgrade(
+                            socket,
+                            target2.getHostName(),
+                            target2.getPort(),
+                            null,
+                            context));
+        }
+
+        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+            final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
+                    SSLTestContexts.createClientSSLContext(),
+                    HostnameVerificationPolicy.CLIENT,
+                    NoopHostnameVerifier.INSTANCE);
+            final HttpContext context = new BasicHttpContext();
+            final SSLSocket upgradedSocket = tlsStrategy.upgrade(
+                    socket,
+                    target1.getHostName(),
+                    target1.getPort(),
+                    null,
+                    context);
+            final SSLSession session = upgradedSocket.getSession();
+            MatcherAssert.assertThat(Objects.toString(session.getPeerPrincipal()), Matchers.startsWith("CN=localhost"));
+        }
+    }
+
+    @Test
+    public void testHostnameVerificationBuiltIn() throws Exception {
+        // @formatter:off
+        this.server = ServerBootstrap.bootstrap()
+                .setSslContext(SSLTestContexts.createServerSSLContext())
+                .create();
+        // @formatter:on
+        this.server.start();
+
+        final HttpHost target1 = new HttpHost("https", "localhost", server.getLocalPort());
+
+        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+            final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
+                    SSLTestContexts.createClientSSLContext(),
+                    HostnameVerificationPolicy.BUILTIN,
+                    NoopHostnameVerifier.INSTANCE);
+            final HttpContext context = new BasicHttpContext();
+            final SSLSocket upgradedSocket = tlsStrategy.upgrade(
+                    socket,
+                    target1.getHostName(),
+                    target1.getPort(),
+                    null,
+                    context);
+            final SSLSession session = upgradedSocket.getSession();
+            MatcherAssert.assertThat(Objects.toString(session.getPeerPrincipal()), Matchers.startsWith("CN=localhost"));
+        }
+
+        final HttpHost target2 = new HttpHost("https", "some-other-host", server.getLocalPort());
+
+        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+            final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
+                    SSLTestContexts.createClientSSLContext(),
+                    HostnameVerificationPolicy.BUILTIN,
+                    NoopHostnameVerifier.INSTANCE);
+            final HttpContext context = new BasicHttpContext();
+            Assertions.assertThrows(SSLHandshakeException.class, () ->
+                    tlsStrategy.upgrade(
+                            socket,
+                            target2.getHostName(),
+                            target2.getPort(),
+                            null,
+                            context));
+        }
+    }
+
 }

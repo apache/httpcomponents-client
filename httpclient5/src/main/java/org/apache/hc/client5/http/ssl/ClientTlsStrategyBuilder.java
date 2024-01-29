@@ -74,12 +74,8 @@ public class ClientTlsStrategyBuilder {
     private String[] tlsVersions;
     private String[] ciphers;
     private SSLBufferMode sslBufferMode;
+    private HostnameVerificationPolicy hostnameVerificationPolicy;
     private HostnameVerifier hostnameVerifier;
-    /**
-     * @deprecated To be removed.
-     */
-    @Deprecated
-    private Factory<SSLEngine, TlsDetails> tlsDetailsFactory;
     private boolean systemProperties;
 
     /**
@@ -126,6 +122,13 @@ public class ClientTlsStrategyBuilder {
     }
 
     /**
+     * Assigns {@link HostnameVerificationPolicy} value.
+     */
+    public void setHostnameVerificationPolicy(final HostnameVerificationPolicy hostnameVerificationPolicy) {
+        this.hostnameVerificationPolicy = hostnameVerificationPolicy;
+    }
+
+    /**
      * Assigns {@link HostnameVerifier} instance.
      */
     public ClientTlsStrategyBuilder setHostnameVerifier(final HostnameVerifier hostnameVerifier) {
@@ -136,11 +139,10 @@ public class ClientTlsStrategyBuilder {
     /**
      * Assigns {@link TlsDetails} {@link Factory} instance.
      *
-     * @deprecated Do not use.
+     * @deprecated Do not use. This method has no effect.
      */
     @Deprecated
     public ClientTlsStrategyBuilder setTlsDetailsFactory(final Factory<SSLEngine, TlsDetails> tlsDetailsFactory) {
-        this.tlsDetailsFactory = tlsDetailsFactory;
         return this;
     }
 
@@ -153,7 +155,6 @@ public class ClientTlsStrategyBuilder {
         return this;
     }
 
-    @SuppressWarnings("deprecation")
     public TlsStrategy build() {
         final SSLContext sslContextCopy;
         if (sslContext != null) {
@@ -173,13 +174,18 @@ public class ClientTlsStrategyBuilder {
         } else {
             ciphersCopy = systemProperties ? HttpsSupport.getSystemCipherSuits() : null;
         }
+        final HostnameVerificationPolicy hostnameVerificationPolicyCopy = hostnameVerificationPolicy != null ? hostnameVerificationPolicy :
+                (hostnameVerifier == null ? HostnameVerificationPolicy.BUILTIN : HostnameVerificationPolicy.BOTH);
+        final HostnameVerifier hostnameVerifierCopy = hostnameVerifier != null ? hostnameVerifier :
+                (hostnameVerificationPolicyCopy == HostnameVerificationPolicy.CLIENT || hostnameVerificationPolicyCopy == HostnameVerificationPolicy.BOTH ?
+                        HttpsSupport.getDefaultHostnameVerifier() : NoopHostnameVerifier.INSTANCE);
         return new DefaultClientTlsStrategy(
                 sslContextCopy,
                 tlsVersionsCopy,
                 ciphersCopy,
                 sslBufferMode != null ? sslBufferMode : SSLBufferMode.STATIC,
-                hostnameVerifier != null ? hostnameVerifier : HttpsSupport.getDefaultHostnameVerifier(),
-                tlsDetailsFactory);
+                hostnameVerificationPolicyCopy,
+                hostnameVerifierCopy);
     }
 
 }
