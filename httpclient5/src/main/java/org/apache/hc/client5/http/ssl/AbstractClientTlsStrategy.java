@@ -54,6 +54,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.ssl.TLS;
@@ -79,6 +80,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
     private final String[] supportedProtocols;
     private final String[] supportedCipherSuites;
     private final SSLBufferMode sslBufferManagement;
+    private final HostnameVerificationPolicy hostnameVerificationPolicy;
     private final HostnameVerifier hostnameVerifier;
 
     AbstractClientTlsStrategy(
@@ -86,13 +88,16 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
             final String[] supportedProtocols,
             final String[] supportedCipherSuites,
             final SSLBufferMode sslBufferManagement,
+            final HostnameVerificationPolicy hostnameVerificationPolicy,
             final HostnameVerifier hostnameVerifier) {
         super();
         this.sslContext = Args.notNull(sslContext, "SSL context");
         this.supportedProtocols = supportedProtocols;
         this.supportedCipherSuites = supportedCipherSuites;
         this.sslBufferManagement = sslBufferManagement != null ? sslBufferManagement : SSLBufferMode.STATIC;
-        this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : HttpsSupport.getDefaultHostnameVerifier();
+        this.hostnameVerificationPolicy = hostnameVerificationPolicy != null ? hostnameVerificationPolicy : HostnameVerificationPolicy.BOTH;
+        this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier :
+                (this.hostnameVerificationPolicy == HostnameVerificationPolicy.BUILTIN ? NoopHostnameVerifier.INSTANCE : HttpsSupport.getDefaultHostnameVerifier());
     }
 
     /**
@@ -147,6 +152,10 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
 
             applyParameters(sslEngine, sslParameters, H2TlsSupport.selectApplicationProtocols(versionPolicy));
 
+            if (hostnameVerificationPolicy == HostnameVerificationPolicy.BUILTIN || hostnameVerificationPolicy == HostnameVerificationPolicy.BOTH) {
+                sslParameters.setEndpointIdentificationAlgorithm(URIScheme.HTTPS.id);
+            }
+
             initializeEngine(sslEngine);
 
             if (LOG.isDebugEnabled()) {
@@ -181,7 +190,8 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
     protected void verifySession(
             final String hostname,
             final SSLSession sslsession) throws SSLException {
-        verifySession(hostname, sslsession, hostnameVerifier);
+        verifySession(hostname, sslsession,
+                hostnameVerificationPolicy == HostnameVerificationPolicy.CLIENT || hostnameVerificationPolicy == HostnameVerificationPolicy.BOTH ? hostnameVerifier : null);
     }
 
     @Override
@@ -204,16 +214,23 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
             final String target,
             final Object attachment) throws IOException {
         final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
+
+        final SSLParameters sslParameters = upgradedSocket.getSSLParameters();
         if (supportedProtocols != null) {
-            upgradedSocket.setEnabledProtocols(supportedProtocols);
+            sslParameters.setProtocols(supportedProtocols);
         } else {
-            upgradedSocket.setEnabledProtocols((TLS.excludeWeak(upgradedSocket.getEnabledProtocols())));
+            sslParameters.setProtocols((TLS.excludeWeak(upgradedSocket.getEnabledProtocols())));
         }
         if (supportedCipherSuites != null) {
-            upgradedSocket.setEnabledCipherSuites(supportedCipherSuites);
+            sslParameters.setCipherSuites(supportedCipherSuites);
         } else {
-            upgradedSocket.setEnabledCipherSuites(TlsCiphers.excludeWeak(upgradedSocket.getEnabledCipherSuites()));
+            sslParameters.setCipherSuites(TlsCiphers.excludeWeak(upgradedSocket.getEnabledCipherSuites()));
         }
+        if (hostnameVerificationPolicy == HostnameVerificationPolicy.BUILTIN || hostnameVerificationPolicy == HostnameVerificationPolicy.BOTH) {
+            sslParameters.setEndpointIdentificationAlgorithm(URIScheme.HTTPS.id);
+        }
+        upgradedSocket.setSSLParameters(sslParameters);
+
         final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout();
         if (handshakeTimeout != null) {
             upgradedSocket.setSoTimeout(handshakeTimeout.toMillisecondsIntBound());

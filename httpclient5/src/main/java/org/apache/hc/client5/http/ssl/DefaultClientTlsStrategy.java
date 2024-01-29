@@ -54,6 +54,7 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
     public static DefaultClientTlsStrategy createDefault() {
         return new DefaultClientTlsStrategy(
                 SSLContexts.createDefault(),
+                HostnameVerificationPolicy.BOTH,
                 HttpsSupport.getDefaultHostnameVerifier());
     }
 
@@ -66,6 +67,7 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
                 HttpsSupport.getSystemProtocols(),
                 HttpsSupport.getSystemCipherSuits(),
                 SSLBufferMode.STATIC,
+                HostnameVerificationPolicy.BOTH,
                 HttpsSupport.getDefaultHostnameVerifier());
     }
 
@@ -102,8 +104,21 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
             final SSLBufferMode sslBufferManagement,
             final HostnameVerifier hostnameVerifier,
             final Factory<SSLEngine, TlsDetails> tlsDetailsFactory) {
-        super(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, hostnameVerifier);
+        super(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, HostnameVerificationPolicy.CLIENT, hostnameVerifier);
         this.tlsDetailsFactory = tlsDetailsFactory;
+    }
+
+    /**
+     * @since 5.4
+     */
+    public DefaultClientTlsStrategy(
+            final SSLContext sslContext,
+            final String[] supportedProtocols,
+            final String[] supportedCipherSuites,
+            final SSLBufferMode sslBufferManagement,
+            final HostnameVerificationPolicy hostnameVerificationPolicy,
+            final HostnameVerifier hostnameVerifier) {
+        super(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, hostnameVerificationPolicy, hostnameVerifier);
     }
 
     public DefaultClientTlsStrategy(
@@ -112,13 +127,23 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
             final String[] supportedCipherSuites,
             final SSLBufferMode sslBufferManagement,
             final HostnameVerifier hostnameVerifier) {
-        super(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, hostnameVerifier);
+        this(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, HostnameVerificationPolicy.CLIENT, hostnameVerifier);
     }
 
     public DefaultClientTlsStrategy(
             final SSLContext sslContext,
             final HostnameVerifier hostnameVerifier) {
         this(sslContext, null, null, SSLBufferMode.STATIC, hostnameVerifier);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public DefaultClientTlsStrategy(
+            final SSLContext sslContext,
+            final HostnameVerificationPolicy hostnameVerificationPolicy,
+            final HostnameVerifier hostnameVerifier) {
+        this(sslContext, null, null, SSLBufferMode.STATIC, hostnameVerificationPolicy, hostnameVerifier);
     }
 
     public DefaultClientTlsStrategy(final SSLContext sslContext) {

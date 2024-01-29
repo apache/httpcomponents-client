@@ -54,6 +54,7 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
     public static TlsStrategy getDefault() {
         return new ConscryptClientTlsStrategy(
                 SSLContexts.createDefault(),
+                HostnameVerificationPolicy.BOTH,
                 HttpsSupport.getDefaultHostnameVerifier());
     }
 
@@ -63,6 +64,7 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
                 HttpsSupport.getSystemProtocols(),
                 HttpsSupport.getSystemCipherSuits(),
                 SSLBufferMode.STATIC,
+                HostnameVerificationPolicy.BOTH,
                 HttpsSupport.getDefaultHostnameVerifier());
     }
 
@@ -72,13 +74,36 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
             final String[] supportedCipherSuites,
             final SSLBufferMode sslBufferManagement,
             final HostnameVerifier hostnameVerifier) {
-        super(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, hostnameVerifier);
+        this(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, HostnameVerificationPolicy.CLIENT, hostnameVerifier);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public ConscryptClientTlsStrategy(
+            final SSLContext sslContext,
+            final String[] supportedProtocols,
+            final String[] supportedCipherSuites,
+            final SSLBufferMode sslBufferManagement,
+            final HostnameVerificationPolicy hostnameVerificationPolicy,
+            final HostnameVerifier hostnameVerifier) {
+        super(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, hostnameVerificationPolicy, hostnameVerifier);
     }
 
     public ConscryptClientTlsStrategy(
             final SSLContext sslContext,
             final HostnameVerifier hostnameVerifier) {
         this(sslContext, null, null, SSLBufferMode.STATIC, hostnameVerifier);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public ConscryptClientTlsStrategy(
+            final SSLContext sslContext,
+            final HostnameVerificationPolicy hostnameVerificationPolicy,
+            final HostnameVerifier hostnameVerifier) {
+        this(sslContext, null, null, SSLBufferMode.STATIC, hostnameVerificationPolicy, hostnameVerifier);
     }
 
     public ConscryptClientTlsStrategy(final SSLContext sslContext) {
