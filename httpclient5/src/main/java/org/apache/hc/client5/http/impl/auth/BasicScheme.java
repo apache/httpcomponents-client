@@ -26,13 +26,9 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.UnsupportedCharsetException;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
@@ -49,9 +45,11 @@ import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.impl.StateHolder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.Base64;
 import org.apache.hc.client5.http.utils.ByteArrayBuilder;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.NameValuePair;
@@ -66,14 +64,13 @@ import org.slf4j.LoggerFactory;
  * @since 4.0
  */
 @AuthStateCacheable
-public class BasicScheme implements AuthScheme, Serializable {
+public class BasicScheme implements AuthScheme, StateHolder<BasicScheme.State>, Serializable {
 
     private static final long serialVersionUID = -1931571557597830536L;
 
     private static final Logger LOG = LoggerFactory.getLogger(BasicScheme.class);
 
     private final Map<String, String> paramMap;
-    private transient Charset defaultCharset;
     private transient ByteArrayBuilder buffer;
     private transient Base64 base64codec;
     private boolean complete;
@@ -89,7 +86,6 @@ public class BasicScheme implements AuthScheme, Serializable {
     @Deprecated
     public BasicScheme(final Charset charset) {
         this.paramMap = new HashMap<>();
-        this.defaultCharset = StandardCharsets.UTF_8; // Always use UTF-8
         this.complete = false;
     }
 
@@ -100,7 +96,6 @@ public class BasicScheme implements AuthScheme, Serializable {
      */
     public BasicScheme() {
         this.paramMap = new HashMap<>();
-        this.defaultCharset = StandardCharsets.UTF_8;
         this.complete = false;
     }
 
@@ -109,6 +104,7 @@ public class BasicScheme implements AuthScheme, Serializable {
             Args.check(credentials instanceof UsernamePasswordCredentials,
                     "Unsupported credential type: " + credentials.getClass());
             this.credentials = (UsernamePasswordCredentials) credentials;
+            this.complete = true;
         } else {
             this.credentials = null;
         }
@@ -221,7 +217,7 @@ public class BasicScheme implements AuthScheme, Serializable {
         } else {
             this.buffer.reset();
         }
-        final Charset charset = AuthSchemeSupport.parseCharset(paramMap.get("charset"), defaultCharset);
+        final Charset charset = AuthSchemeSupport.parseCharset(paramMap.get("charset"), StandardCharsets.UTF_8);
         this.buffer.charset(charset);
         this.buffer.append(this.credentials.getUserName()).append(":").append(this.credentials.getUserPassword());
         if (this.base64codec == null) {
@@ -232,27 +228,47 @@ public class BasicScheme implements AuthScheme, Serializable {
         return StandardAuthScheme.BASIC + " " + new String(encodedCreds, 0, encodedCreds.length, StandardCharsets.US_ASCII);
     }
 
-    private void writeObject(final ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        out.writeUTF(this.defaultCharset.name());
-    }
-
-    @SuppressWarnings("unchecked")
-    private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        try {
-            this.defaultCharset = Charset.forName(in.readUTF());
-        } catch (final UnsupportedCharsetException ex) {
-            this.defaultCharset = StandardCharsets.UTF_8;
+    @Override
+    public State store() {
+        if (complete) {
+            return new State(new HashMap<>(paramMap), credentials);
+        } else {
+            return null;
         }
     }
 
-    private void readObjectNoData() {
+    @Override
+    public void restore(final State state) {
+        if (state != null) {
+            paramMap.clear();
+            paramMap.putAll(state.params);
+            credentials = state.credentials;
+            complete = true;
+        }
     }
 
     @Override
     public String toString() {
         return getName() + this.paramMap;
+    }
+
+    @Internal
+    public static class State {
+
+        final Map<String, String> params;
+        final UsernamePasswordCredentials credentials;
+
+        State(final Map<String, String> params, final UsernamePasswordCredentials credentials) {
+            this.params = params;
+            this.credentials = credentials;
+        }
+
+        @Override
+        public String toString() {
+            return "State{" +
+                    "params=" + params +
+                    '}';
+        }
     }
 
 }

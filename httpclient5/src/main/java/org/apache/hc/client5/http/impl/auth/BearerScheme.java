@@ -43,7 +43,9 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.impl.StateHolder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.NameValuePair;
@@ -59,7 +61,7 @@ import org.slf4j.LoggerFactory;
  * @since 5.3
  */
 @AuthStateCacheable
-public class BearerScheme implements AuthScheme, Serializable {
+public class BearerScheme implements AuthScheme, StateHolder<BearerScheme.State>, Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(BearerScheme.class);
 
@@ -162,8 +164,48 @@ public class BearerScheme implements AuthScheme, Serializable {
     }
 
     @Override
+    public State store() {
+        if (complete) {
+            return new State(new HashMap<>(paramMap), bearerToken);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public void restore(final State state) {
+        if (state != null) {
+            paramMap.clear();
+            paramMap.putAll(state.params);
+            bearerToken = state.bearerToken;
+            complete = true;
+        }
+    }
+
+    @Override
     public String toString() {
         return getName() + this.paramMap;
+    }
+
+    @Internal
+    public static class State {
+
+        final Map<String, String> params;
+        final BearerToken bearerToken;
+
+        State(final Map<String, String> params, final BearerToken bearerToken) {
+            this.params = params;
+            this.bearerToken = bearerToken;
+        }
+
+        @Override
+        public String toString() {
+            return "State{" +
+                    "params=" + params +
+                    ", bearerToken=" + bearerToken +
+                    '}';
+        }
+
     }
 
 }

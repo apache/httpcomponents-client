@@ -26,11 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
@@ -80,25 +75,21 @@ public class TestBearerScheme {
     }
 
     @Test
-    public void testSerialization() throws Exception {
+    public void testStateStorage() throws Exception {
         final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, "Bearer",
                 new BasicNameValuePair("realm", "test"),
                 new BasicNameValuePair("code", "read"));
 
-        final AuthScheme authscheme = new BearerScheme();
+        final BearerScheme authscheme = new BearerScheme();
         authscheme.processChallenge(authChallenge, null);
 
-        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        final ObjectOutputStream out = new ObjectOutputStream(buffer);
-        out.writeObject(authscheme);
-        out.flush();
-        final byte[] raw = buffer.toByteArray();
-        final ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
-        final BearerScheme authcheme2 = (BearerScheme) in.readObject();
+        final BearerScheme.State state = authscheme.store();
+        final BearerScheme cached = new BearerScheme();
+        cached.restore(state);
 
-        Assertions.assertEquals(authcheme2.getName(), authcheme2.getName());
-        Assertions.assertEquals(authcheme2.getRealm(), authcheme2.getRealm());
-        Assertions.assertEquals(authcheme2.isChallengeComplete(), authcheme2.isChallengeComplete());
+        Assertions.assertEquals(cached.getName(), cached.getName());
+        Assertions.assertEquals(cached.getRealm(), cached.getRealm());
+        Assertions.assertEquals(cached.isChallengeComplete(), cached.isChallengeComplete());
     }
 
 }
