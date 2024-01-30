@@ -26,10 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
@@ -153,34 +149,13 @@ public class TestBasicScheme {
         final BasicScheme basicScheme = new BasicScheme();
         basicScheme.processChallenge(authChallenge, null);
 
-        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        final ObjectOutputStream out = new ObjectOutputStream(buffer);
-        out.writeObject(basicScheme);
-        out.flush();
-        final byte[] raw = buffer.toByteArray();
-        final ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
-        final BasicScheme authScheme = (BasicScheme) in.readObject();
+        final BasicScheme.State state = basicScheme.store();
+        final BasicScheme cached = new BasicScheme();
+        cached.restore(state);
 
-        Assertions.assertEquals(basicScheme.getName(), authScheme.getName());
-        Assertions.assertEquals(basicScheme.getRealm(), authScheme.getRealm());
-        Assertions.assertEquals(basicScheme.isChallengeComplete(), authScheme.isChallengeComplete());
-    }
-
-    @Test
-    public void testSerializationUnchallenged() throws Exception {
-        final BasicScheme basicScheme = new BasicScheme();
-
-        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        final ObjectOutputStream out = new ObjectOutputStream(buffer);
-        out.writeObject(basicScheme);
-        out.flush();
-        final byte[] raw = buffer.toByteArray();
-        final ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
-        final BasicScheme authScheme = (BasicScheme) in.readObject();
-
-        Assertions.assertEquals(basicScheme.getName(), authScheme.getName());
-        Assertions.assertEquals(basicScheme.getRealm(), authScheme.getRealm());
-        Assertions.assertEquals(basicScheme.isChallengeComplete(), authScheme.isChallengeComplete());
+        Assertions.assertEquals(basicScheme.getName(), cached.getName());
+        Assertions.assertEquals(basicScheme.getRealm(), cached.getRealm());
+        Assertions.assertEquals(basicScheme.isChallengeComplete(), cached.isChallengeComplete());
     }
 
     @Test

@@ -26,12 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -41,6 +35,7 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
+import org.apache.hc.client5.http.impl.StateHolder;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
@@ -123,7 +118,19 @@ public class BasicAuthCache implements AuthCache {
         }
     }
 
-    private final Map<Key, byte[]> map;
+    static class AuthData {
+
+        final Class<? extends AuthScheme> clazz;
+        final Object state;
+
+        public AuthData(final Class<? extends AuthScheme> clazz, final Object state) {
+            this.clazz = clazz;
+            this.state = state;
+        }
+
+    }
+
+    private final Map<Key, AuthData> map;
     private final SchemePortResolver schemePortResolver;
 
     /**
@@ -143,6 +150,10 @@ public class BasicAuthCache implements AuthCache {
 
     private Key key(final String scheme, final NamedEndpoint authority, final String pathPrefix) {
         return new Key(scheme, authority.getHostName(), schemePortResolver.resolve(scheme, authority), pathPrefix);
+    }
+
+    private AuthData data(final AuthScheme authScheme) {
+        return new AuthData(authScheme.getClass(), ((StateHolder) authScheme).store());
     }
 
     @Override
@@ -166,42 +177,28 @@ public class BasicAuthCache implements AuthCache {
         if (authScheme == null) {
             return;
         }
-        if (authScheme instanceof Serializable) {
-            try {
-                final ByteArrayOutputStream buf = new ByteArrayOutputStream();
-                try (final ObjectOutputStream out = new ObjectOutputStream(buf)) {
-                    out.writeObject(authScheme);
-                }
-                this.map.put(key(host.getSchemeName(), host, pathPrefix), buf.toByteArray());
-            } catch (final IOException ex) {
-                if (LOG.isWarnEnabled()) {
-                    LOG.warn("Unexpected I/O error while serializing auth scheme", ex);
-                }
-            }
+        if (authScheme instanceof StateHolder) {
+            this.map.put(key(host.getSchemeName(), host, pathPrefix), data(authScheme));
         } else {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Auth scheme {} is not serializable", authScheme.getClass());
+                LOG.debug("Auth scheme {} cannot be cached", authScheme.getClass());
             }
         }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public AuthScheme get(final HttpHost host, final String pathPrefix) {
         Args.notNull(host, "HTTP host");
-        final byte[] bytes = this.map.get(key(host.getSchemeName(), host, pathPrefix));
-        if (bytes != null) {
+        final AuthData authData = this.map.get(key(host.getSchemeName(), host, pathPrefix));
+        if (authData != null) {
             try {
-                final ByteArrayInputStream buf = new ByteArrayInputStream(bytes);
-                try (final ObjectInputStream in = new ObjectInputStream(buf)) {
-                    return (AuthScheme) in.readObject();
-                }
-            } catch (final IOException ex) {
+                final AuthScheme authScheme = authData.clazz.newInstance();
+                ((StateHolder<Object>) authScheme).restore(authData.state);
+                return authScheme;
+            } catch (final IllegalAccessException | InstantiationException ex) {
                 if (LOG.isWarnEnabled()) {
-                    LOG.warn("Unexpected I/O error while de-serializing auth scheme", ex);
-                }
-            } catch (final ClassNotFoundException ex) {
-                if (LOG.isWarnEnabled()) {
-                    LOG.warn("Unexpected error while de-serializing auth scheme", ex);
+                    LOG.warn("Unexpected error while reading auth scheme state", ex);
                 }
             }
         }
