@@ -125,6 +125,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE);
 
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(100));
 
@@ -153,6 +154,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE);
 
         mgr.release(endpoint1, "some other state", TimeValue.ofMilliseconds(10000));
 
@@ -181,6 +183,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE);
 
         mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
 
@@ -212,6 +215,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE);
 
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(10));
 
@@ -256,6 +260,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE);
 
         mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
 
@@ -288,6 +293,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE);
 
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(10));
 
@@ -315,6 +321,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE);
 
         mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
 

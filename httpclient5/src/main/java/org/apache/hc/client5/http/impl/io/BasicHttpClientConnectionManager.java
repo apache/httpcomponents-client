@@ -69,6 +69,7 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.Deadline;
+import org.apache.hc.core5.util.Identifiable;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
@@ -343,11 +344,11 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             return;
         }
         try {
-            if (keepAlive == null) {
+            if (keepAlive == null || conn == null) {
                 this.conn.close(CloseMode.GRACEFUL);
             }
             this.updated = System.currentTimeMillis();
-            if (!this.conn.isOpen() && !this.conn.isConsistent()) {
+            if (!this.conn.isOpen() || !this.conn.isConsistent()) {
                 this.route = null;
                 this.conn = null;
                 this.expiry = Long.MAX_VALUE;
@@ -482,7 +483,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 .build();
     }
 
-    class InternalConnectionEndpoint extends ConnectionEndpoint {
+    class InternalConnectionEndpoint extends ConnectionEndpoint implements Identifiable {
 
         private final HttpRoute route;
         private final AtomicReference<ManagedHttpClientConnection> connRef;
@@ -490,6 +491,11 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         public InternalConnectionEndpoint(final HttpRoute route, final ManagedHttpClientConnection conn) {
             this.route = route;
             this.connRef = new AtomicReference<>(conn);
+        }
+
+        @Override
+        public String getId() {
+            return id;
         }
 
         HttpRoute getRoute() {
@@ -505,8 +511,10 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
 
         ManagedHttpClientConnection getValidatedConnection() {
-            final ManagedHttpClientConnection conn = getConnection();
-            Asserts.check(conn.isOpen(), "Endpoint is not connected");
+            final ManagedHttpClientConnection conn = this.connRef.get();
+            if (conn == null || !conn.isOpen()) {
+                throw new ConnectionShutdownException();
+            }
             return conn;
         }
 
@@ -516,13 +524,13 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
         @Override
         public boolean isConnected() {
-            final ManagedHttpClientConnection conn = getConnection();
+            final ManagedHttpClientConnection conn = this.connRef.get();
             return conn != null && conn.isOpen();
         }
 
         @Override
         public void close(final CloseMode closeMode) {
-            final ManagedHttpClientConnection conn = detach();
+            final ManagedHttpClientConnection conn = this.connRef.get();
             if (conn != null) {
                 conn.close(closeMode);
             }
@@ -530,7 +538,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
         @Override
         public void close() throws IOException {
-            final ManagedHttpClientConnection conn = detach();
+            final ManagedHttpClientConnection conn = this.connRef.get();
             if (conn != null) {
                 conn.close();
             }
