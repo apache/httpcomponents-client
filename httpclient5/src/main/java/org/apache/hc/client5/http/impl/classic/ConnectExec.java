@@ -63,7 +63,6 @@ import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.StatusLine;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
@@ -190,7 +189,7 @@ public final class ConnectExec implements ExecChainHandler {
             final EndpointInfo endpointInfo = execRuntime.getEndpointInfo();
             if (endpointInfo != null) {
                 context.setProtocolVersion(endpointInfo.getProtocol());
-                context.setAttribute(HttpCoreContext.SSL_SESSION, endpointInfo.getSslSession());
+                context.setSSLSession(endpointInfo.getSslSession());
             }
             return chain.proceed(request, scope);
 

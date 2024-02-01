@@ -37,9 +37,8 @@ import java.util.List;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,7 +66,7 @@ public class TestSystemDefaultRoutePlanner {
     public void testDirect() throws Exception {
         final HttpHost target = new HttpHost("http", "somehost", 80);
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
         Assertions.assertEquals(target, route.getTargetHost());
@@ -81,7 +80,7 @@ public class TestSystemDefaultRoutePlanner {
         final HttpHost target = new HttpHost("https", "somehost", -1);
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(443);
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
         Assertions.assertEquals(new HttpHost("https", "somehost", 443), route.getTargetHost());
@@ -106,7 +105,7 @@ public class TestSystemDefaultRoutePlanner {
 
         final HttpHost target = new HttpHost("http", "somehost", 80);
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
         Assertions.assertEquals(target, route.getTargetHost());

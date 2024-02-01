@@ -37,7 +37,7 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -59,7 +59,7 @@ public class TestSystemDefaultCredentialsProvider {
         new PasswordAuthentication("testUser", "testPassword".toCharArray());
 
     // It's not possible to mock static Authenticator methods. So we mock a delegate
-    private final class DelegatedAuthenticator extends Authenticator {
+    private final static class DelegatedAuthenticator extends Authenticator {
         private final AuthenticatorDelegate authenticatorDelegate;
 
         private DelegatedAuthenticator(final AuthenticatorDelegate authenticatorDelegate) {
@@ -94,11 +94,11 @@ public class TestSystemDefaultCredentialsProvider {
 
         final URL httpRequestUrl = new URL(TARGET_SCHEME1, TARGET_HOST1, TARGET_PORT1, "/");
         final AuthScope authScope = new AuthScope(PROXY_PROTOCOL1, PROXY_HOST1, PROXY_PORT1, PROMPT1, StandardAuthScheme.BASIC);
-        final HttpCoreContext coreContext = new HttpCoreContext();
-        coreContext.setAttribute(HttpCoreContext.HTTP_REQUEST, new HttpGet(httpRequestUrl.toURI()));
+        final HttpClientContext context = new HttpClientContext();
+        context.setRequest(new HttpGet(httpRequestUrl.toURI()));
 
         final Credentials receivedCredentials =
-            new SystemDefaultCredentialsProvider().getCredentials(authScope, coreContext);
+            new SystemDefaultCredentialsProvider().getCredentials(authScope, context);
 
         Mockito.verify(authenticatorDelegate).getPasswordAuthentication(
                 PROXY_HOST1, null, PROXY_PORT1, PROXY_PROTOCOL1,

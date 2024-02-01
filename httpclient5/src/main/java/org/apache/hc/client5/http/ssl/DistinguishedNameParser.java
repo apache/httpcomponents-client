@@ -28,7 +28,6 @@
 package org.apache.hc.client5.http.ssl;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
 
 import org.apache.hc.core5.http.NameValuePair;
@@ -40,8 +39,8 @@ final class DistinguishedNameParser {
 
     public final static DistinguishedNameParser INSTANCE = new DistinguishedNameParser();
 
-    private static final BitSet EQUAL_OR_COMMA_OR_PLUS      = Tokenizer.INIT_BITSET('=', ',', '+');
-    private static final BitSet COMMA_OR_PLUS               = Tokenizer.INIT_BITSET(',', '+');
+    private static final Tokenizer.Delimiter EQUAL_OR_COMMA_OR_PLUS = Tokenizer.delimiters('=', ',', '+');
+    private static final Tokenizer.Delimiter COMMA_OR_PLUS = Tokenizer.delimiters(',', '+');
 
     private final Tokenizer tokenParser;
 
@@ -49,11 +48,11 @@ final class DistinguishedNameParser {
         this.tokenParser = new InternalTokenParser();
     }
 
-    private String parseToken(final CharArrayBuffer buf, final Tokenizer.Cursor cursor, final BitSet delimiters) {
+    private String parseToken(final CharArrayBuffer buf, final Tokenizer.Cursor cursor, final Tokenizer.Delimiter delimiters) {
         return tokenParser.parseToken(buf, cursor, delimiters);
     }
 
-    private String parseValue(final CharArrayBuffer buf, final Tokenizer.Cursor cursor, final BitSet delimiters) {
+    private String parseValue(final CharArrayBuffer buf, final Tokenizer.Cursor cursor, final Tokenizer.Delimiter delimiters) {
         return tokenParser.parseValue(buf, cursor, delimiters);
     }
 
@@ -100,7 +99,7 @@ final class DistinguishedNameParser {
         public void copyUnquotedContent(
                 final CharSequence buf,
                 final Tokenizer.Cursor cursor,
-                final BitSet delimiters,
+                final Tokenizer.Delimiter delimiters,
                 final StringBuilder dst) {
             int pos = cursor.getPos();
             final int indexFrom = cursor.getPos();
@@ -112,7 +111,7 @@ final class DistinguishedNameParser {
                     dst.append(current);
                     escaped = false;
                 } else {
-                    if ((delimiters != null && delimiters.get(current))
+                    if ((delimiters != null && delimiters.test(current))
                             || Tokenizer.isWhitespace(current) || current == '\"') {
                         break;
                     } else if (current == '\\') {

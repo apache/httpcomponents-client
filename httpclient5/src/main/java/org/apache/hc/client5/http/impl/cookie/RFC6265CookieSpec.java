@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cookie;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -70,9 +69,9 @@ public class RFC6265CookieSpec implements CookieSpec {
 
     // IMPORTANT!
     // These private static variables must be treated as immutable and never exposed outside this class
-    private static final BitSet TOKEN_DELIMS = Tokenizer.INIT_BITSET(EQUAL_CHAR, PARAM_DELIMITER);
-    private static final BitSet VALUE_DELIMS = Tokenizer.INIT_BITSET(PARAM_DELIMITER);
-    private static final BitSet SPECIAL_CHARS = Tokenizer.INIT_BITSET(' ',
+    private static final Tokenizer.Delimiter TOKEN_DELIMS = Tokenizer.delimiters(EQUAL_CHAR, PARAM_DELIMITER);
+    private static final Tokenizer.Delimiter VALUE_DELIMS = Tokenizer.delimiters(PARAM_DELIMITER);
+    private static final Tokenizer.Delimiter SPECIAL_CHARS = Tokenizer.delimiters(' ',
             DQUOTE_CHAR, COMMA_CHAR, PARAM_DELIMITER, ESCAPE_CHAR);
 
     private final CookieAttributeHandler[] attribHandlers;
@@ -257,10 +256,10 @@ public class RFC6265CookieSpec implements CookieSpec {
         return containsChars(s, SPECIAL_CHARS);
     }
 
-    boolean containsChars(final CharSequence s, final BitSet chars) {
+    boolean containsChars(final CharSequence s, final Tokenizer.Delimiter chars) {
         for (int i = 0; i < s.length(); i++) {
             final char ch = s.charAt(i);
-            if (chars.get(ch)) {
+            if (chars.test(ch)) {
                 return true;
             }
         }

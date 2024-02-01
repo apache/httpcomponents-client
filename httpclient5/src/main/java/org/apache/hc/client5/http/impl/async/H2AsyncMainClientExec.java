@@ -55,7 +55,6 @@ import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
@@ -128,7 +127,7 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
             public void produceRequest(final RequestChannel channel, final HttpContext context) throws HttpException, IOException {
 
                 clientContext.setAttribute(HttpClientContext.HTTP_ROUTE, route);
-                clientContext.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
+                clientContext.setRequest(request);
                 httpProcessor.process(request, entityProducer, clientContext);
 
                 channel.sendRequest(request, entityProducer, context);
@@ -154,7 +153,7 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
                     final EntityDetails entityDetails,
                     final HttpContext context) throws HttpException, IOException {
 
-                clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
+                clientContext.setResponse(response);
                 httpProcessor.process(response, entityDetails, clientContext);
 
                 entityConsumerRef.set(asyncExecCallback.handleResponse(response, entityDetails));

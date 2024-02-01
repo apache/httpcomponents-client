@@ -36,6 +36,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.LeaseRequest;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.classic.RandomHandler;
 import org.apache.hc.client5.testing.sync.extension.TestClientResources;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -47,7 +48,6 @@ import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
@@ -128,7 +128,7 @@ public class TestConnectionManagement {
         final String uri = "/random/" + rsplen;
 
         final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", target, uri);
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
 
         final LeaseRequest leaseRequest1 = connManager.lease("id1", route, null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
@@ -192,7 +192,7 @@ public class TestConnectionManagement {
         final String uri = "/random/" + rsplen;
 
         final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", target, uri);
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
 
         final LeaseRequest leaseRequest1 = connManager.lease("id1", route, null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
@@ -258,7 +258,7 @@ public class TestConnectionManagement {
         connManager.setMaxTotal(1);
 
         final HttpRoute route = new HttpRoute(target, null, false);
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
 
         final LeaseRequest leaseRequest1 = connManager.lease("id1", route, null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
@@ -311,7 +311,7 @@ public class TestConnectionManagement {
         connManager.setMaxTotal(1);
 
         final HttpRoute route = new HttpRoute(target, null, false);
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
 
         final LeaseRequest leaseRequest1 = connManager.lease("id1", route, null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);

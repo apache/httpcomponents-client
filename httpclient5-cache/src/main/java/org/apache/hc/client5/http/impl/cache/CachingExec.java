@@ -66,7 +66,6 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.RequestLine;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.ByteArrayBuffer;
@@ -133,8 +132,8 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final HttpHost target = authority != null ? new HttpHost(scheme, authority) : route.getTargetHost();
         final ClassicHttpResponse response = doExecute(target, request, scope, chain);
 
-        context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
-        context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
+        context.setRequest(request);
+        context.setResponse(response);
 
         return response;
     }

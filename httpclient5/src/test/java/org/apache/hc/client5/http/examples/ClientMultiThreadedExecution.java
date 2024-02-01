@@ -30,9 +30,9 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -90,7 +90,7 @@ public class ClientMultiThreadedExecution {
 
         public GetThread(final CloseableHttpClient httpClient, final HttpGet httpget, final int id) {
             this.httpClient = httpClient;
-            this.context = new BasicHttpContext();
+            this.context = new HttpClientContext();
             this.httpget = httpget;
             this.id = id;
         }

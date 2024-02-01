@@ -44,12 +44,11 @@ import org.apache.hc.client5.http.UnsupportedSchemeException;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.io.DetachedSocketFactory;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.io.SocketConfig;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
@@ -84,7 +83,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testConnect() throws Exception {
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
         final HttpHost host = new HttpHost("somehost");
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
         final InetAddress ip1 = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
@@ -117,7 +116,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testConnectWithTLSUpgrade() throws Exception {
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
         final HttpHost host = new HttpHost("https", "somehost");
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
         final InetAddress ip1 = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
@@ -153,7 +152,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testConnectTimeout() throws Exception {
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
         final HttpHost host = new HttpHost("somehost");
         final InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
         final InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
@@ -170,7 +169,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testConnectFailure() throws Exception {
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
         final HttpHost host = new HttpHost("somehost");
         final InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
         final InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
@@ -187,7 +186,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testConnectFailover() throws Exception {
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
         final HttpHost host = new HttpHost("somehost");
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
         final InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
@@ -214,7 +213,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testConnectExplicitAddress() throws Exception {
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
         final InetAddress ip = InetAddress.getByAddress(new byte[] {127, 0, 0, 23});
         final HttpHost host = new HttpHost(ip);
@@ -236,7 +235,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testUpgrade() throws Exception {
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
         final HttpHost host = new HttpHost("https", "somehost", -1);
 
         Mockito.when(conn.isOpen()).thenReturn(true);
@@ -258,7 +257,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testUpgradeUpsupportedScheme() throws Exception {
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
         final HttpHost host = new HttpHost("httpsssss", "somehost", -1);
 
         Mockito.when(conn.isOpen()).thenReturn(true);
@@ -270,7 +269,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testUpgradeNonLayeringScheme() throws Exception {
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
         final HttpHost host = new HttpHost("http", "somehost", -1);
 
         Mockito.when(conn.isOpen()).thenReturn(true);

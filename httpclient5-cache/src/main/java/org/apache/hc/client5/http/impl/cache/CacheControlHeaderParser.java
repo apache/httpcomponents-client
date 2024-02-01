@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -89,12 +88,12 @@ class CacheControlHeaderParser {
     /**
      * The set of characters that can delimit a token in the header.
      */
-    private static final BitSet TOKEN_DELIMS = Tokenizer.INIT_BITSET(EQUAL_CHAR, ',');
+    private static final Tokenizer.Delimiter TOKEN_DELIMS = Tokenizer.delimiters(EQUAL_CHAR, ',');
 
     /**
      * The set of characters that can delimit a value in the header.
      */
-    private static final BitSet VALUE_DELIMS = Tokenizer.INIT_BITSET(EQUAL_CHAR, ',');
+    private static final Tokenizer.Delimiter VALUE_DELIMS = Tokenizer.delimiters(EQUAL_CHAR, ',');
 
     /**
      * The token parser used to extract values from the header.

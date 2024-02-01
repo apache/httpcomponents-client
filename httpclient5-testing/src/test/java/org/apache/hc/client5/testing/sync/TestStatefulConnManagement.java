@@ -43,7 +43,6 @@ import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.testing.classic.ClassicTestServer;
 import org.apache.hc.core5.util.Timeout;
@@ -217,7 +216,7 @@ public class TestStatefulConnManagement {
         );
 
         // Bottom of the pool : a *keep alive* connection to Route 1.
-        final HttpContext context1 = new BasicHttpContext();
+        final HttpContext context1 = new HttpClientContext();
         context1.setAttribute("user", "stuff");
         client.execute(target, new HttpGet("/"), context1, response -> {
             EntityUtils.consume(response.getEntity());
@@ -232,7 +231,7 @@ public class TestStatefulConnManagement {
 
         // Send a very simple HTTP get (it MUST be simple, no auth, no proxy, no 302, no 401, ...)
         // Send it to another route. Must be a keepalive.
-        final HttpContext context2 = new BasicHttpContext();
+        final HttpContext context2 = new HttpClientContext();
         client.execute(new HttpHost("127.0.0.1", server.getPort()), new HttpGet("/"), context2, response -> {
             EntityUtils.consume(response.getEntity());
             return null;
@@ -248,7 +247,7 @@ public class TestStatefulConnManagement {
         // So the ConnPoolByRoute will need to kill one connection (it is maxed out globally).
         // The killed conn is the oldest, which means the first HTTPGet ([localhost][stuff]).
         // When this happens, the RouteSpecificPool becomes empty.
-        final HttpContext context3 = new BasicHttpContext();
+        final HttpContext context3 = new HttpClientContext();
         client.execute(target, new HttpGet("/"), context3, response -> {
             EntityUtils.consume(response.getEntity());
             return null;

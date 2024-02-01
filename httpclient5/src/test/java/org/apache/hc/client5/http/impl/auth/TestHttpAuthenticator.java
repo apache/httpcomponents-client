@@ -52,7 +52,6 @@ import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,7 +86,7 @@ public class TestHttpAuthenticator {
         this.authScheme = Mockito.mock(CacheableAuthState.class, Mockito.withSettings()
                 .defaultAnswer(Answers.CALLS_REAL_METHODS));
         Mockito.when(this.authScheme.isChallengeComplete()).thenReturn(Boolean.TRUE);
-        this.context = new BasicHttpContext();
+        this.context = new HttpClientContext();
         this.defaultHost = new HttpHost("localhost", 80);
         this.credentialsProvider = Mockito.mock(CredentialsProvider.class);
         this.context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);

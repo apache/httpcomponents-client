@@ -40,7 +40,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.impl.BasicEntityDetails;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,7 +53,7 @@ class TestRequestValidateTrace {
     @BeforeEach
     void setUp() {
         interceptor = new RequestValidateTrace();
-        context = new BasicHttpContext();
+        context = new HttpClientContext();
     }
 
     @Test

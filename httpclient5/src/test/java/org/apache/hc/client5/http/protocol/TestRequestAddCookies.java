@@ -49,7 +49,6 @@ import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -189,7 +188,7 @@ public class TestRequestAddCookies {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.CONNECTION_ENDPOINT, null);
+        context.setEndpointDetails(null);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 

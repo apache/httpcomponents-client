@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.cache;
 
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -69,7 +68,7 @@ public class HttpCacheContext extends HttpClientContext {
     }
 
     public static HttpCacheContext create() {
-        return new HttpCacheContext(new BasicHttpContext());
+        return new HttpCacheContext(new HttpClientContext());
     }
 
     public HttpCacheContext(final HttpContext context) {

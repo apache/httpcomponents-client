@@ -34,7 +34,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -43,7 +42,7 @@ public class TestRequestDefaultHeaders {
 
     @Test
     public void testRequestParameterCheck() throws Exception {
-        final HttpContext context = new BasicHttpContext();
+        final HttpContext context = new HttpClientContext();
         final HttpRequestInterceptor interceptor = RequestDefaultHeaders.INSTANCE;
         Assertions.assertThrows(NullPointerException.class, () ->
                 interceptor.process(null, null, context));
@@ -54,7 +53,7 @@ public class TestRequestDefaultHeaders {
         final HttpRequest request = new BasicHttpRequest("CONNECT", "www.somedomain.com");
         final List<Header> defheaders = new ArrayList<>();
         defheaders.add(new BasicHeader("custom", "stuff"));
-        final HttpContext context = new BasicHttpContext();
+        final HttpContext context = new HttpClientContext();
 
         final HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
         interceptor.process(request, null, context);
@@ -68,7 +67,7 @@ public class TestRequestDefaultHeaders {
         request.addHeader("custom", "stuff");
         final List<Header> defheaders = new ArrayList<>();
         defheaders.add(new BasicHeader("custom", "other stuff"));
-        final HttpContext context = new BasicHttpContext();
+        final HttpContext context = new HttpClientContext();
 
         final HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
         interceptor.process(request, null, context);

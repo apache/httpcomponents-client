@@ -35,7 +35,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIAuthority;
 import org.junit.jupiter.api.Assertions;
@@ -61,7 +60,7 @@ public class TestDefaultRoutePlanner {
     public void testDirect() throws Exception {
         final HttpHost target = new HttpHost("http", "somehost", 80);
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpContext context = new HttpClientContext();
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
         Assertions.assertEquals(target, route.getTargetHost());
@@ -75,7 +74,7 @@ public class TestDefaultRoutePlanner {
         final HttpHost target = new HttpHost("https", "somehost", -1);
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(443);
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpContext context = new HttpClientContext();
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
         Assertions.assertEquals(new HttpHost("https", "somehost", 443), route.getTargetHost());
@@ -102,7 +101,7 @@ public class TestDefaultRoutePlanner {
 
     @Test
     public void testNullTarget() throws Exception {
-        final HttpContext context = new BasicHttpContext();
+        final HttpContext context = new HttpClientContext();
         Assertions.assertThrows(ProtocolException.class, () ->
                 routePlanner.determineRoute(null, context));
     }
@@ -113,7 +112,7 @@ public class TestDefaultRoutePlanner {
         final URIAuthority virtualHost = new URIAuthority("someotherhost", 443);
         final HttpRequest request = new BasicHttpRequest("https", "GET", virtualHost, "/");
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpContext context = new HttpClientContext();
         final HttpRoute route = routePlanner.determineRoute(target, request, context);
 
         Assertions.assertEquals(target, route.getTargetHost());
@@ -129,7 +128,7 @@ public class TestDefaultRoutePlanner {
         final URIAuthority virtualHost = new URIAuthority("someotherhost", 80);
         final HttpRequest request = new BasicHttpRequest("http", "GET", virtualHost, "/");
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpContext context = new HttpClientContext();
         final HttpRoute route = routePlanner.determineRoute(target, request, context);
 
         Assertions.assertEquals(target, route.getTargetHost());

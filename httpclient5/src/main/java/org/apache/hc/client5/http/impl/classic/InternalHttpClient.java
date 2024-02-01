@@ -59,7 +59,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
@@ -147,7 +146,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
         Args.notNull(request, "HTTP request");
         try {
             final HttpClientContext localcontext = HttpClientContext.adapt(
-                    context != null ? context : new BasicHttpContext());
+                    context != null ? context : new HttpClientContext());
             RequestConfig config = null;
             if (request instanceof Configurable) {
                 config = ((Configurable) request).getConfig();

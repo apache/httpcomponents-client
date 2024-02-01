@@ -28,7 +28,6 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
@@ -55,11 +54,9 @@ public class AuthChallengeParser {
     private final static char COMMA_CHAR       = ',';
     private final static char EQUAL_CHAR       = '=';
 
-    // IMPORTANT!
-    // These private static variables must be treated as immutable and never exposed outside this class
-    private static final BitSet TERMINATORS = Tokenizer.INIT_BITSET(BLANK, EQUAL_CHAR, COMMA_CHAR);
-    private static final BitSet DELIMITER = Tokenizer.INIT_BITSET(COMMA_CHAR);
-    private static final BitSet SPACE = Tokenizer.INIT_BITSET(BLANK);
+    private static final Tokenizer.Delimiter TERMINATORS = Tokenizer.delimiters(BLANK, EQUAL_CHAR, COMMA_CHAR);
+    private static final Tokenizer.Delimiter DELIMITER = Tokenizer.delimiters(COMMA_CHAR);
+    private static final Tokenizer.Delimiter SPACE = Tokenizer.delimiters(BLANK);
 
     static class ChallengeInt {
 
@@ -173,7 +170,7 @@ public class AuthChallengeParser {
         while (!cursor.atEnd()) {
             int pos = cursor.getPos();
             char current = buf.charAt(pos);
-            if (TERMINATORS.get(current)) {
+            if (TERMINATORS.test(current)) {
                 // Here it gets really ugly
                 if (current == EQUAL_CHAR) {
                     // it can be a start of a parameter value or token68 padding

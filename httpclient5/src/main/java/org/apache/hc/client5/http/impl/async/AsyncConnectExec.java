@@ -74,7 +74,6 @@ import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
@@ -442,7 +441,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             public void consumeResponse(final HttpResponse response,
                                         final EntityDetails entityDetails,
                                         final HttpContext httpContext) throws HttpException, IOException {
-                clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
+                clientContext.setResponse(response);
                 proxyHttpProcessor.process(response, entityDetails, clientContext);
 
                 final int status = response.getCode();
@@ -547,7 +546,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         final EndpointInfo endpointInfo = execRuntime.getEndpointInfo();
         if (endpointInfo != null) {
             clientContext.setProtocolVersion(endpointInfo.getProtocol());
-            clientContext.setAttribute(HttpCoreContext.SSL_SESSION, endpointInfo.getSslSession());
+            clientContext.setSSLSession(endpointInfo.getSslSession());
         }
         try {
             chain.proceed(request, entityProducer, scope, asyncExecCallback);

@@ -69,10 +69,7 @@ import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.StatusLine;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
-import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
@@ -148,7 +145,7 @@ public class ProxyClient {
                 proxy, false, TunnelType.TUNNELLED, LayerType.PLAIN);
 
         final ManagedHttpClientConnection conn = this.connFactory.createConnection(null);
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = new HttpClientContext();
         ClassicHttpResponse response;
 
         final ClassicHttpRequest connect = new BasicClassicHttpRequest(Method.CONNECT, proxy, target.toHostString());
@@ -157,7 +154,7 @@ public class ProxyClient {
         credsProvider.setCredentials(new AuthScope(proxy), credentials);
 
         // Populate the execution context
-        context.setAttribute(HttpCoreContext.HTTP_REQUEST, connect);
+        context.setRequest(connect);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.CREDS_PROVIDER, credsProvider);
         context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);

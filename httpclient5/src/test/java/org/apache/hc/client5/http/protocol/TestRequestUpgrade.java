@@ -36,7 +36,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -104,7 +103,7 @@ class TestRequestUpgrade {
 
     @Test
     void testDoUpgradeIfAlreadyTLS() throws Exception {
-        context.setAttribute(HttpCoreContext.SSL_SESSION, Mockito.mock(SSLSession.class));
+        context.setSSLSession(Mockito.mock(SSLSession.class));
         final HttpRequest get = new BasicHttpRequest("GET", "/");
         interceptor.process(get, null, context);
         Assertions.assertFalse(get.containsHeader(HttpHeaders.UPGRADE));

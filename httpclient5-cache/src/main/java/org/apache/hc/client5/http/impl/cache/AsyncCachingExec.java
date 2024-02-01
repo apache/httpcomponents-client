@@ -74,7 +74,6 @@ import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
@@ -206,8 +205,8 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     public AsyncDataConsumer handleResponse(
                             final HttpResponse response,
                             final EntityDetails entityDetails) throws HttpException, IOException {
-                        context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
-                        context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
+                        context.setRequest(request);
+                        context.setResponse(response);
                         return asyncExecCallback.handleResponse(response, entityDetails);
                     }
 

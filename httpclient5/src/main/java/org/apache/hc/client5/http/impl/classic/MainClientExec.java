@@ -52,7 +52,6 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.RequestLine;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Args;
@@ -115,7 +114,7 @@ public final class MainClientExec implements ExecChainHandler {
         try {
             // Run request protocol interceptors
             context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
-            context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
+            context.setRequest(request);
 
             httpProcessor.process(request, request.getEntity(), context);
 
@@ -141,7 +140,7 @@ public final class MainClientExec implements ExecChainHandler {
                     },
                     context);
 
-            context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
+            context.setResponse(response);
             httpProcessor.process(response, response.getEntity(), context);
 
             Object userToken = context.getUserToken();

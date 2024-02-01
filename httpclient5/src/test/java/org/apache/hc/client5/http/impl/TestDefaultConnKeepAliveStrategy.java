@@ -32,8 +32,6 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -45,7 +43,7 @@ public class TestDefaultConnKeepAliveStrategy {
 
     @Test
     public void testIllegalResponseArg() throws Exception {
-        final HttpContext context = new BasicHttpContext(null);
+        final HttpClientContext context = new HttpClientContext();
         final ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
         Assertions.assertThrows(NullPointerException.class, () ->
                 keepAliveStrat.getKeepAliveDuration(null, context));

@@ -37,8 +37,6 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -62,7 +60,7 @@ public class TestRequestExpectContinue {
 
     @Test
     public void testRequestExpectContinueNotGenerated() throws Exception {
-        final HttpContext context = new BasicHttpContext(null);
+        final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(false).build();
         context.setAttribute(HttpClientContext.REQUEST_CONFIG, config);
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
@@ -77,7 +75,7 @@ public class TestRequestExpectContinue {
 
     @Test
     public void testRequestExpectContinueHTTP10() throws Exception {
-        final HttpContext context = new BasicHttpContext(null);
+        final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
         context.setAttribute(HttpClientContext.REQUEST_CONFIG, config);
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
@@ -93,7 +91,7 @@ public class TestRequestExpectContinue {
 
     @Test
     public void testRequestExpectContinueZeroContent() throws Exception {
-        final HttpContext context = new BasicHttpContext(null);
+        final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
         context.setAttribute(HttpClientContext.REQUEST_CONFIG, config);
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
@@ -114,7 +112,7 @@ public class TestRequestExpectContinue {
 
     @Test
     public void testRequestExpectContinueIgnoreNonenclosingRequests() throws Exception {
-        final HttpContext context = new BasicHttpContext(null);
+        final HttpClientContext context = new HttpClientContext();
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
         final RequestExpectContinue interceptor = new RequestExpectContinue();
         interceptor.process(request, null, context);

@@ -54,10 +54,8 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestContent;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
@@ -121,7 +119,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
             request.setAuthority(new URIAuthority(target));
         }
         final HttpClientContext clientContext = HttpClientContext.adapt(
-                context != null ? context : new BasicHttpContext());
+                context != null ? context : new HttpClientContext());
         RequestConfig config = null;
         if (request instanceof Configurable) {
             config = ((Configurable) request).getConfig();
@@ -143,7 +141,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
                 execRuntime.connectEndpoint(clientContext);
             }
 
-            clientContext.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
+            clientContext.setRequest(request);
             clientContext.setAttribute(HttpClientContext.HTTP_ROUTE, route);
 
             httpProcessor.process(request, request.getEntity(), clientContext);

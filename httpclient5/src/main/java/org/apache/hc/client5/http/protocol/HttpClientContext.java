@@ -44,7 +44,6 @@ import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.util.Args;
@@ -136,6 +135,7 @@ public class HttpClientContext extends HttpCoreContext {
      */
     public static final String EXCHANGE_ID = "http.exchange-id";
 
+    @SuppressWarnings("deprecation")
     public static HttpClientContext adapt(final HttpContext context) {
         Args.notNull(context, "HTTP context");
         if (context instanceof HttpClientContext) {
@@ -145,7 +145,7 @@ public class HttpClientContext extends HttpCoreContext {
     }
 
     public static HttpClientContext create() {
-        return new HttpClientContext(new BasicHttpContext());
+        return new HttpClientContext();
     }
 
     public HttpClientContext(final HttpContext context) {

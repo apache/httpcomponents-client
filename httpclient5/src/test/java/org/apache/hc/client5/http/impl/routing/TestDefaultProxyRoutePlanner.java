@@ -32,7 +32,6 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +59,7 @@ public class TestDefaultProxyRoutePlanner {
     public void testDefaultProxyDirect() throws Exception {
         final HttpHost target = new HttpHost("http", "somehost", 80);
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpContext context = new HttpClientContext();
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
         Assertions.assertEquals(target, route.getTargetHost());

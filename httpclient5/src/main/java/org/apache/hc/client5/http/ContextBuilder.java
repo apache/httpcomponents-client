@@ -38,7 +38,6 @@ import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 
 /**
  * {@link HttpClientContext} builder.
@@ -103,7 +102,7 @@ public class ContextBuilder extends AbstractClientContextBuilder<HttpClientConte
 
     @Override
     protected HttpClientContext createContext() {
-        return new HttpClientContext(new BasicHttpContext());
+        return new HttpClientContext();
     }
 
 }

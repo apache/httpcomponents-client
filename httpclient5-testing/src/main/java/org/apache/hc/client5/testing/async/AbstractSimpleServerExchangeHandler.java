@@ -79,7 +79,7 @@ public abstract class AbstractSimpleServerExchangeHandler extends AbstractServer
             final SimpleHttpRequest request,
             final AsyncServerRequestHandler.ResponseTrigger responseTrigger,
             final HttpContext context) throws HttpException, IOException {
-        final SimpleHttpResponse response = handle(request, HttpCoreContext.adapt(context));
+        final SimpleHttpResponse response = handle(request, HttpCoreContext.cast(context));
         final SimpleBody body = response.getBody();
         final AsyncEntityProducer entityProducer;
         if (body != null) {
