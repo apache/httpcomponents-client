@@ -68,8 +68,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Contract(threading = ThreadingBehavior.SAFE)
 public class LinearBackoffManager extends AbstractBackoff {
 
-
-    private static final Logger LOG = LoggerFactory.getLogger(org.slf4j.LoggerFactory.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LinearBackoffManager.class);
 
     /**
      * The backoff increment used when adjusting connection pool sizes.
