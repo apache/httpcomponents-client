@@ -78,11 +78,6 @@ public final class ContentCompressionExec implements ExecChainHandler {
     private final Lookup<InputStreamFactory> decoderRegistry;
     private final boolean ignoreUnknown;
 
-    /**
-     * An empty immutable {@code String} array.
-     */
-    private static final String[] EMPTY_STRING_ARRAY = {};
-
     public ContentCompressionExec(
             final List<String> acceptEncoding,
             final Lookup<InputStreamFactory> decoderRegistry,

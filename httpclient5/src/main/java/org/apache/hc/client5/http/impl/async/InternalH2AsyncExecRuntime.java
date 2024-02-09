@@ -40,7 +40,6 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
@@ -88,7 +87,6 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
             final HttpClientContext context,
             final FutureCallback<AsyncExecRuntime> callback) {
         if (sessionRef.get() == null) {
-            final HttpHost target = route.getTargetHost();
             final RequestConfig requestConfig = context.getRequestConfig();
             @SuppressWarnings("deprecation")
             final Timeout connectTimeout = requestConfig.getConnectTimeout();

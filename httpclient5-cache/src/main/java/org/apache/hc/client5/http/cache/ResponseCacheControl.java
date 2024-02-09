@@ -357,7 +357,6 @@ public final class ResponseCacheControl implements CacheControl {
         private long staleIfError = -1;
         private Set<String> noCacheFields;
         private boolean mustUnderstand;
-        private boolean noTransform;
         private boolean immutable;
 
         Builder() {

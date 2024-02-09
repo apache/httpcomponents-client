@@ -1265,7 +1265,6 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             public AsyncDataConsumer handleResponse(
                     final HttpResponse backendResponse,
                     final EntityDetails entityDetails) throws HttpException, IOException {
-                final HttpClientContext context = scope.clientContext;
                 final Instant responseDate = getCurrentDate();
                 final AsyncExecCallback callback;
                 if (backendResponse.getCode() != HttpStatus.SC_NOT_MODIFIED) {

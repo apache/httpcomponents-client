@@ -41,8 +41,6 @@ import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * <h1>RequestTraceInterceptor</h1>
@@ -101,8 +99,6 @@ import org.slf4j.LoggerFactory;
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class RequestValidateTrace implements HttpRequestInterceptor {
-
-    private static final Logger LOG = LoggerFactory.getLogger(RequestValidateTrace.class);
 
     /**
      * Singleton instance of {@link RequestValidateTrace}.
