@@ -71,8 +71,8 @@ public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveSt
                 }
             }
         }
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
-        final RequestConfig requestConfig = clientContext.getRequestConfig();
+        final HttpClientContext clientContext = HttpClientContext.cast(context);
+        final RequestConfig requestConfig = clientContext.getRequestConfigOrDefault();
         return requestConfig.getConnectionKeepAlive();
     }
 

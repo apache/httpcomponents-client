@@ -84,6 +84,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
     private final static ThreadFactory SCHEDULER_THREAD_FACTORY = new DefaultThreadFactory("Scheduled-executor", true);
 
     private static final Logger LOG = LoggerFactory.getLogger(InternalAbstractHttpAsyncClient.class);
+
     private final AsyncExecChainElement execChain;
     private final Lookup<CookieSpecFactory> cookieSpecRegistry;
     private final Lookup<AuthSchemeFactory> authSchemeRegistry;
@@ -165,20 +166,20 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
     }
 
     private void setupContext(final HttpClientContext context) {
-        if (context.getAttribute(HttpClientContext.AUTHSCHEME_REGISTRY) == null) {
-            context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, authSchemeRegistry);
+        if (context.getAuthSchemeRegistry() == null) {
+            context.setAuthSchemeRegistry(authSchemeRegistry);
         }
-        if (context.getAttribute(HttpClientContext.COOKIESPEC_REGISTRY) == null) {
-            context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, cookieSpecRegistry);
+        if (context.getCookieSpecRegistry() == null) {
+            context.setCookieSpecRegistry(cookieSpecRegistry);
         }
-        if (context.getAttribute(HttpClientContext.COOKIE_STORE) == null) {
-            context.setAttribute(HttpClientContext.COOKIE_STORE, cookieStore);
+        if (context.getCookieStore() == null) {
+            context.setCookieStore(cookieStore);
         }
-        if (context.getAttribute(HttpClientContext.CREDS_PROVIDER) == null) {
-            context.setAttribute(HttpClientContext.CREDS_PROVIDER, credentialsProvider);
+        if (context.getCredentialsProvider() == null) {
+            context.setCredentialsProvider(credentialsProvider);
         }
-        if (context.getAttribute(HttpClientContext.REQUEST_CONFIG) == null) {
-            context.setAttribute(HttpClientContext.REQUEST_CONFIG, defaultConfig);
+        if (context.getRequestConfig() == null) {
+            context.setRequestConfig(defaultConfig);
         }
     }
 
@@ -199,7 +200,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
             if (!isRunning()) {
                 throw new CancellationException("Request execution cancelled");
             }
-            final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : HttpClientContext.create();
+            final HttpClientContext clientContext = HttpClientContext.adapt(context);
             requestProducer.sendRequest((request, entityDetails, c) -> {
 
                 RequestConfig requestConfig = null;

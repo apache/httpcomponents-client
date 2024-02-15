@@ -69,7 +69,7 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
     @Override
     public Object getUserToken(final HttpRoute route, final HttpRequest request, final HttpContext context) {
 
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.cast(context);
 
         final HttpHost target = request != null ? new HttpHost(request.getScheme(), request.getAuthority()) : route.getTargetHost();
 

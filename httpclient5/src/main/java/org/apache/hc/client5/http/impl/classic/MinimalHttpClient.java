@@ -118,8 +118,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
         if (request.getAuthority() == null) {
             request.setAuthority(new URIAuthority(target));
         }
-        final HttpClientContext clientContext = HttpClientContext.adapt(
-                context != null ? context : new HttpClientContext());
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
         RequestConfig config = null;
         if (request instanceof Configurable) {
             config = ((Configurable) request).getConfig();
@@ -142,7 +141,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
             }
 
             clientContext.setRequest(request);
-            clientContext.setAttribute(HttpClientContext.HTTP_ROUTE, route);
+            clientContext.setRoute(route);
 
             httpProcessor.process(request, request.getEntity(), clientContext);
             final ClassicHttpResponse response = execRuntime.execute(exchangeId, request, clientContext);

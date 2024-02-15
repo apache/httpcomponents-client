@@ -62,7 +62,7 @@ public final class AuthCacheKeeper {
                                   final String pathPrefix,
                                   final AuthExchange authExchange,
                                   final HttpContext context) {
-        clearCache(host, pathPrefix, HttpClientContext.adapt(context));
+        clearCache(host, pathPrefix, HttpClientContext.cast(context));
     }
 
     public void updateOnNoChallenge(final HttpHost host,
@@ -70,7 +70,7 @@ public final class AuthCacheKeeper {
                                     final AuthExchange authExchange,
                                     final HttpContext context) {
         if (authExchange.getState() == AuthExchange.State.SUCCESS) {
-            updateCache(host, pathPrefix, authExchange.getAuthScheme(), HttpClientContext.adapt(context));
+            updateCache(host, pathPrefix, authExchange.getAuthScheme(), HttpClientContext.cast(context));
         }
     }
 
@@ -79,7 +79,7 @@ public final class AuthCacheKeeper {
                                  final AuthExchange authExchange,
                                  final HttpContext context) {
         if (authExchange.getState() == AuthExchange.State.FAILURE) {
-            clearCache(host, pathPrefix, HttpClientContext.adapt(context));
+            clearCache(host, pathPrefix, HttpClientContext.cast(context));
         }
     }
 
@@ -88,9 +88,9 @@ public final class AuthCacheKeeper {
                                  final AuthExchange authExchange,
                                  final HttpContext context) {
         if (authExchange.getState() == AuthExchange.State.UNCHALLENGED) {
-            AuthScheme authScheme = loadFromCache(host, pathPrefix, HttpClientContext.adapt(context));
+            AuthScheme authScheme = loadFromCache(host, pathPrefix, HttpClientContext.cast(context));
             if (authScheme == null && pathPrefix != null) {
-                authScheme = loadFromCache(host, null, HttpClientContext.adapt(context));
+                authScheme = loadFromCache(host, null, HttpClientContext.cast(context));
             }
             if (authScheme != null) {
                 authExchange.select(authScheme);

@@ -118,7 +118,7 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                     final EntityDetails entityDetails) throws HttpException, IOException {
 
                 state.redirectURI = null;
-                final RequestConfig config = clientContext.getRequestConfig();
+                final RequestConfig config = clientContext.getRequestConfigOrDefault();
                 if (config.isRedirectsEnabled() && redirectStrategy.isRedirected(request, response, clientContext)) {
                     if (state.redirectCount >= state.maxRedirects) {
                         throw new RedirectException("Maximum redirects (" + state.maxRedirects + ") exceeded");
@@ -263,11 +263,11 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
         RedirectLocations redirectLocations = clientContext.getRedirectLocations();
         if (redirectLocations == null) {
             redirectLocations = new RedirectLocations();
-            clientContext.setAttribute(HttpClientContext.REDIRECT_LOCATIONS, redirectLocations);
+            clientContext.setRedirectLocations(redirectLocations);
         }
         redirectLocations.clear();
 
-        final RequestConfig config = clientContext.getRequestConfig();
+        final RequestConfig config = clientContext.getRequestConfigOrDefault();
 
         final State state = new State();
         state.maxRedirects = config.getMaxRedirects() > 0 ? config.getMaxRedirects() : 50;

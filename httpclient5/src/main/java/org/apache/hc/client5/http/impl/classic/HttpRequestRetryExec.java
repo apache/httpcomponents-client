@@ -167,7 +167,7 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                     final TimeValue nextInterval = retryStrategy.getRetryInterval(response, execCount, context);
                     // Make sure the retry interval does not exceed the response timeout
                     if (TimeValue.isPositive(nextInterval)) {
-                        final RequestConfig requestConfig = context.getRequestConfig();
+                        final RequestConfig requestConfig = context.getRequestConfigOrDefault();
                         final Timeout responseTimeout = requestConfig.getResponseTimeout();
                         if (responseTimeout != null && nextInterval.compareTo(responseTimeout) > 0) {
                             return response;

@@ -125,9 +125,8 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
 
             @Override
             public void produceRequest(final RequestChannel channel, final HttpContext context) throws HttpException, IOException {
-
-                clientContext.setAttribute(HttpClientContext.HTTP_ROUTE, route);
                 clientContext.setRequest(request);
+                clientContext.setRoute(route);
                 httpProcessor.process(request, entityProducer, clientContext);
 
                 channel.sendRequest(request, entityProducer, context);

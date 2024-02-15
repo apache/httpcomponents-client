@@ -109,7 +109,7 @@ public final class HttpAuthenticator {
                 throw new IllegalStateException("Unexpected challenge type: " + challengeType);
         }
 
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.cast(context);
         final String exchangeId = clientContext.getExchangeId();
 
         if (response.getCode() == challengeCode) {
@@ -155,7 +155,7 @@ public final class HttpAuthenticator {
             final AuthExchange authExchange,
             final HttpContext context) {
 
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.cast(context);
         final String exchangeId = clientContext.getExchangeId();
 
         if (LOG.isDebugEnabled()) {
@@ -304,7 +304,7 @@ public final class HttpAuthenticator {
             final HttpRequest request,
             final AuthExchange authExchange,
             final HttpContext context) {
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.cast(context);
         final String exchangeId = clientContext.getExchangeId();
         AuthScheme authScheme = authExchange.getAuthScheme();
         switch (authExchange.getState()) {

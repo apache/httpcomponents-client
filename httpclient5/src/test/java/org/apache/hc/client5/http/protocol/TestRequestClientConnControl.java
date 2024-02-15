@@ -68,7 +68,7 @@ public class TestRequestClientConnControl {
         final HttpHost target = new HttpHost("http", "localhost", 80);
         final HttpRoute route = new HttpRoute(target, null, false);
 
-        context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
+        context.setRoute(route);
 
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, null, context);
@@ -88,7 +88,7 @@ public class TestRequestClientConnControl {
         final HttpRoute route = new HttpRoute(target, null, proxy, true,
                 TunnelType.TUNNELLED, LayerType.LAYERED);
 
-        context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
+        context.setRoute(route);
 
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, null, context);
@@ -108,7 +108,7 @@ public class TestRequestClientConnControl {
         final HttpRoute route = new HttpRoute(target, null, proxy, false,
                 TunnelType.PLAIN, LayerType.PLAIN);
 
-        context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
+        context.setRoute(route);
 
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, null, context);
@@ -128,7 +128,7 @@ public class TestRequestClientConnControl {
         final HttpRoute route = new HttpRoute(target, null, proxy, true,
                 TunnelType.TUNNELLED, LayerType.LAYERED);
 
-        context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
+        context.setRoute(route);
 
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, null, context);

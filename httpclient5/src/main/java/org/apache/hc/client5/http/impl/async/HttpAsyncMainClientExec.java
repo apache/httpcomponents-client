@@ -148,7 +148,7 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
                     final RequestChannel channel,
                     final HttpContext context) throws HttpException, IOException {
 
-                clientContext.setAttribute(HttpClientContext.HTTP_ROUTE, route);
+                clientContext.setRoute(route);
                 clientContext.setRequest(request);
                 httpProcessor.process(request, entityProducer, clientContext);
 
@@ -248,7 +248,7 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
                 Object userToken = clientContext.getUserToken();
                 if (userToken == null) {
                     userToken = userTokenHandler.getUserToken(route, request, clientContext);
-                    clientContext.setAttribute(HttpClientContext.USER_TOKEN, userToken);
+                    clientContext.setUserToken(userToken);
                 }
                 execRuntime.markConnectionReusable(userToken, keepAliveDuration);
                 if (entityDetails == null) {

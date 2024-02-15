@@ -804,7 +804,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                                 scope.route,
                                 scope.originalRequest,
                                 new ComplexFuture<>(null),
-                                HttpClientContext.create(),
+                                HttpCacheContext.create(),
                                 scope.execRuntime.fork(),
                                 scope.scheduler,
                                 scope.execCount);

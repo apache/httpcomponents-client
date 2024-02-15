@@ -68,7 +68,7 @@ public class HttpCacheContext extends HttpClientContext {
     }
 
     public static HttpCacheContext create() {
-        return new HttpCacheContext(new HttpClientContext());
+        return new HttpCacheContext();
     }
 
     public HttpCacheContext(final HttpContext context) {

@@ -33,7 +33,6 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -113,7 +112,7 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Modal
             final FutureCallback<T> callback) {
         Args.notNull(requestProducer, "Request producer");
         Args.notNull(responseConsumer, "Response consumer");
-        return execute(requestProducer, responseConsumer, HttpClientContext.create(), callback);
+        return execute(requestProducer, responseConsumer, null, callback);
     }
 
     public final Future<SimpleHttpResponse> execute(
@@ -127,7 +126,7 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Modal
     public final Future<SimpleHttpResponse> execute(
             final SimpleHttpRequest request,
             final FutureCallback<SimpleHttpResponse> callback) {
-        return execute(request, HttpClientContext.create(), callback);
+        return execute(request, null, callback);
     }
 
     public abstract void register(String hostname, String uriPattern, Supplier<AsyncPushConsumer> supplier);

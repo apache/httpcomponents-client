@@ -77,7 +77,7 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
         Args.notNull(response, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.cast(context);
         final String exchangeId = clientContext.getExchangeId();
 
         // Obtain actual CookieSpec instance

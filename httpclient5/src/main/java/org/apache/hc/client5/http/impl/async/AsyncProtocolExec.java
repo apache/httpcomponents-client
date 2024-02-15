@@ -306,7 +306,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
             final String pathPrefix,
             final HttpResponse response,
             final HttpClientContext context) {
-        final RequestConfig config = context.getRequestConfig();
+        final RequestConfig config = context.getRequestConfigOrDefault();
         if (config.isAuthenticationEnabled()) {
             final boolean targetAuthRequested = authenticator.isChallenged(
                     target, ChallengeType.TARGET, response, targetAuthExchange, context);

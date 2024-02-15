@@ -66,12 +66,12 @@ public class RequestExpectContinue implements HttpRequestInterceptor {
         Args.notNull(request, "HTTP request");
 
         if (!request.containsHeader(HttpHeaders.EXPECT)) {
-            final HttpClientContext clientContext = HttpClientContext.adapt(context);
+            final HttpClientContext clientContext = HttpClientContext.cast(context);
             final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : clientContext.getProtocolVersion();
             // Do not send the expect header if request body is known to be empty
             if (entity != null
                     && entity.getContentLength() != 0 && !version.lessEquals(HttpVersion.HTTP_1_0)) {
-                final RequestConfig config = clientContext.getRequestConfig();
+                final RequestConfig config = clientContext.getRequestConfigOrDefault();
                 if (config.isExpectContinueEnabled()) {
                     request.addHeader(HttpHeaders.EXPECT, HeaderElements.CONTINUE);
                 }

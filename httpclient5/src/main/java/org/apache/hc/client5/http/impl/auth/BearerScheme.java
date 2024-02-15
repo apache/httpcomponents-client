@@ -141,7 +141,7 @@ public class BearerScheme implements AuthScheme, StateHolder<BearerScheme.State>
         }
 
         if (LOG.isDebugEnabled()) {
-            final HttpClientContext clientContext = HttpClientContext.adapt(context);
+            final HttpClientContext clientContext = HttpClientContext.cast(context);
             final String exchangeId = clientContext.getExchangeId();
             LOG.debug("{} No credentials found for auth scope [{}]", exchangeId, authScope);
         }

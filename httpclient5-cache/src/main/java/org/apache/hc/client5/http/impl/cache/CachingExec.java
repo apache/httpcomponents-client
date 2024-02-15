@@ -318,7 +318,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                             scope.route,
                             scope.originalRequest,
                             scope.execRuntime.fork(null),
-                            HttpClientContext.create());
+                            HttpCacheContext.create());
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} starting asynchronous revalidation exchange {}", exchangeId, revalidationExchangeId);
                     }

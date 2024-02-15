@@ -30,6 +30,8 @@ package org.apache.hc.client5.http.protocol;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.net.ssl.SSLSession;
+
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthCache;
@@ -42,11 +44,15 @@ import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookieSpec;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
-import org.apache.hc.core5.util.Args;
 
 /**
  * Adaptor class that provides convenience type safe setters and getters
@@ -58,95 +64,128 @@ import org.apache.hc.core5.util.Args;
 public class HttpClientContext extends HttpCoreContext {
 
     /**
-     * Attribute name of a {@link RouteInfo}
-     * object that represents the actual connection route.
+     * @deprecated Use getter methods
      */
+    @Deprecated
     public static final String HTTP_ROUTE   = "http.route";
 
     /**
-     * Attribute name of a {@link RedirectLocations} object that represents a collection of all
-     * redirect locations received in the process of request execution.
+     * @deprecated Use getter methods
      */
+    @Deprecated
     public static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 
     /**
-     * Attribute name of a {@link org.apache.hc.core5.http.config.Lookup} object that represents
-     * the actual {@link CookieSpecFactory} registry.
+     * @deprecated Use getter methods
      */
+    @Deprecated
     public static final String COOKIESPEC_REGISTRY   = "http.cookiespec-registry";
 
     /**
-     * Attribute name of a {@link org.apache.hc.client5.http.cookie.CookieSpec}
-     * object that represents the actual cookie specification.
+     * @deprecated Use getter methods
      */
+    @Deprecated
     public static final String COOKIE_SPEC           = "http.cookie-spec";
 
     /**
-     * Attribute name of a {@link org.apache.hc.client5.http.cookie.CookieOrigin}
-     * object that represents the actual details of the origin server.
+     * @deprecated Use getter methods
      */
+    @Deprecated
     public static final String COOKIE_ORIGIN         = "http.cookie-origin";
 
     /**
-     * Attribute name of a {@link CookieStore}
-     * object that represents the actual cookie store.
+     * @deprecated Use getter methods
      */
+    @Deprecated
     public static final String COOKIE_STORE          = "http.cookie-store";
 
     /**
-     * Attribute name of a {@link CredentialsProvider}
-     * object that represents the actual credentials provider.
+     * @deprecated Use getter methods
      */
+    @Deprecated
     public static final String CREDS_PROVIDER        = "http.auth.credentials-provider";
 
     /**
-     * Attribute name of a {@link AuthCache} object
-     * that represents the auth scheme cache.
+     * @deprecated Use getter methods
      */
+    @Deprecated
     public static final String AUTH_CACHE            = "http.auth.auth-cache";
 
     /**
-     * Attribute name of a map containing actual {@link AuthExchange}s keyed by their respective
-     * {@link org.apache.hc.core5.http.HttpHost}.
+     * @deprecated Use getter methods
      */
+    @Deprecated
     public static final String AUTH_EXCHANGE_MAP     = "http.auth.exchanges";
 
     /**
-     * Attribute name of a {@link java.lang.Object} object that represents
-     * the actual user identity such as user {@link java.security.Principal}.
+     * @deprecated Use getter methods
      */
+    @Deprecated
     public static final String USER_TOKEN            = "http.user-token";
 
     /**
-     * Attribute name of a {@link org.apache.hc.core5.http.config.Lookup} object that represents
-     * the actual {@link AuthSchemeFactory} registry.
+     * @deprecated Use getter methods
      */
+    @Deprecated
     public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry";
 
     /**
-     * Attribute name of a {@link org.apache.hc.client5.http.config.RequestConfig} object that
-     * represents the actual request configuration.
+     * @deprecated Use getter methods
      */
+    @Deprecated
     public static final String REQUEST_CONFIG = "http.request-config";
 
     /**
-     * Attribute name of a {@link java.lang.String} object that represents the ID of the
-     * current message exchange.
+     * @deprecated Use getter methods
      */
+    @Deprecated
     public static final String EXCHANGE_ID = "http.exchange-id";
 
     @SuppressWarnings("deprecation")
     public static HttpClientContext adapt(final HttpContext context) {
-        Args.notNull(context, "HTTP context");
         if (context instanceof HttpClientContext) {
             return (HttpClientContext) context;
         }
-        return new HttpClientContext(context);
+        return new HttpClientContext.Delegate(HttpCoreContext.adapt(context));
+    }
+
+    /**
+     * Casts the given generic {@link HttpContext} as {@link HttpClientContext}
+     * or creates a new {@link HttpClientContext} with the given {@link HttpContext}
+     * as a parent.
+     *
+     * @since 5.4
+     */
+    public static HttpClientContext cast(final HttpContext context) {
+        if (context == null) {
+            return null;
+        }
+        if (context instanceof HttpClientContext) {
+            return (HttpClientContext) context;
+        } else {
+            throw new IllegalStateException("Unexpected context type: " + context.getClass().getSimpleName() +
+                    "; required context type: " + HttpClientContext.class.getSimpleName());
+        }
     }
 
     public static HttpClientContext create() {
         return new HttpClientContext();
     }
+
+    private HttpRoute route;
+    private RedirectLocations redirectLocations;
+    private CookieSpec cookieSpec;
+    private CookieOrigin cookieOrigin;
+    private Map<HttpHost, AuthExchange> authExchangeMap;
+    private String exchangeId;
+
+    private Lookup<CookieSpecFactory> cookieSpecFactoryLookup;
+    private Lookup<AuthSchemeFactory> authSchemeFactoryLookup;
+    private CookieStore cookieStore;
+    private CredentialsProvider credentialsProvider;
+    private AuthCache authCache;
+    private Object userToken;
+    private RequestConfig requestConfig;
 
     public HttpClientContext(final HttpContext context) {
         super(context);
@@ -156,99 +195,131 @@ public class HttpClientContext extends HttpCoreContext {
         super();
     }
 
+    /**
+     * Represents current route used to execute message exchanges.
+     * <p>
+     * This context attribute is expected to be populated by the protocol handler
+     * in the course of request execution.
+     */
     public RouteInfo getHttpRoute() {
-        return getAttribute(HTTP_ROUTE, HttpRoute.class);
+        return route;
     }
 
+    /**
+     * @since 5.4
+     */
+    @Internal
+    public void setRoute(final HttpRoute route) {
+        this.route = route;
+    }
+
+    /**
+     * Represents a collection of all redirects executed in the course of request execution.
+     * <p>
+     * This context attribute is expected to be populated by the protocol handler
+     * in the course of request execution.
+     */
     public RedirectLocations getRedirectLocations() {
-        return getAttribute(REDIRECT_LOCATIONS, RedirectLocations.class);
+        if (this.redirectLocations == null) {
+            this.redirectLocations = new RedirectLocations();
+        }
+        return this.redirectLocations;
+    }
+
+    /**
+     * @since 5.4
+     */
+    @Internal
+    public void setRedirectLocations(final RedirectLocations redirectLocations) {
+        this.redirectLocations = redirectLocations;
     }
 
     public CookieStore getCookieStore() {
-        return getAttribute(COOKIE_STORE, CookieStore.class);
+        return cookieStore;
     }
 
     public void setCookieStore(final CookieStore cookieStore) {
-        setAttribute(COOKIE_STORE, cookieStore);
+        this.cookieStore = cookieStore;
     }
 
     public CookieSpec getCookieSpec() {
-        return getAttribute(COOKIE_SPEC, CookieSpec.class);
+        return cookieSpec;
+    }
+
+    /**
+     * @since 5.4
+     */
+    @Internal
+    public void setCookieSpec(final CookieSpec cookieSpec) {
+        this.cookieSpec = cookieSpec;
     }
 
     public CookieOrigin getCookieOrigin() {
-        return getAttribute(COOKIE_ORIGIN, CookieOrigin.class);
+        return cookieOrigin;
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> Lookup<T> getLookup(final String name) {
-        return (Lookup<T>) getAttribute(name, Lookup.class);
+    /**
+     * @since 5.4
+     */
+    @Internal
+    public void setCookieOrigin(final CookieOrigin cookieOrigin) {
+        this.cookieOrigin = cookieOrigin;
     }
 
     public Lookup<CookieSpecFactory> getCookieSpecRegistry() {
-        return getLookup(COOKIESPEC_REGISTRY);
+        return cookieSpecFactoryLookup;
     }
 
     public void setCookieSpecRegistry(final Lookup<CookieSpecFactory> lookup) {
-        setAttribute(COOKIESPEC_REGISTRY, lookup);
+        this.cookieSpecFactoryLookup = lookup;
     }
 
     public Lookup<AuthSchemeFactory> getAuthSchemeRegistry() {
-        return getLookup(AUTHSCHEME_REGISTRY);
+        return authSchemeFactoryLookup;
     }
 
     public void setAuthSchemeRegistry(final Lookup<AuthSchemeFactory> lookup) {
-        setAttribute(AUTHSCHEME_REGISTRY, lookup);
+        this.authSchemeFactoryLookup = lookup;
     }
 
     public CredentialsProvider getCredentialsProvider() {
-        return getAttribute(CREDS_PROVIDER, CredentialsProvider.class);
+        return credentialsProvider;
     }
 
     public void setCredentialsProvider(final CredentialsProvider credentialsProvider) {
-        setAttribute(CREDS_PROVIDER, credentialsProvider);
+        this.credentialsProvider = credentialsProvider;
     }
 
     public AuthCache getAuthCache() {
-        return getAttribute(AUTH_CACHE, AuthCache.class);
+        return authCache;
     }
 
     public void setAuthCache(final AuthCache authCache) {
-        setAttribute(AUTH_CACHE, authCache);
+        this.authCache = authCache;
     }
 
     /**
      * @since 5.0
      */
-    @SuppressWarnings("unchecked")
     public Map<HttpHost, AuthExchange> getAuthExchanges() {
-        Map<HttpHost, AuthExchange> map = (Map<HttpHost, AuthExchange>) getAttribute(AUTH_EXCHANGE_MAP);
-        if (map == null) {
-            map = new HashMap<>();
-            setAttribute(AUTH_EXCHANGE_MAP, map);
+        if (authExchangeMap == null) {
+            authExchangeMap = new HashMap<>();
         }
-        return map;
+        return authExchangeMap;
     }
 
     /**
      * @since 5.0
      */
     public AuthExchange getAuthExchange(final HttpHost host) {
-        final Map<HttpHost, AuthExchange> authExchangeMap = getAuthExchanges();
-        AuthExchange authExchange = authExchangeMap.get(host);
-        if (authExchange == null) {
-            authExchange = new AuthExchange();
-            authExchangeMap.put(host, authExchange);
-        }
-        return authExchange;
+        return getAuthExchanges().computeIfAbsent(host, k -> new AuthExchange());
     }
 
     /**
      * @since 5.0
      */
     public void setAuthExchange(final HttpHost host, final AuthExchange authExchange) {
-        final Map<HttpHost, AuthExchange> authExchangeMap = getAuthExchanges();
-        authExchangeMap.put(host, authExchange);
+        getAuthExchanges().put(host, authExchange);
     }
 
     /**
@@ -257,43 +328,143 @@ public class HttpClientContext extends HttpCoreContext {
     public void resetAuthExchange(final HttpHost host, final AuthScheme authScheme) {
         final AuthExchange authExchange = new AuthExchange();
         authExchange.select(authScheme);
-        final Map<HttpHost, AuthExchange> authExchangeMap = getAuthExchanges();
-        authExchangeMap.put(host, authExchange);
+        getAuthExchanges().put(host, authExchange);
     }
 
+    /**
+     * @deprecated Use {@link #getUserToken()}
+     */
+    @Deprecated
+    @SuppressWarnings("unchecked")
     public <T> T getUserToken(final Class<T> clazz) {
-        return getAttribute(USER_TOKEN, clazz);
+        return (T) getUserToken();
     }
 
     public Object getUserToken() {
-        return getAttribute(USER_TOKEN);
+        return userToken;
     }
 
-    public void setUserToken(final Object obj) {
-        setAttribute(USER_TOKEN, obj);
+    public void setUserToken(final Object userToken) {
+        this.userToken = userToken;
     }
 
     public RequestConfig getRequestConfig() {
-        final RequestConfig config = getAttribute(REQUEST_CONFIG, RequestConfig.class);
-        return config != null ? config : RequestConfig.DEFAULT;
+        return requestConfig;
     }
 
-    public void setRequestConfig(final RequestConfig config) {
-        setAttribute(REQUEST_CONFIG, config);
+    /**
+     * Returns {@link RequestConfig} set in the context or {@link RequestConfig#DEFAULT}
+     * if not present in the context.
+     *
+     * @since 5.4
+     */
+    public final RequestConfig getRequestConfigOrDefault() {
+        final RequestConfig requestConfig = getRequestConfig();
+        return requestConfig != null ? requestConfig : RequestConfig.DEFAULT;
+    }
+
+    public void setRequestConfig(final RequestConfig requestConfig) {
+        this.requestConfig = requestConfig;
     }
 
     /**
      * @since 5.1
      */
     public String getExchangeId() {
-        return getAttribute(EXCHANGE_ID, String.class);
+        return exchangeId;
     }
 
     /**
      * @since 5.1
      */
-    public void setExchangeId(final String id) {
-        setAttribute(EXCHANGE_ID, id);
+    public void setExchangeId(final String exchangeId) {
+        this.exchangeId = exchangeId;
+    }
+
+    static class Delegate extends HttpClientContext {
+
+        final private HttpCoreContext parent;
+
+        Delegate(final HttpCoreContext parent) {
+            super(parent);
+            this.parent = parent;
+        }
+
+        @Override
+        public ProtocolVersion getProtocolVersion() {
+            return parent.getProtocolVersion();
+        }
+
+        @Override
+        public void setProtocolVersion(final ProtocolVersion version) {
+            parent.setProtocolVersion(version);
+        }
+
+        @Override
+        public Object getAttribute(final String id) {
+            return parent.getAttribute(id);
+        }
+
+        @Override
+        public Object setAttribute(final String id, final Object obj) {
+            return parent.setAttribute(id, obj);
+        }
+
+        @Override
+        public Object removeAttribute(final String id) {
+            return parent.removeAttribute(id);
+        }
+
+        @Override
+        public <T> T getAttribute(final String id, final Class<T> clazz) {
+            return parent.getAttribute(id, clazz);
+        }
+
+        @Override
+        public HttpRequest getRequest() {
+            return parent.getRequest();
+        }
+
+        @Override
+        public void setRequest(final HttpRequest request) {
+            parent.setRequest(request);
+        }
+
+        @Override
+        public HttpResponse getResponse() {
+            return parent.getResponse();
+        }
+
+        @Override
+        public void setResponse(final HttpResponse response) {
+            parent.setResponse(response);
+        }
+
+        @Override
+        public EndpointDetails getEndpointDetails() {
+            return parent.getEndpointDetails();
+        }
+
+        @Override
+        public void setEndpointDetails(final EndpointDetails endpointDetails) {
+            parent.setEndpointDetails(endpointDetails);
+        }
+
+        @Override
+        public SSLSession getSSLSession() {
+            return parent.getSSLSession();
+        }
+
+        @Override
+        public void setSSLSession(final SSLSession sslSession) {
+            parent.setSSLSession(sslSession);
+        }
+
+        @Override
+        public String toString() {
+            return parent.toString();
+        }
+
     }
 
 }

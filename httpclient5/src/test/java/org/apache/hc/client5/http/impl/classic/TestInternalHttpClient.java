@@ -155,7 +155,7 @@ public class TestInternalHttpClient {
         Assertions.assertSame(authSchemeRegistry, context.getAuthSchemeRegistry());
         Assertions.assertSame(cookieStore, context.getCookieStore());
         Assertions.assertSame(credentialsProvider, context.getCredentialsProvider());
-        Assertions.assertSame(defaultConfig, context.getRequestConfig());
+        Assertions.assertSame(defaultConfig, context.getRequestConfigOrDefault());
     }
 
     @Test
@@ -176,7 +176,7 @@ public class TestInternalHttpClient {
         final HttpClientContext context = HttpClientContext.create();
         client.execute(httpget, context, response -> null);
 
-        Assertions.assertSame(config, context.getRequestConfig());
+        Assertions.assertSame(config, context.getRequestConfigOrDefault());
     }
 
     @Test
@@ -212,7 +212,7 @@ public class TestInternalHttpClient {
         Assertions.assertSame(localAuthSchemeRegistry, context.getAuthSchemeRegistry());
         Assertions.assertSame(localCookieStore, context.getCookieStore());
         Assertions.assertSame(localCredentialsProvider, context.getCredentialsProvider());
-        Assertions.assertSame(localConfig, context.getRequestConfig());
+        Assertions.assertSame(localConfig, context.getRequestConfigOrDefault());
     }
 
     @Test

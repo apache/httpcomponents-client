@@ -232,14 +232,14 @@ public class Executor {
         final HttpClientContext localContext = HttpClientContext.create();
         final CredentialsStore credentialsStoreSnapshot = credentialsStore;
         if (credentialsStoreSnapshot != null) {
-            localContext.setAttribute(HttpClientContext.CREDS_PROVIDER, credentialsStoreSnapshot);
+            localContext.setCredentialsProvider(credentialsStoreSnapshot);
         }
         if (this.authCache != null) {
-            localContext.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);
+            localContext.setAuthCache(this.authCache);
         }
         final CookieStore cookieStoreSnapshot = cookieStore;
         if (cookieStoreSnapshot != null) {
-            localContext.setAttribute(HttpClientContext.COOKIE_STORE, cookieStoreSnapshot);
+            localContext.setCookieStore(cookieStoreSnapshot);
         }
         return new Response(request.internalExecute(this.httpclient, localContext));
     }
