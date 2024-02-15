@@ -74,7 +74,7 @@ public class TestHttpAuthenticator {
 
     private AuthExchange authExchange;
     private CacheableAuthState authScheme;
-    private HttpContext context;
+    private HttpClientContext context;
     private HttpHost defaultHost;
     private CredentialsProvider credentialsProvider;
     private Lookup<AuthSchemeFactory> authSchemeRegistry;
@@ -89,12 +89,12 @@ public class TestHttpAuthenticator {
         this.context = new HttpClientContext();
         this.defaultHost = new HttpHost("localhost", 80);
         this.credentialsProvider = Mockito.mock(CredentialsProvider.class);
-        this.context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);
+        this.context.setCredentialsProvider(this.credentialsProvider);
         this.authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
             .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
             .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
             .build();
-        this.context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
+        this.context.setAuthSchemeRegistry(this.authSchemeRegistry);
         this.httpAuthenticator = new HttpAuthenticator();
     }
 

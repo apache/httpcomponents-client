@@ -81,7 +81,7 @@ public interface AsyncExecChain {
             this.route = Args.notNull(route, "Route");
             this.originalRequest = Args.notNull(originalRequest, "Original request");
             this.cancellableDependency = Args.notNull(cancellableDependency, "Dependency");
-            this.clientContext = clientContext != null ? clientContext : HttpClientContext.create();
+            this.clientContext = Args.notNull(clientContext, "HTTP context");
             this.execRuntime = Args.notNull(execRuntime, "Exec runtime");
             this.scheduler = scheduler;
             this.execCount = execCount != null ? execCount : new AtomicInteger(1);

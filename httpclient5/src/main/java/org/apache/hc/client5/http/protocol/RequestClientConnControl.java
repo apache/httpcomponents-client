@@ -70,7 +70,7 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
             return;
         }
 
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.cast(context);
         final String exchangeId = clientContext.getExchangeId();
 
         // Obtain the client connection (required)

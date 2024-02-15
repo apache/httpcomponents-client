@@ -98,7 +98,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             final FutureCallback<AsyncExecRuntime> callback) {
         if (endpointRef.get() == null) {
             state = object;
-            final RequestConfig requestConfig = context.getRequestConfig();
+            final RequestConfig requestConfig = context.getRequestConfigOrDefault();
             final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
             if (log.isDebugEnabled()) {
                 log.debug("{} acquiring endpoint ({})", id, connectionRequestTimeout);
@@ -208,7 +208,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             callback.completed(this);
             return Operations.nonCancellable();
         }
-        final RequestConfig requestConfig = context.getRequestConfig();
+        final RequestConfig requestConfig = context.getRequestConfigOrDefault();
         @SuppressWarnings("deprecation")
         final Timeout connectTimeout = requestConfig.getConnectTimeout();
         if (log.isDebugEnabled()) {
@@ -280,13 +280,13 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             if (log.isDebugEnabled()) {
                 log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
             }
-            final RequestConfig requestConfig = context.getRequestConfig();
+            final RequestConfig requestConfig = context.getRequestConfigOrDefault();
             final Timeout responseTimeout = requestConfig.getResponseTimeout();
             if (responseTimeout != null) {
                 endpoint.setSocketTimeout(responseTimeout);
             }
             endpoint.execute(id, exchangeHandler, context);
-            if (context.getRequestConfig().isHardCancellationEnabled()) {
+            if (context.getRequestConfigOrDefault().isHardCancellationEnabled()) {
                 return () -> {
                     exchangeHandler.cancel();
                     return true;

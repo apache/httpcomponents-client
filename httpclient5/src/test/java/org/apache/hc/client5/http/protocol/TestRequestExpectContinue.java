@@ -46,7 +46,7 @@ public class TestRequestExpectContinue {
     public void testRequestExpectContinueGenerated() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
-        context.setAttribute(HttpClientContext.REQUEST_CONFIG, config);
+        context.setRequestConfig(config);
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
         final String s = "whatever";
         final StringEntity entity = new StringEntity(s, StandardCharsets.US_ASCII);
@@ -62,7 +62,7 @@ public class TestRequestExpectContinue {
     public void testRequestExpectContinueNotGenerated() throws Exception {
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(false).build();
-        context.setAttribute(HttpClientContext.REQUEST_CONFIG, config);
+        context.setRequestConfig(config);
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
         final String s = "whatever";
         final StringEntity entity = new StringEntity(s, StandardCharsets.US_ASCII);
@@ -77,7 +77,7 @@ public class TestRequestExpectContinue {
     public void testRequestExpectContinueHTTP10() throws Exception {
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
-        context.setAttribute(HttpClientContext.REQUEST_CONFIG, config);
+        context.setRequestConfig(config);
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
         request.setVersion(HttpVersion.HTTP_1_0);
         final String s = "whatever";
@@ -93,7 +93,7 @@ public class TestRequestExpectContinue {
     public void testRequestExpectContinueZeroContent() throws Exception {
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
-        context.setAttribute(HttpClientContext.REQUEST_CONFIG, config);
+        context.setRequestConfig(config);
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
         final String s = "";
         final StringEntity entity = new StringEntity(s, StandardCharsets.US_ASCII);

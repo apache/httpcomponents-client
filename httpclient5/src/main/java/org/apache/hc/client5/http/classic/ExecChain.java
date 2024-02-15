@@ -59,7 +59,7 @@ public interface ExecChain {
             this.route = Args.notNull(route, "Route");
             this.originalRequest = Args.notNull(originalRequest, "Original request");
             this.execRuntime = Args.notNull(execRuntime, "Exec runtime");
-            this.clientContext = clientContext != null ? clientContext : HttpClientContext.create();
+            this.clientContext = Args.notNull(clientContext, "HTTP context");
         }
 
     }

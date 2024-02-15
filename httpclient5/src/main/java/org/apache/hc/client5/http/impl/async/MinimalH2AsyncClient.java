@@ -71,6 +71,7 @@ import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.reactor.IOSession;
+import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,12 +123,13 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
             final AsyncClientExchangeHandler exchangeHandler,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpContext context) {
+        Args.notNull(exchangeHandler, "Message exchange handler");
         final ComplexCancellable cancellable = new ComplexCancellable();
         try {
             if (!isRunning()) {
                 throw new CancellationException("Request execution cancelled");
             }
-            final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : HttpClientContext.create();
+            final HttpClientContext clientContext = HttpClientContext.adapt(context);
             exchangeHandler.produceRequest((request, entityDetails, context1) -> {
                 RequestConfig requestConfig = null;
                 if (request instanceof Configurable) {
@@ -136,7 +138,7 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                 if (requestConfig != null) {
                     clientContext.setRequestConfig(requestConfig);
                 } else {
-                    requestConfig = clientContext.getRequestConfig();
+                    requestConfig = clientContext.getRequestConfigOrDefault();
                 }
                 @SuppressWarnings("deprecation")
                 final Timeout connectTimeout = requestConfig.getConnectTimeout();

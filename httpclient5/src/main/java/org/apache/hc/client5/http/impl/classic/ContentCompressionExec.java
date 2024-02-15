@@ -137,7 +137,7 @@ public final class ContentCompressionExec implements ExecChainHandler {
         Args.notNull(scope, "Scope");
 
         final HttpClientContext clientContext = scope.clientContext;
-        final RequestConfig requestConfig = clientContext.getRequestConfig();
+        final RequestConfig requestConfig = clientContext.getRequestConfigOrDefault();
 
         /* Signal support for Accept-Encoding transfer encodings. */
         if (!request.containsHeader(HttpHeaders.ACCEPT_ENCODING) && requestConfig.isContentCompressionEnabled()) {

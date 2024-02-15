@@ -118,7 +118,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
             state = State.CHALLENGE_RECEIVED;
         } else {
             if (LOG.isDebugEnabled()) {
-                final HttpClientContext clientContext = HttpClientContext.adapt(context);
+                final HttpClientContext clientContext = HttpClientContext.cast(context);
                 final String exchangeId = clientContext.getExchangeId();
                 LOG.debug("{} Authentication already attempted", exchangeId);
             }
@@ -225,7 +225,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
                 }
 
                 if (LOG.isDebugEnabled()) {
-                    final HttpClientContext clientContext = HttpClientContext.adapt(context);
+                    final HttpClientContext clientContext = HttpClientContext.cast(context);
                     final String exchangeId = clientContext.getExchangeId();
                     LOG.debug("{} init {}", exchangeId, authServer);
                 }
@@ -252,7 +252,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
             final Base64 codec = new Base64(0);
             final String tokenstr = new String(codec.encode(token));
             if (LOG.isDebugEnabled()) {
-                final HttpClientContext clientContext = HttpClientContext.adapt(context);
+                final HttpClientContext clientContext = HttpClientContext.cast(context);
                 final String exchangeId = clientContext.getExchangeId();
                 LOG.debug("{} Sending response '{}' back to the auth server", exchangeId, tokenstr);
             }

@@ -102,7 +102,7 @@ public class ContextBuilder extends AbstractClientContextBuilder<HttpClientConte
 
     @Override
     protected HttpClientContext createContext() {
-        return new HttpClientContext();
+        return HttpClientContext.create();
     }
 
 }

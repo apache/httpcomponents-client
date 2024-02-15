@@ -76,8 +76,8 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         if (host == null) {
             throw new ProtocolException("Target host is not specified");
         }
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
-        final RequestConfig config = clientContext.getRequestConfig();
+        final HttpClientContext clientContext = HttpClientContext.cast(context);
+        final RequestConfig config = clientContext.getRequestConfigOrDefault();
         @SuppressWarnings("deprecation")
         HttpHost proxy = config.getProxy();
         if (proxy == null) {

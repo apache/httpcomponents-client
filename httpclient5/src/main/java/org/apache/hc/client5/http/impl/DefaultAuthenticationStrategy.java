@@ -77,7 +77,7 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
         Args.notNull(challengeType, "ChallengeType");
         Args.notNull(challenges, "Map of auth challenges");
         Args.notNull(context, "HTTP context");
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.cast(context);
         final String exchangeId = clientContext.getExchangeId();
 
         final List<AuthScheme> options = new ArrayList<>();
@@ -88,7 +88,7 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
             }
             return options;
         }
-        final RequestConfig config = clientContext.getRequestConfig();
+        final RequestConfig config = clientContext.getRequestConfigOrDefault();
         Collection<String> authPrefs = challengeType == ChallengeType.TARGET ?
                 config.getTargetPreferredAuthSchemes() : config.getProxyPreferredAuthSchemes();
         if (authPrefs == null) {

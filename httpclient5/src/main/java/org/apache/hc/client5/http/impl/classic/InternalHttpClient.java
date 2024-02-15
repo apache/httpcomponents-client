@@ -121,20 +121,20 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
     }
 
     private void setupContext(final HttpClientContext context) {
-        if (context.getAttribute(HttpClientContext.AUTHSCHEME_REGISTRY) == null) {
-            context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
+        if (context.getAuthSchemeRegistry() == null) {
+            context.setAuthSchemeRegistry(this.authSchemeRegistry);
         }
-        if (context.getAttribute(HttpClientContext.COOKIESPEC_REGISTRY) == null) {
-            context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
+        if (context.getCookieSpecRegistry() == null) {
+            context.setCookieSpecRegistry(this.cookieSpecRegistry);
         }
-        if (context.getAttribute(HttpClientContext.COOKIE_STORE) == null) {
-            context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
+        if (context.getCookieStore() == null) {
+            context.setCookieStore(this.cookieStore);
         }
-        if (context.getAttribute(HttpClientContext.CREDS_PROVIDER) == null) {
-            context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);
+        if (context.getCredentialsProvider() == null) {
+            context.setCredentialsProvider(this.credentialsProvider);
         }
-        if (context.getAttribute(HttpClientContext.REQUEST_CONFIG) == null) {
-            context.setAttribute(HttpClientContext.REQUEST_CONFIG, this.defaultConfig);
+        if (context.getRequestConfig() == null) {
+            context.setRequestConfig(this.defaultConfig);
         }
     }
 
@@ -145,8 +145,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             final HttpContext context) throws IOException {
         Args.notNull(request, "HTTP request");
         try {
-            final HttpClientContext localcontext = HttpClientContext.adapt(
-                    context != null ? context : new HttpClientContext());
+            final HttpClientContext localcontext = HttpClientContext.adapt(context);
             RequestConfig config = null;
             if (request instanceof Configurable) {
                 config = ((Configurable) request).getConfig();

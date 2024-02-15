@@ -509,7 +509,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             final HttpHost proxy,
             final HttpResponse response,
             final HttpClientContext context) {
-        final RequestConfig config = context.getRequestConfig();
+        final RequestConfig config = context.getRequestConfigOrDefault();
         if (config.isAuthenticationEnabled()) {
             final boolean proxyAuthRequested = authenticator.isChallenged(proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
 

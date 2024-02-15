@@ -72,7 +72,7 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.cast(context);
         final String exchangeId = clientContext.getExchangeId();
 
         final AuthCache authCache = clientContext.getAuthCache();

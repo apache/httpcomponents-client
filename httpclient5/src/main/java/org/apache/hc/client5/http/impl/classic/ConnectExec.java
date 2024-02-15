@@ -214,7 +214,7 @@ public final class ConnectExec implements ExecChainHandler {
             final ExecRuntime execRuntime,
             final HttpClientContext context) throws HttpException, IOException {
 
-        final RequestConfig config = context.getRequestConfig();
+        final RequestConfig config = context.getRequestConfigOrDefault();
 
         final HttpHost target = route.getTargetHost();
         final HttpHost proxy = route.getProxyHost();

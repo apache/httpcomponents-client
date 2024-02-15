@@ -113,7 +113,7 @@ public final class MainClientExec implements ExecChainHandler {
         }
         try {
             // Run request protocol interceptors
-            context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
+            context.setRoute(route);
             context.setRequest(request);
 
             httpProcessor.process(request, request.getEntity(), context);
@@ -146,7 +146,7 @@ public final class MainClientExec implements ExecChainHandler {
             Object userToken = context.getUserToken();
             if (userToken == null) {
                 userToken = userTokenHandler.getUserToken(route, request, context);
-                context.setAttribute(HttpClientContext.USER_TOKEN, userToken);
+                context.setUserToken(userToken);
             }
 
             // The connection is in or can be brought to a re-usable state.

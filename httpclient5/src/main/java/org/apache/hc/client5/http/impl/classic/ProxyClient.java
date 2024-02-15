@@ -145,7 +145,7 @@ public class ProxyClient {
                 proxy, false, TunnelType.TUNNELLED, LayerType.PLAIN);
 
         final ManagedHttpClientConnection conn = this.connFactory.createConnection(null);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         ClassicHttpResponse response;
 
         final ClassicHttpRequest connect = new BasicClassicHttpRequest(Method.CONNECT, proxy, target.toHostString());
@@ -155,10 +155,10 @@ public class ProxyClient {
 
         // Populate the execution context
         context.setRequest(connect);
-        context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
-        context.setAttribute(HttpClientContext.CREDS_PROVIDER, credsProvider);
-        context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
-        context.setAttribute(HttpClientContext.REQUEST_CONFIG, this.requestConfig);
+        context.setRoute(route);
+        context.setCredentialsProvider(credsProvider);
+        context.setAuthSchemeRegistry(this.authSchemeRegistry);
+        context.setRequestConfig(this.requestConfig);
 
         this.requestExec.preProcess(connect, this.httpProcessor, context);
 

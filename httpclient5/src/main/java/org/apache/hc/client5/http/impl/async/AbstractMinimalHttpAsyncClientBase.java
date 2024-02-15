@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.async;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
-import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -86,7 +85,7 @@ abstract class AbstractMinimalHttpAsyncClientBase extends AbstractHttpAsyncClien
     }
 
     public final Cancellable execute(final AsyncClientExchangeHandler exchangeHandler) {
-        return execute(exchangeHandler, null, HttpClientContext.create());
+        return execute(exchangeHandler, null, null);
     }
 
     public abstract Cancellable execute(

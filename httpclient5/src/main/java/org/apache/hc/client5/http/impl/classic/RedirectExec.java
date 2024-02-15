@@ -99,14 +99,9 @@ public final class RedirectExec implements ExecChainHandler {
         Args.notNull(scope, "Scope");
 
         final HttpClientContext context = scope.clientContext;
-        RedirectLocations redirectLocations = context.getRedirectLocations();
-        if (redirectLocations == null) {
-            redirectLocations = new RedirectLocations();
-            context.setAttribute(HttpClientContext.REDIRECT_LOCATIONS, redirectLocations);
-        }
-        redirectLocations.clear();
+        context.setRedirectLocations(null);
 
-        final RequestConfig config = context.getRequestConfig();
+        final RequestConfig config = context.getRequestConfigOrDefault();
         final int maxRedirects = config.getMaxRedirects() > 0 ? config.getMaxRedirects() : 50;
         ClassicHttpRequest originalRequest = scope.originalRequest;
         ClassicHttpRequest currentRequest = request;
@@ -139,6 +134,7 @@ public final class RedirectExec implements ExecChainHandler {
                                 redirectUri);
                     }
 
+                    final RedirectLocations redirectLocations = context.getRedirectLocations();
                     if (!config.isCircularRedirectsAllowed()) {
                         if (redirectLocations.contains(redirectUri)) {
                             throw new CircularRedirectException("Circular redirect to '" + redirectUri + "'");

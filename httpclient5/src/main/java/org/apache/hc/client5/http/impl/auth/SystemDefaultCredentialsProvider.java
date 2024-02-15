@@ -105,7 +105,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
         }
         final String host = authScope.getHost();
         if (host != null) {
-            final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : null;
+            final HttpClientContext clientContext = context != null ? HttpClientContext.cast(context) : null;
             final String protocol = authScope.getProtocol() != null ? authScope.getProtocol() : (authScope.getPort() == 443 ? URIScheme.HTTPS.id : URIScheme.HTTP.id);
             PasswordAuthentication systemcreds = getSystemCreds(
                     protocol, authScope, Authenticator.RequestorType.SERVER, clientContext);

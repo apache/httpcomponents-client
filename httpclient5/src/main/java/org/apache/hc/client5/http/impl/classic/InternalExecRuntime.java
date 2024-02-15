@@ -97,7 +97,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             final String id, final HttpRoute route, final Object object, final HttpClientContext context) throws IOException {
         Args.notNull(route, "Route");
         if (endpointRef.get() == null) {
-            final RequestConfig requestConfig = context.getRequestConfig();
+            final RequestConfig requestConfig = context.getRequestConfigOrDefault();
             final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
             if (log.isDebugEnabled()) {
                 log.debug("{} acquiring endpoint ({})", id, connectionRequestTimeout);
@@ -155,7 +155,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         if (isExecutionAborted()) {
             throw new RequestFailedException("Request aborted");
         }
-        final RequestConfig requestConfig = context.getRequestConfig();
+        final RequestConfig requestConfig = context.getRequestConfigOrDefault();
         @SuppressWarnings("deprecation")
         final Timeout connectTimeout = requestConfig.getConnectTimeout();
         if (log.isDebugEnabled()) {
@@ -222,7 +222,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         if (isExecutionAborted()) {
             throw new RequestFailedException("Request aborted");
         }
-        final RequestConfig requestConfig = context.getRequestConfig();
+        final RequestConfig requestConfig = context.getRequestConfigOrDefault();
         final Timeout responseTimeout = requestConfig.getResponseTimeout();
         if (responseTimeout != null) {
             endpoint.setSocketTimeout(responseTimeout);

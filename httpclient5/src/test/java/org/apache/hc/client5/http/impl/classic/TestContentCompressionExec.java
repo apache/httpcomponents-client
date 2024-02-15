@@ -225,7 +225,7 @@ public class TestContentCompressionExec {
                 .setContentCompressionEnabled(false)
                 .build();
 
-        context.setAttribute(HttpClientContext.REQUEST_CONFIG, config);
+        context.setRequestConfig(config);
 
         Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
 

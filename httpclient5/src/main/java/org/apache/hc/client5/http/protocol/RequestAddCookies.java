@@ -33,13 +33,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hc.client5.http.RouteInfo;
-import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookieSpec;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
@@ -90,7 +90,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             return;
         }
 
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.cast(context);
         final String exchangeId = clientContext.getExchangeId();
 
         // Obtain cookie store
@@ -120,7 +120,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             return;
         }
 
-        final RequestConfig config = clientContext.getRequestConfig();
+        final RequestConfig config = clientContext.getRequestConfigOrDefault();
         String cookieSpecName = config.getCookieSpec();
         if (cookieSpecName == null) {
             cookieSpecName = StandardCookieSpec.STRICT;
@@ -190,8 +190,8 @@ public class RequestAddCookies implements HttpRequestInterceptor {
 
         // Stick the CookieSpec and CookieOrigin instances to the HTTP context
         // so they could be obtained by the response interceptor
-        context.setAttribute(HttpClientContext.COOKIE_SPEC, cookieSpec);
-        context.setAttribute(HttpClientContext.COOKIE_ORIGIN, cookieOrigin);
+        clientContext.setCookieSpec(cookieSpec);
+        clientContext.setCookieOrigin(cookieOrigin);
     }
 
 }
