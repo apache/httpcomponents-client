@@ -30,6 +30,8 @@ package org.apache.hc.client5.http.impl.io;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -350,5 +352,57 @@ public class TestPoolingHttpClientConnectionManager {
         Mockito.verify(tlsSocketStrategy, Mockito.times(1)).upgrade(
                 socket, "somehost", 443, tlsConfig, context);
     }
+
+    @Test
+    public void testIsShutdownInitially() {
+        Assertions.assertFalse(mgr.isClosed(), "Connection manager should not be shutdown initially.");
+    }
+
+    @Test
+    public void testShutdownIdempotency() {
+        mgr.close();
+        Assertions.assertTrue(mgr.isClosed(), "Connection manager should remain shutdown after the first call to shutdown.");
+        mgr.close(); // Second call to shutdown
+        Assertions.assertTrue(mgr.isClosed(), "Connection manager should still be shutdown after subsequent calls to shutdown.");
+    }
+
+    @Test
+    public void testLeaseAfterShutdown() {
+        mgr.close();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            // Attempt to lease a connection after shutdown
+            mgr.lease("some-id", new HttpRoute(new HttpHost("localhost")), null);
+        }, "Attempting to lease a connection after shutdown should throw an exception.");
+    }
+
+
+    @Test
+    public void testIsShutdown() {
+        // Setup phase
+        Mockito.when(pool.isShutdown()).thenReturn(false, true); // Simulate changing states
+
+        // Execution phase: Initially, the manager should not be shutdown
+        Assertions.assertFalse(mgr.isClosed(), "Connection manager should not be shutdown initially.");
+
+        // Simulate shutting down the manager
+        mgr.close();
+
+        // Verification phase: Now, the manager should be reported as shutdown
+        Assertions.assertTrue(mgr.isClosed(), "Connection manager should be shutdown after close() is called.");
+    }
+
+
+    @Test
+    public void testConcurrentShutdown() throws InterruptedException {
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
+        // Submit two shutdown tasks to be run in parallel, explicitly calling close() with no arguments
+        executor.submit(() -> mgr.close());
+        executor.submit(() -> mgr.close());
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.SECONDS);
+
+        Assertions.assertTrue(mgr.isClosed(), "Connection manager should be shutdown after concurrent calls to shutdown.");
+    }
+
 
 }
