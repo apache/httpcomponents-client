@@ -394,6 +394,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} releasing endpoint", ConnPoolSupport.getId(endpoint));
         }
+        if (this.isClosed()) {
+            return;
+        }
         final ManagedAsyncClientConnection connection = entry.getConnection();
         boolean reusable = connection != null && connection.isOpen();
         try {
@@ -575,11 +578,17 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
     @Override
     public void closeIdle(final TimeValue idletime) {
+        if (isClosed()) {
+            return;
+        }
         pool.closeIdle(idletime);
     }
 
     @Override
     public void closeExpired() {
+        if (isClosed()) {
+            return;
+        }
         pool.closeExpired();
     }
 
@@ -773,8 +782,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
      *
      * @return {@code true} if the connection manager has been shut down and is closed, otherwise
      * return {@code false}.
+     * @since 5.4
      */
-    boolean isClosed() {
+    public boolean isClosed() {
         return this.closed.get();
     }
 

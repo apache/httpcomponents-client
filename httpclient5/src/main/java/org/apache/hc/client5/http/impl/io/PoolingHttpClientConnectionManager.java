@@ -423,6 +423,11 @@ public class PoolingHttpClientConnectionManager
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} releasing endpoint", ConnPoolSupport.getId(endpoint));
         }
+
+        if (this.isClosed()) {
+            return;
+        }
+
         final ManagedHttpClientConnection conn = entry.getConnection();
         if (conn != null && keepAlive == null) {
             conn.close(CloseMode.GRACEFUL);
@@ -522,11 +527,17 @@ public class PoolingHttpClientConnectionManager
         if (LOG.isDebugEnabled()) {
             LOG.debug("Closing connections idle longer than {}", idleTime);
         }
+        if (isClosed()) {
+            return;
+        }
         this.pool.closeIdle(idleTime);
     }
 
     @Override
     public void closeExpired() {
+        if (isClosed()) {
+            return;
+        }
         LOG.debug("Closing expired connections");
         this.pool.closeExpired();
     }
@@ -795,5 +806,18 @@ public class PoolingHttpClientConnectionManager
         }
 
     }
+
+    /**
+     * Method that can be called to determine whether the connection manager has been shut down and
+     * is closed or not.
+     *
+     * @return {@code true} if the connection manager has been shut down and is closed, otherwise
+     * return {@code false}.
+     * @since 5.4
+     */
+    public boolean isClosed() {
+        return this.closed.get();
+    }
+
 
 }

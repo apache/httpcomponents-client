@@ -711,8 +711,9 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
      *
      * @return {@code true} if the connection manager has been shut down and is closed, otherwise
      * return {@code false}.
+     * @since 5.4
      */
-    boolean isClosed() {
+    public boolean isClosed() {
         return this.closed.get();
     }
 
