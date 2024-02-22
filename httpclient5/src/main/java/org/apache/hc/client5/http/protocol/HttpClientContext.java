@@ -55,9 +55,12 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 
 /**
- * Adaptor class that provides convenience type safe setters and getters
- * for common {@link HttpContext} attributes used in the course
- * of HTTP request execution.
+ * Client execution {@link HttpContext}. This class can be re-used for
+ * multiple consecutive logically related request executions that represent
+ * a single communication session. This context may not be used concurrently.
+ * <p>
+ * IMPORTANT: This class is NOT thread-safe and MUST NOT be used concurrently by
+ * multiple message exchanges.
  *
  * @since 4.3
  */
@@ -141,18 +144,23 @@ public class HttpClientContext extends HttpCoreContext {
     @Deprecated
     public static final String EXCHANGE_ID = "http.exchange-id";
 
-    @SuppressWarnings("deprecation")
+    /**
+     * @deprecated Use {@link #castOrCreate(HttpContext)}.
+     */
+    @Deprecated
     public static HttpClientContext adapt(final HttpContext context) {
+        if (context == null) {
+            return new HttpClientContext();
+        }
         if (context instanceof HttpClientContext) {
             return (HttpClientContext) context;
         }
-        return new HttpClientContext.Delegate(HttpCoreContext.adapt(context));
+        return new HttpClientContext(context);
     }
 
     /**
-     * Casts the given generic {@link HttpContext} as {@link HttpClientContext}
-     * or creates a new {@link HttpClientContext} with the given {@link HttpContext}
-     * as a parent.
+     * Casts the given generic {@link HttpContext} as {@link HttpClientContext} or
+     * throws an {@link IllegalStateException} if the given context is not suitable.
      *
      * @since 5.4
      */
@@ -163,9 +171,18 @@ public class HttpClientContext extends HttpCoreContext {
         if (context instanceof HttpClientContext) {
             return (HttpClientContext) context;
         } else {
-            throw new IllegalStateException("Unexpected context type: " + context.getClass().getSimpleName() +
-                    "; required context type: " + HttpClientContext.class.getSimpleName());
+            return new Delegate(context);
         }
+    }
+
+    /**
+     * Casts the given generic {@link HttpContext} as {@link HttpClientContext} or
+     * creates new {@link HttpClientContext} if the given context is null..
+     *
+     * @since 5.4
+     */
+    public static HttpClientContext castOrCreate(final HttpContext context) {
+        return context != null ? cast(context) : create();
     }
 
     public static HttpClientContext create() {
@@ -198,8 +215,7 @@ public class HttpClientContext extends HttpCoreContext {
     /**
      * Represents current route used to execute message exchanges.
      * <p>
-     * This context attribute is expected to be populated by the protocol handler
-     * in the course of request execution.
+     * This context attribute is expected to be populated by the protocol handler.
      */
     public RouteInfo getHttpRoute() {
         return route;
@@ -214,10 +230,9 @@ public class HttpClientContext extends HttpCoreContext {
     }
 
     /**
-     * Represents a collection of all redirects executed in the course of request execution.
+     * Represents a collection of all redirects executed in the context of request execution.
      * <p>
-     * This context attribute is expected to be populated by the protocol handler
-     * in the course of request execution.
+     * This context attribute is expected to be populated by the protocol handler.
      */
     public RedirectLocations getRedirectLocations() {
         if (this.redirectLocations == null) {
@@ -234,6 +249,11 @@ public class HttpClientContext extends HttpCoreContext {
         this.redirectLocations = redirectLocations;
     }
 
+    /**
+     * Represents a {@link CookieStore} used in the context of the request execution.
+     * <p>
+     * This context attribute can be set by the caller.
+     */
     public CookieStore getCookieStore() {
         return cookieStore;
     }
@@ -242,6 +262,11 @@ public class HttpClientContext extends HttpCoreContext {
         this.cookieStore = cookieStore;
     }
 
+    /**
+     * Represents a {@link CookieSpec} chosen in the context of request execution.
+     * <p>
+     * This context attribute is expected to be populated by the protocol handler.
+     */
     public CookieSpec getCookieSpec() {
         return cookieSpec;
     }
@@ -254,6 +279,11 @@ public class HttpClientContext extends HttpCoreContext {
         this.cookieSpec = cookieSpec;
     }
 
+    /**
+     * Represents a {@link CookieOrigin} produced in the context of request execution.
+     * <p>
+     * This context attribute is expected to be populated by the protocol handler.
+     */
     public CookieOrigin getCookieOrigin() {
         return cookieOrigin;
     }
@@ -266,6 +296,11 @@ public class HttpClientContext extends HttpCoreContext {
         this.cookieOrigin = cookieOrigin;
     }
 
+    /**
+     * Represents a {@link CookieSpecFactory} registry used in the context of the request execution.
+     * <p>
+     * This context attribute can be set by the caller.
+     */
     public Lookup<CookieSpecFactory> getCookieSpecRegistry() {
         return cookieSpecFactoryLookup;
     }
@@ -274,6 +309,11 @@ public class HttpClientContext extends HttpCoreContext {
         this.cookieSpecFactoryLookup = lookup;
     }
 
+    /**
+     * Represents a {@link AuthSchemeFactory} registry used in the context of the request execution.
+     * <p>
+     * This context attribute can be set by the caller.
+     */
     public Lookup<AuthSchemeFactory> getAuthSchemeRegistry() {
         return authSchemeFactoryLookup;
     }
@@ -282,6 +322,11 @@ public class HttpClientContext extends HttpCoreContext {
         this.authSchemeFactoryLookup = lookup;
     }
 
+    /**
+     * Represents a {@link CredentialsProvider} registry used in the context of the request execution.
+     * <p>
+     * This context attribute can be set by the caller.
+     */
     public CredentialsProvider getCredentialsProvider() {
         return credentialsProvider;
     }
@@ -290,6 +335,11 @@ public class HttpClientContext extends HttpCoreContext {
         this.credentialsProvider = credentialsProvider;
     }
 
+    /**
+     * Represents a {@link AuthCache} used in the context of the request execution.
+     * <p>
+     * This context attribute can be set by the caller.
+     */
     public AuthCache getAuthCache() {
         return authCache;
     }
@@ -299,6 +349,11 @@ public class HttpClientContext extends HttpCoreContext {
     }
 
     /**
+     * Represents a map of {@link AuthExchange}s performed in the context of the request
+     * execution.
+     * <p>
+     * This context attribute is expected to be populated by the protocol handler.
+     *
      * @since 5.0
      */
     public Map<HttpHost, AuthExchange> getAuthExchanges() {
@@ -340,6 +395,12 @@ public class HttpClientContext extends HttpCoreContext {
         return (T) getUserToken();
     }
 
+    /**
+     * Represents an arbitrary user token that identifies the user in the context
+     * of the request execution.
+     * <p>
+     * This context attribute can be set by the caller.
+     */
     public Object getUserToken() {
         return userToken;
     }
@@ -348,13 +409,18 @@ public class HttpClientContext extends HttpCoreContext {
         this.userToken = userToken;
     }
 
+    /**
+     * Represents an {@link RequestConfig used} in the context of the request execution.
+     * <p>
+     * This context attribute can be set by the caller.
+     */
     public RequestConfig getRequestConfig() {
         return requestConfig;
     }
 
     /**
      * Returns {@link RequestConfig} set in the context or {@link RequestConfig#DEFAULT}
-     * if not present in the context.
+     * if not explicitly set in the context.
      *
      * @since 5.4
      */
@@ -368,6 +434,10 @@ public class HttpClientContext extends HttpCoreContext {
     }
 
     /**
+     * Represents an identifier generated for the current message exchange executed
+     * in the given context.
+     * <p>
+     * This context attribute is expected to be populated by the protocol handler.
      * @since 5.1
      */
     public String getExchangeId() {
@@ -381,88 +451,237 @@ public class HttpClientContext extends HttpCoreContext {
         this.exchangeId = exchangeId;
     }
 
+    /**
+     * Internal adaptor class that delegates all its method calls to a plain {@link HttpContext}.
+     * To be removed in the future.
+     */
+    @SuppressWarnings("deprecation")
+    @Internal
     static class Delegate extends HttpClientContext {
 
-        final private HttpCoreContext parent;
+        private final HttpContext httpContext;
 
-        Delegate(final HttpCoreContext parent) {
-            super(parent);
-            this.parent = parent;
+        Delegate(final HttpContext httpContext) {
+            super(null);
+            this.httpContext = httpContext;
+        }
+
+        <T> T getAttr(final String id, final Class<T> clazz) {
+            final Object obj = httpContext.getAttribute(id);
+            if (obj == null) {
+                return null;
+            }
+            return clazz.cast(obj);
         }
 
         @Override
-        public ProtocolVersion getProtocolVersion() {
-            return parent.getProtocolVersion();
+        public RouteInfo getHttpRoute() {
+            return getAttr(HTTP_ROUTE, RouteInfo.class);
         }
 
         @Override
-        public void setProtocolVersion(final ProtocolVersion version) {
-            parent.setProtocolVersion(version);
+        public void setRoute(final HttpRoute route) {
+            httpContext.setAttribute(HTTP_ROUTE, route);
         }
 
         @Override
-        public Object getAttribute(final String id) {
-            return parent.getAttribute(id);
+        public RedirectLocations getRedirectLocations() {
+            RedirectLocations redirectLocations = getAttr(REDIRECT_LOCATIONS, RedirectLocations.class);
+            if (redirectLocations == null) {
+                redirectLocations = new RedirectLocations();
+                httpContext.setAttribute(REDIRECT_LOCATIONS, redirectLocations);
+            }
+            return redirectLocations;
         }
 
         @Override
-        public Object setAttribute(final String id, final Object obj) {
-            return parent.setAttribute(id, obj);
+        public void setRedirectLocations(final RedirectLocations redirectLocations) {
+            httpContext.setAttribute(REDIRECT_LOCATIONS, redirectLocations);
         }
 
         @Override
-        public Object removeAttribute(final String id) {
-            return parent.removeAttribute(id);
+        public CookieStore getCookieStore() {
+            return getAttr(COOKIE_STORE, CookieStore.class);
         }
 
         @Override
-        public <T> T getAttribute(final String id, final Class<T> clazz) {
-            return parent.getAttribute(id, clazz);
+        public void setCookieStore(final CookieStore cookieStore) {
+            httpContext.setAttribute(COOKIE_STORE, cookieStore);
+        }
+
+        @Override
+        public CookieSpec getCookieSpec() {
+            return getAttr(COOKIE_SPEC, CookieSpec.class);
+        }
+
+        @Override
+        public void setCookieSpec(final CookieSpec cookieSpec) {
+            httpContext.setAttribute(COOKIE_SPEC, cookieSpec);
+        }
+
+        @Override
+        public CookieOrigin getCookieOrigin() {
+            return getAttr(COOKIE_ORIGIN, CookieOrigin.class);
+        }
+
+        @Override
+        public void setCookieOrigin(final CookieOrigin cookieOrigin) {
+            httpContext.setAttribute(COOKIE_ORIGIN, cookieOrigin);
+        }
+
+        @Override
+        public Lookup<CookieSpecFactory> getCookieSpecRegistry() {
+            return getAttr(COOKIESPEC_REGISTRY, Lookup.class);
+        }
+
+        @Override
+        public void setCookieSpecRegistry(final Lookup<CookieSpecFactory> lookup) {
+            httpContext.setAttribute(COOKIESPEC_REGISTRY, lookup);
+        }
+
+        @Override
+        public Lookup<AuthSchemeFactory> getAuthSchemeRegistry() {
+            return getAttr(AUTHSCHEME_REGISTRY, Lookup.class);
+        }
+
+        @Override
+        public void setAuthSchemeRegistry(final Lookup<AuthSchemeFactory> lookup) {
+            httpContext.setAttribute(AUTHSCHEME_REGISTRY, lookup);
+        }
+
+        @Override
+        public CredentialsProvider getCredentialsProvider() {
+            return getAttr(CREDS_PROVIDER, CredentialsProvider.class);
+        }
+
+        @Override
+        public void setCredentialsProvider(final CredentialsProvider credentialsProvider) {
+            httpContext.setAttribute(CREDS_PROVIDER, credentialsProvider);
+        }
+
+        @Override
+        public AuthCache getAuthCache() {
+            return getAttr(AUTH_CACHE, AuthCache.class);
+        }
+
+        @Override
+        public void setAuthCache(final AuthCache authCache) {
+            httpContext.setAttribute(AUTH_CACHE, authCache);
+        }
+
+        @Override
+        public Map<HttpHost, AuthExchange> getAuthExchanges() {
+            Map<HttpHost, AuthExchange> map = getAttr(AUTH_EXCHANGE_MAP, Map.class);
+            if (map == null) {
+                map = new HashMap<>();
+                httpContext.setAttribute(AUTH_EXCHANGE_MAP, map);
+            }
+            return map;
+        }
+
+        @Override
+        public Object getUserToken() {
+            return httpContext.getAttribute(USER_TOKEN);
+        }
+
+        @Override
+        public void setUserToken(final Object userToken) {
+            httpContext.setAttribute(USER_TOKEN, userToken);
+        }
+
+        @Override
+        public RequestConfig getRequestConfig() {
+            return getAttr(REQUEST_CONFIG, RequestConfig.class);
+        }
+
+        @Override
+        public void setRequestConfig(final RequestConfig requestConfig) {
+            httpContext.setAttribute(REQUEST_CONFIG, requestConfig);
+        }
+
+        @Override
+        public String getExchangeId() {
+            return getAttr(EXCHANGE_ID, String.class);
+        }
+
+        @Override
+        public void setExchangeId(final String exchangeId) {
+            httpContext.setAttribute(EXCHANGE_ID, exchangeId);
         }
 
         @Override
         public HttpRequest getRequest() {
-            return parent.getRequest();
+            return getAttr(HttpCoreContext.HTTP_REQUEST, HttpRequest.class);
         }
 
         @Override
         public void setRequest(final HttpRequest request) {
-            parent.setRequest(request);
+            httpContext.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
         }
 
         @Override
         public HttpResponse getResponse() {
-            return parent.getResponse();
+            return getAttr(HttpCoreContext.HTTP_RESPONSE, HttpResponse.class);
         }
 
         @Override
         public void setResponse(final HttpResponse response) {
-            parent.setResponse(response);
+            httpContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
         }
 
         @Override
         public EndpointDetails getEndpointDetails() {
-            return parent.getEndpointDetails();
+            return getAttr(HttpCoreContext.CONNECTION_ENDPOINT, EndpointDetails.class);
         }
 
         @Override
         public void setEndpointDetails(final EndpointDetails endpointDetails) {
-            parent.setEndpointDetails(endpointDetails);
+            httpContext.setAttribute(CONNECTION_ENDPOINT, endpointDetails);
         }
 
         @Override
         public SSLSession getSSLSession() {
-            return parent.getSSLSession();
+            return getAttr(HttpCoreContext.SSL_SESSION, SSLSession.class);
         }
 
         @Override
         public void setSSLSession(final SSLSession sslSession) {
-            parent.setSSLSession(sslSession);
+            httpContext.setAttribute(HttpCoreContext.SSL_SESSION, sslSession);
+        }
+
+        @Override
+        public ProtocolVersion getProtocolVersion() {
+            return httpContext.getProtocolVersion();
+        }
+
+        @Override
+        public void setProtocolVersion(final ProtocolVersion version) {
+            httpContext.setProtocolVersion(version);
+        }
+
+        @Override
+        public Object getAttribute(final String id) {
+            return httpContext.getAttribute(id);
+        }
+
+        @Override
+        public Object setAttribute(final String id, final Object obj) {
+            return httpContext.setAttribute(id, obj);
+        }
+
+        @Override
+        public Object removeAttribute(final String id) {
+            return httpContext.removeAttribute(id);
+        }
+
+        @Override
+        public <T> T getAttribute(final String id, final Class<T> clazz) {
+            return getAttr(id, clazz);
         }
 
         @Override
         public String toString() {
-            return parent.toString();
+            return httpContext.toString();
         }
 
     }

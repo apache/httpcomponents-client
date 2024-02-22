@@ -42,7 +42,7 @@ public class TestRequestDefaultHeaders {
 
     @Test
     public void testRequestParameterCheck() throws Exception {
-        final HttpContext context = new HttpClientContext();
+        final HttpContext context = HttpClientContext.create();
         final HttpRequestInterceptor interceptor = RequestDefaultHeaders.INSTANCE;
         Assertions.assertThrows(NullPointerException.class, () ->
                 interceptor.process(null, null, context));
@@ -53,7 +53,7 @@ public class TestRequestDefaultHeaders {
         final HttpRequest request = new BasicHttpRequest("CONNECT", "www.somedomain.com");
         final List<Header> defheaders = new ArrayList<>();
         defheaders.add(new BasicHeader("custom", "stuff"));
-        final HttpContext context = new HttpClientContext();
+        final HttpContext context = HttpClientContext.create();
 
         final HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
         interceptor.process(request, null, context);
@@ -67,7 +67,7 @@ public class TestRequestDefaultHeaders {
         request.addHeader("custom", "stuff");
         final List<Header> defheaders = new ArrayList<>();
         defheaders.add(new BasicHeader("custom", "other stuff"));
-        final HttpContext context = new HttpClientContext();
+        final HttpContext context = HttpClientContext.create();
 
         final HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
         interceptor.process(request, null, context);

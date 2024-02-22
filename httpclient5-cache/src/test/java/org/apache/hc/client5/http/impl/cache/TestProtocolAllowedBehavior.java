@@ -29,9 +29,9 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.IOException;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
@@ -59,7 +59,7 @@ public class TestProtocolAllowedBehavior {
 
     HttpHost host;
     HttpRoute route;
-    HttpClientContext context;
+    HttpCacheContext context;
     @Mock
     ExecChain mockExecChain;
     @Mock
@@ -81,7 +81,7 @@ public class TestProtocolAllowedBehavior {
 
         request = new BasicClassicHttpRequest("GET", "/foo");
 
-        context = HttpClientContext.create();
+        context = HttpCacheContext.create();
 
         originResponse = HttpTestUtils.make200Response();
 

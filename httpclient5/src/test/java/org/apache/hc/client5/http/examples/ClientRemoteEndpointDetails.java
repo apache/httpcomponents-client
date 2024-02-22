@@ -44,7 +44,7 @@ public class ClientRemoteEndpointDetails {
     public static void main(final String[] args) throws Exception {
         try (final CloseableHttpClient httpclient = HttpClients.createDefault()) {
             // Create local HTTP context
-            final HttpClientContext localContext = new HttpClientContext();
+            final HttpClientContext localContext = HttpClientContext.create();
 
             final HttpGet httpget = new HttpGet("http://httpbin.org/get");
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());

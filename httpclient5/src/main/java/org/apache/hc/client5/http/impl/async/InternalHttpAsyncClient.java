@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.Closeable;
 import java.util.List;
 import java.util.concurrent.ThreadFactory;
+import java.util.function.Function;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
@@ -50,6 +51,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,10 +88,12 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
             final Lookup<AuthSchemeFactory> authSchemeRegistry,
             final CookieStore cookieStore,
             final CredentialsProvider credentialsProvider,
+            final Function<HttpContext, HttpClientContext> contextAdaptor,
             final RequestConfig defaultConfig,
             final List<Closeable> closeables) {
         super(ioReactor, pushConsumerRegistry, threadFactory, execChain,
-                cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider, defaultConfig, closeables);
+                cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider, contextAdaptor,
+                defaultConfig, closeables);
         this.manager = manager;
         this.routePlanner = routePlanner;
         this.tlsConfig = tlsConfig;

@@ -118,7 +118,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
         if (request.getAuthority() == null) {
             request.setAuthority(new URIAuthority(target));
         }
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.castOrCreate(context);
         RequestConfig config = null;
         if (request instanceof Configurable) {
             config = ((Configurable) request).getConfig();

@@ -89,7 +89,7 @@ public class TestInternalHttpClient {
         MockitoAnnotations.openMocks(this);
         client = new InternalHttpClient(connManager, requestExecutor, new ExecChainElement(execChain, null), routePlanner,
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider,
-                defaultConfig, Arrays.asList(closeable1, closeable2));
+                HttpClientContext::castOrCreate, defaultConfig, Arrays.asList(closeable1, closeable2));
 
     }
 

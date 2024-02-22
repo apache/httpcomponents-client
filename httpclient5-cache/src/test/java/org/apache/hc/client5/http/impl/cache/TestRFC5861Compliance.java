@@ -37,9 +37,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
@@ -70,7 +70,7 @@ public class TestRFC5861Compliance {
     HttpHost host;
     HttpRoute route;
     HttpEntity body;
-    HttpClientContext context;
+    HttpCacheContext context;
     @Mock
     ExecChain mockExecChain;
     @Mock
@@ -94,7 +94,7 @@ public class TestRFC5861Compliance {
 
         request = new BasicClassicHttpRequest("GET", "/foo");
 
-        context = HttpClientContext.create();
+        context = HttpCacheContext.create();
 
         originResponse = HttpTestUtils.make200Response();
 

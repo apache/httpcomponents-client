@@ -206,7 +206,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
         connManager.setDefaultMaxPerRoute(maxConn);
 
         // Bottom of the pool : a *keep alive* connection to Route 1.
-        final HttpContext context1 = new HttpClientContext();
+        final HttpContext context1 = HttpClientContext.create();
         context1.setAttribute("user", "stuff");
 
         final SimpleHttpRequest request1 = SimpleRequestBuilder.get()
@@ -226,7 +226,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
 
         // Send a very simple HTTP get (it MUST be simple, no auth, no proxy, no 302, no 401, ...)
         // Send it to another route. Must be a keepalive.
-        final HttpContext context2 = new HttpClientContext();
+        final HttpContext context2 = HttpClientContext.create();
 
         final SimpleHttpRequest request2 = SimpleRequestBuilder.get()
                 .setScheme(target.getSchemeName())
@@ -249,7 +249,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
         // So the ConnPoolByRoute will need to kill one connection (it is maxed out globally).
         // The killed conn is the oldest, which means the first HTTPGet ([localhost][stuff]).
         // When this happens, the RouteSpecificPool becomes empty.
-        final HttpContext context3 = new HttpClientContext();
+        final HttpContext context3 = HttpClientContext.create();
 
         final SimpleHttpRequest request3 = SimpleRequestBuilder.get()
                 .setHttpHost(target)

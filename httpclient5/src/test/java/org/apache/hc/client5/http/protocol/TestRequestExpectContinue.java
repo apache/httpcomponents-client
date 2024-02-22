@@ -60,7 +60,7 @@ public class TestRequestExpectContinue {
 
     @Test
     public void testRequestExpectContinueNotGenerated() throws Exception {
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(false).build();
         context.setRequestConfig(config);
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
@@ -75,7 +75,7 @@ public class TestRequestExpectContinue {
 
     @Test
     public void testRequestExpectContinueHTTP10() throws Exception {
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
         context.setRequestConfig(config);
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
@@ -91,7 +91,7 @@ public class TestRequestExpectContinue {
 
     @Test
     public void testRequestExpectContinueZeroContent() throws Exception {
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
         context.setRequestConfig(config);
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
@@ -112,7 +112,7 @@ public class TestRequestExpectContinue {
 
     @Test
     public void testRequestExpectContinueIgnoreNonenclosingRequests() throws Exception {
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
         final RequestExpectContinue interceptor = new RequestExpectContinue();
         interceptor.process(request, null, context);

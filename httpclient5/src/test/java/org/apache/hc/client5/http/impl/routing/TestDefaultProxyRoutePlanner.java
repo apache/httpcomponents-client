@@ -59,7 +59,7 @@ public class TestDefaultProxyRoutePlanner {
     public void testDefaultProxyDirect() throws Exception {
         final HttpHost target = new HttpHost("http", "somehost", 80);
 
-        final HttpContext context = new HttpClientContext();
+        final HttpContext context = HttpClientContext.create();
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
         Assertions.assertEquals(target, route.getTargetHost());

@@ -43,7 +43,7 @@ public class TestDefaultConnKeepAliveStrategy {
 
     @Test
     public void testIllegalResponseArg() throws Exception {
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
         Assertions.assertThrows(NullPointerException.class, () ->
                 keepAliveStrat.getKeepAliveDuration(null, context));

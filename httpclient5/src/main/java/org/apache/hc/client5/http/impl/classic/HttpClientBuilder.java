@@ -37,6 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
@@ -75,6 +76,7 @@ import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.protocol.RequestAddCookies;
 import org.apache.hc.client5.http.protocol.RequestClientConnControl;
@@ -96,6 +98,7 @@ import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestContent;
@@ -742,6 +745,11 @@ public class HttpClientBuilder {
         closeables.add(closeable);
     }
 
+    @Internal
+    protected Function<HttpContext, HttpClientContext> contextAdaptor() {
+        return HttpClientContext::castOrCreate;
+    }
+
     public CloseableHttpClient build() {
         // Create main request executor
         // We copy the instance fields to avoid changing them, and rename to avoid accidental use of the wrong version
@@ -1024,6 +1032,7 @@ public class HttpClientBuilder {
                 authSchemeRegistryCopy,
                 defaultCookieStore,
                 defaultCredentialsProvider,
+                contextAdaptor(),
                 defaultRequestConfig != null ? defaultRequestConfig : RequestConfig.DEFAULT,
                 closeablesCopy);
     }

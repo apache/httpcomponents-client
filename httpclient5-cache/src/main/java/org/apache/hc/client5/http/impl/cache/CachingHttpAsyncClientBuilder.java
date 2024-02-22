@@ -29,19 +29,23 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.File;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.function.Function;
 
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorageAdaptor;
+import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.schedule.ImmediateSchedulingStrategy;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.http.config.NamedElementChain;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * Builder for {@link org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient}
@@ -160,6 +164,11 @@ public class CachingHttpAsyncClientBuilder extends HttpAsyncClientBuilder {
                 cacheRevalidator,
                 config);
         execChainDefinition.addBefore(ChainElement.PROTOCOL.name(), cachingExec, ChainElement.CACHING.name());
+    }
+
+    @Override
+    protected Function<HttpContext, HttpClientContext> contextAdaptor() {
+        return HttpCacheContext::castOrCreate;
     }
 
 }

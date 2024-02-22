@@ -83,7 +83,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testConnect() throws Exception {
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpHost host = new HttpHost("somehost");
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
         final InetAddress ip1 = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
@@ -116,7 +116,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testConnectWithTLSUpgrade() throws Exception {
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpHost host = new HttpHost("https", "somehost");
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
         final InetAddress ip1 = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
@@ -152,7 +152,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testConnectTimeout() throws Exception {
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpHost host = new HttpHost("somehost");
         final InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
         final InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
@@ -169,7 +169,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testConnectFailure() throws Exception {
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpHost host = new HttpHost("somehost");
         final InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
         final InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
@@ -186,7 +186,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testConnectFailover() throws Exception {
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpHost host = new HttpHost("somehost");
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
         final InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
@@ -213,7 +213,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testConnectExplicitAddress() throws Exception {
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
         final InetAddress ip = InetAddress.getByAddress(new byte[] {127, 0, 0, 23});
         final HttpHost host = new HttpHost(ip);
@@ -235,7 +235,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testUpgrade() throws Exception {
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpHost host = new HttpHost("https", "somehost", -1);
 
         Mockito.when(conn.isOpen()).thenReturn(true);
@@ -257,7 +257,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testUpgradeUpsupportedScheme() throws Exception {
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpHost host = new HttpHost("httpsssss", "somehost", -1);
 
         Mockito.when(conn.isOpen()).thenReturn(true);
@@ -269,7 +269,7 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testUpgradeNonLayeringScheme() throws Exception {
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpHost host = new HttpHost("http", "somehost", -1);
 
         Mockito.when(conn.isOpen()).thenReturn(true);
