@@ -87,8 +87,8 @@ public class AsyncClientCacheControl {
                         public void completed(final SimpleHttpResponse response) {
                             System.out.println(httpget1 + "->" + new StatusLine(response));
                             System.out.println("Cache status: " + context.getCacheResponseStatus());
-                            System.out.println("Request cache control: " + context.getRequestCacheControl());
-                            System.out.println("Response cache control: " + context.getResponseCacheControl());
+                            System.out.println("Request cache control: " + context.getRequestCacheControlOrDefault());
+                            System.out.println("Response cache control: " + context.getResponseCacheControlOrDefault());
                             final HttpCacheEntry cacheEntry = context.getCacheEntry();
                             if (cacheEntry != null) {
                                 System.out.println("Cache entry resource: " + cacheEntry.getResource());
@@ -132,8 +132,8 @@ public class AsyncClientCacheControl {
                         public void completed(final SimpleHttpResponse response) {
                             System.out.println(httpget2 + "->" + new StatusLine(response));
                             System.out.println("Cache status: " + context.getCacheResponseStatus());
-                            System.out.println("Request cache control: " + context.getRequestCacheControl());
-                            System.out.println("Response cache control: " + context.getResponseCacheControl());
+                            System.out.println("Request cache control: " + context.getRequestCacheControlOrDefault());
+                            System.out.println("Response cache control: " + context.getResponseCacheControlOrDefault());
                             final HttpCacheEntry cacheEntry = context.getCacheEntry();
                             if (cacheEntry != null) {
                                 System.out.println("Cache entry resource: " + cacheEntry.getResource());
@@ -179,8 +179,8 @@ public class AsyncClientCacheControl {
                         public void completed(final SimpleHttpResponse response) {
                             System.out.println(httpget3 + "->" + new StatusLine(response));
                             System.out.println("Cache status: " + context.getCacheResponseStatus());
-                            System.out.println("Request cache control: " + context.getRequestCacheControl());
-                            System.out.println("Response cache control: " + context.getResponseCacheControl());
+                            System.out.println("Request cache control: " + context.getRequestCacheControlOrDefault());
+                            System.out.println("Response cache control: " + context.getResponseCacheControlOrDefault());
                             final HttpCacheEntry cacheEntry = context.getCacheEntry();
                             if (cacheEntry != null) {
                                 System.out.println("Cache entry resource: " + cacheEntry.getResource());

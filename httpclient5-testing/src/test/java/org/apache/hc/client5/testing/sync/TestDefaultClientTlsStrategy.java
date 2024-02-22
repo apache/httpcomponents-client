@@ -104,7 +104,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:on
         this.server.start();
 
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
         final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                 SSLTestContexts.createClientSSLContext(), hostVerifier);
@@ -133,7 +133,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:on
         this.server.start();
 
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext());
         final HttpHost target = new HttpHost("https", "localhost", server.getLocalPort());
         try (final Socket socket = new Socket(target.getHostName(), target.getPort())) {
@@ -159,7 +159,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:on
         this.server.start();
 
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
         final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                 SSLTestContexts.createClientSSLContext(), hostVerifier);
@@ -189,7 +189,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:on
         this.server.start();
 
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
         final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                 SSLTestContexts.createClientSSLContext(), hostVerifier);
@@ -221,7 +221,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:on
         this.server.start();
 
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         // Use default SSL context
         final SSLContext defaultSslContext = SSLContexts.createDefault();
 
@@ -254,7 +254,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:on
         this.server.start();
 
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         // @formatter:off
         final SSLContext sslContext = SSLContexts.custom()
@@ -287,7 +287,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:on
         this.server.start();
 
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                 SSLTestContexts.createClientSSLContext());
         final HttpHost target = new HttpHost("https", "localhost", server.getLocalPort());
@@ -339,7 +339,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:on
         this.server.start();
 
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                 SSLTestContexts.createClientSSLContext());
         final HttpHost target = new HttpHost("https", "localhost", server.getLocalPort());
@@ -369,7 +369,7 @@ public class TestDefaultClientTlsStrategy {
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.CLIENT,
                     HttpsSupport.getDefaultHostnameVerifier());
-            final HttpClientContext context = new HttpClientContext();
+            final HttpClientContext context = HttpClientContext.create();
             final SSLSocket upgradedSocket = tlsStrategy.upgrade(
                     socket,
                     target1.getHostName(),
@@ -387,7 +387,7 @@ public class TestDefaultClientTlsStrategy {
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.CLIENT,
                     HttpsSupport.getDefaultHostnameVerifier());
-            final HttpClientContext context = new HttpClientContext();
+            final HttpClientContext context = HttpClientContext.create();
             Assertions.assertThrows(SSLPeerUnverifiedException.class, () ->
                     tlsStrategy.upgrade(
                             socket,
@@ -402,7 +402,7 @@ public class TestDefaultClientTlsStrategy {
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.CLIENT,
                     NoopHostnameVerifier.INSTANCE);
-            final HttpClientContext context = new HttpClientContext();
+            final HttpClientContext context = HttpClientContext.create();
             final SSLSocket upgradedSocket = tlsStrategy.upgrade(
                     socket,
                     target1.getHostName(),
@@ -430,7 +430,7 @@ public class TestDefaultClientTlsStrategy {
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.BUILTIN,
                     NoopHostnameVerifier.INSTANCE);
-            final HttpClientContext context = new HttpClientContext();
+            final HttpClientContext context = HttpClientContext.create();
             final SSLSocket upgradedSocket = tlsStrategy.upgrade(
                     socket,
                     target1.getHostName(),
@@ -448,7 +448,7 @@ public class TestDefaultClientTlsStrategy {
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.BUILTIN,
                     NoopHostnameVerifier.INSTANCE);
-            final HttpClientContext context = new HttpClientContext();
+            final HttpClientContext context = HttpClientContext.create();
             Assertions.assertThrows(SSLHandshakeException.class, () ->
                     tlsStrategy.upgrade(
                             socket,

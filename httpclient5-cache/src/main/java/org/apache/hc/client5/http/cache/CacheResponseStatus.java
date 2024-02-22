@@ -28,10 +28,7 @@ package org.apache.hc.client5.http.cache;
 
 /**
  * This enumeration represents the various ways a response can be generated
- * by the caching {@link org.apache.hc.client5.http.classic.HttpClient};
- * if a request is executed with an {@link HttpCacheContext}
- * then a parameter with one of these values will be registered in the
- * context under the key  {@link HttpCacheContext#CACHE_RESPONSE_STATUS}.
+ * by an HTTP cache.
  */
 public enum CacheResponseStatus {
 

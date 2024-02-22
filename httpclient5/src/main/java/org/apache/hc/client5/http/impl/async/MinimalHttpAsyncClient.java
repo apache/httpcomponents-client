@@ -218,7 +218,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
             future.failed(new CancellationException("Connection lease cancelled"));
             return future;
         }
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.castOrCreate(context);
         final RequestConfig requestConfig = clientContext.getRequestConfigOrDefault();
         final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
         @SuppressWarnings("deprecation")
@@ -259,7 +259,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
             if (!isRunning()) {
                 throw new CancellationException("Request execution cancelled");
             }
-            final HttpClientContext clientContext = HttpClientContext.adapt(context);
+            final HttpClientContext clientContext = HttpClientContext.castOrCreate(context);
             exchangeHandler.produceRequest((request, entityDetails, context1) -> {
                 RequestConfig requestConfig = null;
                 if (request instanceof Configurable) {
@@ -455,7 +455,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                 final HttpContext context) {
             Asserts.check(!released.get(), "Endpoint has already been released");
 
-            final HttpClientContext clientContext = HttpClientContext.adapt(context);
+            final HttpClientContext clientContext = HttpClientContext.castOrCreate(context);
             final String exchangeId = ExecSupport.getNextExchangeId();
             clientContext.setExchangeId(exchangeId);
             if (LOG.isDebugEnabled()) {

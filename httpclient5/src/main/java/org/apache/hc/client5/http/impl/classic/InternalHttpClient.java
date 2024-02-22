@@ -31,6 +31,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Function;
 
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpRoute;
@@ -89,6 +90,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
     private final Lookup<AuthSchemeFactory> authSchemeRegistry;
     private final CookieStore cookieStore;
     private final CredentialsProvider credentialsProvider;
+    private final Function<HttpContext, HttpClientContext> contextAdaptor;
     private final RequestConfig defaultConfig;
     private final ConcurrentLinkedQueue<Closeable> closeables;
 
@@ -101,6 +103,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             final Lookup<AuthSchemeFactory> authSchemeRegistry,
             final CookieStore cookieStore,
             final CredentialsProvider credentialsProvider,
+            final Function<HttpContext, HttpClientContext> contextAdaptor,
             final RequestConfig defaultConfig,
             final List<Closeable> closeables) {
         super();
@@ -112,6 +115,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
         this.authSchemeRegistry = authSchemeRegistry;
         this.cookieStore = cookieStore;
         this.credentialsProvider = credentialsProvider;
+        this.contextAdaptor = contextAdaptor;
         this.defaultConfig = defaultConfig;
         this.closeables = closeables != null ?  new ConcurrentLinkedQueue<>(closeables) : null;
     }
@@ -145,7 +149,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             final HttpContext context) throws IOException {
         Args.notNull(request, "HTTP request");
         try {
-            final HttpClientContext localcontext = HttpClientContext.adapt(context);
+            final HttpClientContext localcontext = contextAdaptor.apply(context);
             RequestConfig config = null;
             if (request instanceof Configurable) {
                 config = ((Configurable) request).getConfig();

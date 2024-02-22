@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ThreadFactory;
+import java.util.function.Function;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
@@ -72,6 +73,7 @@ import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.protocol.RequestAddCookies;
 import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
@@ -96,6 +98,7 @@ import org.apache.hc.core5.http.config.NamedElementChain;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
@@ -777,6 +780,12 @@ public class HttpAsyncClientBuilder {
         }
         closeables.add(closeable);
     }
+
+    @Internal
+    protected Function<HttpContext, HttpClientContext> contextAdaptor() {
+        return HttpClientContext::castOrCreate;
+    }
+
     @SuppressWarnings("deprecated")
     public CloseableHttpAsyncClient build() {
         AsyncClientConnectionManager connManagerCopy = this.connManager;
@@ -1047,6 +1056,7 @@ public class HttpAsyncClientBuilder {
                 authSchemeRegistryCopy,
                 cookieStoreCopy,
                 credentialsProviderCopy,
+                contextAdaptor(),
                 defaultRequestConfig,
                 closeablesCopy);
     }

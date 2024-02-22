@@ -114,7 +114,7 @@ public class TestMainClientExec {
     @Test
     public void testExecRequestNonPersistentConnection() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         response.setEntity(EntityBuilder.create()
@@ -145,7 +145,7 @@ public class TestMainClientExec {
     @Test
     public void testExecRequestNonPersistentConnectionNoResponseEntity() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         response.setEntity(null);
@@ -174,7 +174,7 @@ public class TestMainClientExec {
     @Test
     public void testExecRequestPersistentConnection() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         // The entity is streaming
@@ -210,7 +210,7 @@ public class TestMainClientExec {
     @Test
     public void testExecRequestPersistentConnectionNoResponseEntity() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
 
@@ -240,7 +240,7 @@ public class TestMainClientExec {
     @Test
     public void testExecRequestConnectionRelease() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         // The entity is streaming
@@ -275,7 +275,7 @@ public class TestMainClientExec {
     @Test
     public void testExecConnectionShutDown() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
 
         Mockito.when(execRuntime.execute(
@@ -293,7 +293,7 @@ public class TestMainClientExec {
     @Test
     public void testExecRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
 
         Mockito.when(execRuntime.execute(
@@ -311,7 +311,7 @@ public class TestMainClientExec {
     @Test
     public void testExecHttpException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
 
         Mockito.when(execRuntime.execute(
@@ -329,7 +329,7 @@ public class TestMainClientExec {
     @Test
     public void testExecIOException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
 
         Mockito.when(execRuntime.execute(

@@ -128,7 +128,7 @@ public class TestConnectionManagement {
         final String uri = "/random/" + rsplen;
 
         final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", target, uri);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final LeaseRequest leaseRequest1 = connManager.lease("id1", route, null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
@@ -192,7 +192,7 @@ public class TestConnectionManagement {
         final String uri = "/random/" + rsplen;
 
         final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", target, uri);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final LeaseRequest leaseRequest1 = connManager.lease("id1", route, null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
@@ -258,7 +258,7 @@ public class TestConnectionManagement {
         connManager.setMaxTotal(1);
 
         final HttpRoute route = new HttpRoute(target, null, false);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final LeaseRequest leaseRequest1 = connManager.lease("id1", route, null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
@@ -311,7 +311,7 @@ public class TestConnectionManagement {
         connManager.setMaxTotal(1);
 
         final HttpRoute route = new HttpRoute(target, null, false);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final LeaseRequest leaseRequest1 = connManager.lease("id1", route, null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);

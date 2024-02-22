@@ -84,7 +84,8 @@ public final class InternalH2AsyncClient extends InternalAbstractHttpAsyncClient
             final RequestConfig defaultConfig,
             final List<Closeable> closeables) {
         super(ioReactor, pushConsumerRegistry, threadFactory, execChain,
-                cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider, defaultConfig, closeables);
+                cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider, HttpClientContext::castOrCreate,
+                defaultConfig, closeables);
         this.connPool = connPool;
         this.routePlanner = routePlanner;
     }

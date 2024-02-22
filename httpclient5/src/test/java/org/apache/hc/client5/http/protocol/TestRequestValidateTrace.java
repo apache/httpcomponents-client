@@ -53,7 +53,7 @@ class TestRequestValidateTrace {
     @BeforeEach
     void setUp() {
         interceptor = new RequestValidateTrace();
-        context = new HttpClientContext();
+        context = HttpClientContext.create();
     }
 
     @Test

@@ -94,7 +94,7 @@ public class TestConnectExec {
     @Test
     public void testExecAcquireConnection() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         try (final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK")) {
             response.setEntity(EntityBuilder.create()
@@ -113,7 +113,7 @@ public class TestConnectExec {
     @Test
     public void testEstablishDirectRoute() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
 
         final ConnectionState connectionState = new ConnectionState();
@@ -133,7 +133,7 @@ public class TestConnectExec {
     @Test
     public void testEstablishRouteDirectProxy() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, false);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
 
         final ConnectionState connectionState = new ConnectionState();
@@ -153,7 +153,7 @@ public class TestConnectExec {
     @Test
     public void testEstablishRouteViaProxyTunnel() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
 
@@ -184,7 +184,7 @@ public class TestConnectExec {
     @Test
     public void testEstablishRouteViaProxyTunnelUnexpectedResponse() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(101, "Lost");
 
@@ -204,7 +204,7 @@ public class TestConnectExec {
     @Test
     public void testEstablishRouteViaProxyTunnelFailure() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(500, "Boom");
         response.setEntity(new StringEntity("Ka-boom"));
@@ -228,7 +228,7 @@ public class TestConnectExec {
     @Test
     public void testEstablishRouteViaProxyTunnelRetryOnAuthChallengePersistentConnection() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(407, "Huh?");
         response1.setHeader(HttpHeaders.PROXY_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
@@ -269,7 +269,7 @@ public class TestConnectExec {
     @Test
     public void testEstablishRouteViaProxyTunnelRetryOnAuthChallengeNonPersistentConnection() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(407, "Huh?");
         response1.setHeader(HttpHeaders.PROXY_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
@@ -311,7 +311,7 @@ public class TestConnectExec {
         final HttpHost proxy2 = new HttpHost("that", 8888);
         final HttpRoute route = new HttpRoute(target, null, new HttpHost[] {proxy1, proxy2},
                 true, RouteInfo.TunnelType.TUNNELLED, RouteInfo.LayerType.LAYERED);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
 
         final ConnectionState connectionState = new ConnectionState();

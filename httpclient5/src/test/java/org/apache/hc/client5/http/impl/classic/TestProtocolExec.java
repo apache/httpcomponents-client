@@ -151,7 +151,7 @@ public class TestProtocolExec {
     @Test
     public void testExecRequestRetryOnAuthChallenge() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://foo/test");
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(401, "Huh?");
         response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
@@ -204,7 +204,7 @@ public class TestProtocolExec {
                 .setStream(inStream2)
                 .build());
 
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final AuthExchange authExchange = new AuthExchange();
         authExchange.setState(AuthExchange.State.SUCCESS);
@@ -245,7 +245,7 @@ public class TestProtocolExec {
     @Test
     public void testExecEntityEnclosingRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpPost request = new HttpPost("http://foo/test");
         final InputStream inStream0 = new ByteArrayInputStream(new byte[] {1, 2, 3});
         request.setEntity(EntityBuilder.create()

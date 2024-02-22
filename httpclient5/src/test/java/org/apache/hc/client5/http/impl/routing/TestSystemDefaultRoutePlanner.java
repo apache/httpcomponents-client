@@ -66,7 +66,7 @@ public class TestSystemDefaultRoutePlanner {
     public void testDirect() throws Exception {
         final HttpHost target = new HttpHost("http", "somehost", 80);
 
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
         Assertions.assertEquals(target, route.getTargetHost());
@@ -80,7 +80,7 @@ public class TestSystemDefaultRoutePlanner {
         final HttpHost target = new HttpHost("https", "somehost", -1);
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(443);
 
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
         Assertions.assertEquals(new HttpHost("https", "somehost", 443), route.getTargetHost());
@@ -105,7 +105,7 @@ public class TestSystemDefaultRoutePlanner {
 
         final HttpHost target = new HttpHost("http", "somehost", 80);
 
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
         Assertions.assertEquals(target, route.getTargetHost());

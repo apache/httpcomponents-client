@@ -129,7 +129,7 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
             if (!isRunning()) {
                 throw new CancellationException("Request execution cancelled");
             }
-            final HttpClientContext clientContext = HttpClientContext.adapt(context);
+            final HttpClientContext clientContext = HttpClientContext.castOrCreate(context);
             exchangeHandler.produceRequest((request, entityDetails, context1) -> {
                 RequestConfig requestConfig = null;
                 if (request instanceof Configurable) {

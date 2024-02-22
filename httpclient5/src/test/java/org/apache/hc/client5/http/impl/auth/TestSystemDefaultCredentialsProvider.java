@@ -94,7 +94,7 @@ public class TestSystemDefaultCredentialsProvider {
 
         final URL httpRequestUrl = new URL(TARGET_SCHEME1, TARGET_HOST1, TARGET_PORT1, "/");
         final AuthScope authScope = new AuthScope(PROXY_PROTOCOL1, PROXY_HOST1, PROXY_PORT1, PROMPT1, StandardAuthScheme.BASIC);
-        final HttpClientContext context = new HttpClientContext();
+        final HttpClientContext context = HttpClientContext.create();
         context.setRequest(new HttpGet(httpRequestUrl.toURI()));
 
         final Credentials receivedCredentials =

@@ -86,7 +86,7 @@ public class TestHttpAuthenticator {
         this.authScheme = Mockito.mock(CacheableAuthState.class, Mockito.withSettings()
                 .defaultAnswer(Answers.CALLS_REAL_METHODS));
         Mockito.when(this.authScheme.isChallengeComplete()).thenReturn(Boolean.TRUE);
-        this.context = new HttpClientContext();
+        this.context = HttpClientContext.create();
         this.defaultHost = new HttpHost("localhost", 80);
         this.credentialsProvider = Mockito.mock(CredentialsProvider.class);
         this.context.setCredentialsProvider(this.credentialsProvider);

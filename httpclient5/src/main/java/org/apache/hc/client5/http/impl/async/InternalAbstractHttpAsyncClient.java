@@ -38,6 +38,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
@@ -90,6 +91,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
     private final Lookup<AuthSchemeFactory> authSchemeRegistry;
     private final CookieStore cookieStore;
     private final CredentialsProvider credentialsProvider;
+    private final Function<HttpContext, HttpClientContext> contextAdaptor;
     private final RequestConfig defaultConfig;
     private final ConcurrentLinkedQueue<Closeable> closeables;
     private final ScheduledExecutorService scheduledExecutorService;
@@ -104,6 +106,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
             final Lookup<AuthSchemeFactory> authSchemeRegistry,
             final CookieStore cookieStore,
             final CredentialsProvider credentialsProvider,
+            final Function<HttpContext, HttpClientContext> contextAdaptor,
             final RequestConfig defaultConfig,
             final List<Closeable> closeables) {
         super(ioReactor, pushConsumerRegistry, threadFactory);
@@ -112,6 +115,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
         this.authSchemeRegistry = authSchemeRegistry;
         this.cookieStore = cookieStore;
         this.credentialsProvider = credentialsProvider;
+        this.contextAdaptor = contextAdaptor;
         this.defaultConfig = defaultConfig;
         this.closeables = closeables != null ? new ConcurrentLinkedQueue<>(closeables) : null;
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(SCHEDULER_THREAD_FACTORY);
@@ -200,7 +204,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
             if (!isRunning()) {
                 throw new CancellationException("Request execution cancelled");
             }
-            final HttpClientContext clientContext = HttpClientContext.adapt(context);
+            final HttpClientContext clientContext = contextAdaptor.apply(context);
             requestProducer.sendRequest((request, entityDetails, c) -> {
 
                 RequestConfig requestConfig = null;
