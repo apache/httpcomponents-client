@@ -27,13 +27,13 @@
 
 package org.apache.hc.client5.http.utils;
 
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -145,6 +145,8 @@ public final class DateUtils {
 
     /**
      * Parses the date value using the given date/time formats.
+     * <p>This method can handle strings without time-zone information by failing gracefully, in which case
+     * it returns {@code null}.</p>
      *
      * @param dateValue the instant value to parse
      * @param dateFormatters the date/time formats to use
@@ -165,7 +167,7 @@ public final class DateUtils {
         for (final DateTimeFormatter dateFormatter : dateFormatters) {
             try {
                 return Instant.from(dateFormatter.parse(v));
-            } catch (final DateTimeParseException ignore) {
+            } catch (final DateTimeException ignore) {
             }
         }
         return null;

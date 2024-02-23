@@ -84,6 +84,7 @@ public class TestDateUtils {
     @Test
     public void testMalformedDate() {
         Assertions.assertNull(DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", new DateTimeFormatter[] {}));
+        Assertions.assertNull(DateUtils.parseDate("Thu Feb 22 17:20:18 2024", new DateTimeFormatter[] {}));
     }
 
     @Test
