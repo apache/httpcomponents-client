@@ -84,7 +84,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@code ClientConnectionPoolManager} maintains a pool of
+ * {@code PoolingHttpClientConnectionManager} is the default implementation of
+ * {@link HttpClientConnectionManager}. It maintains a pool of
  * {@link ManagedHttpClientConnection}s and is able to service connection requests
  * from multiple execution threads. Connections are pooled on a per route
  * basis. A request for a route which already the manager has persistent

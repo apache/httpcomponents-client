@@ -70,6 +70,7 @@ import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
@@ -134,7 +135,27 @@ import org.apache.hc.core5.util.VersionInfo;
  * exclusive and may not apply when building {@link CloseableHttpClient}
  * instances.
  * </p>
- *
+ * The following are the default implementations per component
+ * <table>
+ * <tr><th>Component</th><th>Default implementation</th></tr>
+ * <tr><td>Request executor</td><td>{@link HttpRequestExecutor}</td></tr>
+ * <tr><td>Connection manager</td><td>{@link PoolingHttpClientConnectionManager}</td></tr>
+ * <tr><td>Connection reuse strategy</td><td>{@link DefaultClientConnectionReuseStrategy}</td></tr>
+ * <tr><td>Connection keep-alive strategy</td><td>{@link DefaultConnectionKeepAliveStrategy}</td></tr>
+ * <tr><td>Route planner</td><td>{@link DefaultRoutePlanner}</td></tr>
+ * <tr><td>Redirect strategy</td><td>{@link DefaultRedirectStrategy}</td></tr>
+ * <tr><td>Target authentication strategy</td><td>{@link DefaultAuthenticationStrategy}</td></tr>
+ * <tr><td>Proxy authentication strategy</td><td>{@link DefaultAuthenticationStrategy}</td></tr>
+ * <tr><td>User token handler</td><td>{@link DefaultUserTokenHandler}</td></tr>
+ * <tr><td>Retry strategy</td><td>{@link DefaultHttpRequestRetryStrategy}</td></tr>
+ * <tr><td>Cookie store</td><td>{@link BasicCookieStore}</td></tr>
+ * <tr><td>Credentials provider</td><td>{@link BasicCredentialsProvider} or {@link SystemDefaultCredentialsProvider}</td></tr>
+ * <tr><td>Backoff manager</td><td>not set</td></tr>
+ * <tr><td>Connection backoff strategy</td><td>not set</td></tr>
+ * <tr><td>Redirect strategy</td><td>{@link DefaultRedirectStrategy}</td></tr>
+ * <tr><td>Route planner</td><td>One of {@link DefaultProxyRoutePlanner}, {@link SystemDefaultRoutePlanner} or {@link DefaultRoutePlanner}</td></tr>
+ * <tr><td>Scheme port resolver</td><td>{@link DefaultSchemePortResolver}</td></tr>
+ * </table>
  * @since 4.3
  */
 public class HttpClientBuilder {
