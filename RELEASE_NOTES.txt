@@ -1,11 +1,11 @@
-﻿Release 5.4 ALPHA1
--------------------
+﻿Release 5.4 ALPHA2
+------------------
 
-This is the first ALPHA release in the 5.4 release series that improves HTTP protocol support
-by ensuring conformance to the latest HTTP specification (RFC 9110, RFC 9111, RFC 7616,
-RFC 7617), ensures compatibility with Java Virtual Threads by replacing 'synchronized' keywords
-in critical sections with Java lock primitives. The HTTP caching protocol layer has also been
-redesigned and overhauled to improve cache efficiency and optimize performance.
+This is the second and likely the last ALPHA release in the 5.3 release series.
+It finalizes the new Cache API introduced in the previous ALPHA release and also
+improves TLS customization for the classic transport, SNI and endpoint identification
+support, authentication data caching, and HTTP context performance. It also introduces
+support for optional TLS upgrades for HTTP/1.1 connections.
 
 IMPORTANT! Please note the new cache entry serialization format is incompatible with earlier
 versions of HttpClient Cache. Persistent caches (file system based, Memcached, EhCAche
@@ -24,6 +24,101 @@ Notable changes and features included in the 5.4 series:
 
 * Redesign and rewrite of the HTTP caching protocol layer for better efficiency
   and improved conformance to RFC 9111 (HTTP Caching).
+
+* Cache control and context APIs.
+
+* ETag APIs.
+
+* TLS SNI and endpoint identification improvements.
+
+* Support for RFC 2817 (Upgrading to TLS Within HTTP/1.1).
+
+* Auth cache no longer makes use of Java serialization.
+
+* Deprecation of ConnectionSocketFactory and LayeredConnectionSocketFactory.
+
+* HttpContext optimization and performance improvement.
+
+
+Change Log
+-------------------
+
+* HttpClientContext to use instance variables for standard attributes.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2151: Support for JSSE in-built endpoint identification.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Internal connection operators to make use of the target name from the request URI
+  authority.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* DefaultRoutePlanner to take the request authority into account when determining a route for
+  HTTPS requests.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* RouteInfo and HttpRoute to include the target name from the URI authority in case it differs
+  from the target host (the host recognizes multiple authorities).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2316: BasicHttpClientConnectionManager incorrectly re-uses the released connection
+  if it has been closed out by the protocol handler.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2070: Auth cache to no longer rely on Java serialization for auth state caching.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-751: Support for RFC 2817 (Upgrading to TLS Within HTTP/1.1).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Connection endpoints to provide TLS details and protocol version.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Deprecated ConnectionSocketFactory, LayeredConnectionSocketFactory, and their plain and SSL
+  implementations in favor of DefaultClientTlsStrategy.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Standard client TLS strategy implementations support the upgrading of blocking sockets.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* FileResourceFactory to generate stable file names for the same request ID and entity tag.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Cache ResourceFactory to make use of strong eTags when available.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* ETag APIs.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fixed a design mistake of ConnectionEndpoint having a direct dependency on
+  HttpRequestExecutor class.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Cache control and context APIs.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2315: Client builders fail to apply system properties to the default
+  connection manager.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2314: Handle gracefully a failure of DnsResolver to return a list of
+  resolved addresses (#533).
+  Contributed by Philip Helger <philip at helger.com>
+
+* HTTPCLIENT-2314: Throw ConnectionShutdownException in case of pooled connection
+  having been closed or discarded instead of plain IllegalStateException.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+
+Release 5.4 ALPHA1
+-------------------
+
+This is the first ALPHA release in the 5.4 release series that improves HTTP protocol support
+by ensuring conformance to the latest HTTP specification (RFC 9110, RFC 9111, RFC 7616,
+RFC 7617), ensures compatibility with Java Virtual Threads by replacing 'synchronized' keywords
+in critical sections with Java lock primitives. The HTTP caching protocol layer has also been
+redesigned and overhauled to improve cache efficiency and optimize performance.
 
 
 Change Log
