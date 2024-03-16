@@ -45,6 +45,7 @@ import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
+import org.apache.hc.client5.http.io.ConnectionCallback;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
@@ -144,9 +145,23 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
             final Lookup<TlsSocketStrategy> tlsSocketStrategyRegistry,
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
+            final ConnectionCallback connectionCallback) {
+        return new BasicHttpClientConnectionManager(
+                new DefaultHttpClientConnectionOperator(schemePortResolver, dnsResolver, tlsSocketStrategyRegistry, connectionCallback),
+                connFactory);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public static BasicHttpClientConnectionManager create(
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver,
+            final Lookup<TlsSocketStrategy> tlsSocketStrategyRegistry,
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
         return new BasicHttpClientConnectionManager(
-                new DefaultHttpClientConnectionOperator(schemePortResolver, dnsResolver, tlsSocketStrategyRegistry),
+                new DefaultHttpClientConnectionOperator(schemePortResolver, dnsResolver, tlsSocketStrategyRegistry, null),
                 connFactory);
     }
 
@@ -157,7 +172,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             final Lookup<TlsSocketStrategy> tlsSocketStrategyRegistry,
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
         return new BasicHttpClientConnectionManager(
-                new DefaultHttpClientConnectionOperator(null, null, tlsSocketStrategyRegistry), connFactory);
+                new DefaultHttpClientConnectionOperator(null, null, tlsSocketStrategyRegistry, null), connFactory);
     }
 
     /**
@@ -166,7 +181,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     public static BasicHttpClientConnectionManager create(
             final Lookup<TlsSocketStrategy> tlsSocketStrategyRegistry) {
         return new BasicHttpClientConnectionManager(
-                new DefaultHttpClientConnectionOperator(null, null, tlsSocketStrategyRegistry), null);
+                new DefaultHttpClientConnectionOperator(null, null, tlsSocketStrategyRegistry, null), null);
     }
 
     /**
@@ -205,7 +220,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         this(new DefaultHttpClientConnectionOperator(null, null,
                 RegistryBuilder.<TlsSocketStrategy>create()
                         .register(URIScheme.HTTPS.id, DefaultClientTlsStrategy.createDefault())
-                        .build()),
+                        .build(), null),
                 null);
     }
 

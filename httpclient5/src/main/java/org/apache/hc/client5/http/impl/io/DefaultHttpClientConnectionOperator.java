@@ -44,6 +44,7 @@ import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
+import org.apache.hc.client5.http.io.ConnectionCallback;
 import org.apache.hc.client5.http.io.DetachedSocketFactory;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
@@ -91,6 +92,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
     private final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup;
     private final SchemePortResolver schemePortResolver;
     private final DnsResolver dnsResolver;
+    private final ConnectionCallback connectionCallback;
 
     /**
      * @deprecated Provided for backward compatibility
@@ -111,7 +113,8 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final DetachedSocketFactory detachedSocketFactory,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
-            final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup) {
+            final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup,
+            final ConnectionCallback connectionCallback) {
         super();
         this.detachedSocketFactory = Args.notNull(detachedSocketFactory, "Plain socket factory");
         this.tlsSocketStrategyLookup = Args.notNull(tlsSocketStrategyLookup, "Socket factory registry");
@@ -119,6 +122,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 DefaultSchemePortResolver.INSTANCE;
         this.dnsResolver = dnsResolver != null ? dnsResolver :
                 SystemDefaultDnsResolver.INSTANCE;
+        this.connectionCallback = connectionCallback;
     }
 
     /**
@@ -129,14 +133,15 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final Lookup<org.apache.hc.client5.http.socket.ConnectionSocketFactory> socketFactoryRegistry,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
-        this(PLAIN_SOCKET_FACTORY, schemePortResolver, dnsResolver, adapt(socketFactoryRegistry));
+        this(PLAIN_SOCKET_FACTORY, schemePortResolver, dnsResolver, adapt(socketFactoryRegistry), null);
     }
 
     public DefaultHttpClientConnectionOperator(
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
-            final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup) {
-        this(PLAIN_SOCKET_FACTORY, schemePortResolver, dnsResolver, tlsSocketStrategyLookup);
+            final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup,
+            final ConnectionCallback connectionCallback) {
+        this(PLAIN_SOCKET_FACTORY, schemePortResolver, dnsResolver, tlsSocketStrategyLookup, connectionCallback);
     }
 
     @Override
@@ -169,12 +174,18 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         if (endpointHost.getAddress() != null) {
             remoteAddresses = new InetAddress[] { endpointHost.getAddress() };
         } else {
+            if (connectionCallback != null) {
+                connectionCallback.onBeforeDnsResolve(context);
+            }
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} resolving remote address", endpointHost.getHostName());
             }
 
             remoteAddresses = this.dnsResolver.resolve(endpointHost.getHostName());
 
+            if (connectionCallback != null) {
+                connectionCallback.onAfterDnsResolve(context);
+            }
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} resolved to {}", endpointHost.getHostName(), remoteAddresses == null ? "null" : Arrays.asList(remoteAddresses));
             }
@@ -192,6 +203,9 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final InetAddress address = remoteAddresses[i];
             final boolean last = i == remoteAddresses.length - 1;
             final InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
+            if (connectionCallback != null) {
+                connectionCallback.onBeforeSocketConnect(context, endpointHost);
+            }
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} connecting {}->{} ({})", endpointHost, localAddress, remoteAddress, connectTimeout);
             }
@@ -221,6 +235,9 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 }
                 socket.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisecondsIntBound() : 0);
                 conn.bind(socket);
+                if (connectionCallback != null) {
+                    connectionCallback.onAfterSocketConnect(context, endpointHost);
+                }
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} {} connected {}->{}", ConnPoolSupport.getId(conn), endpointHost,
                             conn.getLocalAddress(), conn.getRemoteAddress());
@@ -229,11 +246,20 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(endpointHost.getSchemeName()) : null;
                 if (tlsSocketStrategy != null) {
                     final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
+                    if (connectionCallback != null) {
+                        connectionCallback.onBeforeTlsHandshake(context, endpointHost);
+                    }
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} {} upgrading to TLS", ConnPoolSupport.getId(conn), tlsName);
                     }
                     final Socket upgradedSocket = tlsSocketStrategy.upgrade(socket, tlsName.getHostName(), tlsName.getPort(), attachment, context);
                     conn.bind(upgradedSocket);
+                    if (connectionCallback != null) {
+                        connectionCallback.onAfterTlsHandshake(context, endpointHost);
+                    }
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} {} upgraded to TLS", ConnPoolSupport.getId(conn), tlsName);
+                    }
                 }
                 return;
             } catch (final RuntimeException ex) {
@@ -278,11 +304,20 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(newProtocol) : null;
         if (tlsSocketStrategy != null) {
             final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
+            if (connectionCallback != null) {
+                connectionCallback.onBeforeTlsHandshake(context, endpointHost);
+            }
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} upgrading to TLS {}:{}", ConnPoolSupport.getId(conn), tlsName.getHostName(), tlsName.getPort());
             }
             final SSLSocket upgradedSocket = tlsSocketStrategy.upgrade(socket, tlsName.getHostName(), tlsName.getPort(), attachment, context);
             conn.bind(upgradedSocket);
+            if (connectionCallback != null) {
+                connectionCallback.onAfterTlsHandshake(context, endpointHost);
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} upgraded to TLS {}:{}", ConnPoolSupport.getId(conn), tlsName.getHostName(), tlsName.getPort());
+            }
         } else {
             throw new UnsupportedSchemeException(newProtocol + " protocol is not supported");
         }

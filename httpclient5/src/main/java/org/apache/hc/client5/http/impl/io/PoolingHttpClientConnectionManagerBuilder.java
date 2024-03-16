@@ -34,6 +34,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.io.ConnectionCallback;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
@@ -84,6 +85,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     private Resolver<HttpRoute, SocketConfig> socketConfigResolver;
     private Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
     private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
+    private ConnectionCallback connectionCallback;
 
     private boolean systemProperties;
 
@@ -238,6 +240,16 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
+     * Assigns {@link ConnectionCallback} instance.
+     *
+     * @since 5.4
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setConnectionCallback(final ConnectionCallback connectionCallback) {
+        this.connectionCallback = connectionCallback;
+        return this;
+    }
+
+    /**
      * Sets maximum time to live for persistent connections
      *
      * @deprecated Use {@link #setDefaultConnectionConfig(ConnectionConfig)}.
@@ -281,7 +293,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
                                         (systemProperties ?
                                                 DefaultClientTlsStrategy.createSystemDefault() :
                                                 DefaultClientTlsStrategy.createDefault()))
-                                .build()),
+                                .build(),
+                        connectionCallback),
                 poolConcurrencyPolicy,
                 poolReusePolicy,
                 null,

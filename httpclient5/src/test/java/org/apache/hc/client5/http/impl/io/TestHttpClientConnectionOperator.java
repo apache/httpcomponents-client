@@ -42,6 +42,7 @@ import org.apache.hc.client5.http.HttpHostConnectException;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
 import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.io.ConnectionCallback;
 import org.apache.hc.client5.http.io.DetachedSocketFactory;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -66,6 +67,7 @@ public class TestHttpClientConnectionOperator {
     private Lookup<TlsSocketStrategy> tlsSocketStrategyLookup;
     private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
+    private ConnectionCallback connectionCallback;
     private DefaultHttpClientConnectionOperator connectionOperator;
 
     @BeforeEach
@@ -77,8 +79,9 @@ public class TestHttpClientConnectionOperator {
         tlsSocketStrategyLookup = Mockito.mock(Lookup.class);
         schemePortResolver = Mockito.mock(SchemePortResolver.class);
         dnsResolver = Mockito.mock(DnsResolver.class);
+        connectionCallback = Mockito.mock(ConnectionCallback.class);
         connectionOperator = new DefaultHttpClientConnectionOperator(
-                detachedSocketFactory, schemePortResolver, dnsResolver, tlsSocketStrategyLookup);
+                detachedSocketFactory, schemePortResolver, dnsResolver, tlsSocketStrategyLookup, connectionCallback);
     }
 
     @Test
@@ -112,6 +115,12 @@ public class TestHttpClientConnectionOperator {
 
         Mockito.verify(socket).connect(new InetSocketAddress(ip1, 80), 123);
         Mockito.verify(conn, Mockito.times(2)).bind(socket);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onBeforeDnsResolve(context);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onAfterDnsResolve(context);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onBeforeSocketConnect(context, host);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onAfterSocketConnect(context, host);
+        Mockito.verify(connectionCallback, Mockito.never()).onBeforeTlsHandshake(context, host);
+        Mockito.verify(connectionCallback, Mockito.never()).onAfterTlsHandshake(context, host);
     }
 
     @Test
@@ -148,6 +157,12 @@ public class TestHttpClientConnectionOperator {
         Mockito.verify(conn, Mockito.times(2)).bind(socket);
         Mockito.verify(tlsSocketStrategy).upgrade(socket, "somehost", -1, tlsConfig, context);
         Mockito.verify(conn, Mockito.times(1)).bind(upgradedSocket);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onBeforeDnsResolve(context);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onAfterDnsResolve(context);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onBeforeSocketConnect(context, host);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onAfterSocketConnect(context, host);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onBeforeTlsHandshake(context, host);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onAfterTlsHandshake(context, host);
     }
 
     @Test
@@ -208,6 +223,12 @@ public class TestHttpClientConnectionOperator {
         Mockito.verify(socket, Mockito.times(2)).bind(localAddress);
         Mockito.verify(socket).connect(new InetSocketAddress(ip2, 80), 123);
         Mockito.verify(conn, Mockito.times(3)).bind(socket);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onBeforeDnsResolve(context);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onAfterDnsResolve(context);
+        Mockito.verify(connectionCallback, Mockito.times(2)).onBeforeSocketConnect(context, host);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onAfterSocketConnect(context, host);
+        Mockito.verify(connectionCallback, Mockito.never()).onBeforeTlsHandshake(context, host);
+        Mockito.verify(connectionCallback, Mockito.never()).onAfterTlsHandshake(context, host);
 
     }
 
@@ -231,6 +252,12 @@ public class TestHttpClientConnectionOperator {
         Mockito.verify(socket).connect(new InetSocketAddress(ip, 80), 123);
         Mockito.verify(dnsResolver, Mockito.never()).resolve(Mockito.anyString());
         Mockito.verify(conn, Mockito.times(2)).bind(socket);
+        Mockito.verify(connectionCallback, Mockito.never()).onBeforeDnsResolve(context);
+        Mockito.verify(connectionCallback, Mockito.never()).onAfterDnsResolve(context);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onBeforeSocketConnect(context, host);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onAfterSocketConnect(context, host);
+        Mockito.verify(connectionCallback, Mockito.never()).onBeforeTlsHandshake(context, host);
+        Mockito.verify(connectionCallback, Mockito.never()).onAfterTlsHandshake(context, host);
     }
 
     @Test
@@ -253,6 +280,12 @@ public class TestHttpClientConnectionOperator {
         connectionOperator.upgrade(conn, host, null, Timeout.ofMilliseconds(345), context);
 
         Mockito.verify(conn).bind(upgradedSocket);
+        Mockito.verify(connectionCallback, Mockito.never()).onBeforeDnsResolve(context);
+        Mockito.verify(connectionCallback, Mockito.never()).onAfterDnsResolve(context);
+        Mockito.verify(connectionCallback, Mockito.never()).onBeforeSocketConnect(context, host);
+        Mockito.verify(connectionCallback, Mockito.never()).onAfterSocketConnect(context, host);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onBeforeTlsHandshake(context, host);
+        Mockito.verify(connectionCallback, Mockito.times(1)).onAfterTlsHandshake(context, host);
     }
 
     @Test
