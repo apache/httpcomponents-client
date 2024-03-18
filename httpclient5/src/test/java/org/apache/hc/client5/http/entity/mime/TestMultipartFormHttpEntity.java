@@ -59,8 +59,9 @@ public class TestMultipartFormHttpEntity {
         Assertions.assertNotNull(p1);
         Assertions.assertEquals("whatever", p1.getValue());
         final NameValuePair p2 = elem.getParameterByName("charset");
-        Assertions.assertNotNull(p2);
-        Assertions.assertEquals("UTF-8", p2.getValue());
+        Assertions.assertNull(p2,
+                "RFC7578 does not mention charset parameter for Content-Type, " +
+                        "so no charset should be present for MultipartEntity.getContentType()");
     }
 
     @Test

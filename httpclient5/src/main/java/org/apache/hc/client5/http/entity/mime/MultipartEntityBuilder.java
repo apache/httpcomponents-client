@@ -253,12 +253,7 @@ import org.apache.hc.core5.util.Args;
         if (charsetCopy == null && contentType != null) {
             charsetCopy = contentType.getCharset();
         }
-        final List<NameValuePair> paramsList = new ArrayList<>(2);
-        paramsList.add(new BasicNameValuePair("boundary", boundaryCopy));
-        if (charsetCopy != null) {
-            paramsList.add(new BasicNameValuePair("charset", charsetCopy.name()));
-        }
-        final NameValuePair[] params = paramsList.toArray(EMPTY_NAME_VALUE_ARRAY);
+        final NameValuePair[] params = new NameValuePair[]{new BasicNameValuePair("boundary", boundaryCopy)};
 
         final ContentType contentTypeCopy;
         if (contentType != null) {
