@@ -123,7 +123,7 @@ public class PoolingHttpClientConnectionManager
         this(new DefaultHttpClientConnectionOperator(null, null,
                 RegistryBuilder.<TlsSocketStrategy>create()
                     .register(URIScheme.HTTPS.id, DefaultClientTlsStrategy.createDefault())
-                    .build()),
+                    .build(), null),
                 PoolConcurrencyPolicy.STRICT,
                 PoolReusePolicy.LIFO,
                 TimeValue.NEG_ONE_MILLISECOND,

@@ -86,7 +86,7 @@ public class TestBasicHttpClientConnectionManager {
     public void setup() throws Exception {
         MockitoAnnotations.openMocks(this);
         mgr = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperator(
-                detachedSocketFactory, schemePortResolver, dnsResolver, tlsSocketStrategyLookup),
+                detachedSocketFactory, schemePortResolver, dnsResolver, tlsSocketStrategyLookup, null),
                 connFactory);
     }
 

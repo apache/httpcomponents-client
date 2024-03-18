@@ -95,7 +95,7 @@ public class TestPoolingHttpClientConnectionManager {
     public void setup() throws Exception {
         MockitoAnnotations.openMocks(this);
         mgr = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperator(
-                detachedSocketFactory, schemePortResolver, dnsResolver, tlsSocketStrategyLookup), pool,
+                detachedSocketFactory, schemePortResolver, dnsResolver, tlsSocketStrategyLookup, null), pool,
                 null);
     }
 
