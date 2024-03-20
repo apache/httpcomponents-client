@@ -30,8 +30,10 @@ package org.apache.hc.client5.http.impl.nio;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.ssl.ConscryptClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.function.Resolver;
@@ -85,6 +87,19 @@ public class PoolingAsyncClientConnectionManagerBuilder {
 
     private Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
     private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
+
+    /**
+     * A flag indicating whether to use the Happy Eyeballs v2 fast fallback strategy
+     * for establishing connections. If true, the connection manager will use
+     * {@link HappyEyeballsV2AsyncClientConnectionOperator} to establish connections
+     * that attempt to connect to multiple IP addresses in parallel, selecting the
+     * first successful connection.
+     * <p>
+     * When false, the default connection operator will be used, which establishes
+     * connections sequentially.
+     * @since 5.3
+     */
+    private boolean fastFallback;
 
     public static PoolingAsyncClientConnectionManagerBuilder create() {
         return new PoolingAsyncClientConnectionManagerBuilder();
@@ -229,6 +244,20 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         return this;
     }
 
+    /**
+     * Enables or disables the fast fallback option for connection management.
+     * When fast fallback is enabled, the connection manager will attempt to
+     * quickly switch to alternative connection options if the initial connection fails.
+     *
+     * @param fastFallback true to enable fast fallback, false to disable it
+     * @return this builder instance for method chaining
+     * @since 5.3
+     */
+    public final PoolingAsyncClientConnectionManagerBuilder useFastFallback(final boolean fastFallback) {
+        this.fastFallback = fastFallback;
+        return this;
+    }
+
     public PoolingAsyncClientConnectionManager build() {
         final TlsStrategy tlsStrategyCopy;
         if (tlsStrategy != null) {
@@ -248,15 +277,32 @@ public class PoolingAsyncClientConnectionManagerBuilder {
                 }
             }
         }
-        final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
-                RegistryBuilder.<TlsStrategy>create()
-                        .register(URIScheme.HTTPS.getId(), tlsStrategyCopy)
-                        .build(),
-                poolConcurrencyPolicy,
-                poolReusePolicy,
-                null,
-                schemePortResolver,
-                dnsResolver);
+        final PoolingAsyncClientConnectionManager poolingmgr;
+        if (fastFallback) {
+            final HappyEyeballsV2AsyncClientConnectionOperator connectionOperator = new HappyEyeballsV2AsyncClientConnectionOperator(
+                    RegistryBuilder.<TlsStrategy>create()
+                            .register(URIScheme.HTTPS.getId(), tlsStrategyCopy)
+                            .build(),
+                    DefaultSchemePortResolver.INSTANCE,
+                    SystemDefaultDnsResolver.INSTANCE);
+
+            poolingmgr = new PoolingAsyncClientConnectionManager(
+                    poolConcurrencyPolicy,
+                    poolReusePolicy,
+                    null,
+                    connectionOperator);
+        } else {
+            poolingmgr = new PoolingAsyncClientConnectionManager(
+                    RegistryBuilder.<TlsStrategy>create()
+                            .register(URIScheme.HTTPS.getId(), tlsStrategyCopy)
+                            .build(),
+                    poolConcurrencyPolicy,
+                    poolReusePolicy,
+                    null,
+                    schemePortResolver,
+                    dnsResolver);
+        }
+
         poolingmgr.setConnectionConfigResolver(connectionConfigResolver);
         poolingmgr.setTlsConfigResolver(tlsConfigResolver);
         if (maxConnTotal > 0) {
