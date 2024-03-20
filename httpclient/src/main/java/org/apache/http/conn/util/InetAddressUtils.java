@@ -71,34 +71,34 @@ public class InetAddressUtils {
     /**
      * Checks whether the parameter is a valid IPv4 address
      *
-     * @param input the address string to check for validity
+     * @param input the address character sequence to check for validity
      * @return true if the input parameter is a valid IPv4 address
      */
-    public static boolean isIPv4Address(final String input) {
+    public static boolean isIPv4Address(final CharSequence input) {
         return IPV4_PATTERN.matcher(input).matches();
     }
 
-    public static boolean isIPv4MappedIPv64Address(final String input) {
+    public static boolean isIPv4MappedIPv64Address(final CharSequence input) {
         return IPV4_MAPPED_IPV6_PATTERN.matcher(input).matches();
     }
 
     /**
      * Checks whether the parameter is a valid standard (non-compressed) IPv6 address
      *
-     * @param input the address string to check for validity
+     * @param input the address character sequence to check for validity
      * @return true if the input parameter is a valid standard (non-compressed) IPv6 address
      */
-    public static boolean isIPv6StdAddress(final String input) {
+    public static boolean isIPv6StdAddress(final CharSequence input) {
         return IPV6_STD_PATTERN.matcher(input).matches();
     }
 
     /**
      * Checks whether the parameter is a valid compressed IPv6 address
      *
-     * @param input the address string to check for validity
+     * @param input the address character sequence to check for validity
      * @return true if the input parameter is a valid compressed IPv6 address
      */
-    public static boolean isIPv6HexCompressedAddress(final String input) {
+    public static boolean isIPv6HexCompressedAddress(final CharSequence input) {
         int colonCount = 0;
         for(int i = 0; i < input.length(); i++) {
             if (input.charAt(i) == COLON_CHAR) {
@@ -111,10 +111,10 @@ public class InetAddressUtils {
     /**
      * Checks whether the parameter is a valid IPv6 address (including compressed).
      *
-     * @param input the address string to check for validity
+     * @param input the address character sequence to check for validity
      * @return true if the input parameter is a valid standard or compressed IPv6 address
      */
-    public static boolean isIPv6Address(final String input) {
+    public static boolean isIPv6Address(final CharSequence input) {
         return isIPv6StdAddress(input) || isIPv6HexCompressedAddress(input);
     }
 
