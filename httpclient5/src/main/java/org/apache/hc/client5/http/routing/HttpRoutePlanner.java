@@ -72,6 +72,7 @@ public interface HttpRoutePlanner {
      *                  Implementations may accept {@code null}.
      *
      * @return  the route that the request should take
+     * @throws HttpException    in case of a problem.
      *
      * @since 5.4
      */
