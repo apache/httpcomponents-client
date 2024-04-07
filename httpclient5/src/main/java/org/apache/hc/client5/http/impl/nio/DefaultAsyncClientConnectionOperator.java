@@ -41,6 +41,7 @@ import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
 import org.apache.hc.client5.http.routing.RoutingSupport;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -59,7 +60,8 @@ import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectionOperator {
+@Internal
+public class DefaultAsyncClientConnectionOperator implements AsyncClientConnectionOperator {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultAsyncClientConnectionOperator.class);
 
@@ -105,6 +107,7 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
         final InetAddress remoteAddress = endpointHost.getAddress();
         final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
 
+        onBeforeSocketConnect(context, endpointHost);
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} connecting {}->{} ({})", endpointHost, localAddress, remoteAddress, connectTimeout);
         }
@@ -121,6 +124,7 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                     @Override
                     public void completed(final IOSession session) {
                         final DefaultManagedAsyncClientConnection connection = new DefaultManagedAsyncClientConnection(session);
+                        onAfterSocketConnect(context, endpointHost);
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("{} {} connected {}->{}", ConnPoolSupport.getId(connection), endpointHost,
                                     connection.getLocalAddress(), connection.getRemoteAddress());
@@ -131,6 +135,7 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                                 final Timeout socketTimeout = connection.getSocketTimeout();
                                 final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout();
                                 final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
+                                onBeforeTlsHandshake(context, endpointHost);
                                 if (LOG.isDebugEnabled()) {
                                     LOG.debug("{} {} upgrading to TLS", ConnPoolSupport.getId(connection), tlsName);
                                 }
@@ -145,6 +150,10 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                                             public void completed(final TransportSecurityLayer transportSecurityLayer) {
                                                 connection.setSocketTimeout(socketTimeout);
                                                 future.completed(connection);
+                                                onAfterTlsHandshake(context, endpointHost);
+                                                if (LOG.isDebugEnabled()) {
+                                                    LOG.debug("{} {} upgraded to TLS", ConnPoolSupport.getId(connection), tlsName);
+                                                }
                                             }
 
                                         });
@@ -212,6 +221,18 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
         } else {
             callback.failed(new UnsupportedSchemeException(newProtocol + " protocol is not supported"));
         }
+    }
+
+    protected void onBeforeSocketConnect(final HttpContext httpContext, final HttpHost endpointHost) {
+    }
+
+    protected void onAfterSocketConnect(final HttpContext httpContext, final HttpHost endpointHost) {
+    }
+
+    protected void onBeforeTlsHandshake(final HttpContext httpContext, final HttpHost endpointHost) {
+    }
+
+    protected void onAfterTlsHandshake(final HttpContext httpContext, final HttpHost endpointHost) {
     }
 
 }
