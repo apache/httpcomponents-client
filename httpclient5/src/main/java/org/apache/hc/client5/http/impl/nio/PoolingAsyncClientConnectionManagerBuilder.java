@@ -32,8 +32,10 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.ssl.ConscryptClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
@@ -90,7 +92,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         return new PoolingAsyncClientConnectionManagerBuilder();
     }
 
-    PoolingAsyncClientConnectionManagerBuilder() {
+    @Internal
+    protected PoolingAsyncClientConnectionManagerBuilder() {
         super();
     }
 
@@ -229,6 +232,19 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         return this;
     }
 
+    @Internal
+    protected AsyncClientConnectionOperator createConnectionOperator(
+            final TlsStrategy tlsStrategy,
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver) {
+        return new DefaultAsyncClientConnectionOperator(
+                RegistryBuilder.<TlsStrategy>create()
+                        .register(URIScheme.HTTPS.getId(), tlsStrategy)
+                        .build(),
+                schemePortResolver,
+                dnsResolver);
+    }
+
     public PoolingAsyncClientConnectionManager build() {
         final TlsStrategy tlsStrategyCopy;
         if (tlsStrategy != null) {
@@ -249,14 +265,10 @@ public class PoolingAsyncClientConnectionManagerBuilder {
             }
         }
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
-                RegistryBuilder.<TlsStrategy>create()
-                        .register(URIScheme.HTTPS.getId(), tlsStrategyCopy)
-                        .build(),
+                createConnectionOperator(tlsStrategyCopy, schemePortResolver, dnsResolver),
                 poolConcurrencyPolicy,
                 poolReusePolicy,
-                null,
-                schemePortResolver,
-                dnsResolver);
+                null);
         poolingmgr.setConnectionConfigResolver(connectionConfigResolver);
         poolingmgr.setTlsConfigResolver(tlsConfigResolver);
         if (maxConnTotal > 0) {

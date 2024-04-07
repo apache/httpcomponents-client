@@ -34,9 +34,11 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
@@ -94,7 +96,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
         return new PoolingHttpClientConnectionManagerBuilder();
     }
 
-    PoolingHttpClientConnectionManagerBuilder() {
+    @Internal
+    protected PoolingHttpClientConnectionManagerBuilder() {
         super();
     }
 
@@ -273,15 +276,31 @@ public class PoolingHttpClientConnectionManagerBuilder {
         return this;
     }
 
+    @Internal
+    protected HttpClientConnectionOperator createConnectionOperator(
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver,
+            final TlsSocketStrategy tlsSocketStrategy) {
+        return new DefaultHttpClientConnectionOperator(schemePortResolver, dnsResolver,
+                RegistryBuilder.<TlsSocketStrategy>create()
+                        .register(URIScheme.HTTPS.id, tlsSocketStrategy)
+                        .build());
+    }
+
     public PoolingHttpClientConnectionManager build() {
+        final TlsSocketStrategy tlsSocketStrategyCopy;
+        if (tlsSocketStrategy != null) {
+            tlsSocketStrategyCopy = tlsSocketStrategy;
+        } else {
+            if (systemProperties) {
+                tlsSocketStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
+            } else {
+                tlsSocketStrategyCopy = DefaultClientTlsStrategy.createDefault();
+            }
+        }
+
         final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
-                new DefaultHttpClientConnectionOperator(schemePortResolver, dnsResolver,
-                        RegistryBuilder.<TlsSocketStrategy>create()
-                                .register(URIScheme.HTTPS.id, tlsSocketStrategy != null ? tlsSocketStrategy :
-                                        (systemProperties ?
-                                                DefaultClientTlsStrategy.createSystemDefault() :
-                                                DefaultClientTlsStrategy.createDefault()))
-                                .build()),
+                createConnectionOperator(schemePortResolver, dnsResolver, tlsSocketStrategyCopy),
                 poolConcurrencyPolicy,
                 poolReusePolicy,
                 null,
