@@ -41,7 +41,6 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.entity.EntityBuilder;
-import org.apache.hc.client5.http.impl.TunnelRefusedException;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -218,9 +217,8 @@ public class TestConnectExec {
                 Mockito.any())).thenReturn(response);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        Assertions.assertThrows(TunnelRefusedException.class, () -> exec.execute(request, scope, execChain));
+        exec.execute(request, scope, execChain);
         Mockito.verify(execRuntime, Mockito.atLeastOnce()).disconnectEndpoint();
-        Mockito.verify(execRuntime).discardEndpoint();
     }
 
     @Test

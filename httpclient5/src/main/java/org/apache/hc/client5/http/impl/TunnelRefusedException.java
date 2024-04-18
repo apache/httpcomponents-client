@@ -28,25 +28,53 @@
 package org.apache.hc.client5.http.impl;
 
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.http.message.StatusLine;
+import org.conscrypt.Internal;
 
 /**
  * Signals that the tunnel request was rejected by the proxy host.
  *
  * @since 4.0
+ *
+ * @deprecated Do not use/
  */
+@Deprecated
 public class TunnelRefusedException extends HttpException {
 
     private static final long serialVersionUID = -8646722842745617323L;
 
-    private final String responseMessage;
+    private final HttpResponse response;
 
+    /**
+     * @deprecated Do not use.
+     */
+    @Deprecated
     public TunnelRefusedException(final String message, final String responseMessage) {
         super(message);
-        this.responseMessage = responseMessage;
+        this.response = new BasicHttpResponse(500);
     }
 
+    @Internal
+    public TunnelRefusedException(final HttpResponse response) {
+        super("CONNECT refused by proxy: " + new StatusLine(response));
+        this.response = response;
+    }
+
+    /**
+     * @deprecated Use {@link #getResponse()}.
+     */
+    @Deprecated
     public String getResponseMessage() {
-        return this.responseMessage;
+        return "CONNECT refused by proxy: " + new StatusLine(response);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public HttpResponse getResponse() {
+        return response;
     }
 
 }

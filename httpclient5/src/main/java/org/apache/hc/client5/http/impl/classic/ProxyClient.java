@@ -43,7 +43,6 @@ import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
-import org.apache.hc.client5.http.impl.TunnelRefusedException;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
@@ -202,7 +201,7 @@ public class ProxyClient {
         if (status > 299) {
             EntityUtils.consume(response.getEntity());
             conn.close();
-            throw new TunnelRefusedException("CONNECT refused by proxy: " + new StatusLine(response), null);
+            throw new HttpException("Tunnel refused: " + new StatusLine(response));
         }
         return conn.getSocket();
     }

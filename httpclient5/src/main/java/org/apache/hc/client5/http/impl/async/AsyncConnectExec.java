@@ -45,7 +45,6 @@ import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.TunnelRefusedException;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.impl.routing.BasicRouteDirector;
@@ -121,8 +120,8 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         final RouteTracker tracker;
 
         volatile boolean challenged;
+        volatile HttpResponse response;
         volatile boolean tunnelRefused;
-        volatile HttpResponse tunnelResponse;
 
     }
 
@@ -295,7 +294,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                                         if (LOG.isDebugEnabled()) {
                                             LOG.debug("{} tunnel refused", exchangeId);
                                         }
-                                        asyncExecCallback.failed(new TunnelRefusedException("CONNECT refused by proxy: " + new StatusLine(state.tunnelResponse), null));
+                                        asyncExecCallback.completed();
                                     } else {
                                         if (LOG.isDebugEnabled()) {
                                             LOG.debug("{} tunnel to target created", exchangeId);
@@ -456,8 +455,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                     state.challenged = false;
                     if (status >= HttpStatus.SC_REDIRECTION) {
                         state.tunnelRefused = true;
-                        state.tunnelResponse = response;
-                        entityConsumerRef.set(null);
+                        entityConsumerRef.set(asyncExecCallback.handleResponse(response, entityDetails));
                     } else if (status == HttpStatus.SC_OK) {
                         asyncExecCallback.completed();
                     } else {
