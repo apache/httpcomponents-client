@@ -276,12 +276,9 @@ public final class ConnectExec implements ExecChainHandler {
 
         final int status = response.getCode();
         if (status != HttpStatus.SC_OK) {
-
-            // Buffer response content
-            final HttpEntity entity = response.getEntity();
-            final String responseMessage = entity != null ? EntityUtils.toString(entity) : null;
+            EntityUtils.consume(response.getEntity());
             execRuntime.disconnectEndpoint();
-            throw new TunnelRefusedException("CONNECT refused by proxy: " + new StatusLine(response), responseMessage);
+            throw new TunnelRefusedException("CONNECT refused by proxy: " + new StatusLine(response), null);
         }
 
         // How to decide on security of the tunnelled connection?

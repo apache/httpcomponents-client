@@ -218,9 +218,7 @@ public class TestConnectExec {
                 Mockito.any())).thenReturn(response);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        final TunnelRefusedException exception = Assertions.assertThrows(TunnelRefusedException.class, () ->
-                exec.execute(request, scope, execChain));
-        Assertions.assertEquals("Ka-boom", exception.getResponseMessage());
+        Assertions.assertThrows(TunnelRefusedException.class, () -> exec.execute(request, scope, execChain));
         Mockito.verify(execRuntime, Mockito.atLeastOnce()).disconnectEndpoint();
         Mockito.verify(execRuntime).discardEndpoint();
     }
