@@ -122,6 +122,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
         volatile boolean challenged;
         volatile boolean tunnelRefused;
+        volatile HttpResponse tunnelResponse;
 
     }
 
@@ -294,7 +295,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                                         if (LOG.isDebugEnabled()) {
                                             LOG.debug("{} tunnel refused", exchangeId);
                                         }
-                                        asyncExecCallback.failed(new TunnelRefusedException("Tunnel refused", null));
+                                        asyncExecCallback.failed(new TunnelRefusedException("CONNECT refused by proxy: " + new StatusLine(state.tunnelResponse), null));
                                     } else {
                                         if (LOG.isDebugEnabled()) {
                                             LOG.debug("{} tunnel to target created", exchangeId);
@@ -455,7 +456,8 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                     state.challenged = false;
                     if (status >= HttpStatus.SC_REDIRECTION) {
                         state.tunnelRefused = true;
-                        entityConsumerRef.set(asyncExecCallback.handleResponse(response, entityDetails));
+                        state.tunnelResponse = response;
+                        entityConsumerRef.set(null);
                     } else if (status == HttpStatus.SC_OK) {
                         asyncExecCallback.completed();
                     } else {

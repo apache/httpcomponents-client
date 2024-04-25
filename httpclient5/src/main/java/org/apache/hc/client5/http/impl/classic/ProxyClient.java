@@ -200,12 +200,9 @@ public class ProxyClient {
         final int status = response.getCode();
 
         if (status > 299) {
-
-            // Buffer response content
-            final HttpEntity entity = response.getEntity();
-            final String responseMessage = entity != null ? EntityUtils.toString(entity) : null;
+            EntityUtils.consume(response.getEntity());
             conn.close();
-            throw new TunnelRefusedException("CONNECT refused by proxy: " + new StatusLine(response), responseMessage);
+            throw new TunnelRefusedException("CONNECT refused by proxy: " + new StatusLine(response), null);
         }
         return conn.getSocket();
     }
