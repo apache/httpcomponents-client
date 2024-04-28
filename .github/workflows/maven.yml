@@ -24,24 +24,15 @@ jobs:
   build:
 
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         # windows-latest is not used due to intermittent network failures
         os: [ubuntu-latest, macos-latest]
         # All LTS versions plus the current version
-        java: [ 8, 11, 17 ]
-        experimental: [false]
-#        include:
-#          - java: 20-ea
-#            os: ubuntu-latest
-#            experimental: true        
-#          - java: 20-ea
-#            os: windows-latest
-#            experimental: true        
-#          - java: 20-ea
-#            os: macos-latest
-#            experimental: true        
+        java: [ 11, 17, 21 ]
+        include:
+          - java: 8
+            os: ubuntu-latest
       fail-fast: false
         
     steps:
