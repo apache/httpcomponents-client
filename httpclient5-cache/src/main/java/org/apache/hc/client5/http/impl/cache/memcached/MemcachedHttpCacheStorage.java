@@ -173,7 +173,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
         try {
             client.set(storageKey, 0, storageObject);
         } catch (final CancellationException ex) {
-            throw new ResourceIOException("Cache operation was cancelled mid-flight", ex);
+            throw new MemcachedOperationCancellationException(ex);
         }
     }
 
@@ -192,7 +192,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
         try {
             return castAsByteArray(client.get(storageKey));
         } catch (final CancellationException ex) {
-            throw new ResourceIOException("Cache operation was cancelled mid-flight", ex);
+            throw new MemcachedOperationCancellationException(ex);
         } catch (final OperationTimeoutException ex) {
             throw new MemcachedOperationTimeoutException(ex);
         }
@@ -203,7 +203,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
         try {
             return client.gets(storageKey);
         } catch (final CancellationException ex) {
-            throw new ResourceIOException("Cache operation was cancelled mid-flight", ex);
+            throw new MemcachedOperationCancellationException(ex);
         } catch (final OperationTimeoutException ex) {
             throw new MemcachedOperationTimeoutException(ex);
         }
@@ -221,7 +221,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
             final CASResponse casResult = client.cas(storageKey, casValue.getCas(), storageObject);
             return casResult == CASResponse.OK;
         } catch (final CancellationException ex) {
-            throw new ResourceIOException("Cache operation was cancelled mid-flight", ex);
+            throw new MemcachedOperationCancellationException(ex);
         } catch (final OperationTimeoutException ex) {
             throw new MemcachedOperationTimeoutException(ex);
         }
@@ -232,7 +232,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
         try {
             client.delete(storageKey);
         } catch (final CancellationException ex) {
-            throw new ResourceIOException("Cache operation was cancelled mid-flight", ex);
+            throw new MemcachedOperationCancellationException(ex);
         }
     }
 
@@ -246,7 +246,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
             }
             return resultMap;
         } catch (final CancellationException ex) {
-            throw new ResourceIOException("Cache operation was cancelled mid-flight", ex);
+            throw new MemcachedOperationCancellationException(ex);
         } catch (final OperationTimeoutException ex) {
             throw new MemcachedOperationTimeoutException(ex);
         }

@@ -163,7 +163,7 @@ public class MemcachedHttpAsyncCacheStorage extends AbstractBinaryAsyncCacheStor
             } catch (final ExecutionException ex) {
                 if (ex.getCause() instanceof Exception) {
                     if (ex.getCause() instanceof CancellationException) {
-                        callback.failed(new ResourceIOException("Cache operation was cancelled mid-flight", ex.getCause()));
+                        callback.failed(new MemcachedOperationCancellationException(ex.getCause()));
                     } else {
                         callback.failed((Exception) ex.getCause());
                     }
@@ -189,7 +189,7 @@ public class MemcachedHttpAsyncCacheStorage extends AbstractBinaryAsyncCacheStor
             } catch (final ExecutionException ex) {
                 if (ex.getCause() instanceof Exception) {
                     if (ex.getCause() instanceof CancellationException) {
-                        callback.failed(new ResourceIOException("Cache operation was cancelled mid-flight", ex.getCause()));
+                        callback.failed(new MemcachedOperationCancellationException(ex.getCause()));
                     } else {
                         callback.failed((Exception) ex.getCause());
                     }
