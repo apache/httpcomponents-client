@@ -30,6 +30,8 @@ import org.apache.hc.client5.http.cache.ResourceIOException;
 
 /**
  * Signals memcached operation cancellation.
+ *
+ * @since 5.4
  */
 public class MemcachedOperationCancellationException extends ResourceIOException {
 
