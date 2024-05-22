@@ -40,6 +40,8 @@ public class UnsupportedSchemeException extends IOException {
 
     /**
      * Creates a UnsupportedSchemeException with the specified detail message.
+     *
+     * @param message The detail message (which is saved for later retrieval by the {@link #getMessage()} method).
      */
     public UnsupportedSchemeException(final String message) {
         super(message);

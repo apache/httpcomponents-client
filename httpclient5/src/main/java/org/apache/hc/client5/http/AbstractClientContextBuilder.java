@@ -48,6 +48,7 @@ import org.apache.hc.core5.util.Args;
 /**
  * Abstract {@link HttpClientContext} builder.
  *
+ * @param <T> The HttpClientContext type or subtype.
  * @since 5.4
  */
 public abstract class AbstractClientContextBuilder<T extends HttpClientContext> {
