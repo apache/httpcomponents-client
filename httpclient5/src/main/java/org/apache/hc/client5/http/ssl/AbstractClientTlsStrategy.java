@@ -160,7 +160,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Enabled protocols: {}", Arrays.asList(sslEngine.getEnabledProtocols()));
-                LOG.debug("Enabled cipher suites:{}", Arrays.asList(sslEngine.getEnabledCipherSuites()));
+                LOG.debug("Enabled cipher suites: {}", Arrays.asList(sslEngine.getEnabledCipherSuites()));
                 LOG.debug("Starting handshake ({})", handshakeTimeout);
             }
         }, (e, sslEngine) -> {
