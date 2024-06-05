@@ -32,7 +32,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>httpcomponents-client</artifactId>
   <name>Apache HttpComponents Client</name>
-  <version>4.5.15-SNAPSHOT</version>
+  <version>4.5.17-zstd</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
   <url>http://hc.apache.org/httpcomponents-client-ga/</url>
   <inceptionYear>1999</inceptionYear>
@@ -64,11 +64,11 @@
   </scm>
 
   <distributionManagement>
-    <site>
-      <id>apache.website</id>
+    <repository>
+      <id>github</id>
       <name>Apache HttpComponents Website</name>
-      <url>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/site/components/httpcomponents-client-4.5.x/LATEST/</url>
-    </site>
+      <url>https://maven.pkg.github.com/sfc-gh-dbouassida/httpcomponents-client</url>
+    </repository>
   </distributionManagement>
 
   <properties>

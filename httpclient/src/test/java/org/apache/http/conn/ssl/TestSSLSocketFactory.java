@@ -300,7 +300,7 @@ public class TestSSLSocketFactory {
 
                     @Override
                     public void initialize(final SSLServerSocket socket) throws SSLException {
-                        socket.setEnabledProtocols(new String[] {"TLSv1"});
+                        socket.setEnabledProtocols(new String[] {"TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3"});
                     }
 
                 })

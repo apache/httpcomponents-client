@@ -24,10 +24,8 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.client.protocol;
 
-import java.io.IOException;
-import java.util.Locale;
+package org.apache.http.client.protocol;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -42,9 +40,13 @@ import org.apache.http.client.entity.DecompressingEntity;
 import org.apache.http.client.entity.DeflateInputStreamFactory;
 import org.apache.http.client.entity.GZIPInputStreamFactory;
 import org.apache.http.client.entity.InputStreamFactory;
+import org.apache.http.client.entity.ZSTDInputStreamFactory;
 import org.apache.http.config.Lookup;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.protocol.HttpContext;
+
+import java.io.IOException;
+import java.util.Locale;
 
 /**
  * {@link HttpResponseInterceptor} responsible for processing Content-Encoding
@@ -68,11 +70,12 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
      */
     public ResponseContentEncoding(final Lookup<InputStreamFactory> decoderRegistry, final boolean ignoreUnknown) {
         this.decoderRegistry = decoderRegistry != null ? decoderRegistry :
-            RegistryBuilder.<InputStreamFactory>create()
-                    .register("gzip", GZIPInputStreamFactory.getInstance())
-                    .register("x-gzip", GZIPInputStreamFactory.getInstance())
-                    .register("deflate", DeflateInputStreamFactory.getInstance())
-                    .build();
+                RegistryBuilder.<InputStreamFactory>create()
+                        .register("gzip", GZIPInputStreamFactory.getInstance())
+                        .register("x-gzip", GZIPInputStreamFactory.getInstance())
+                        .register("deflate", DeflateInputStreamFactory.getInstance())
+                        .register("zstd", ZSTDInputStreamFactory.getInstance())
+                        .build();
         this.ignoreUnknown = ignoreUnknown;
     }
 
