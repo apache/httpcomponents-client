@@ -50,7 +50,7 @@ import org.apache.hc.core5.util.Args;
 public class RequestDefaultHeaders implements HttpRequestInterceptor {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link RequestDefaultHeaders}.
      *
      * @since 5.2
      */

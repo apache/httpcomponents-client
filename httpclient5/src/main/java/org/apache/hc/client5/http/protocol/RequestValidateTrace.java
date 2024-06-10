@@ -101,7 +101,7 @@ import org.apache.hc.core5.util.Args;
 public class RequestValidateTrace implements HttpRequestInterceptor {
 
     /**
-     * Singleton instance of {@link RequestValidateTrace}.
+     * Default instance of {@link RequestValidateTrace}.
      */
     public static final HttpRequestInterceptor INSTANCE = new RequestValidateTrace();
 

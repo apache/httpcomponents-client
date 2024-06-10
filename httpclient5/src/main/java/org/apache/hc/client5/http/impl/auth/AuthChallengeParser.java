@@ -46,6 +46,9 @@ import org.apache.hc.core5.util.Tokenizer;
  */
 public class AuthChallengeParser {
 
+    /**
+     * Default instance of {@link AuthChallengeParser}.
+     */
     public static final AuthChallengeParser INSTANCE = new AuthChallengeParser();
 
     private final Tokenizer tokenParser = Tokenizer.INSTANCE;

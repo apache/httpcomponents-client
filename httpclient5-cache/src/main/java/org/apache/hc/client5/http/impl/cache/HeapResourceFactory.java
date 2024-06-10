@@ -41,6 +41,9 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class HeapResourceFactory implements ResourceFactory {
 
+    /**
+     * Default instance of {@link HeapResourceFactory}.
+     */
     public static final HeapResourceFactory INSTANCE = new HeapResourceFactory();
 
     @Override

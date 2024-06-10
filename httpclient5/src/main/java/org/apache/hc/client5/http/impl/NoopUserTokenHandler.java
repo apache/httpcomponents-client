@@ -40,6 +40,9 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class NoopUserTokenHandler implements UserTokenHandler {
 
+    /**
+     * Default instance of {@link NoopUserTokenHandler}.
+     */
     public static final NoopUserTokenHandler INSTANCE = new NoopUserTokenHandler();
 
     @Override

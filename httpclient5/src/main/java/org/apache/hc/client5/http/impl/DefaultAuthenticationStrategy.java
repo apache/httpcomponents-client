@@ -61,6 +61,9 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultAuthenticationStrategy.class);
 
+    /**
+     * Default instance of {@link DefaultAuthenticationStrategy}.
+     */
     public static final DefaultAuthenticationStrategy INSTANCE = new DefaultAuthenticationStrategy();
 
     private static final List<String> DEFAULT_SCHEME_PRIORITY =

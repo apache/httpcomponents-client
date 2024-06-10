@@ -91,7 +91,7 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
     static final String HC_VARIANT = "HC-Variant";
 
     /**
-     * Singleton instance of this class.
+     * Default instance of {@link HttpByteArrayCacheEntrySerializer}.
      */
     public static final HttpByteArrayCacheEntrySerializer INSTANCE = new HttpByteArrayCacheEntrySerializer();
 

@@ -59,7 +59,7 @@ import org.slf4j.LoggerFactory;
 public class ResponseProcessCookies implements HttpResponseInterceptor {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link ResponseProcessCookies}.
      *
      * @since 5.2
      */

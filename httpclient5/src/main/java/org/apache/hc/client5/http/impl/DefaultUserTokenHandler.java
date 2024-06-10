@@ -59,6 +59,9 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultUserTokenHandler implements UserTokenHandler {
 
+    /**
+     * Default instance of {@link DefaultUserTokenHandler}.
+     */
     public static final DefaultUserTokenHandler INSTANCE = new DefaultUserTokenHandler();
 
     @Override

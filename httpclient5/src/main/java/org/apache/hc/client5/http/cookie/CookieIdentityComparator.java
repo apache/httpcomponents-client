@@ -46,7 +46,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 public class CookieIdentityComparator implements Serializable, Comparator<Cookie> {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link CookieIdentityComparator}.
      *
      * @since 5.2
      */

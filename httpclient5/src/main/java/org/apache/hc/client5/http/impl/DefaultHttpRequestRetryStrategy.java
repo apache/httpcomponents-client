@@ -64,6 +64,9 @@ import org.apache.hc.core5.util.TimeValue;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy {
 
+    /**
+     * Default instance of {@link DefaultHttpRequestRetryStrategy}.
+     */
     public static final DefaultHttpRequestRetryStrategy INSTANCE = new DefaultHttpRequestRetryStrategy();
 
     /**

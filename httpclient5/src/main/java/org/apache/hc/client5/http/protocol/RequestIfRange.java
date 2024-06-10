@@ -72,7 +72,7 @@ import org.apache.hc.core5.util.Args;
 public class RequestIfRange implements HttpRequestInterceptor {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link RequestIfRange}.
      *
      * @since 5.4
      */

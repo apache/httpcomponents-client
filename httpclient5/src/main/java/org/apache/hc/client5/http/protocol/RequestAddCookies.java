@@ -67,7 +67,7 @@ import org.slf4j.LoggerFactory;
 public class RequestAddCookies implements HttpRequestInterceptor {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link RequestAddCookies}.
      *
      * @since 5.2
      */

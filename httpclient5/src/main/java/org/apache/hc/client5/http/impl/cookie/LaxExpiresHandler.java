@@ -57,7 +57,7 @@ import org.apache.hc.core5.util.Tokenizer;
 public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link LaxExpiresHandler}.
      *
      * @since 5.2
      */

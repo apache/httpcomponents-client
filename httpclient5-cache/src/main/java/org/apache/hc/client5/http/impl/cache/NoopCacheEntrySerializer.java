@@ -41,6 +41,9 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class NoopCacheEntrySerializer implements HttpCacheEntrySerializer<HttpCacheStorageEntry> {
 
+    /**
+     * Default instance of {@link NoopCacheEntrySerializer}.
+     */
     public static final NoopCacheEntrySerializer INSTANCE = new NoopCacheEntrySerializer();
 
     @Override

@@ -54,6 +54,9 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultRedirectStrategy implements RedirectStrategy {
 
+    /**
+     * Default instance of {@link DefaultRedirectStrategy}.
+     */
     public static final DefaultRedirectStrategy INSTANCE = new DefaultRedirectStrategy();
 
     @Override

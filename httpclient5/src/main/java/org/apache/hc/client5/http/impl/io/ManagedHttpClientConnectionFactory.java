@@ -60,6 +60,9 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
 
     private static final AtomicLong COUNTER = new AtomicLong();
 
+    /**
+     * Default instance of {@link ManagedHttpClientConnectionFactory}.
+     */
     public static final ManagedHttpClientConnectionFactory INSTANCE = new ManagedHttpClientConnectionFactory();
 
     private final Http1Config h1Config;

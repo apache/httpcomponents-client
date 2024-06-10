@@ -43,7 +43,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 public class GZIPInputStreamFactory implements InputStreamFactory {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link GZIPInputStreamFactory}.
      */
     private static final GZIPInputStreamFactory INSTANCE = new GZIPInputStreamFactory();
 

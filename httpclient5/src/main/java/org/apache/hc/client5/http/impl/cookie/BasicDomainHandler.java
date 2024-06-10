@@ -50,7 +50,7 @@ public class BasicDomainHandler implements CommonCookieAttributeHandler {
 
 
     /**
-     * Singleton instance.
+     * Default instance of {@link BasicDomainHandler}.
      *
      * @since 5.2
      */

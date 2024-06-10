@@ -37,6 +37,9 @@ import org.apache.hc.core5.util.Tokenizer;
 
 final class DistinguishedNameParser {
 
+    /**
+     * Default instance of {@link DistinguishedNameParser}.
+     */
     public final static DistinguishedNameParser INSTANCE = new DistinguishedNameParser();
 
     private static final Tokenizer.Delimiter EQUAL_OR_COMMA_OR_PLUS = Tokenizer.delimiters('=', ',', '+');
