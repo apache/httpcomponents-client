@@ -46,7 +46,7 @@ public class TestDistinguishedNameParser {
 
     @BeforeEach
     public void setup() {
-        impl = new DistinguishedNameParser();
+        impl = DistinguishedNameParser.INSTANCE;
     }
 
     @Test
