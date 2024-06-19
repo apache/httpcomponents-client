@@ -410,4 +410,27 @@ public class TestRequestAddCookies {
         Assertions.assertEquals("name1=value; name2=value; name3=value", headers1[0].getValue());
     }
 
+    @Test
+    public void testSkipAddingCookiesWhenCookieHeaderPresent() throws Exception {
+        // Prepare a request with an existing Cookie header
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        request.addHeader("Cookie", "existingCookie=existingValue");
+
+        final HttpRoute route = new HttpRoute(this.target, null, false);
+
+        final HttpClientContext context = HttpClientContext.create();
+        context.setRoute(route);
+        context.setCookieStore(this.cookieStore);
+        context.setCookieSpecRegistry(this.cookieSpecRegistry);
+
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
+        interceptor.process(request, null, context);
+
+        // Check that no additional cookies were added
+        final Header[] headers = request.getHeaders("Cookie");
+        Assertions.assertNotNull(headers);
+        Assertions.assertEquals(1, headers.length);
+        Assertions.assertEquals("existingCookie=existingValue", headers[0].getValue());
+    }
+
 }
