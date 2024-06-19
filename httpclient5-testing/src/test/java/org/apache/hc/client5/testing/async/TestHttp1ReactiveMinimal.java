@@ -36,52 +36,37 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.testing.async.extension.ClientProtocolLevel;
+import org.apache.hc.client5.testing.async.extension.ServerProtocolLevel;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Message;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.http.nio.entity.AsyncEntityProducers;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
-import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.reactive.ReactiveServerExchangeHandler;
-import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.apache.hc.core5.testing.reactive.ReactiveEchoProcessor;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 
-public abstract class TestHttp1ReactiveMinimal extends AbstractHttpReactiveFundamentalsTest<MinimalHttpAsyncClient> {
+public abstract class TestHttp1ReactiveMinimal extends AbstractHttpReactiveFundamentalsTest {
 
     public TestHttp1ReactiveMinimal(final URIScheme scheme) {
-        super(scheme);
-    }
-
-    @Override
-    protected H2TestServer startServer() throws Exception {
-        return startServer(Http1Config.DEFAULT, null, null);
-    }
-
-    @Override
-    protected MinimalHttpAsyncClient startClient() throws Exception {
-        return startMinimalClient(
-                Http1Config.DEFAULT,
-                H2Config.DEFAULT,
-                b -> {});
+        super(scheme, ClientProtocolLevel.MINIMAL, ServerProtocolLevel.STANDARD);
     }
 
     @Test
     public void testConcurrentPostRequestsSameEndpoint() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/echo/*", () ->
-                new ReactiveServerExchangeHandler(new ReactiveEchoProcessor()));
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap.register("/echo/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveEchoProcessor())));
+        final HttpHost target = startServer();
 
-        final MinimalHttpAsyncClient client = startClient();
+        final MinimalHttpAsyncClient client = startClient().getImplementation();
 
         final byte[] b1 = new byte[1024];
         final Random rnd = new Random(System.currentTimeMillis());

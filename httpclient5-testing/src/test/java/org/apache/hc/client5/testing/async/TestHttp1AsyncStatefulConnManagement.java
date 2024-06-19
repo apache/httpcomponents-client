@@ -34,6 +34,9 @@ import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.testing.async.extension.ClientProtocolLevel;
+import org.apache.hc.client5.testing.async.extension.ServerProtocolLevel;
+import org.apache.hc.client5.testing.async.extension.TestAsyncClient;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpException;
@@ -41,28 +44,21 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.net.URIAuthority;
-import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTestBase {
 
     public TestHttp1AsyncStatefulConnManagement() {
-        super(URIScheme.HTTP);
-    }
-
-    protected H2TestServer startServer() throws Exception {
-        return startServer(Http1Config.DEFAULT, null, null);
+        super(URIScheme.HTTP, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);
     }
 
     @Test
     public void testStatefulConnections() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("*", () -> new AbstractSimpleServerExchangeHandler() {
+        configureServer(bootstrap -> bootstrap.register("*", () -> new AbstractSimpleServerExchangeHandler() {
 
             @Override
             protected SimpleHttpResponse handle(
@@ -72,12 +68,13 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
                 response.setBody("Whatever", ContentType.TEXT_PLAIN);
                 return response;
             }
-        });
+        }));
+        final HttpHost target = startServer();
 
-        final HttpHost target = targetHost();
-
-        final CloseableHttpAsyncClient client = startClient(builer -> builer
+        configureClient(builder -> builder
                 .setUserTokenHandler((route, context) -> context.getAttribute("user")));
+
+        final TestAsyncClient client = startClient();
 
         final int workerCount = 2;
         final int requestCount = 5;
@@ -177,8 +174,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
 
     @Test
     public void testRouteSpecificPoolRecylcing() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("*", () -> new AbstractSimpleServerExchangeHandler() {
+        configureServer(bootstrap -> bootstrap.register("*", () -> new AbstractSimpleServerExchangeHandler() {
 
             @Override
             protected SimpleHttpResponse handle(
@@ -188,17 +184,19 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
                 response.setBody("Whatever", ContentType.TEXT_PLAIN);
                 return response;
             }
-        });
+        }));
+        final HttpHost target = startServer();
 
         // This tests what happens when a maxed connection pool needs
         // to kill the last idle connection to a route to build a new
         // one to the same route.
 
-        final HttpHost target = targetHost();
-
-        final CloseableHttpAsyncClient client = startClient(builer -> builer
+        configureClient(builder -> builder
                 .setUserTokenHandler((route, context) -> context.getAttribute("user")));
-        final PoolingAsyncClientConnectionManager connManager = connManager();
+
+        final TestAsyncClient client = startClient();
+
+        final PoolingAsyncClientConnectionManager connManager = client.getConnectionManager();
 
         final int maxConn = 2;
         // We build a client with 2 max active // connections, and 2 max per route.

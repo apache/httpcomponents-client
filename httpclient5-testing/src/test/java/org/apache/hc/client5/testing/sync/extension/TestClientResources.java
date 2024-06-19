@@ -27,59 +27,46 @@
 
 package org.apache.hc.client5.testing.sync.extension;
 
-import java.io.IOException;
 import java.util.function.Consumer;
 
-import org.apache.hc.client5.http.config.ConnectionConfig;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.classic.MinimalHttpClient;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
-import org.apache.hc.client5.testing.SSLTestContexts;
-import org.apache.hc.core5.function.Decorator;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.Http1Config;
-import org.apache.hc.core5.http.io.HttpServerRequestHandler;
-import org.apache.hc.core5.http.io.SocketConfig;
-import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.io.CloseMode;
-import org.apache.hc.core5.testing.classic.ClassicTestServer;
+import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.Timeout;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.extension.AfterEachCallback;
-import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TestClientResources implements BeforeEachCallback, AfterEachCallback {
+public class TestClientResources implements AfterEachCallback {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestClientResources.class);
 
     private final URIScheme scheme;
     private final Timeout timeout;
+    private final ClientProtocolLevel clientProtocolLevel;
+    private final TestServerBootstrap serverBootstrap;
+    private final TestClientBuilder clientBuilder;
 
-    private ClassicTestServer server;
+    private TestServer server;
     private PoolingHttpClientConnectionManager connManager;
-    private CloseableHttpClient client;
+    private TestClient client;
 
-    public TestClientResources(final URIScheme scheme, final Timeout timeout) {
-        this.scheme = scheme;
+    public TestClientResources(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final Timeout timeout) {
+        this.scheme = scheme != null ? scheme : URIScheme.HTTP;
         this.timeout = timeout;
-    }
-
-    @Override
-    public void beforeEach(final ExtensionContext extensionContext) throws Exception {
-        LOG.debug("Starting up test server");
-        server = new ClassicTestServer(
-                scheme == URIScheme.HTTPS ? SSLTestContexts.createServerSSLContext() : null,
-                SocketConfig.custom()
-                        .setSoTimeout(timeout)
-                        .build());
+        this.clientProtocolLevel = clientProtocolLevel != null ? clientProtocolLevel : ClientProtocolLevel.STANDARD;
+        this.serverBootstrap = new TestServerBootstrap(this.scheme)
+                .setTimeout(this.timeout);
+        switch (this.clientProtocolLevel) {
+            case MINIMAL:
+                this.clientBuilder = new MinimalTestClientBuilder();
+                break;
+            default:
+                this.clientBuilder = new StandardTestClientBuilder();
+        }
+        this.clientBuilder.setTimeout(timeout);
     }
 
     @Override
@@ -103,72 +90,32 @@ public class TestClientResources implements BeforeEachCallback, AfterEachCallbac
         return this.scheme;
     }
 
-    public ClassicTestServer startServer(
-            final Http1Config http1Config,
-            final HttpProcessor httpProcessor,
-            final Decorator<HttpServerRequestHandler> handlerDecorator) throws IOException {
-        Assertions.assertNotNull(server);
-        server.start(http1Config, httpProcessor, handlerDecorator);
+    public ClientProtocolLevel getClientProtocolLevel() {
+        return clientProtocolLevel;
+    }
+
+    public void configureServer(final Consumer<TestServerBootstrap> serverCustomizer) {
+        Asserts.check(server == null, "Server is already running and cannot be changed");
+        serverCustomizer.accept(serverBootstrap);
+    }
+
+    public TestServer server() throws Exception {
+        if (server == null) {
+            server = serverBootstrap.build();
+        }
         return server;
     }
 
-    public HttpHost targetHost() {
-        Assertions.assertNotNull(server);
-        return new HttpHost(scheme.id, "localhost", server.getPort());
-    }
-
-    public CloseableHttpClient startClient(
-            final Consumer<PoolingHttpClientConnectionManagerBuilder> connManagerCustomizer,
-            final Consumer<HttpClientBuilder> clientCustomizer) throws Exception {
-        Assertions.assertNull(connManager);
-        Assertions.assertNull(client);
-
-        final PoolingHttpClientConnectionManagerBuilder connManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
-        connManagerBuilder.setTlsSocketStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()));
-        connManagerBuilder.setDefaultSocketConfig(SocketConfig.custom()
-                .setSoTimeout(timeout)
-                .build());
-        connManagerBuilder.setDefaultConnectionConfig(ConnectionConfig.custom()
-                .setConnectTimeout(timeout)
-                .build());
-        connManagerCustomizer.accept(connManagerBuilder);
-
-        connManager = connManagerBuilder.build();
-
-        final HttpClientBuilder clientBuilder = HttpClientBuilder.create()
-                .setConnectionManager(connManager);
+    public void configureClient(final Consumer<TestClientBuilder> clientCustomizer) {
+        Asserts.check(client == null, "Client is already running and cannot be changed");
         clientCustomizer.accept(clientBuilder);
-        client = clientBuilder.build();
+    }
+
+    public TestClient client() throws Exception {
+        if (client == null) {
+            client = clientBuilder.build();
+        }
         return client;
-    }
-
-    public MinimalHttpClient startMinimalClient() throws Exception {
-        Assertions.assertNull(connManager);
-        Assertions.assertNull(client);
-
-        final PoolingHttpClientConnectionManagerBuilder connManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
-        connManagerBuilder.setTlsSocketStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()));
-        connManagerBuilder.setDefaultSocketConfig(SocketConfig.custom()
-                .setSoTimeout(timeout)
-                .build());
-        connManagerBuilder.setDefaultConnectionConfig(ConnectionConfig.custom()
-                .setConnectTimeout(timeout)
-                .build());
-        connManager = connManagerBuilder.build();
-
-        final MinimalHttpClient minimalClient = HttpClients.createMinimal(connManager);
-        client = minimalClient;
-        return minimalClient;
-    }
-
-    public CloseableHttpClient startClient(
-            final Consumer<HttpClientBuilder> clientCustomizer) throws Exception {
-        return startClient(b -> {}, clientCustomizer);
-    }
-
-    public PoolingHttpClientConnectionManager connManager() {
-        Assertions.assertNotNull(connManager);
-        return connManager;
     }
 
 }

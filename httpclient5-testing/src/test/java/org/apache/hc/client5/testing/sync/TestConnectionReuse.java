@@ -39,7 +39,8 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.testing.classic.RandomHandler;
-import org.apache.hc.client5.testing.sync.extension.TestClientResources;
+import org.apache.hc.client5.testing.sync.extension.ClientProtocolLevel;
+import org.apache.hc.client5.testing.sync.extension.TestClient;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EntityDetails;
@@ -55,39 +56,25 @@ import org.apache.hc.core5.http.impl.HttpProcessors;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpProcessor;
-import org.apache.hc.core5.testing.classic.ClassicTestServer;
-import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
-public class TestConnectionReuse {
+public class TestConnectionReuse extends AbstractIntegrationTestBase {
 
-    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
-
-    @RegisterExtension
-    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
-
-    public HttpHost targetHost() {
-        return testResources.targetHost();
+    public TestConnectionReuse() {
+        super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
     }
 
     @Test
     public void testReuseOfPersistentConnections() throws Exception {
-        final ClassicTestServer server =  testResources.startServer(  null, null, null);
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = testResources.startClient(
-                builder -> builder
-                        .setMaxConnTotal(5)
-                        .setMaxConnPerRoute(5),
-                builder -> {
-                }
-        );
-
-        final PoolingHttpClientConnectionManager connManager = testResources.connManager();
+        final TestClient client = client();
+        final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
+        connManager.setMaxTotal(5);
+        connManager.setDefaultMaxPerRoute(5);
 
         final WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
@@ -117,19 +104,14 @@ public class TestConnectionReuse {
 
     @Test
     public void testReuseOfPersistentConnectionsWithStreamedRequestAndResponse() throws Exception {
-        final ClassicTestServer server =  testResources.startServer(  null, null, null);
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = testResources.startClient(
-                builder -> builder
-                        .setMaxConnTotal(5)
-                        .setMaxConnPerRoute(5),
-                builder -> {
-                }
-        );
-
-        final PoolingHttpClientConnectionManager connManager = testResources.connManager();
+        final TestClient client = client();
+        final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
+        connManager.setMaxTotal(5);
+        connManager.setDefaultMaxPerRoute(5);
 
         final WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
@@ -176,21 +158,16 @@ public class TestConnectionReuse {
 
     @Test
     public void testReuseOfClosedConnections() throws Exception {
-        final HttpProcessor httpproc = HttpProcessors.customServer(null)
-                .add(new AlwaysCloseConn())
-                .build();
-        final ClassicTestServer server =  testResources.startServer(  null, httpproc, null);
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setHttpProcessor(HttpProcessors.customServer(null)
+                        .add(new AlwaysCloseConn())
+                        .build()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = testResources.startClient(
-                builder -> builder
-                        .setMaxConnTotal(5)
-                        .setMaxConnPerRoute(5),
-                builder -> {
-                }
-        );
-
-        final PoolingHttpClientConnectionManager connManager = testResources.connManager();
+        final TestClient client = client();
+        final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
+        connManager.setMaxTotal(5);
+        connManager.setDefaultMaxPerRoute(5);
 
         final WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
@@ -220,19 +197,14 @@ public class TestConnectionReuse {
 
     @Test
     public void testReuseOfAbortedConnections() throws Exception {
-        final ClassicTestServer server =  testResources.startServer(  null, null, null);
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = testResources.startClient(
-                builder -> builder
-                        .setMaxConnTotal(5)
-                        .setMaxConnPerRoute(5),
-                builder -> {
-                }
-        );
-
-        final PoolingHttpClientConnectionManager connManager = testResources.connManager();
+        final TestClient client = client();
+        final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
+        connManager.setMaxTotal(5);
+        connManager.setDefaultMaxPerRoute(5);
 
         final WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
@@ -262,23 +234,17 @@ public class TestConnectionReuse {
 
     @Test
     public void testKeepAliveHeaderRespected() throws Exception {
-        final HttpProcessor httpproc = HttpProcessors.customServer(null)
-                .add(new ResponseKeepAlive())
-                .build();
-        final ClassicTestServer server =  testResources.startServer(  null, httpproc, null);
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setHttpProcessor(HttpProcessors.customServer(null)
+                        .add(new ResponseKeepAlive())
+                        .build())
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = testResources.startClient(
-                builder -> builder
-                        .setMaxConnTotal(1)
-                        .setMaxConnPerRoute(1),
-                builder -> {
-                }
-        );
-
-        final PoolingHttpClientConnectionManager connManager = testResources.connManager();
-
+        final TestClient client = client();
+        final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
+        connManager.setMaxTotal(1);
+        connManager.setDefaultMaxPerRoute(1);
 
         client.execute(target, new HttpGet("/random/2000"), response -> {
             EntityUtils.consume(response.getEntity());

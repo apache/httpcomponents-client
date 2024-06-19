@@ -35,32 +35,29 @@ import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.testing.classic.RandomHandler;
-import org.apache.hc.client5.testing.sync.extension.TestClientResources;
+import org.apache.hc.client5.testing.sync.extension.ClientProtocolLevel;
+import org.apache.hc.client5.testing.sync.extension.TestClient;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.testing.classic.ClassicTestServer;
 import org.apache.hc.core5.util.TimeValue;
-import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
-public class TestIdleConnectionEviction {
+public class TestIdleConnectionEviction extends AbstractIntegrationTestBase {
 
-    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
-
-    @RegisterExtension
-    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
+    public TestIdleConnectionEviction() {
+        super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
+    }
 
     @Test
     public void testIdleConnectionEviction() throws Exception {
-        final ClassicTestServer server = testResources.startServer(null, null, null);
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = testResources.targetHost();
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = testResources.startClient(b -> {});
+        final TestClient client = client();
 
-        final PoolingHttpClientConnectionManager connManager = testResources.connManager();
+        final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
 
         connManager.setDefaultMaxPerRoute(10);
         connManager.setMaxTotal(50);

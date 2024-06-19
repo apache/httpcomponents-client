@@ -34,25 +34,27 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
-import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.testing.async.extension.ClientProtocolLevel;
+import org.apache.hc.client5.testing.async.extension.ServerProtocolLevel;
+import org.apache.hc.client5.testing.async.extension.TestAsyncClient;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.Http1Config;
-import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.apache.hc.core5.util.TimeValue;
 import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public abstract class TestHttp1RequestReExecution extends AbstractIntegrationTestBase {
 
     public TestHttp1RequestReExecution(final URIScheme scheme) {
-        super(scheme);
+        super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);
     }
 
-    protected H2TestServer startServer() throws Exception {
+    @BeforeEach
+    public void setup() {
         final Resolver<HttpRequest, TimeValue> serviceAvailabilityResolver = new Resolver<HttpRequest, TimeValue>() {
 
             private final AtomicInteger count = new AtomicInteger(0);
@@ -65,18 +67,18 @@ public abstract class TestHttp1RequestReExecution extends AbstractIntegrationTes
 
         };
 
-        return startServer(Http1Config.DEFAULT, null, handler ->
-                new ServiceUnavailableAsyncDecorator(handler, serviceAvailabilityResolver));
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(handler -> new ServiceUnavailableAsyncDecorator(handler, serviceAvailabilityResolver)));
     }
 
     @Test
     public void testGiveUpAfterOneRetry() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
+        final HttpHost target = startServer();
 
-        final CloseableHttpAsyncClient client = startClient(builder -> builder
+        configureClient(builder -> builder
                 .setRetryStrategy(new DefaultHttpRequestRetryStrategy(1, TimeValue.ofSeconds(1))));
+        final TestAsyncClient client = startClient();
 
         final Future<SimpleHttpResponse> future = client.execute(
                 SimpleRequestBuilder.get()
@@ -90,12 +92,12 @@ public abstract class TestHttp1RequestReExecution extends AbstractIntegrationTes
 
     @Test
     public void testDoNotGiveUpEasily() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
+        final HttpHost target = startServer();
 
-        final CloseableHttpAsyncClient client = startClient(builder -> builder
+        configureClient(builder -> builder
                 .setRetryStrategy(new DefaultHttpRequestRetryStrategy(5, TimeValue.ofSeconds(1))));
+        final TestAsyncClient client = startClient();
 
         final Future<SimpleHttpResponse> future = client.execute(
                 SimpleRequestBuilder.get()

@@ -27,35 +27,31 @@
 package org.apache.hc.client5.testing.sync;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.client5.testing.classic.RandomHandler;
-import org.apache.hc.client5.testing.sync.extension.TestClientResources;
+import org.apache.hc.client5.testing.sync.extension.ClientProtocolLevel;
+import org.apache.hc.client5.testing.sync.extension.TestClient;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.testing.classic.ClassicTestServer;
-import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
-public class TestBasicConnectionManager {
+public class TestBasicConnectionManager extends AbstractIntegrationTestBase {
 
-    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
-
-    @RegisterExtension
-    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
+    public TestBasicConnectionManager() {
+        super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
+    }
 
     @Test
     public void testBasics() throws Exception {
-        final ClassicTestServer server = testResources.startServer(null, null, null);
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = testResources.targetHost();
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = testResources.startClient(builder -> builder
-                .setConnectionManager(new BasicHttpClientConnectionManager())
-        );
+        configureClient(builder -> builder
+                .setConnectionManager(new BasicHttpClientConnectionManager()));
+        final TestClient client = client();
 
         final HttpGet get = new HttpGet("/random/1024");
         client.execute(target, get, response -> {
@@ -67,13 +63,13 @@ public class TestBasicConnectionManager {
 
     @Test
     public void testConnectionStillInUse() throws Exception {
-        final ClassicTestServer server = testResources.startServer(null, null, null);
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = testResources.targetHost();
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = testResources.startClient(builder -> builder
-                .setConnectionManager(new BasicHttpClientConnectionManager())
-        );
+        configureClient(builder -> builder
+                .setConnectionManager(new BasicHttpClientConnectionManager()));
+        final TestClient client = client();
 
         final HttpGet get1 = new HttpGet("/random/1024");
         client.executeOpen(target, get1, null);

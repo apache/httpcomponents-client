@@ -25,18 +25,17 @@
  *
  */
 
-package org.apache.hc.client5.testing.async;
+package org.apache.hc.client5.testing.sync;
 
 import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
-import org.apache.hc.client5.testing.async.extension.ClientProtocolLevel;
-import org.apache.hc.client5.testing.async.extension.ServerProtocolLevel;
-import org.apache.hc.client5.testing.async.extension.TestAsyncClient;
-import org.apache.hc.client5.testing.async.extension.TestAsyncClientBuilder;
-import org.apache.hc.client5.testing.async.extension.TestAsyncResources;
-import org.apache.hc.client5.testing.async.extension.TestAsyncServer;
-import org.apache.hc.client5.testing.async.extension.TestAsyncServerBootstrap;
+import org.apache.hc.client5.testing.sync.extension.ClientProtocolLevel;
+import org.apache.hc.client5.testing.sync.extension.TestClient;
+import org.apache.hc.client5.testing.sync.extension.TestClientBuilder;
+import org.apache.hc.client5.testing.sync.extension.TestClientResources;
+import org.apache.hc.client5.testing.sync.extension.TestServer;
+import org.apache.hc.client5.testing.sync.extension.TestServerBootstrap;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.util.Timeout;
@@ -47,42 +46,36 @@ public abstract class AbstractIntegrationTestBase {
     public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
 
     @RegisterExtension
-    private final TestAsyncResources testResources;
+    private TestClientResources testResources;
 
-    protected AbstractIntegrationTestBase(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
-        this.testResources = new TestAsyncResources(scheme, clientProtocolLevel, serverProtocolLevel, TIMEOUT);
+    protected AbstractIntegrationTestBase(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel) {
+        this.testResources = new TestClientResources(scheme, clientProtocolLevel, TIMEOUT);
     }
 
     public URIScheme scheme() {
         return testResources.scheme();
     }
 
-    public ServerProtocolLevel getServerProtocolLevel() {
-        return testResources.getServerProtocolLevel();
-    }
-
     public ClientProtocolLevel getClientProtocolLevel() {
         return testResources.getClientProtocolLevel();
     }
 
-    public void configureServer(final Consumer<TestAsyncServerBootstrap> serverCustomizer) {
+    public void configureServer(final Consumer<TestServerBootstrap> serverCustomizer) {
         testResources.configureServer(serverCustomizer);
     }
 
     public HttpHost startServer() throws Exception {
-        final TestAsyncServer server = testResources.server();
+        final TestServer server = testResources.server();
         final InetSocketAddress inetSocketAddress = server.start();
         return new HttpHost(testResources.scheme().id, "localhost", inetSocketAddress.getPort());
     }
 
-    public void configureClient(final Consumer<TestAsyncClientBuilder> clientCustomizer) {
+    public void configureClient(final Consumer<TestClientBuilder> clientCustomizer) {
         testResources.configureClient(clientCustomizer);
     }
 
-    public TestAsyncClient startClient() throws Exception {
-        final TestAsyncClient client = testResources.client();
-        client.start();
-        return client;
+    public TestClient client() throws Exception {
+        return testResources.client();
     }
 
 }

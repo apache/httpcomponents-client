@@ -27,103 +27,49 @@
 package org.apache.hc.client5.testing.async;
 
 import java.util.concurrent.Future;
-import java.util.function.Consumer;
 
-import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
-import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.BasicTestAuthenticator;
-import org.apache.hc.core5.function.Decorator;
+import org.apache.hc.client5.testing.async.extension.ClientProtocolLevel;
+import org.apache.hc.client5.testing.async.extension.ServerProtocolLevel;
+import org.apache.hc.client5.testing.async.extension.TestAsyncClient;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.Http1Config;
-import org.apache.hc.core5.http.config.Lookup;
-import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
-import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-public abstract class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthenticationTest<CloseableHttpAsyncClient> {
+public abstract class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthenticationTest {
 
     public TestHttp1ClientAuthentication(final URIScheme scheme) {
-        super(scheme);
-    }
-
-    @Override
-    protected H2TestServer startServer(final Decorator<AsyncServerExchangeHandler> exchangeHandlerDecorator) throws Exception {
-        return startServer(Http1Config.DEFAULT, null, exchangeHandlerDecorator);
-    }
-
-    @Override
-    protected CloseableHttpAsyncClient startClientCustom(final Consumer<TestClientBuilder> clientCustomizer) throws Exception {
-
-        return startClient(new Consumer<HttpAsyncClientBuilder>() {
-
-            @Override
-            public void accept(final HttpAsyncClientBuilder builder) {
-
-                clientCustomizer.accept(new TestClientBuilder() {
-
-                    @Override
-                    public TestClientBuilder setDefaultAuthSchemeRegistry(final Lookup<AuthSchemeFactory> authSchemeRegistry) {
-                        builder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
-                        return this;
-                    }
-
-                    @Override
-                    public TestClientBuilder setTargetAuthenticationStrategy(final AuthenticationStrategy targetAuthStrategy) {
-                        builder.setTargetAuthenticationStrategy(targetAuthStrategy);
-                        return this;
-                    }
-
-                    @Override
-                    public TestClientBuilder addResponseInterceptor(final HttpResponseInterceptor responseInterceptor) {
-                        builder.addResponseInterceptorLast(responseInterceptor);
-                        return this;
-                    }
-
-                    @Override
-                    public TestClientBuilder addRequestInterceptor(final HttpRequestInterceptor requestInterceptor) {
-                        builder.addRequestInterceptorFirst(requestInterceptor);
-                        return this;
-                    }
-
-                });
-
-            }
-
-        });
+        super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);
     }
 
     @Test
     public void testBasicAuthenticationSuccessNonPersistentConnection() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler ->
-                new AuthenticatingAsyncDecorator(exchangeHandler, new BasicTestAuthenticator("test:test", "test realm")) {
+        final HttpHost target = startServer();
+        configureServer(bootstrap -> bootstrap
+                .register("*", AsyncEchoHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler ->
+                        new AuthenticatingAsyncDecorator(exchangeHandler, new BasicTestAuthenticator("test:test", "test realm")) {
 
-                    @Override
-                    protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
-                        unauthorized.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
-                    }
-                });
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
+                            @Override
+                            protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
+                                unauthorized.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
+                            }
+                        }));
 
-        final CloseableHttpAsyncClient client = startClient();
+        final TestAsyncClient client = startClient();
 
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))

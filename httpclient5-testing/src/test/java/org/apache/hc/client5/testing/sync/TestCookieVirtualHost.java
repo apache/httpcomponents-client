@@ -33,75 +33,71 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.testing.sync.extension.TestClientResources;
+import org.apache.hc.client5.testing.sync.extension.ClientProtocolLevel;
+import org.apache.hc.client5.testing.sync.extension.TestClient;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.testing.classic.ClassicTestServer;
-import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * This class tests cookie matching when using Virtual Host.
  */
-public class TestCookieVirtualHost {
+public class TestCookieVirtualHost extends AbstractIntegrationTestBase {
 
-    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
-
-    @RegisterExtension
-    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
+    public TestCookieVirtualHost() {
+        super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
+    }
 
     @Test
     public void testCookieMatchingWithVirtualHosts() throws Exception {
-        final ClassicTestServer server = testResources.startServer(null, null, null);
-        server.registerHandlerVirtual("app.mydomain.fr", "*", (request, response, context) -> {
+        configureServer(bootstrap -> bootstrap
+                .register("app.mydomain.fr", "*", (request, response, context) -> {
 
-            final int n = Integer.parseInt(request.getFirstHeader("X-Request").getValue());
-            switch (n) {
-            case 1:
-                // Assert Host is forwarded from URI
-                Assertions.assertEquals("app.mydomain.fr", request
-                        .getFirstHeader("Host").getValue());
+                    final int n = Integer.parseInt(request.getFirstHeader("X-Request").getValue());
+                    switch (n) {
+                        case 1:
+                            // Assert Host is forwarded from URI
+                            Assertions.assertEquals("app.mydomain.fr", request
+                                    .getFirstHeader("Host").getValue());
 
-                response.setCode(HttpStatus.SC_OK);
-                // Respond with Set-Cookie on virtual host domain. This
-                // should be valid.
-                response.addHeader(new BasicHeader("Set-Cookie",
-                        "name1=value1; domain=mydomain.fr; path=/"));
-                break;
+                            response.setCode(HttpStatus.SC_OK);
+                            // Respond with Set-Cookie on virtual host domain. This
+                            // should be valid.
+                            response.addHeader(new BasicHeader("Set-Cookie",
+                                    "name1=value1; domain=mydomain.fr; path=/"));
+                            break;
 
-            case 2:
-                // Assert Host is still forwarded from URI
-                Assertions.assertEquals("app.mydomain.fr", request
-                        .getFirstHeader("Host").getValue());
+                        case 2:
+                            // Assert Host is still forwarded from URI
+                            Assertions.assertEquals("app.mydomain.fr", request
+                                    .getFirstHeader("Host").getValue());
 
-                // We should get our cookie back.
-                Assertions.assertNotNull(request.getFirstHeader("Cookie"), "We must get a cookie header");
-                response.setCode(HttpStatus.SC_OK);
-                break;
+                            // We should get our cookie back.
+                            Assertions.assertNotNull(request.getFirstHeader("Cookie"), "We must get a cookie header");
+                            response.setCode(HttpStatus.SC_OK);
+                            break;
 
-            case 3:
-                // Assert Host is forwarded from URI
-                Assertions.assertEquals("app.mydomain.fr", request
-                        .getFirstHeader("Host").getValue());
+                        case 3:
+                            // Assert Host is forwarded from URI
+                            Assertions.assertEquals("app.mydomain.fr", request
+                                    .getFirstHeader("Host").getValue());
 
-                response.setCode(HttpStatus.SC_OK);
-                break;
-            default:
-                Assertions.fail("Unexpected value: " + n);
-                break;
-            }
-        });
+                            response.setCode(HttpStatus.SC_OK);
+                            break;
+                        default:
+                            Assertions.fail("Unexpected value: " + n);
+                            break;
+                    }
+                }));
 
-        final HttpHost target = testResources.targetHost();
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = testResources.startClient(b -> {});
+        final TestClient client = client();
 
         final CookieStore cookieStore = new BasicCookieStore();
         final HttpClientContext context = HttpClientContext.create();

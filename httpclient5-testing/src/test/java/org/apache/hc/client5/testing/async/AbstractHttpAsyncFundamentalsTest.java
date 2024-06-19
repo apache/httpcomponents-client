@@ -40,8 +40,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
-import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.testing.async.extension.ClientProtocolLevel;
+import org.apache.hc.client5.testing.async.extension.ServerProtocolLevel;
+import org.apache.hc.client5.testing.async.extension.TestAsyncClient;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHost;
@@ -53,26 +55,22 @@ import org.apache.hc.core5.http.nio.entity.AsyncEntityProducers;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
-import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 
-public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase {
+public abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrationTestBase {
 
-    protected AbstractHttpAsyncFundamentalsTest(final URIScheme scheme) {
-        super(scheme);
+    protected AbstractHttpAsyncFundamentalsTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
+        super(scheme, clientProtocolLevel, serverProtocolLevel);
     }
-
-    abstract protected H2TestServer startServer() throws Exception;
-
-    abstract protected T startClient() throws Exception;
 
     @Test
     public void testSequentialGetRequests() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
-        final T client = startClient();
+        configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
+        final HttpHost target = startServer();
+
+        final TestAsyncClient client = startClient();
+
         for (int i = 0; i < 3; i++) {
             final Future<SimpleHttpResponse> future = client.execute(
                     SimpleRequestBuilder.get()
@@ -90,10 +88,9 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
 
     @Test
     public void testSequentialHeadRequests() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
-        final T client = startClient();
+        configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
+        final HttpHost target = startServer();
+        final TestAsyncClient client = startClient();
         for (int i = 0; i < 3; i++) {
             final Future<SimpleHttpResponse> future = client.execute(
                     SimpleRequestBuilder.head()
@@ -110,10 +107,9 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
 
     @Test
     public void testSequentialPostRequests() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/echo/*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
-        final T client = startClient();
+        configureServer(bootstrap -> bootstrap.register("/echo/*", AsyncEchoHandler::new));
+        final HttpHost target = startServer();
+        final TestAsyncClient client = startClient();
         for (int i = 0; i < 3; i++) {
             final byte[] b1 = new byte[1024];
             final Random rnd = new Random(System.currentTimeMillis());
@@ -133,10 +129,9 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
 
     @Test
     public void testConcurrentPostRequests() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/echo/*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
-        final T client = startClient();
+        configureServer(bootstrap -> bootstrap.register("/echo/*", AsyncEchoHandler::new));
+        final HttpHost target = startServer();
+        final TestAsyncClient client = startClient();
         final byte[] b1 = new byte[1024];
         final Random rnd = new Random(System.currentTimeMillis());
         rnd.nextBytes(b1);
@@ -165,10 +160,9 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
 
     @Test
     public void testRequestExecutionFromCallback() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
-        final T client = startClient();
+        configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
+        final HttpHost target = startServer();
+        final TestAsyncClient client = startClient();
         final int requestNum = 50;
         final AtomicInteger count = new AtomicInteger(requestNum);
         final Queue<SimpleHttpResponse> resultQueue = new ConcurrentLinkedQueue<>();
@@ -233,10 +227,9 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
 
     @Test
     public void testBadRequest() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
-        final T client = startClient();
+        configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
+        final HttpHost target = startServer();
+        final TestAsyncClient client = startClient();
         final Future<SimpleHttpResponse> future = client.execute(
                 SimpleRequestBuilder.get()
                         .setHttpHost(target)

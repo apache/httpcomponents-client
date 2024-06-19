@@ -41,13 +41,15 @@ import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.OldPathRedirectResolver;
-import org.apache.hc.client5.testing.SSLTestContexts;
+import org.apache.hc.client5.testing.async.extension.ClientProtocolLevel;
+import org.apache.hc.client5.testing.async.extension.ServerProtocolLevel;
+import org.apache.hc.client5.testing.async.extension.TestAsyncClient;
+import org.apache.hc.client5.testing.async.extension.TestAsyncServer;
+import org.apache.hc.client5.testing.async.extension.TestAsyncServerBootstrap;
 import org.apache.hc.client5.testing.redirect.Redirect;
-import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -55,48 +57,31 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.Http1Config;
-import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
-import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.net.URIBuilder;
-import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.apache.hc.core5.util.TimeValue;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase {
+public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegrationTestBase {
 
-    private final HttpVersion version;
-
-    public AbstractHttpAsyncRedirectsTest(final URIScheme scheme, final HttpVersion version) {
-        super(scheme);
-        this.version = version;
+    public AbstractHttpAsyncRedirectsTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
+        super(scheme, clientProtocolLevel, serverProtocolLevel);
     }
-
-    abstract protected H2TestServer startServer(final Decorator<AsyncServerExchangeHandler> exchangeHandlerDecorator) throws Exception;
-
-    protected H2TestServer startServer() throws Exception {
-        return startServer(null);
-    }
-
-    abstract protected T startClient() throws Exception;
 
     @Test
     public void testBasicRedirect300() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES)));
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES))));
+        final HttpHost target = startServer();
 
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
-
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = client.execute(
@@ -115,13 +100,14 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect301() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY)));
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY))));
+        final HttpHost target = startServer();
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = client.execute(
@@ -141,13 +127,14 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect302() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)));
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY))));
+        final HttpHost target = startServer();
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = client.execute(
@@ -167,19 +154,20 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect302NoLocation() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                requestUri -> {
-                    final String path = requestUri.getPath();
-                    if (path.startsWith("/oldlocation")) {
-                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, null);
-                    }
-                    return null;
-                }));
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        requestUri -> {
+                            final String path = requestUri.getPath();
+                            if (path.startsWith("/oldlocation")) {
+                                return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, null);
+                            }
+                            return null;
+                        })));
+        final HttpHost target = startServer();
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = client.execute(
@@ -198,13 +186,15 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect303() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_SEE_OTHER)));
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_SEE_OTHER))));
 
-        final T client = startClient();
+        final HttpHost target = startServer();
+
+        final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = client.execute(
@@ -224,19 +214,19 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect304() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/random/*", AsyncRandomHandler::new);
-        server.register("/oldlocation/*", () -> new AbstractSimpleServerExchangeHandler() {
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .register("/oldlocation/*", () -> new AbstractSimpleServerExchangeHandler() {
 
-            @Override
-            protected SimpleHttpResponse handle(final SimpleHttpRequest request,
-                                                final HttpCoreContext context) throws HttpException {
-                return SimpleHttpResponse.create(HttpStatus.SC_NOT_MODIFIED, (String) null);
-            }
-        });
-        final HttpHost target = targetHost();
+                    @Override
+                    protected SimpleHttpResponse handle(final SimpleHttpRequest request,
+                                                        final HttpCoreContext context) throws HttpException {
+                        return SimpleHttpResponse.create(HttpStatus.SC_NOT_MODIFIED, (String) null);
+                    }
+                }));
+        final HttpHost target = startServer();
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = client.execute(
@@ -255,19 +245,19 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect305() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/random/*", AsyncRandomHandler::new);
-        server.register("/oldlocation/*", () -> new AbstractSimpleServerExchangeHandler() {
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .register("/oldlocation/*", () -> new AbstractSimpleServerExchangeHandler() {
 
-            @Override
-            protected SimpleHttpResponse handle(final SimpleHttpRequest request,
-                                                final HttpCoreContext context) throws HttpException {
-                return SimpleHttpResponse.create(HttpStatus.SC_USE_PROXY, (String) null);
-            }
-        });
-        final HttpHost target = targetHost();
+                    @Override
+                    protected SimpleHttpResponse handle(final SimpleHttpRequest request,
+                                                        final HttpCoreContext context) throws HttpException {
+                        return SimpleHttpResponse.create(HttpStatus.SC_USE_PROXY, (String) null);
+                    }
+                }));
+        final HttpHost target = startServer();
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = client.execute(
@@ -286,13 +276,14 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect307() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_TEMPORARY_REDIRECT)));
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_TEMPORARY_REDIRECT))));
+        final HttpHost target = startServer();
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = client.execute(
@@ -312,14 +303,15 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testMaxRedirectCheck() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
-                        HttpStatus.SC_MOVED_TEMPORARILY)));
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
+                                HttpStatus.SC_MOVED_TEMPORARILY))));
+        final HttpHost target = startServer();
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final RequestConfig config = RequestConfig.custom()
                 .setCircularRedirectsAllowed(true)
@@ -337,14 +329,15 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testCircularRedirect() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
-                        HttpStatus.SC_MOVED_TEMPORARILY)));
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
+                                HttpStatus.SC_MOVED_TEMPORARILY))));
+        final HttpHost target = startServer();
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final RequestConfig config = RequestConfig.custom()
                 .setCircularRedirectsAllowed(false)
@@ -363,14 +356,14 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testPostRedirect() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_TEMPORARY_REDIRECT)));
+        configureServer(bootstrap -> bootstrap
+                .register("/echo/*", AsyncEchoHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_TEMPORARY_REDIRECT))));
+        final HttpHost target = startServer();
 
-        server.register("/echo/*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
-
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = client.execute(
@@ -391,14 +384,14 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testPostRedirectSeeOther() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_SEE_OTHER)));
+        configureServer(bootstrap -> bootstrap
+                .register("/echo/*", AsyncEchoHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_SEE_OTHER))));
+        final HttpHost target = startServer();
 
-        server.register("/echo/*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
-
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = client.execute(
@@ -419,21 +412,21 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testRelativeRedirect() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                requestUri -> {
-                    final String path = requestUri.getPath();
-                    if (path.startsWith("/oldlocation")) {
-                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/random/100");
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        requestUri -> {
+                            final String path = requestUri.getPath();
+                            if (path.startsWith("/oldlocation")) {
+                                return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/random/100");
 
-                    }
-                    return null;
-                }));
+                            }
+                            return null;
+                        })));
+        final HttpHost target = startServer();
 
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
-
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -454,21 +447,21 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testRelativeRedirect2() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                requestUri -> {
-                    final String path = requestUri.getPath();
-                    if (path.equals("/random/oldlocation")) {
-                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "100");
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        requestUri -> {
+                            final String path = requestUri.getPath();
+                            if (path.equals("/random/oldlocation")) {
+                                return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "100");
 
-                    }
-                    return null;
-                }));
+                            }
+                            return null;
+                        })));
+        final HttpHost target = startServer();
 
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
-
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -489,20 +482,21 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testRejectBogusRedirectLocation() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                requestUri -> {
-                    final String path = requestUri.getPath();
-                    if (path.equals("/oldlocation/")) {
-                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "xxx://bogus");
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        requestUri -> {
+                            final String path = requestUri.getPath();
+                            if (path.equals("/oldlocation/")) {
+                                return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "xxx://bogus");
 
-                    }
-                    return null;
-                }));
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
+                            }
+                            return null;
+                        })));
+        final HttpHost target = startServer();
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final ExecutionException exception = Assertions.assertThrows(ExecutionException.class, () -> {
             final Future<SimpleHttpResponse> future = client.execute(
@@ -517,20 +511,20 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testRejectInvalidRedirectLocation() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                requestUri -> {
-                    final String path = requestUri.getPath();
-                    if (path.equals("/oldlocation/")) {
-                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/newlocation/?p=I have spaces");
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        requestUri -> {
+                            final String path = requestUri.getPath();
+                            if (path.equals("/oldlocation/")) {
+                                return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/newlocation/?p=I have spaces");
+                            }
+                            return null;
+                        })));
+        final HttpHost target = startServer();
 
-                    }
-                    return null;
-                }));
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
-
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final ExecutionException exception = Assertions.assertThrows(ExecutionException.class, () -> {
             final Future<SimpleHttpResponse> future = client.execute(
@@ -545,16 +539,16 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testRedirectWithCookie() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                exchangeHandler,
-                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)));
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", AsyncRandomHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY))));
+        final HttpHost target = startServer();
+
+        final TestAsyncClient client = startClient();
 
         final CookieStore cookieStore = new BasicCookieStore();
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
-
-        final T client = startClient();
-
         final HttpClientContext context = HttpClientContext.create();
         context.setCookieStore(cookieStore);
 
@@ -584,38 +578,34 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
     @Test
     public void testCrossSiteRedirect() throws Exception {
         final URIScheme scheme = scheme();
-        final H2TestServer secondServer = new H2TestServer(IOReactorConfig.DEFAULT,
-                scheme == URIScheme.HTTPS ? SSLTestContexts.createServerSSLContext() : null, null, null);
+        final TestAsyncServer secondServer = new TestAsyncServerBootstrap(scheme(), getServerProtocolLevel())
+                .register("/random/*", AsyncRandomHandler::new)
+                .build();
         try {
-            secondServer.register("/random/*", AsyncRandomHandler::new);
-            final InetSocketAddress address2;
-            if (version.greaterEquals(HttpVersion.HTTP_2)) {
-                address2 = secondServer.start(H2Config.DEFAULT);
-            } else {
-                address2 = secondServer.start(Http1Config.DEFAULT);
-            }
+            final InetSocketAddress address2 = secondServer.start();
+
             final HttpHost redirectTarget = new HttpHost(scheme.name(), "localhost", address2.getPort());
 
-            final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
-                    exchangeHandler,
-                    requestUri -> {
-                        final String path = requestUri.getPath();
-                        if (path.equals("/oldlocation")) {
-                            final URI location = new URIBuilder(requestUri)
-                                    .setHttpHost(redirectTarget)
-                                    .setPath("/random/100")
-                                    .build();
-                            return new Redirect(HttpStatus.SC_MOVED_PERMANENTLY, location.toString());
-                        }
-                        return null;
-                    }));
+            configureServer(bootstrap -> bootstrap
+                    .register("/random/*", AsyncRandomHandler::new)
+                    .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                            exchangeHandler,
+                            requestUri -> {
+                                final String path = requestUri.getPath();
+                                if (path.equals("/oldlocation")) {
+                                    final URI location = new URIBuilder(requestUri)
+                                            .setHttpHost(redirectTarget)
+                                            .setPath("/random/100")
+                                            .build();
+                                    return new Redirect(HttpStatus.SC_MOVED_PERMANENTLY, location.toString());
+                                }
+                                return null;
+                            })));
+            final HttpHost target = startServer();
 
-            server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
+            final TestAsyncClient client = startClient();
 
-        final T client = startClient();
-
-        final HttpClientContext context = HttpClientContext.create();
+            final HttpClientContext context = HttpClientContext.create();
             final Future<SimpleHttpResponse> future = client.execute(
                     SimpleRequestBuilder.get()
                             .setHttpHost(target)

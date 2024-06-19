@@ -31,8 +31,10 @@ import java.io.IOException;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.testing.sync.extension.TestClientResources;
+import org.apache.hc.client5.testing.sync.extension.ClientProtocolLevel;
+import org.apache.hc.client5.testing.sync.extension.TestClient;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.EndpointDetails;
@@ -44,22 +46,20 @@ import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.testing.classic.ClassicTestServer;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Test cases for state-ful connections.
  */
-public class TestStatefulConnManagement {
+public class TestStatefulConnManagement extends AbstractIntegrationTestBase {
 
-    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
     public static final Timeout LONG_TIMEOUT = Timeout.ofMinutes(3);
 
-    @RegisterExtension
-    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
+    public TestStatefulConnManagement() {
+        super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
+    }
 
     private static class SimpleService implements HttpRequestHandler {
 
@@ -80,9 +80,9 @@ public class TestStatefulConnManagement {
 
     @Test
     public void testStatefulConnections() throws Exception {
-        final ClassicTestServer server = testResources.startServer(null, null, null);
-        server.registerHandler("*", new SimpleService());
-        final HttpHost target = testResources.targetHost();
+        configureServer(bootstrap -> bootstrap
+                .register("*", new SimpleService()));
+        final HttpHost target = startServer();
 
         final int workerCount = 5;
         final int requestCount = 5;
@@ -92,13 +92,13 @@ public class TestStatefulConnManagement {
             return id;
         };
 
-        final CloseableHttpClient client = testResources.startClient(
-                builder -> builder
-                        .setMaxConnTotal(workerCount)
-                        .setMaxConnPerRoute(workerCount),
-                builder -> builder
-                        .setUserTokenHandler(userTokenHandler)
-        );
+        configureClient(builder -> builder
+                .setUserTokenHandler(userTokenHandler));
+        final TestClient client = client();
+
+        final PoolingHttpClientConnectionManager connectionManager = client.getConnectionManager();
+        connectionManager.setMaxTotal(workerCount);
+        connectionManager.setDefaultMaxPerRoute(workerCount);
 
         final HttpClientContext[] contexts = new HttpClientContext[workerCount];
         final HttpWorker[] workers = new HttpWorker[workerCount];
@@ -194,9 +194,8 @@ public class TestStatefulConnManagement {
 
     @Test
     public void testRouteSpecificPoolRecylcing() throws Exception {
-        final ClassicTestServer server = testResources.startServer(null, null, null);
-        server.registerHandler("*", new SimpleService());
-        final HttpHost target = testResources.targetHost();
+        configureServer(bootstrap -> bootstrap.register("*", new SimpleService()));
+        final HttpHost target = startServer();
 
         // This tests what happens when a maxed connection pool needs
         // to kill the last idle connection to a route to build a new
@@ -204,16 +203,13 @@ public class TestStatefulConnManagement {
 
         final int maxConn = 2;
 
+        configureClient(builder -> builder
+                .setUserTokenHandler((route, context) -> context.getAttribute("user")));
+        final TestClient client = client();
 
-        final UserTokenHandler userTokenHandler = (route, context) -> context.getAttribute("user");
-
-        final CloseableHttpClient client = testResources.startClient(
-                builder -> builder
-                        .setMaxConnTotal(maxConn)
-                        .setMaxConnPerRoute(maxConn),
-                builder -> builder
-                        .setUserTokenHandler(userTokenHandler)
-        );
+        final PoolingHttpClientConnectionManager connectionManager = client.getConnectionManager();
+        connectionManager.setMaxTotal(maxConn);
+        connectionManager.setDefaultMaxPerRoute(maxConn);
 
         // Bottom of the pool : a *keep alive* connection to Route 1.
         final HttpContext context1 = HttpClientContext.create();
@@ -232,7 +228,7 @@ public class TestStatefulConnManagement {
         // Send a very simple HTTP get (it MUST be simple, no auth, no proxy, no 302, no 401, ...)
         // Send it to another route. Must be a keepalive.
         final HttpContext context2 = HttpClientContext.create();
-        client.execute(new HttpHost("127.0.0.1", server.getPort()), new HttpGet("/"), context2, response -> {
+        client.execute(new HttpHost("127.0.0.1", target.getPort()), new HttpGet("/"), context2, response -> {
             EntityUtils.consume(response.getEntity());
             return null;
         });

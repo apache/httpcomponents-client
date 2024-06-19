@@ -24,16 +24,11 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.testing.async;
 
-import org.apache.hc.client5.testing.async.extension.ClientProtocolLevel;
-import org.apache.hc.client5.testing.async.extension.ServerProtocolLevel;
-import org.apache.hc.core5.http.URIScheme;
+package org.apache.hc.client5.testing.async.extension;
 
-public abstract class TestH2AsyncMinimal extends AbstractHttpAsyncFundamentalsTest {
+public enum ServerProtocolLevel {
 
-    public TestH2AsyncMinimal(final URIScheme scheme) {
-        super(scheme, ClientProtocolLevel.MINIMAL_H2_ONLY, ServerProtocolLevel.H2_ONLY);
-    }
+    STANDARD, H2_ONLY
 
 }

@@ -33,7 +33,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Consumer;
 
 import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.ClientProtocolException;
@@ -43,8 +42,6 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectLocations;
@@ -53,7 +50,8 @@ import org.apache.hc.client5.testing.classic.EchoHandler;
 import org.apache.hc.client5.testing.classic.RandomHandler;
 import org.apache.hc.client5.testing.classic.RedirectingDecorator;
 import org.apache.hc.client5.testing.redirect.Redirect;
-import org.apache.hc.client5.testing.sync.extension.TestClientResources;
+import org.apache.hc.client5.testing.sync.extension.ClientProtocolLevel;
+import org.apache.hc.client5.testing.sync.extension.TestClient;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
@@ -69,59 +67,31 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.net.URIBuilder;
-import org.apache.hc.core5.testing.classic.ClassicTestServer;
-import org.apache.hc.core5.util.Timeout;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Redirection test cases.
  */
-public abstract class TestRedirects {
-
-    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
-
-    @RegisterExtension
-    private TestClientResources testResources;
+public abstract class TestRedirects extends AbstractIntegrationTestBase {
 
     protected TestRedirects(final URIScheme scheme) {
-        this.testResources = new TestClientResources(scheme, TIMEOUT);
-    }
-
-    public URIScheme scheme() {
-        return testResources.scheme();
-    }
-
-    public ClassicTestServer startServer(final HttpProcessor httpProcessor,
-                                         final Decorator<HttpServerRequestHandler> handlerDecorator) throws IOException {
-        return testResources.startServer(null, httpProcessor, handlerDecorator);
-    }
-
-    public CloseableHttpClient startClient(final Consumer<HttpClientBuilder> clientCustomizer) throws Exception {
-        return testResources.startClient(clientCustomizer);
-    }
-
-    public CloseableHttpClient startClient() throws Exception {
-        return testResources.startClient(builder -> {});
-    }
-
-    public HttpHost targetHost() {
-        return testResources.targetHost();
+        super(scheme, ClientProtocolLevel.STANDARD);
     }
 
     @Test
     public void testBasicRedirect300() throws Exception {
-        final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES)));
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES)))
+                .register("/random/*", new RandomHandler())
+        );
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/100");
@@ -141,14 +111,16 @@ public abstract class TestRedirects {
 
     @Test
     public void testBasicRedirect300NoKeepAlive() throws Exception {
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES,
-                        Redirect.ConnControl.CLOSE)));
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES,
+                                Redirect.ConnControl.CLOSE)))
+                .register("/random/*", new RandomHandler())
+        );
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/100");
@@ -169,13 +141,14 @@ public abstract class TestRedirects {
 
     @Test
     public void testBasicRedirect301() throws Exception {
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY)));
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY)))
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/100");
@@ -200,13 +173,14 @@ public abstract class TestRedirects {
 
     @Test
     public void testBasicRedirect302() throws Exception {
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)));
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)))
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/50");
@@ -225,19 +199,20 @@ public abstract class TestRedirects {
 
     @Test
     public void testBasicRedirect302NoLocation() throws Exception {
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                requestUri -> {
-                    final String path = requestUri.getPath();
-                    if (path.startsWith("/oldlocation")) {
-                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, null);
-                    }
-                    return null;
-                }));
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        requestUri -> {
+                            final String path = requestUri.getPath();
+                            if (path.startsWith("/oldlocation")) {
+                                return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, null);
+                            }
+                            return null;
+                        }))
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/100");
@@ -255,13 +230,14 @@ public abstract class TestRedirects {
 
     @Test
     public void testBasicRedirect303() throws Exception {
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_SEE_OTHER)));
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_SEE_OTHER)))
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/123");
@@ -279,16 +255,15 @@ public abstract class TestRedirects {
 
     @Test
     public void testBasicRedirect304() throws Exception {
-        final ClassicTestServer server = startServer(null ,null);
-        server.registerHandler("/oldlocation/*", (request, response, context) -> {
-            response.setCode(HttpStatus.SC_NOT_MODIFIED);
-            response.addHeader(HttpHeaders.LOCATION, "/random/100");
-        });
+        configureServer(bootstrap -> bootstrap
+                .register("/oldlocation/*", (request, response, context) -> {
+                    response.setCode(HttpStatus.SC_NOT_MODIFIED);
+                    response.addHeader(HttpHeaders.LOCATION, "/random/100");
+                })
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
-
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/stuff");
@@ -310,16 +285,15 @@ public abstract class TestRedirects {
 
     @Test
     public void testBasicRedirect305() throws Exception {
-        final ClassicTestServer server =  startServer(null ,null);
-        server.registerHandler("/oldlocation/*", (request, response, context) -> {
-            response.setCode(HttpStatus.SC_USE_PROXY);
-            response.addHeader(HttpHeaders.LOCATION, "/random/100");
-        });
+        configureServer(bootstrap -> bootstrap
+                .register("/oldlocation/*", (request, response, context) -> {
+                    response.setCode(HttpStatus.SC_USE_PROXY);
+                    response.addHeader(HttpHeaders.LOCATION, "/random/100");
+                })
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
-
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/stuff");
@@ -341,13 +315,14 @@ public abstract class TestRedirects {
 
     @Test
     public void testBasicRedirect307() throws Exception {
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_TEMPORARY_REDIRECT)));
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_TEMPORARY_REDIRECT)))
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/123");
@@ -365,14 +340,15 @@ public abstract class TestRedirects {
 
     @Test
     public void testMaxRedirectCheck() throws Exception {
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
-                        HttpStatus.SC_MOVED_TEMPORARILY)));
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
+                                HttpStatus.SC_MOVED_TEMPORARILY)))
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final RequestConfig config = RequestConfig.custom()
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(5)
@@ -387,14 +363,16 @@ public abstract class TestRedirects {
 
     @Test
     public void testCircularRedirect() throws Exception {
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
-                        HttpStatus.SC_MOVED_TEMPORARILY)));
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
+                                HttpStatus.SC_MOVED_TEMPORARILY)))
+                .register("/random/*", new RandomHandler()));
 
-        final CloseableHttpClient client = startClient();
+        final HttpHost target = startServer();
+
+        final TestClient client = client();
         final RequestConfig config = RequestConfig.custom()
                 .setCircularRedirectsAllowed(false)
                 .build();
@@ -408,13 +386,14 @@ public abstract class TestRedirects {
 
     @Test
     public void testPostRedirectSeeOther() throws Exception {
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_SEE_OTHER)));
-        server.registerHandler("/echo/*", new EchoHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_SEE_OTHER)))
+                .register("/echo/*", new EchoHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpPost httppost = new HttpPost("/oldlocation/stuff");
@@ -434,19 +413,21 @@ public abstract class TestRedirects {
 
     @Test
     public void testRelativeRedirect() throws Exception {
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                requestUri -> {
-                    final String path = requestUri.getPath();
-                    if (path.startsWith("/oldlocation")) {
-                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/random/100");
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        requestUri -> {
+                            final String path = requestUri.getPath();
+                            if (path.startsWith("/oldlocation")) {
+                                return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/random/100");
 
-                    }
-                    return null;
-                }));        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+                            }
+                            return null;
+                        }))
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/stuff");
@@ -464,20 +445,21 @@ public abstract class TestRedirects {
 
     @Test
     public void testRelativeRedirect2() throws Exception {
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                requestUri -> {
-                    final String path = requestUri.getPath();
-                    if (path.equals("/random/oldlocation")) {
-                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "100");
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        requestUri -> {
+                            final String path = requestUri.getPath();
+                            if (path.equals("/random/oldlocation")) {
+                                return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "100");
 
-                    }
-                    return null;
-                }));
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+                            }
+                            return null;
+                        }))
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/random/oldlocation");
@@ -495,20 +477,21 @@ public abstract class TestRedirects {
 
     @Test
     public void testRejectBogusRedirectLocation() throws Exception {
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                requestUri -> {
-                    final String path = requestUri.getPath();
-                    if (path.equals("/oldlocation")) {
-                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "xxx://bogus");
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        requestUri -> {
+                            final String path = requestUri.getPath();
+                            if (path.equals("/oldlocation")) {
+                                return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "xxx://bogus");
 
-                    }
-                    return null;
-                }));
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+                            }
+                            return null;
+                        }))
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpGet httpget = new HttpGet("/oldlocation");
 
         final ClientProtocolException exception = Assertions.assertThrows(ClientProtocolException.class, () ->
@@ -518,20 +501,21 @@ public abstract class TestRedirects {
 
     @Test
     public void testRejectInvalidRedirectLocation() throws Exception {
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                requestUri -> {
-                    final String path = requestUri.getPath();
-                    if (path.equals("/oldlocation")) {
-                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/newlocation/?p=I have spaces");
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        requestUri -> {
+                            final String path = requestUri.getPath();
+                            if (path.equals("/oldlocation")) {
+                                return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/newlocation/?p=I have spaces");
 
-                    }
-                    return null;
-                }));
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+                            }
+                            return null;
+                        }))
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpGet httpget = new HttpGet("/oldlocation");
 
         final ClientProtocolException exception = Assertions.assertThrows(ClientProtocolException.class, () ->
@@ -541,13 +525,14 @@ public abstract class TestRedirects {
 
     @Test
     public void testRedirectWithCookie() throws Exception {
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)));
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)))
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final CookieStore cookieStore = new BasicCookieStore();
 
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
@@ -577,16 +562,18 @@ public abstract class TestRedirects {
 
     @Test
     public void testDefaultHeadersRedirect() throws Exception {
-        final CloseableHttpClient client = startClient(builder -> builder
+        configureClient(builder -> builder
                 .setDefaultHeaders(Collections.singletonList(new BasicHeader(HttpHeaders.USER_AGENT, "my-test-client")))
         );
 
-         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
-                requestHandler,
-                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)));
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)))
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
+        final TestClient client = client();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/100");
@@ -608,33 +595,34 @@ public abstract class TestRedirects {
     @Test
     public void testCompressionHeaderRedirect() throws Exception {
         final Queue<String> values = new ConcurrentLinkedQueue<>();
-         final ClassicTestServer server = startServer(null, new Decorator<HttpServerRequestHandler>() {
-
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)) {
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(new Decorator<HttpServerRequestHandler>() {
 
                     @Override
-                    public void handle(final ClassicHttpRequest request,
-                                       final ResponseTrigger responseTrigger,
-                                       final HttpContext context) throws HttpException, IOException {
-                        final Header header = request.getHeader(HttpHeaders.ACCEPT_ENCODING);
-                        if (header != null) {
-                            values.add(header.getValue());
-                        }
-                        super.handle(request, responseTrigger, context);
+                    public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
+                        return new RedirectingDecorator(
+                                requestHandler,
+                                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)) {
+
+                            @Override
+                            public void handle(final ClassicHttpRequest request,
+                                               final ResponseTrigger responseTrigger,
+                                               final HttpContext context) throws HttpException, IOException {
+                                final Header header = request.getHeader(HttpHeaders.ACCEPT_ENCODING);
+                                if (header != null) {
+                                    values.add(header.getValue());
+                                }
+                                super.handle(request, responseTrigger, context);
+                            }
+
+                        };
                     }
 
-                };
-            }
+                })
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
 
-        });
-        server.registerHandler("/random/*", new RandomHandler());
-        final HttpHost target = targetHost();
-
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/100");
