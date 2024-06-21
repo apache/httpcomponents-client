@@ -24,68 +24,51 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.classic;
-
-import java.io.IOException;
+package org.apache.hc.client5.testing.sync;
 
 import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.testing.sync.extension.ClientProtocolLevel;
+import org.apache.hc.client5.testing.sync.extension.TestClient;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
-import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.io.CloseMode;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("boxing") // test code
-public class TestHttpClientBuilderInterceptors {
+public class TestHttpClientBuilderInterceptors extends AbstractIntegrationTestBase {
 
-    private HttpServer localServer;
-    private String uri;
-    private CloseableHttpClient httpClient;
+    public TestHttpClientBuilderInterceptors() {
+        super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
+    }
 
     @BeforeEach
     public void before() throws Exception {
-        this.localServer = ServerBootstrap.bootstrap()
+        configureServer(bootstrap -> bootstrap
                 .register("/test", (request, response, context) -> {
                     final Header testInterceptorHeader = request.getHeader("X-Test-Interceptor");
                     if (testInterceptorHeader != null) {
                         response.setHeader(testInterceptorHeader);
                     }
                     response.setCode(200);
-                }).create();
-
-        this.localServer.start();
-        uri = "http://localhost:" + this.localServer.getLocalPort() + "/test";
-        final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
-                .setMaxConnPerRoute(5)
-                .build();
-        httpClient = HttpClientBuilder.create()
-                .setConnectionManager(cm)
+                }));
+        configureClient(builder -> builder
                 .addExecInterceptorLast("test-interceptor", (request, scope, chain) -> {
                     request.setHeader("X-Test-Interceptor", "active");
                     return chain.proceed(request, scope);
-                })
-                .build();
-    }
-
-    @AfterEach
-    public void after() throws Exception {
-        this.httpClient.close(CloseMode.IMMEDIATE);
-        this.localServer.stop();
+                }));
     }
 
     @Test
-    public void testAddExecInterceptorLastShouldBeExecuted() throws IOException, HttpException {
-        final ClassicHttpRequest request = new HttpPost(uri);
-        final HttpResponse response = httpClient.execute(request, httpResponse -> {
+    public void testAddExecInterceptorLastShouldBeExecuted() throws Exception {
+        final HttpHost httpHost = startServer();
+        final TestClient client = client();
+        final ClassicHttpRequest request = new HttpPost("/test");
+        final HttpResponse response = client.execute(httpHost, request, httpResponse -> {
             EntityUtils.consume(httpResponse.getEntity());
             return httpResponse;
         });
