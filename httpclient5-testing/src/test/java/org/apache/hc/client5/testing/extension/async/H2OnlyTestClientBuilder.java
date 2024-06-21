@@ -25,48 +25,40 @@
  *
  */
 
-package org.apache.hc.client5.testing.async.extension;
+package org.apache.hc.client5.testing.extension.async;
 
 import java.util.Collection;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
-import org.apache.hc.client5.http.HttpRequestRetryStrategy;
-import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.config.ConnectionConfig;
-import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.impl.async.H2AsyncClientBuilder;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
-import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.Timeout;
 
-final class StandardTestClientBuilder implements TestAsyncClientBuilder {
+final class H2OnlyTestClientBuilder implements TestAsyncClientBuilder {
 
-    private final PoolingAsyncClientConnectionManagerBuilder connectionManagerBuilder;
-    private final HttpAsyncClientBuilder clientBuilder;
+    private final H2AsyncClientBuilder clientBuilder;
 
     private Timeout timeout;
     private TlsStrategy tlsStrategy;
+    private H2Config h2Config;
 
-    public StandardTestClientBuilder() {
-        this.connectionManagerBuilder = PoolingAsyncClientConnectionManagerBuilder.create();
-        this.clientBuilder = HttpAsyncClientBuilder.create();
+    public H2OnlyTestClientBuilder() {
+        this.clientBuilder = H2AsyncClientBuilder.create();
     }
 
     @Override
     public ClientProtocolLevel getProtocolLevel() {
-        return ClientProtocolLevel.STANDARD;
+        return ClientProtocolLevel.H2_ONLY;
     }
 
     @Override
@@ -106,38 +98,14 @@ final class StandardTestClientBuilder implements TestAsyncClientBuilder {
     }
 
     @Override
-    public TestAsyncClientBuilder setDefaultTlsConfig(final TlsConfig tlsConfig) {
-        this.connectionManagerBuilder.setDefaultTlsConfig(tlsConfig);
-        return this;
-    }
-
-    @Override
-    public TestAsyncClientBuilder setHttp1Config(final Http1Config http1Config) {
-        this.clientBuilder.setHttp1Config(http1Config);
-        return this;
-    }
-
-    @Override
     public TestAsyncClientBuilder setH2Config(final H2Config h2Config) {
-        this.clientBuilder.setH2Config(h2Config);
-        return this;
-    }
-
-    @Override
-    public TestAsyncClientBuilder setUserTokenHandler(final UserTokenHandler userTokenHandler) {
-        this.clientBuilder.setUserTokenHandler(userTokenHandler);
+        this.h2Config = h2Config;
         return this;
     }
 
     @Override
     public TestAsyncClientBuilder setDefaultHeaders(final Collection<? extends Header> defaultHeaders) {
         this.clientBuilder.setDefaultHeaders(defaultHeaders);
-        return this;
-    }
-
-    @Override
-    public TestAsyncClientBuilder setRetryStrategy(final HttpRequestRetryStrategy retryStrategy) {
-        this.clientBuilder.setRetryStrategy(retryStrategy);
         return this;
     }
 
@@ -155,20 +123,14 @@ final class StandardTestClientBuilder implements TestAsyncClientBuilder {
 
     @Override
     public TestAsyncClient build() throws Exception {
-        final PoolingAsyncClientConnectionManager connectionManager = connectionManagerBuilder
-                .setTlsStrategy(tlsStrategy != null ? tlsStrategy : new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
-                .setDefaultConnectionConfig(ConnectionConfig.custom()
-                        .setSocketTimeout(timeout)
-                        .setConnectTimeout(timeout)
-                        .build())
-                .build();
         final CloseableHttpAsyncClient client = clientBuilder
+                .setTlsStrategy(tlsStrategy != null ? tlsStrategy : new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
                 .setIOReactorConfig(IOReactorConfig.custom()
                         .setSoTimeout(timeout)
                         .build())
-                .setConnectionManager(connectionManager)
+                .setH2Config(h2Config)
                 .build();
-        return new TestAsyncClient(client, connectionManager);
+        return new TestAsyncClient(client, null);
     }
 
 }

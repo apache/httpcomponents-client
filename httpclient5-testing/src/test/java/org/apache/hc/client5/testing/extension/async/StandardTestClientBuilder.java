@@ -25,43 +25,77 @@
  *
  */
 
-package org.apache.hc.client5.testing.async.extension;
+package org.apache.hc.client5.testing.extension.async;
 
+import java.util.Collection;
+
+import org.apache.hc.client5.http.AuthenticationStrategy;
+import org.apache.hc.client5.http.HttpRequestRetryStrategy;
+import org.apache.hc.client5.http.UserTokenHandler;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.config.Http1Config;
+import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.Timeout;
 
-final class MinimalTestClientBuilder implements TestAsyncClientBuilder {
+final class StandardTestClientBuilder implements TestAsyncClientBuilder {
 
     private final PoolingAsyncClientConnectionManagerBuilder connectionManagerBuilder;
+    private final HttpAsyncClientBuilder clientBuilder;
 
     private Timeout timeout;
     private TlsStrategy tlsStrategy;
-    private Http1Config http1Config;
-    private H2Config h2Config;
 
-    public MinimalTestClientBuilder() {
+    public StandardTestClientBuilder() {
         this.connectionManagerBuilder = PoolingAsyncClientConnectionManagerBuilder.create();
+        this.clientBuilder = HttpAsyncClientBuilder.create();
     }
 
     @Override
     public ClientProtocolLevel getProtocolLevel() {
-        return ClientProtocolLevel.MINIMAL;
+        return ClientProtocolLevel.STANDARD;
     }
 
     @Override
     public TestAsyncClientBuilder setTimeout(final Timeout timeout) {
         this.timeout = timeout;
+        return this;
+    }
+
+    @Override
+    public TestAsyncClientBuilder addResponseInterceptorFirst(final HttpResponseInterceptor interceptor) {
+        this.clientBuilder.addResponseInterceptorFirst(interceptor);
+        return this;
+    }
+
+    @Override
+    public TestAsyncClientBuilder addResponseInterceptorLast(final HttpResponseInterceptor interceptor) {
+        this.clientBuilder.addResponseInterceptorLast(interceptor);
+        return this;
+    }
+
+    @Override
+    public TestAsyncClientBuilder addRequestInterceptorFirst(final HttpRequestInterceptor interceptor) {
+        this.clientBuilder.addRequestInterceptorFirst(interceptor);
+        return this;
+    }
+
+    @Override
+    public TestAsyncClientBuilder addRequestInterceptorLast(final HttpRequestInterceptor interceptor) {
+        this.clientBuilder.addRequestInterceptorLast(interceptor);
         return this;
     }
 
@@ -79,13 +113,43 @@ final class MinimalTestClientBuilder implements TestAsyncClientBuilder {
 
     @Override
     public TestAsyncClientBuilder setHttp1Config(final Http1Config http1Config) {
-        this.http1Config = http1Config;
+        this.clientBuilder.setHttp1Config(http1Config);
         return this;
     }
 
     @Override
     public TestAsyncClientBuilder setH2Config(final H2Config h2Config) {
-        this.h2Config = h2Config;
+        this.clientBuilder.setH2Config(h2Config);
+        return this;
+    }
+
+    @Override
+    public TestAsyncClientBuilder setUserTokenHandler(final UserTokenHandler userTokenHandler) {
+        this.clientBuilder.setUserTokenHandler(userTokenHandler);
+        return this;
+    }
+
+    @Override
+    public TestAsyncClientBuilder setDefaultHeaders(final Collection<? extends Header> defaultHeaders) {
+        this.clientBuilder.setDefaultHeaders(defaultHeaders);
+        return this;
+    }
+
+    @Override
+    public TestAsyncClientBuilder setRetryStrategy(final HttpRequestRetryStrategy retryStrategy) {
+        this.clientBuilder.setRetryStrategy(retryStrategy);
+        return this;
+    }
+
+    @Override
+    public TestAsyncClientBuilder setTargetAuthenticationStrategy(final AuthenticationStrategy targetAuthStrategy) {
+        this.clientBuilder.setTargetAuthenticationStrategy(targetAuthStrategy);
+        return this;
+    }
+
+    @Override
+    public TestAsyncClientBuilder setDefaultAuthSchemeRegistry(final Lookup<AuthSchemeFactory> authSchemeRegistry) {
+        this.clientBuilder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
         return this;
     }
 
@@ -98,13 +162,12 @@ final class MinimalTestClientBuilder implements TestAsyncClientBuilder {
                         .setConnectTimeout(timeout)
                         .build())
                 .build();
-        final CloseableHttpAsyncClient client = HttpAsyncClients.createMinimal(
-                        h2Config,
-                        http1Config,
-                        IOReactorConfig.custom()
-                                .setSoTimeout(timeout)
-                                .build(),
-                connectionManager);
+        final CloseableHttpAsyncClient client = clientBuilder
+                .setIOReactorConfig(IOReactorConfig.custom()
+                        .setSoTimeout(timeout)
+                        .build())
+                .setConnectionManager(connectionManager)
+                .build();
         return new TestAsyncClient(client, connectionManager);
     }
 

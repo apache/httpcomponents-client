@@ -36,8 +36,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.testing.async.extension.ClientProtocolLevel;
-import org.apache.hc.client5.testing.async.extension.ServerProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;

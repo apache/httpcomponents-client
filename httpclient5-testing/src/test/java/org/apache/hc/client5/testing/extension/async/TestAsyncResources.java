@@ -25,41 +25,50 @@
  *
  */
 
-package org.apache.hc.client5.testing.sync.extension;
+package org.apache.hc.client5.testing.extension.async;
 
 import java.util.function.Consumer;
 
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.testing.extension.sync.TestClientResources;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Asserts;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TestClientResources implements AfterEachCallback {
+public class TestAsyncResources implements AfterEachCallback {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestClientResources.class);
 
     private final URIScheme scheme;
-    private final Timeout timeout;
     private final ClientProtocolLevel clientProtocolLevel;
-    private final TestServerBootstrap serverBootstrap;
-    private final TestClientBuilder clientBuilder;
+    private final ServerProtocolLevel serverProtocolLevel;
+    private final TestAsyncServerBootstrap serverBootstrap;
+    private final TestAsyncClientBuilder clientBuilder;
 
-    private TestServer server;
-    private PoolingHttpClientConnectionManager connManager;
-    private TestClient client;
+    private TestAsyncServer server;
+    private TestAsyncClient client;
 
-    public TestClientResources(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final Timeout timeout) {
+    public TestAsyncResources(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel, final Timeout timeout) {
         this.scheme = scheme != null ? scheme : URIScheme.HTTP;
-        this.timeout = timeout;
         this.clientProtocolLevel = clientProtocolLevel != null ? clientProtocolLevel : ClientProtocolLevel.STANDARD;
-        this.serverBootstrap = new TestServerBootstrap(this.scheme)
-                .setTimeout(this.timeout);
+        this.serverProtocolLevel = serverProtocolLevel != null ? serverProtocolLevel : ServerProtocolLevel.STANDARD;
+        this.serverBootstrap = new TestAsyncServerBootstrap(this.scheme, this.serverProtocolLevel)
+                .setTimeout(timeout);
         switch (this.clientProtocolLevel) {
+            case STANDARD:
+                this.clientBuilder = new StandardTestClientBuilder();
+                break;
+            case H2_ONLY:
+                this.clientBuilder = new H2OnlyTestClientBuilder();
+                break;
+            case MINIMAL_H2_ONLY:
+                this.clientBuilder = new H2OnlyMinimalTestClientBuilder();
+                break;
             case MINIMAL:
                 this.clientBuilder = new MinimalTestClientBuilder();
                 break;
@@ -72,17 +81,11 @@ public class TestClientResources implements AfterEachCallback {
     @Override
     public void afterEach(final ExtensionContext extensionContext) throws Exception {
         LOG.debug("Shutting down test server");
-
         if (client != null) {
             client.close(CloseMode.GRACEFUL);
         }
-
-        if (connManager != null) {
-            connManager.close(CloseMode.IMMEDIATE);
-        }
-
         if (server != null) {
-            server.shutdown(CloseMode.IMMEDIATE);
+            server.shutdown(TimeValue.ofSeconds(5));
         }
     }
 
@@ -90,28 +93,32 @@ public class TestClientResources implements AfterEachCallback {
         return this.scheme;
     }
 
+    public ServerProtocolLevel getServerProtocolLevel() {
+        return serverProtocolLevel;
+    }
+
     public ClientProtocolLevel getClientProtocolLevel() {
         return clientProtocolLevel;
     }
 
-    public void configureServer(final Consumer<TestServerBootstrap> serverCustomizer) {
+    public void configureServer(final Consumer<TestAsyncServerBootstrap> serverCustomizer) {
         Asserts.check(server == null, "Server is already running and cannot be changed");
         serverCustomizer.accept(serverBootstrap);
     }
 
-    public TestServer server() throws Exception {
+    public TestAsyncServer server() throws Exception {
         if (server == null) {
             server = serverBootstrap.build();
         }
         return server;
     }
 
-    public void configureClient(final Consumer<TestClientBuilder> clientCustomizer) {
+    public void configureClient(final Consumer<TestAsyncClientBuilder> clientCustomizer) {
         Asserts.check(client == null, "Client is already running and cannot be changed");
         clientCustomizer.accept(clientBuilder);
     }
 
-    public TestClient client() throws Exception {
+    public TestAsyncClient client() throws Exception {
         if (client == null) {
             client = clientBuilder.build();
         }

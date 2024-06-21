@@ -26,8 +26,8 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import org.apache.hc.client5.testing.async.extension.ClientProtocolLevel;
-import org.apache.hc.client5.testing.async.extension.ServerProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
 import org.apache.hc.core5.http.URIScheme;
 
 public abstract class TestH2AsyncRedirect extends AbstractHttpAsyncRedirectsTest {

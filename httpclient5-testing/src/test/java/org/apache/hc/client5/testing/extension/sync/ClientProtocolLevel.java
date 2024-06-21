@@ -25,10 +25,10 @@
  *
  */
 
-package org.apache.hc.client5.testing.async.extension;
+package org.apache.hc.client5.testing.extension.sync;
 
-public enum ServerProtocolLevel {
+public enum ClientProtocolLevel {
 
-    STANDARD, H2_ONLY
+    STANDARD, MINIMAL
 
 }

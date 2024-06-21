@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.testing.async.extension;
+package org.apache.hc.client5.testing.extension.async;
 
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;

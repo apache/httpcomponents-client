@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.testing.sync.extension;
+package org.apache.hc.client5.testing.extension.sync;
 
 import java.util.ArrayList;
 import java.util.List;

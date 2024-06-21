@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.testing.async.extension;
+package org.apache.hc.client5.testing.extension.async;
 
 import java.io.IOException;
 import java.util.concurrent.Future;

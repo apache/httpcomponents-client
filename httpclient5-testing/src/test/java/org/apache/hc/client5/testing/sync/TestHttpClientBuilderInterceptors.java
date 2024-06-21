@@ -27,8 +27,8 @@
 package org.apache.hc.client5.testing.sync;
 
 import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.testing.sync.extension.ClientProtocolLevel;
-import org.apache.hc.client5.testing.sync.extension.TestClient;
+import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.sync.TestClient;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;

@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.testing.sync.extension;
+package org.apache.hc.client5.testing.extension.sync;
 
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClients;

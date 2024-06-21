@@ -30,12 +30,12 @@ package org.apache.hc.client5.testing.sync;
 import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
-import org.apache.hc.client5.testing.sync.extension.ClientProtocolLevel;
-import org.apache.hc.client5.testing.sync.extension.TestClient;
-import org.apache.hc.client5.testing.sync.extension.TestClientBuilder;
-import org.apache.hc.client5.testing.sync.extension.TestClientResources;
-import org.apache.hc.client5.testing.sync.extension.TestServer;
-import org.apache.hc.client5.testing.sync.extension.TestServerBootstrap;
+import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.sync.TestClient;
+import org.apache.hc.client5.testing.extension.sync.TestClientBuilder;
+import org.apache.hc.client5.testing.extension.sync.TestClientResources;
+import org.apache.hc.client5.testing.extension.sync.TestServer;
+import org.apache.hc.client5.testing.extension.sync.TestServerBootstrap;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.util.Timeout;
