@@ -33,29 +33,37 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
-import org.apache.hc.client5.testing.extension.sync.TestClient;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.URIScheme;
+import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
+import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.io.CloseMode;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
  * This class tests cookie matching when using Virtual Host.
  */
-public class TestCookieVirtualHost extends AbstractIntegrationTestBase {
+public class TestCookieVirtualHost {
 
-    public TestCookieVirtualHost() {
-        super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
+    private HttpServer server;
+
+    @AfterEach
+    public void shutDown() throws Exception {
+        if (this.server != null) {
+            this.server.close(CloseMode.GRACEFUL);
+        }
     }
 
     @Test
     public void testCookieMatchingWithVirtualHosts() throws Exception {
-        configureServer(bootstrap -> bootstrap
+        server = ServerBootstrap.bootstrap()
                 .register("app.mydomain.fr", "*", (request, response, context) -> {
 
                     final int n = Integer.parseInt(request.getFirstHeader("X-Request").getValue());
@@ -93,45 +101,49 @@ public class TestCookieVirtualHost extends AbstractIntegrationTestBase {
                             Assertions.fail("Unexpected value: " + n);
                             break;
                     }
-                }));
+                })
+                .create();
+        server.start();
 
-        final HttpHost target = startServer();
+        final HttpHost target = new HttpHost("localhost", server.getLocalPort());
+        try (final CloseableHttpClient client = HttpClientBuilder.create().build()) {
+            final CookieStore cookieStore = new BasicCookieStore();
+            final HttpClientContext context = HttpClientContext.create();
+            context.setCookieStore(cookieStore);
 
-        final TestClient client = client();
+            // First request : retrieve a domain cookie from remote server.
+            final HttpGet request1 = new HttpGet(new URI("http://app.mydomain.fr"));
+            request1.addHeader("X-Request", "1");
+            client.execute(target, request1, context, response -> {
+                Assertions.assertEquals(200, response.getCode());
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
 
-        final CookieStore cookieStore = new BasicCookieStore();
-        final HttpClientContext context = HttpClientContext.create();
-        context.setCookieStore(cookieStore);
+            // We should have one cookie set on domain.
+            final List<Cookie> cookies = cookieStore.getCookies();
+            Assertions.assertNotNull(cookies);
+            Assertions.assertEquals(1, cookies.size());
+            Assertions.assertEquals("name1", cookies.get(0).getName());
 
-        // First request : retrieve a domain cookie from remote server.
-        final HttpGet request1 = new HttpGet(new URI("http://app.mydomain.fr"));
-        request1.addHeader("X-Request", "1");
-        client.execute(target, request1, context, response -> {
-            EntityUtils.consume(response.getEntity());
-            return null;
-        });
+            // Second request : send the cookie back.
+            final HttpGet request2 = new HttpGet(new URI("http://app.mydomain.fr"));
+            request2.addHeader("X-Request", "2");
+            client.execute(target, request2, context, response -> {
+                Assertions.assertEquals(200, response.getCode());
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
 
-        // We should have one cookie set on domain.
-        final List<Cookie> cookies = cookieStore.getCookies();
-        Assertions.assertNotNull(cookies);
-        Assertions.assertEquals(1, cookies.size());
-        Assertions.assertEquals("name1", cookies.get(0).getName());
-
-        // Second request : send the cookie back.
-        final HttpGet request2 = new HttpGet(new URI("http://app.mydomain.fr"));
-        request2.addHeader("X-Request", "2");
-        client.execute(target, request2, context, response -> {
-            EntityUtils.consume(response.getEntity());
-            return null;
-        });
-
-        // Third request : Host header
-        final HttpGet request3 = new HttpGet(new URI("http://app.mydomain.fr"));
-        request3.addHeader("X-Request", "3");
-        client.execute(target, request3, context, response -> {
-            EntityUtils.consume(response.getEntity());
-            return null;
-        });
+            // Third request : Host header
+            final HttpGet request3 = new HttpGet(new URI("http://app.mydomain.fr"));
+            request3.addHeader("X-Request", "3");
+            client.execute(target, request3, context, response -> {
+                Assertions.assertEquals(200, response.getCode());
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
+        }
     }
 
 }

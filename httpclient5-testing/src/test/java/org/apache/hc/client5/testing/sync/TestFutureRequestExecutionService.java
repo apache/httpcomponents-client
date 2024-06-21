@@ -72,6 +72,7 @@ public class TestFutureRequestExecutionService {
     @BeforeEach
     public void before() throws Exception {
         this.localServer = ServerBootstrap.bootstrap()
+                .setCanonicalHostName("localhost")
                 .register("/wait", (request, response, context) -> {
                     try {
                         while(blocked.get()) {

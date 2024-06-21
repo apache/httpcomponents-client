@@ -100,6 +100,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
+                .setRequestRouter((r, c) -> null)
                 .create();
         // @formatter:on
         this.server.start();
@@ -129,6 +130,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
+                .setRequestRouter((r, c) -> null)
                 .create();
         // @formatter:on
         this.server.start();
@@ -155,6 +157,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
+                .setRequestRouter((r, c) -> null)
                 .create();
         // @formatter:on
         this.server.start();
@@ -185,6 +188,7 @@ public class TestDefaultClientTlsStrategy {
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setSslSetupHandler(sslParameters -> sslParameters.setNeedClientAuth(true))
+                .setRequestRouter((r, c) -> null)
                 .create();
         // @formatter:on
         this.server.start();
@@ -217,6 +221,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
+                .setRequestRouter((r, c) -> null)
                 .create();
         // @formatter:on
         this.server.start();
@@ -250,6 +255,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
+                .setRequestRouter((r, c) -> null)
                 .create();
         // @formatter:on
         this.server.start();
@@ -283,6 +289,7 @@ public class TestDefaultClientTlsStrategy {
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setSslSetupHandler(sslParameters -> sslParameters.setProtocols(new String[] {"SSLv3"}))
+                .setRequestRouter((r, c) -> null)
                 .create();
         // @formatter:on
         this.server.start();
@@ -335,6 +342,7 @@ public class TestDefaultClientTlsStrategy {
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setSslSetupHandler(sslParameters -> sslParameters.setProtocols(new String[] {cipherSuite}))
+                .setRequestRouter((r, c) -> null)
                 .create();
         // @formatter:on
         this.server.start();
@@ -358,6 +366,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
+                .setRequestRouter((r, c) -> null)
                 .create();
         // @formatter:on
         this.server.start();
@@ -419,6 +428,7 @@ public class TestDefaultClientTlsStrategy {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
+                .setRequestRouter((r, c) -> null)
                 .create();
         // @formatter:on
         this.server.start();
