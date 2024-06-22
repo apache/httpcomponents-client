@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
 
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.io.HttpClientConnection;
@@ -54,6 +55,21 @@ public interface ManagedHttpClientConnection extends HttpClientConnection {
      * @param socket the socket to bind the connection to.
      */
     void bind(Socket socket) throws IOException;
+
+    /**
+     * Binds this connection to the SSL given socket and the underlying network
+     * socket. The connection is considered open if it is bound, the underlying
+     * network socket is connection to a remote host and the SSL socket is
+     * fully initialized (TLS handshake has been successfully executed).
+     *
+     * @param sslSocket the SSL socket to bind the connection to.
+     * @param socket the underlying network socket of the SSL socket.
+     *
+     * @since 5.4
+     */
+    default void bind(SSLSocket sslSocket, Socket socket) throws IOException {
+        bind(sslSocket);
+    }
 
     /**
      * Returns the underlying socket.

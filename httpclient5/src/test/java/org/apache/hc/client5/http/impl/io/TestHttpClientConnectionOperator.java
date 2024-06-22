@@ -147,7 +147,7 @@ public class TestHttpClientConnectionOperator {
         Mockito.verify(socket).connect(new InetSocketAddress(ip1, 443), 123);
         Mockito.verify(conn, Mockito.times(2)).bind(socket);
         Mockito.verify(tlsSocketStrategy).upgrade(socket, "somehost", -1, tlsConfig, context);
-        Mockito.verify(conn, Mockito.times(1)).bind(upgradedSocket);
+        Mockito.verify(conn, Mockito.times(1)).bind(upgradedSocket, socket);
     }
 
     @Test

@@ -32,6 +32,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
+import javax.net.ssl.SSLSocket;
+
 import org.apache.hc.client5.http.impl.Wire;
 import org.apache.hc.core5.http.impl.io.SocketHolder;
 import org.slf4j.Logger;
@@ -42,6 +44,11 @@ class LoggingSocketHolder extends SocketHolder {
 
     public LoggingSocketHolder(final Socket socket, final String id, final Logger log) {
         super(socket);
+        this.wire = new Wire(log, id);
+    }
+
+    LoggingSocketHolder(final SSLSocket sslSocket, final Socket baseSocket, final String id, final Logger log) {
+        super(sslSocket, baseSocket);
         this.wire = new Wire(log, id);
     }
 

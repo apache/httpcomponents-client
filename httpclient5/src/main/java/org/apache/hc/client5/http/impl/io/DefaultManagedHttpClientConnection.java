@@ -185,6 +185,14 @@ final class DefaultManagedHttpClientConnection
     }
 
     @Override
+    public void bind(final SSLSocket sslSocket, final Socket socket) throws IOException {
+        super.bind(WIRE_LOG.isDebugEnabled() ?
+                new LoggingSocketHolder(sslSocket, socket, this.id, WIRE_LOG) :
+                new SocketHolder(sslSocket, socket));
+        socketTimeout = Timeout.ofMilliseconds(sslSocket.getSoTimeout());
+    }
+
+    @Override
     protected void onResponseReceived(final ClassicHttpResponse response) {
         if (response != null && HEADER_LOG.isDebugEnabled()) {
             HEADER_LOG.debug("{} << {}", this.id, new StatusLine(response));
