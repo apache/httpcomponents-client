@@ -1,16 +1,13 @@
-﻿Release 5.4 ALPHA2
+﻿Release 5.4 BETA1
 ------------------
 
-This is the second and likely the last ALPHA release in the 5.3 release series.
-It finalizes the new Cache API introduced in the previous ALPHA release and also
-improves TLS customization for the classic transport, SNI and endpoint identification
-support, authentication data caching, and HTTP context performance. It also introduces
-support for optional TLS upgrades for HTTP/1.1 connections.
+This is the first BETA release in the 5.4 release series. It upgrades HttpCore to version
+5.3-beta1 and adds a few minor improvements and fixes.
 
 IMPORTANT! Please note the new cache entry serialization format is incompatible with earlier
 versions of HttpClient Cache. Persistent caches (file system based, Memcached, EhCAche
 with object serialization) created with any earlier version MUST be flushed and re-populated
-or the cache backend MUST be configured to use the old deprecated cache entry serializer.
+or the cache backend MUST be configured to use the old, deprecated cache entry serializer.
 
 
 Notable changes and features included in the 5.4 series:
@@ -18,7 +15,7 @@ Notable changes and features included in the 5.4 series:
 * Improved conformance to RFC 9110 (HTTP Semantics), RFC 7616 (HTTP Digest Access
   Authentication), RFC 2617 (’Basic’ HTTP Authentication Scheme).
 
-* UTF-8 encoding to be used by default for text where appropriate.
+* UTF-8 encoding is used by default for text where appropriate.
 
 * Compatibility with Java Virtual Threads and Java 21 Runtime.
 
@@ -39,6 +36,46 @@ Notable changes and features included in the 5.4 series:
 
 * HttpContext optimization and performance improvement.
 
+
+
+Change Log
+-------------------
+
+* HTTPCLIENT-2328: Blocking I/O connections to check if the opposite TLS endpoint
+  has been closed by the opposite endpoint while writing out request body.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Redesign of test server APIs and integration test setup.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2331: Skip cookie header generation if a Cookie header is already
+  present (#561).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2326: Propagate original proxy response to the caller in case of
+  HTTP CONNECT request failure.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2327: Propagate CancellationExceptions from MemcachedClient operations
+  as ResourceIOExceptions (#559).
+  Contributed by jattisha <jattisha at umich.edu>
+
+* Callbacks for Connection initialization.
+  Contributed by Richard Tippl <richard.tippl at gmail.com>
+
+* HTTPCLIENT-2325 Avoid adding "; charset=" for multipart/form-data requests
+  Contributed by Vladimir Sitnikov <sitnikov.vladimir at gmail.com>
+
+
+
+Release 5.4 ALPHA2
+------------------
+
+This is the second and likely the last ALPHA release in the 5.3 release series.
+It finalizes the new Cache API introduced in the previous ALPHA release and also
+improves TLS customization for the classic transport, SNI and endpoint identification
+support, authentication data caching, and HTTP context performance. It also introduces
+support for optional TLS upgrades for HTTP/1.1 connections.
 
 Change Log
 -------------------
