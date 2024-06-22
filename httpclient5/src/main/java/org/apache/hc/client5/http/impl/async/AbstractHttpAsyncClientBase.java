@@ -70,6 +70,11 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
         }
     }
 
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.impl.routing.RequestRouter}
+     * at the construction time
+     */
+    @Deprecated
     @Override
     public void register(final String hostname, final String uriPattern, final Supplier<AsyncPushConsumer> supplier) {
         pushConsumerRegistry.register(hostname, uriPattern, supplier);

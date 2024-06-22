@@ -37,12 +37,15 @@ import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.impl.routing.RequestRouter;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.StatusLine;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
@@ -69,39 +72,44 @@ public class AsyncClientH2ServerPush {
 
         client.start();
 
-        client.register("*", () -> new AbstractBinPushConsumer() {
+        final RequestRouter<Supplier<AsyncPushConsumer>> pushRequestRouter = RequestRouter.<Supplier<AsyncPushConsumer>>builder()
+                // Route all requests to the local authority
+                .resolveAuthority(RequestRouter.LOCAL_AUTHORITY_RESOLVER)
+                // Use the same route for all requests
+                .addRoute(RequestRouter.LOCAL_AUTHORITY, "*", () -> new AbstractBinPushConsumer() {
 
-            @Override
-            protected void start(
-                    final HttpRequest promise,
-                    final HttpResponse response,
-                    final ContentType contentType) throws HttpException, IOException {
-                System.out.println(promise.getPath() + " (push)->" + new StatusLine(response));
-            }
+                    @Override
+                    protected void start(
+                            final HttpRequest promise,
+                            final HttpResponse response,
+                            final ContentType contentType) throws HttpException, IOException {
+                        System.out.println(promise.getPath() + " (push)->" + new StatusLine(response));
+                    }
 
-            @Override
-            protected int capacityIncrement() {
-                return Integer.MAX_VALUE;
-            }
+                    @Override
+                    protected int capacityIncrement() {
+                        return Integer.MAX_VALUE;
+                    }
 
-            @Override
-            protected void data(final ByteBuffer data, final boolean endOfStream) throws IOException {
-            }
+                    @Override
+                    protected void data(final ByteBuffer data, final boolean endOfStream) throws IOException {
+                    }
 
-            @Override
-            protected void completed() {
-            }
+                    @Override
+                    protected void completed() {
+                    }
 
-            @Override
-            public void failed(final Exception cause) {
-                System.out.println("(push)->" + cause);
-            }
+                    @Override
+                    public void failed(final Exception cause) {
+                        System.out.println("(push)->" + cause);
+                    }
 
-            @Override
-            public void releaseResources() {
-            }
+                    @Override
+                    public void releaseResources() {
+                    }
 
-        });
+                })
+                .build();
 
         final BasicHttpRequest request = BasicRequestBuilder.get("https://nghttp2.org/httpbin/").build();
 
@@ -140,7 +148,10 @@ public class AsyncClientH2ServerPush {
                     public void releaseResources() {
                     }
 
-                }, null);
+                },
+                HttpAsyncClients.pushRouter(pushRequestRouter),
+                null,
+                null);
         future.get();
 
         System.out.println("Shutting down");

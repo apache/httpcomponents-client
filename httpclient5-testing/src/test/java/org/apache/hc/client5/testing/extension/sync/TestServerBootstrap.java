@@ -108,9 +108,9 @@ public class TestServerBootstrap {
                         .build());
         for (final HandlerEntry<HttpRequestHandler> entry: handlerList) {
             if (entry.hostname != null) {
-                server.registerHandlerVirtual(entry.hostname, entry.uriPattern, entry.handler);
+                server.register(entry.hostname, entry.uriPattern, entry.handler);
             } else {
-                server.registerHandler(entry.uriPattern, entry.handler);
+                server.register(entry.uriPattern, entry.handler);
             }
         }
         return new TestServer(

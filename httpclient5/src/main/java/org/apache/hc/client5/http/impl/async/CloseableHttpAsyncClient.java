@@ -129,8 +129,18 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Modal
         return execute(request, null, callback);
     }
 
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.impl.routing.RequestRouter}
+     * at the construction time
+     */
+    @Deprecated
     public abstract void register(String hostname, String uriPattern, Supplier<AsyncPushConsumer> supplier);
 
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.impl.routing.RequestRouter}
+     * at the construction time
+     */
+    @Deprecated
     public final void register(final String uriPattern, final Supplier<AsyncPushConsumer> supplier) {
         register(null, uriPattern, supplier);
     }

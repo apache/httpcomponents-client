@@ -273,14 +273,14 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
     }
 
     static HostNameType determineHostFormat(final String host) {
-        if (InetAddressUtils.isIPv4Address(host)) {
+        if (InetAddressUtils.isIPv4(host)) {
             return HostNameType.IPv4;
         }
         String s = host;
         if (s.startsWith("[") && s.endsWith("]")) {
             s = host.substring(1, host.length() - 1);
         }
-        if (InetAddressUtils.isIPv6Address(s)) {
+        if (InetAddressUtils.isIPv6(s)) {
             return HostNameType.IPv6;
         }
         return HostNameType.DNS;

@@ -37,8 +37,12 @@ import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBu
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.Http1Config;
+import org.apache.hc.core5.http.impl.routing.RequestRouter;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
@@ -331,6 +335,18 @@ public final class HttpAsyncClients {
      */
     public static MinimalH2AsyncClient createHttp2Minimal() {
         return createHttp2Minimal(H2Config.DEFAULT);
+    }
+
+    /**
+     * Creates {@link HandlerFactory} backed by a push {@link RequestRouter}.
+     *
+     * @since 5.4
+     */
+    public static HandlerFactory<AsyncPushConsumer> pushRouter(final RequestRouter<Supplier<AsyncPushConsumer>> requestRouter) {
+        return (request, context) -> {
+            final Supplier<AsyncPushConsumer> supplier = requestRouter.resolve(request, context);
+            return supplier != null ? supplier.get() : null;
+        };
     }
 
 }

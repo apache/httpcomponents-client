@@ -97,6 +97,10 @@ public class TestAsyncClient extends CloseableHttpAsyncClient {
         return client.execute(target, requestProducer, responseConsumer, pushHandlerFactory, context, callback);
     }
 
+    /**
+     * @deprecated Do not use.
+     */
+    @Deprecated
     @Override
     public void register(final String hostname,
                          final String uriPattern,
