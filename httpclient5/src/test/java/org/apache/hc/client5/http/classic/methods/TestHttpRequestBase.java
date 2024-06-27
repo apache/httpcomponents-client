@@ -176,7 +176,7 @@ class TestHttpRequestBase {
         final Set<String> methods = httpOptions.getAllowedMethods(response);
         assertAll("Must all pass",
                 () -> assertFalse(methods.isEmpty()),
-                () -> assertEquals(methods.size(), 3),
+                () -> assertEquals(3, methods.size()),
                 () -> assertTrue(methods.containsAll(Stream.of("HEAD", "DELETE", "GET")
                         .collect(Collectors.toCollection(HashSet::new))))
         );

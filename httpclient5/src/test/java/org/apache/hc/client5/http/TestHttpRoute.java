@@ -359,7 +359,7 @@ class TestHttpRoute {
         final HttpHost[] proxies3 = new HttpHost[]{ PROXY3, PROXY1, PROXY2 };
         final HttpRoute route3   = new HttpRoute(TARGET1, LOCAL42, proxies3, false,
                                 TunnelType.PLAIN, LayerType.LAYERED);
-        Assertions.assertEquals(route3.getHopCount(), 4, "C: hop count");
+        Assertions.assertEquals(4, route3.getHopCount(), "C: hop count");
         Assertions.assertEquals(PROXY3 , route3.getHopTarget(0), "C: hop 0");
         Assertions.assertEquals(PROXY1 , route3.getHopTarget(1), "C: hop 1");
         Assertions.assertEquals(PROXY2 , route3.getHopTarget(2), "C: hop 2");
