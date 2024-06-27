@@ -404,9 +404,9 @@ class TestRedirectExec {
         final ClassicHttpRequest request2 = allValues.get(1);
         final ClassicHttpRequest request3 = allValues.get(2);
         Assertions.assertSame(request, request1);
-        Assertions.assertEquals(request1.getMethod(), "PUT");
-        Assertions.assertEquals(request2.getMethod(), "GET");
-        Assertions.assertEquals(request3.getMethod(), "GET");
+        Assertions.assertEquals("PUT", request1.getMethod());
+        Assertions.assertEquals("GET", request2.getMethod());
+        Assertions.assertEquals("GET", request3.getMethod());
     }
 
     private static class HttpRequestMatcher implements ArgumentMatcher<ClassicHttpRequest> {

@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -170,7 +171,7 @@ class TestRFC5861Compliance {
 
         final ClassicHttpResponse result = execute(req2);
 
-        assertTrue(HttpStatus.SC_OK != result.getCode());
+        assertNotEquals(HttpStatus.SC_OK, result.getCode());
     }
 
     @Test
@@ -193,7 +194,7 @@ class TestRFC5861Compliance {
 
         final ClassicHttpResponse result = execute(req2);
 
-        assertTrue(HttpStatus.SC_OK != result.getCode());
+        assertNotEquals(HttpStatus.SC_OK, result.getCode());
     }
 
     @Test
@@ -216,7 +217,7 @@ class TestRFC5861Compliance {
 
         final ClassicHttpResponse result = execute(req2);
 
-        assertTrue(HttpStatus.SC_OK != result.getCode());
+        assertNotEquals(HttpStatus.SC_OK, result.getCode());
     }
 
     @Test
