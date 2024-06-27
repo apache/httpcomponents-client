@@ -100,7 +100,7 @@ class TestMainClientExec {
                 Mockito.any())).thenReturn(response);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
+        mainClientExec.execute(request, scope, null);
 
         Mockito.verify(httpProcessor).process(request, null, context);
         Mockito.verify(execRuntime).execute(Mockito.eq("test"), Mockito.same(request), Mockito.any(), Mockito.any());

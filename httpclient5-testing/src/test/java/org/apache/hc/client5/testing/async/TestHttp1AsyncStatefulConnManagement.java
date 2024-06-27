@@ -39,7 +39,6 @@ import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
 import org.apache.hc.client5.testing.extension.async.TestAsyncClient;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EndpointDetails;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;

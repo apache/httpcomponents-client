@@ -1279,7 +1279,7 @@ class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
         execute(req2);
-        final ClassicHttpResponse result = execute(req3);
+        execute(req3);
 
         // Verify that the backend was called to revalidate the response, as per the new logic
         Mockito.verify(mockExecChain, Mockito.times(5)).proceed(Mockito.any(), Mockito.any());

@@ -32,10 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
@@ -247,15 +243,6 @@ class TestByteArrayCacheEntrySerializer {
 
     private static void assertIsAllowedClassNameFalse(final String className) {
         assertFalse(ByteArrayCacheEntrySerializer.RestrictedObjectInputStream.isAllowedClassName(className));
-    }
-
-    private byte[] serializeProhibitedObject() throws IOException {
-        final BigDecimal bigDecimal = new BigDecimal("1000.00");
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-            oos.writeObject(bigDecimal);
-        }
-        return baos.toByteArray();
     }
 
     public void readWriteVerify(final HttpCacheStorageEntry writeEntry) throws Exception {

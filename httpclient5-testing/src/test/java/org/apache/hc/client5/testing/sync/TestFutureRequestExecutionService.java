@@ -28,7 +28,6 @@ package org.apache.hc.client5.testing.sync;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CancellationException;

@@ -436,9 +436,6 @@ class TestCachedResponseSuitabilityChecker {
     void testSuitableForHEADIfHeadResponseCachingEnabledAndEntryDoesNotSpecifyARequestMethod() {
         final HttpRequest headRequest = new BasicHttpRequest("HEAD", "/foo");
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
-        final Header[] headers = {
-
-        };
         entry = makeEntry(Method.GET, "/foo",
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
         responseCacheControl = ResponseCacheControl.builder()
