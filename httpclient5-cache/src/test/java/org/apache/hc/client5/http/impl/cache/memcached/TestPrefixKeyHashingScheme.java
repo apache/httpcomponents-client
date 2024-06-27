@@ -33,7 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 
-public class TestPrefixKeyHashingScheme {
+class TestPrefixKeyHashingScheme {
 
     private static final String KEY = "key";
     private static final String PREFIX = "prefix";
@@ -41,7 +41,7 @@ public class TestPrefixKeyHashingScheme {
     private KeyHashingScheme scheme;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         scheme = storageKey -> {
             assertEquals(KEY, storageKey);
             return "hash";
@@ -50,7 +50,7 @@ public class TestPrefixKeyHashingScheme {
     }
 
     @Test
-    public void addsPrefixToBackingScheme() {
+    void addsPrefixToBackingScheme() {
         assertEquals("prefixhash", impl.hash(KEY));
     }
 }

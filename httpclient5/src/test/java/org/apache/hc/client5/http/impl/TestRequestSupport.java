@@ -33,10 +33,10 @@ import org.junit.jupiter.api.Test;
 /**
  * Simple tests for {@link RequestSupport}.
  */
-public class TestRequestSupport {
+class TestRequestSupport {
 
     @Test
-    public void testPathPrefixExtraction() {
+    void testPathPrefixExtraction() {
         Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/bbbb")));
         Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/")));
         Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/../aaaa/")));

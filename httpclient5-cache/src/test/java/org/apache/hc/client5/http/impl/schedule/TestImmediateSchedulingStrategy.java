@@ -32,17 +32,17 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestImmediateSchedulingStrategy {
+class TestImmediateSchedulingStrategy {
 
     private SchedulingStrategy impl;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         impl = new ImmediateSchedulingStrategy();
     }
 
     @Test
-    public void testSchedule() {
+    void testSchedule() {
         Assertions.assertEquals(TimeValue.ZERO_MILLISECONDS, impl.schedule(0));
         Assertions.assertEquals(TimeValue.ZERO_MILLISECONDS, impl.schedule(1));
         Assertions.assertEquals(TimeValue.ZERO_MILLISECONDS, impl.schedule(Integer.MAX_VALUE));

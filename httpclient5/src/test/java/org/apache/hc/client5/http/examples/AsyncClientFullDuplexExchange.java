@@ -115,7 +115,7 @@ public class AsyncClientFullDuplexExchange {
             @Override
             public void consumeInformation(
                     final HttpResponse response,
-                    final HttpContext context) throws HttpException, IOException {
+                    final HttpContext context) {
                 System.out.println(request + "->" + new StatusLine(response));
             }
 

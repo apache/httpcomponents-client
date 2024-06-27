@@ -40,7 +40,7 @@ package org.apache.hc.client5.http.ssl;
  *
  * @since 11-Dec-2006
  */
-public class CertificatesToPlayWith {
+class CertificatesToPlayWith {
 
     /**
      * CN=foo.com

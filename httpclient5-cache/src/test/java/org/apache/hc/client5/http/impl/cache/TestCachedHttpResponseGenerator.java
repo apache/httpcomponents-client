@@ -44,7 +44,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
-public class TestCachedHttpResponseGenerator {
+class TestCachedHttpResponseGenerator {
 
     private HttpCacheEntry entry;
     private ClassicHttpRequest request;
@@ -52,7 +52,7 @@ public class TestCachedHttpResponseGenerator {
     private CachedHttpResponseGenerator impl;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         entry = HttpTestUtils.makeCacheEntry();
         request = HttpTestUtils.makeDefaultRequest();
         mockValidityPolicy = mock(CacheValidityPolicy.class);
@@ -60,7 +60,7 @@ public class TestCachedHttpResponseGenerator {
     }
 
     @Test
-    public void testResponseHasContentLength() throws Exception {
+    void testResponseHasContentLength() throws Exception {
         final byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
         final HttpCacheEntry entry1 = HttpTestUtils.makeCacheEntry(buf);
 
@@ -73,14 +73,14 @@ public class TestCachedHttpResponseGenerator {
     }
 
     @Test
-    public void testResponseStatusCodeMatchesCacheEntry() throws Exception {
+    void testResponseStatusCodeMatchesCacheEntry() throws Exception {
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
         Assertions.assertEquals(entry.getStatus(), response.getCode());
     }
 
     @Test
-    public void testAgeHeaderIsPopulatedWithCurrentAgeOfCacheEntryIfNonZero() throws Exception {
+    void testAgeHeaderIsPopulatedWithCurrentAgeOfCacheEntryIfNonZero() throws Exception {
         currentAge(TimeValue.ofSeconds(10L));
 
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
@@ -93,7 +93,7 @@ public class TestCachedHttpResponseGenerator {
     }
 
     @Test
-    public void testAgeHeaderIsNotPopulatedIfCurrentAgeOfCacheEntryIsZero() throws Exception {
+    void testAgeHeaderIsNotPopulatedIfCurrentAgeOfCacheEntryIsZero() throws Exception {
         currentAge(TimeValue.ofSeconds(0L));
 
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
@@ -105,7 +105,7 @@ public class TestCachedHttpResponseGenerator {
     }
 
     @Test
-    public void testAgeHeaderIsPopulatedWithMaxAgeIfCurrentAgeTooBig() throws Exception {
+    void testAgeHeaderIsPopulatedWithMaxAgeIfCurrentAgeTooBig() throws Exception {
         currentAge(TimeValue.ofSeconds(CacheSupport.MAX_AGE.toSeconds() + 1L));
 
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
@@ -124,14 +124,14 @@ public class TestCachedHttpResponseGenerator {
     }
 
     @Test
-    public void testResponseContainsEntityToServeGETRequestIfEntryContainsResource() throws Exception {
+    void testResponseContainsEntityToServeGETRequestIfEntryContainsResource() throws Exception {
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
         Assertions.assertNotNull(response.getBody());
     }
 
     @Test
-    public void testResponseDoesNotContainEntityToServeHEADRequestIfEntryContainsResource() throws Exception {
+    void testResponseDoesNotContainEntityToServeHEADRequestIfEntryContainsResource() throws Exception {
         final ClassicHttpRequest headRequest = HttpTestUtils.makeDefaultHEADRequest();
         final SimpleHttpResponse response = impl.generateResponse(headRequest, entry);
 

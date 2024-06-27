@@ -29,10 +29,10 @@ package org.apache.hc.client5.http.impl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class ExecSupportTest {
+class ExecSupportTest {
 
     @Test
-    public void testGetNextExchangeId() {
+    void testGetNextExchangeId() {
         final long base = ExecSupport.getNextExecNumber();
         for (int i = 1; i <= 1_000_000; i++) {
             Assertions.assertEquals(

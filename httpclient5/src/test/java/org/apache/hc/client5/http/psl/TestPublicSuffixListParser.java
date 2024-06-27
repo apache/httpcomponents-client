@@ -37,10 +37,10 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestPublicSuffixListParser {
+class TestPublicSuffixListParser {
 
     @Test
-    public void testParse() throws Exception {
+    void testParse() throws Exception {
         final ClassLoader classLoader = getClass().getClassLoader();
         final InputStream in = classLoader.getResourceAsStream("suffixlist.txt");
         Assertions.assertNotNull(in);
@@ -57,7 +57,7 @@ public class TestPublicSuffixListParser {
     }
 
     @Test
-    public void testParseByType() throws Exception {
+    void testParseByType() throws Exception {
         final ClassLoader classLoader = getClass().getClassLoader();
         final InputStream in = classLoader.getResourceAsStream("suffixlist2.txt");
         Assertions.assertNotNull(in);

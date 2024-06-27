@@ -63,7 +63,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-public class TestBasicHttpCache {
+class TestBasicHttpCache {
 
     private HttpHost host;
     private Instant now;
@@ -72,7 +72,7 @@ public class TestBasicHttpCache {
     private BasicHttpCache impl;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() {
         host = new HttpHost("foo.example.com");
         now = Instant.now();
         tenSecondsAgo = now.minusSeconds(10);
@@ -81,7 +81,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testGetCacheEntryReturnsNullOnCacheMiss() throws Exception {
+    void testGetCacheEntryReturnsNullOnCacheMiss() {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         final CacheMatch result = impl.match(host, request);
@@ -89,7 +89,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testGetCacheEntryFetchesFromCacheOnCacheHitIfNoVariants() throws Exception {
+    void testGetCacheEntryFetchesFromCacheOnCacheHitIfNoVariants() {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         assertFalse(entry.hasVariants());
         final HttpHost host = new HttpHost("foo.example.com");
@@ -106,7 +106,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testGetCacheEntryReturnsNullIfNoVariantInCache() throws Exception {
+    void testGetCacheEntryReturnsNullIfNoVariantInCache() {
         final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding","gzip");
 
@@ -127,7 +127,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testGetCacheEntryReturnsVariantIfPresentInCache() throws Exception {
+    void testGetCacheEntryReturnsVariantIfPresentInCache() {
         final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding","gzip");
 
@@ -149,7 +149,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testGetCacheEntryReturnsVariantWithMostRecentDateHeader() throws Exception {
+    void testGetCacheEntryReturnsVariantWithMostRecentDateHeader() {
         final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding", "gzip");
 
@@ -189,7 +189,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testGetVariantsRootNoVariants() throws Exception {
+    void testGetVariantsRootNoVariants() {
         final HttpCacheEntry root = HttpTestUtils.makeCacheEntry();
         final List<CacheHit> variants = impl.getVariants(new CacheHit("root-key", root));
 
@@ -198,7 +198,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testGetVariantsRootNonExistentVariants() throws Exception {
+    void testGetVariantsRootNonExistentVariants() {
         final Set<String> varinats = new HashSet<>();
         varinats.add("variant1");
         varinats.add("variant2");
@@ -210,7 +210,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testGetVariantCacheEntriesReturnsAllVariants() throws Exception {
+    void testGetVariantCacheEntriesReturnsAllVariants() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final URI uri = new URI("http://foo.example.com/bar");
         final HttpRequest req1 = new HttpGet(uri);
@@ -255,7 +255,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testUpdateCacheEntry() throws Exception {
+    void testUpdateCacheEntry() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final URI uri = new URI("http://foo.example.com/bar");
         final HttpRequest req1 = new HttpGet(uri);
@@ -295,7 +295,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testUpdateVariantCacheEntry() throws Exception {
+    void testUpdateVariantCacheEntry() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final URI uri = new URI("http://foo.example.com/bar");
         final HttpRequest req1 = new HttpGet(uri);
@@ -338,7 +338,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testUpdateCacheEntryTurnsVariant() throws Exception {
+    void testUpdateCacheEntryTurnsVariant() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final URI uri = new URI("http://foo.example.com/bar");
         final HttpRequest req1 = new HttpGet(uri);
@@ -379,7 +379,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testStoreFromNegotiatedVariant() throws Exception {
+    void testStoreFromNegotiatedVariant() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final URI uri = new URI("http://foo.example.com/bar");
         final HttpRequest req1 = new HttpGet(uri);
@@ -420,7 +420,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testInvalidatesUnsafeRequests() throws Exception {
+    void testInvalidatesUnsafeRequests() throws Exception {
         final HttpRequest request = new BasicHttpRequest("POST","/path");
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, request);
 
@@ -437,7 +437,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testDoesNotInvalidateSafeRequests() throws Exception {
+    void testDoesNotInvalidateSafeRequests() {
         final HttpRequest request1 = new BasicHttpRequest("GET","/");
         final HttpResponse response1 = HttpTestUtils.make200Response();
 
@@ -453,7 +453,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testInvalidatesUnsafeRequestsWithVariants() throws Exception {
+    void testInvalidatesUnsafeRequestsWithVariants() throws Exception {
         final HttpRequest request = new BasicHttpRequest("POST","/path");
         final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
         final Set<String> variants = new HashSet<>();
@@ -481,7 +481,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testInvalidateUriSpecifiedByContentLocationAndFresher() throws Exception {
+    void testInvalidateUriSpecifiedByContentLocationAndFresher() throws Exception {
         final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
         final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
         final URI contentUri = new URIBuilder()
@@ -510,7 +510,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testInvalidateUriSpecifiedByLocationAndFresher() throws Exception {
+    void testInvalidateUriSpecifiedByLocationAndFresher() throws Exception {
         final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
         final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
         final URI contentUri = new URIBuilder()
@@ -539,7 +539,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testDoesNotInvalidateForUnsuccessfulResponse() throws Exception {
+    void testDoesNotInvalidateForUnsuccessfulResponse() throws Exception {
         final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
@@ -556,7 +556,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testInvalidateUriSpecifiedByContentLocationNonCanonical() throws Exception {
+    void testInvalidateUriSpecifiedByContentLocationNonCanonical() throws Exception {
         final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
         final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
         final URI contentUri = new URIBuilder()
@@ -588,7 +588,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testInvalidateUriSpecifiedByContentLocationRelative() throws Exception {
+    void testInvalidateUriSpecifiedByContentLocationRelative() throws Exception {
         final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
         final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
         final URI contentUri = new URIBuilder()
@@ -620,7 +620,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testDoesNotInvalidateUriSpecifiedByContentLocationOtherOrigin() throws Exception {
+    void testDoesNotInvalidateUriSpecifiedByContentLocationOtherOrigin() throws Exception {
         final HttpRequest request = new BasicHttpRequest("PUT", "/");
         final URI contentUri = new URIBuilder()
                 .setHost("bar.example.com")
@@ -642,7 +642,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testDoesNotInvalidateUriSpecifiedByContentLocationIfEtagsMatch() throws Exception {
+    void testDoesNotInvalidateUriSpecifiedByContentLocationIfEtagsMatch() throws Exception {
         final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
@@ -666,7 +666,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testDoesNotInvalidateUriSpecifiedByContentLocationIfOlder() throws Exception {
+    void testDoesNotInvalidateUriSpecifiedByContentLocationIfOlder() throws Exception {
         final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
@@ -690,7 +690,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testDoesNotInvalidateUriSpecifiedByContentLocationIfResponseHasNoEtag() throws Exception {
+    void testDoesNotInvalidateUriSpecifiedByContentLocationIfResponseHasNoEtag() throws Exception {
         final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
@@ -714,7 +714,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testDoesNotInvalidateUriSpecifiedByContentLocationIfEntryHasNoEtag() throws Exception {
+    void testDoesNotInvalidateUriSpecifiedByContentLocationIfEntryHasNoEtag() throws Exception {
         final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
@@ -737,7 +737,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testInvalidatesUriSpecifiedByContentLocationIfResponseHasNoDate() throws Exception {
+    void testInvalidatesUriSpecifiedByContentLocationIfResponseHasNoDate() throws Exception {
         final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
@@ -761,7 +761,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testInvalidatesUriSpecifiedByContentLocationIfEntryHasNoDate() throws Exception {
+    void testInvalidatesUriSpecifiedByContentLocationIfEntryHasNoDate() throws Exception {
         final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
@@ -784,7 +784,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testInvalidatesUriSpecifiedByContentLocationIfResponseHasMalformedDate() throws Exception {
+    void testInvalidatesUriSpecifiedByContentLocationIfResponseHasMalformedDate() throws Exception {
         final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
@@ -808,7 +808,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testInvalidatesUriSpecifiedByContentLocationIfEntryHasMalformedDate() throws Exception {
+    void testInvalidatesUriSpecifiedByContentLocationIfEntryHasMalformedDate() throws Exception {
         final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)

@@ -40,14 +40,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("boxing") // test code
-public class TestHttpClientBuilderInterceptors extends AbstractIntegrationTestBase {
+class TestHttpClientBuilderInterceptors extends AbstractIntegrationTestBase {
 
     public TestHttpClientBuilderInterceptors() {
         super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
     }
 
     @BeforeEach
-    public void before() throws Exception {
+    void before() {
         configureServer(bootstrap -> bootstrap
                 .register("/test", (request, response, context) -> {
                     final Header testInterceptorHeader = request.getHeader("X-Test-Interceptor");
@@ -64,7 +64,7 @@ public class TestHttpClientBuilderInterceptors extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testAddExecInterceptorLastShouldBeExecuted() throws Exception {
+    void testAddExecInterceptorLastShouldBeExecuted() throws Exception {
         final HttpHost httpHost = startServer();
         final TestClient client = client();
         final ClassicHttpRequest request = new HttpPost("/test");

@@ -50,20 +50,20 @@ import org.apache.hc.core5.net.URIAuthority;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTestBase {
+class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTestBase {
 
     public TestHttp1AsyncStatefulConnManagement() {
         super(URIScheme.HTTP, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);
     }
 
     @Test
-    public void testStatefulConnections() throws Exception {
+    void testStatefulConnections() throws Exception {
         configureServer(bootstrap -> bootstrap.register("*", () -> new AbstractSimpleServerExchangeHandler() {
 
             @Override
             protected SimpleHttpResponse handle(
                     final SimpleHttpRequest request,
-                    final HttpCoreContext context) throws HttpException {
+                    final HttpCoreContext context) {
                 final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
                 response.setBody("Whatever", ContentType.TEXT_PLAIN);
                 return response;
@@ -173,13 +173,13 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
     }
 
     @Test
-    public void testRouteSpecificPoolRecylcing() throws Exception {
+    void testRouteSpecificPoolRecylcing() throws Exception {
         configureServer(bootstrap -> bootstrap.register("*", () -> new AbstractSimpleServerExchangeHandler() {
 
             @Override
             protected SimpleHttpResponse handle(
                     final SimpleHttpRequest request,
-                    final HttpCoreContext context) throws HttpException {
+                    final HttpCoreContext context) {
                 final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
                 response.setBody("Whatever", ContentType.TEXT_PLAIN);
                 return response;

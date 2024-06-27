@@ -36,10 +36,10 @@ import org.junit.jupiter.api.Test;
  * Unit tests for {@link BasicAuthCache}.
  */
 @SuppressWarnings("boxing") // test code
-public class TestBasicAuthCache {
+class TestBasicAuthCache {
 
     @Test
-    public void testBasicStoreRestore() throws Exception {
+    void testBasicStoreRestore() {
         final BasicAuthCache cache = new BasicAuthCache();
         final AuthScheme authScheme = new BasicScheme();
         cache.put(new HttpHost("localhost", 80), authScheme);
@@ -52,7 +52,7 @@ public class TestBasicAuthCache {
     }
 
     @Test
-    public void testNullKey() throws Exception {
+    void testNullKey() {
         final BasicAuthCache cache = new BasicAuthCache();
         final AuthScheme authScheme = new BasicScheme();
         Assertions.assertThrows(NullPointerException.class, () ->
@@ -60,7 +60,7 @@ public class TestBasicAuthCache {
     }
 
     @Test
-    public void testNullAuthScheme() throws Exception {
+    void testNullAuthScheme() {
         final BasicAuthCache cache = new BasicAuthCache();
         cache.put(new HttpHost("localhost", 80), null);
         Assertions.assertNull(cache.get(new HttpHost("localhost", 80)));

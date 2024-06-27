@@ -57,7 +57,7 @@ import org.mockito.MockitoAnnotations;
 /**
  *  Simple tests for {@link InternalHttpClient}.
  */
-public class TestInternalHttpClient {
+class TestInternalHttpClient {
 
     @Mock
     private HttpClientConnectionManager connManager;
@@ -85,7 +85,7 @@ public class TestInternalHttpClient {
     private InternalHttpClient client;
 
     @BeforeEach
-    public void setup() throws Exception {
+    void setup() {
         MockitoAnnotations.openMocks(this);
         client = new InternalHttpClient(connManager, requestExecutor, new ExecChainElement(execChain, null), routePlanner,
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider,
@@ -94,7 +94,7 @@ public class TestInternalHttpClient {
     }
 
     @Test
-    public void testExecute() throws Exception {
+    void testExecute() throws Exception {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
 
@@ -115,7 +115,7 @@ public class TestInternalHttpClient {
     }
 
     @Test
-    public void testExecuteHttpException() throws Exception {
+    void testExecuteHttpException() throws Exception {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
 
@@ -136,7 +136,7 @@ public class TestInternalHttpClient {
     }
 
     @Test
-    public void testExecuteDefaultContext() throws Exception {
+    void testExecuteDefaultContext() throws Exception {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
 
@@ -159,7 +159,7 @@ public class TestInternalHttpClient {
     }
 
     @Test
-    public void testExecuteRequestConfig() throws Exception {
+    void testExecuteRequestConfig() throws Exception {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
 
@@ -180,7 +180,7 @@ public class TestInternalHttpClient {
     }
 
     @Test
-    public void testExecuteLocalContext() throws Exception {
+    void testExecuteLocalContext() throws Exception {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
 
@@ -216,7 +216,7 @@ public class TestInternalHttpClient {
     }
 
     @Test
-    public void testClientClose() throws Exception {
+    void testClientClose() throws Exception {
         client.close();
 
         Mockito.verify(closeable1).close();
@@ -224,7 +224,7 @@ public class TestInternalHttpClient {
     }
 
     @Test
-    public void testClientCloseIOException() throws Exception {
+    void testClientCloseIOException() throws Exception {
         Mockito.doThrow(new IOException()).when(closeable1).close();
 
         client.close();

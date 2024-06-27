@@ -71,7 +71,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-public class TestCachingExecChain {
+class TestCachingExecChain {
 
     @Mock
     ExecChain mockExecChain;
@@ -93,7 +93,7 @@ public class TestCachingExecChain {
     ExecChain.Scope scope;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
         host = new HttpHost("foo.example.com", 80);
         route = new HttpRoute(host);
@@ -115,7 +115,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testCacheableResponsesGoIntoCache() throws Exception {
+    void testCacheableResponsesGoIntoCache() throws Exception {
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control", "max-age=3600");
@@ -133,7 +133,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testOlderCacheableResponsesDoNotGoIntoCache() throws Exception {
+    void testOlderCacheableResponsesDoNotGoIntoCache() throws Exception {
         final Instant now = Instant.now();
         final Instant fiveSecondsAgo = now.minusSeconds(5);
 
@@ -165,7 +165,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testNewerCacheableResponsesReplaceExistingCacheEntry() throws Exception {
+    void testNewerCacheableResponsesReplaceExistingCacheEntry() throws Exception {
         final Instant now = Instant.now();
         final Instant fiveSecondsAgo = now.minusSeconds(5);
 
@@ -197,7 +197,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testNonCacheableResponseIsNotCachedAndIsReturnedAsIs() throws Exception {
+    void testNonCacheableResponseIsNotCachedAndIsReturnedAsIs() throws Exception {
         final HttpCache cache = new BasicHttpCache(new HeapResourceFactory(), mockStorage);
         impl = new CachingExec(cache, null, CacheConfig.DEFAULT);
 
@@ -216,7 +216,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testSetsModuleGeneratedResponseContextForCacheOptionsResponse() throws Exception {
+    void testSetsModuleGeneratedResponseContextForCacheOptionsResponse() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("OPTIONS", "*");
         req.setHeader("Max-Forwards", "0");
 
@@ -225,7 +225,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testSetsCacheMissContextIfRequestNotServableFromCache() throws Exception {
+    void testSetsCacheMissContextIfRequestNotServableFromCache() throws Exception {
         final ClassicHttpRequest req = new HttpGet("http://foo.example.com/");
         req.setHeader("Cache-Control", "no-cache");
         final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_NO_CONTENT, "No Content");
@@ -237,7 +237,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testSetsCacheHitContextIfRequestServedFromCache() throws Exception {
+    void testSetsCacheHitContextIfRequestServedFromCache() throws Exception {
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
@@ -255,7 +255,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturns304ForIfModifiedSinceHeaderIfRequestServedFromCache() throws Exception {
+    void testReturns304ForIfModifiedSinceHeaderIfRequestServedFromCache() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
@@ -277,7 +277,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturns304ForIfModifiedSinceHeaderIf304ResponseInCache() throws Exception {
+    void testReturns304ForIfModifiedSinceHeaderIf304ResponseInCache() throws Exception {
         final Instant now = Instant.now();
         final Instant oneHourAgo = now.minus(1, ChronoUnit.HOURS);
         final Instant inTenMinutes = now.plus(10, ChronoUnit.MINUTES);
@@ -304,7 +304,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturns304ForIfModifiedSinceHeaderIf304ResponseInCacheWithLastModified() throws Exception {
+    void testReturns304ForIfModifiedSinceHeaderIf304ResponseInCacheWithLastModified() throws Exception {
         final Instant now = Instant.now();
         final Instant oneHourAgo = now.minus(1, ChronoUnit.HOURS);
         final Instant inTenMinutes = now.plus(10, ChronoUnit.MINUTES);
@@ -330,7 +330,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturns200ForIfModifiedSinceDateIsLess() throws Exception {
+    void testReturns200ForIfModifiedSinceDateIsLess() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
@@ -360,7 +360,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturns200ForIfModifiedSinceDateIsInvalid() throws Exception {
+    void testReturns200ForIfModifiedSinceDateIsInvalid() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAfter = now.plusSeconds(10);
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
@@ -387,7 +387,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturns304ForIfNoneMatchHeaderIfRequestServedFromCache() throws Exception {
+    void testReturns304ForIfNoneMatchHeaderIfRequestServedFromCache() throws Exception {
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
         req2.addHeader("If-None-Match", "*");
@@ -407,7 +407,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturns200ForIfNoneMatchHeaderFails() throws Exception {
+    void testReturns200ForIfNoneMatchHeaderFails() throws Exception {
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
 
@@ -433,7 +433,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturns304ForIfNoneMatchHeaderAndIfModifiedSinceIfRequestServedFromCache() throws Exception {
+    void testReturns304ForIfNoneMatchHeaderAndIfModifiedSinceIfRequestServedFromCache() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
@@ -458,7 +458,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturns200ForIfNoneMatchHeaderFailsIfModifiedSinceIgnored() throws Exception {
+    void testReturns200ForIfNoneMatchHeaderFailsIfModifiedSinceIgnored() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
@@ -481,7 +481,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturns200ForOptionsFollowedByGetIfAuthorizationHeaderAndSharedCache() throws Exception {
+    void testReturns200ForOptionsFollowedByGetIfAuthorizationHeaderAndSharedCache() throws Exception {
         impl = new CachingExec(cache, null, CacheConfig.custom().setSharedCache(true).build());
         final Instant now = Instant.now();
         final ClassicHttpRequest req1 = new HttpOptions("http://foo.example.com/");
@@ -512,7 +512,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testSetsValidatedContextIfRequestWasSuccessfullyValidated() throws Exception {
+    void testSetsValidatedContextIfRequestWasSuccessfullyValidated() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
 
@@ -543,7 +543,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testSetsModuleResponseContextIfValidationRequiredButFailed() throws Exception {
+    void testSetsModuleResponseContextIfValidationRequiredButFailed() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
 
@@ -569,7 +569,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testSetsModuleResponseContextIfValidationFailsButNotRequired() throws Exception {
+    void testSetsModuleResponseContextIfValidationFailsButNotRequired() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
 
@@ -594,7 +594,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturns304ForIfNoneMatchPassesIfRequestServedFromOrigin() throws Exception {
+    void testReturns304ForIfNoneMatchPassesIfRequestServedFromOrigin() throws Exception {
 
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
@@ -626,7 +626,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturns200ForIfNoneMatchFailsIfRequestServedFromOrigin() throws Exception {
+    void testReturns200ForIfNoneMatchFailsIfRequestServedFromOrigin() throws Exception {
 
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
@@ -660,7 +660,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturns304ForIfModifiedSincePassesIfRequestServedFromOrigin() throws Exception {
+    void testReturns304ForIfModifiedSincePassesIfRequestServedFromOrigin() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
 
@@ -694,7 +694,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturns200ForIfModifiedSinceFailsIfRequestServedFromOrigin() throws Exception {
+    void testReturns200ForIfModifiedSinceFailsIfRequestServedFromOrigin() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
 
@@ -730,7 +730,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testVariantMissServerIfReturns304CacheReturns200() throws Exception {
+    void testVariantMissServerIfReturns304CacheReturns200() throws Exception {
         final Instant now = Instant.now();
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com");
@@ -792,7 +792,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testVariantsMissServerReturns304CacheReturns304() throws Exception {
+    void testVariantsMissServerReturns304CacheReturns304() throws Exception {
         final Instant now = Instant.now();
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com");
@@ -853,7 +853,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testSocketTimeoutExceptionIsNotSilentlyCatched() throws Exception {
+    void testSocketTimeoutExceptionIsNotSilentlyCatched() throws Exception {
         final Instant now = Instant.now();
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com");
@@ -863,7 +863,7 @@ public class TestCachingExecChain {
             private boolean closed;
 
             @Override
-            public void close() throws IOException {
+            public void close() {
                 closed = true;
             }
 
@@ -886,7 +886,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testTooLargeResponsesAreNotCached() throws Exception {
+    void testTooLargeResponsesAreNotCached() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final ClassicHttpRequest request = new HttpGet("http://foo.example.com/bar");
 
@@ -908,7 +908,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testSmallEnoughResponsesAreCached() throws Exception {
+    void testSmallEnoughResponsesAreCached() throws Exception {
         final HttpCache mockCache = mock(HttpCache.class);
         impl = new CachingExec(mockCache, null, CacheConfig.DEFAULT);
 
@@ -949,7 +949,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testIfOnlyIfCachedAndNoCacheEntryBackendNotCalled() throws Exception {
+    void testIfOnlyIfCachedAndNoCacheEntryBackendNotCalled() throws Exception {
         request.addHeader("Cache-Control", "only-if-cached");
 
         final ClassicHttpResponse resp = execute(request);
@@ -958,7 +958,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testCanCacheAResponseWithoutABody() throws Exception {
+    void testCanCacheAResponseWithoutABody() throws Exception {
         final ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_NO_CONTENT, "No Content");
         response.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         response.setHeader("Cache-Control", "max-age=300");
@@ -971,7 +971,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testNoEntityForIfNoneMatchRequestNotYetInCache() throws Exception {
+    void testNoEntityForIfNoneMatchRequestNotYetInCache() throws Exception {
 
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
@@ -993,7 +993,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testNotModifiedResponseUpdatesCacheEntryWhenNoEntity() throws Exception {
+    void testNotModifiedResponseUpdatesCacheEntryWhenNoEntity() throws Exception {
 
         final Instant now = Instant.now();
 
@@ -1027,7 +1027,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testNotModifiedResponseWithVaryUpdatesCacheEntryWhenNoEntity() throws Exception {
+    void testNotModifiedResponseWithVaryUpdatesCacheEntryWhenNoEntity() throws Exception {
 
         final Instant now = Instant.now();
 
@@ -1064,7 +1064,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testDoesNotSend304ForNonConditionalRequest() throws Exception {
+    void testDoesNotSend304ForNonConditionalRequest() throws Exception {
 
         final Instant now = Instant.now();
         final Instant inOneMinute = now.plus(1, ChronoUnit.MINUTES);
@@ -1105,7 +1105,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testUsesVirtualHostForCacheKey() throws Exception {
+    void testUsesVirtualHostForCacheKey() throws Exception {
         final ClassicHttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("Cache-Control", "max-age=3600");
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(response);
@@ -1125,7 +1125,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testReturnssetStaleIfErrorNotEnabled() throws Exception {
+    void testReturnssetStaleIfErrorNotEnabled() throws Exception {
 
         // Create the first request and response
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
@@ -1156,7 +1156,7 @@ public class TestCachingExecChain {
 
 
     @Test
-    public void testReturnssetStaleIfErrorEnabled() throws Exception {
+    void testReturnssetStaleIfErrorEnabled() throws Exception {
         final CacheConfig customConfig = CacheConfig.custom()
                 .setMaxCacheEntries(100)
                 .setMaxObjectSize(1024)
@@ -1196,7 +1196,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testNotModifiedResponseUpdatesCacheEntry() throws Exception {
+    void testNotModifiedResponseUpdatesCacheEntry() throws Exception {
         final HttpCache mockCache = mock(HttpCache.class);
         impl = new CachingExec(mockCache, null, CacheConfig.DEFAULT);
         // Prepare request and host
@@ -1251,7 +1251,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testNoCacheFieldsRevalidation() throws Exception {
+    void testNoCacheFieldsRevalidation() throws Exception {
         final Instant now = Instant.now();
         final Instant fiveSecondsAgo = now.minusSeconds(5);
 

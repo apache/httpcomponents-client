@@ -33,10 +33,10 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests for {@link org.apache.hc.client5.http.auth.AuthScope}.
  */
-public class TestAuthScope {
+class TestAuthScope {
 
     @Test
-    public void testBasics() {
+    void testBasics() {
         final AuthScope authscope = new AuthScope("http", "somehost", 80, "somerealm", "SomeScheme");
         Assertions.assertEquals("SOMESCHEME", authscope.getSchemeName());
         Assertions.assertEquals("http", authscope.getProtocol());
@@ -47,7 +47,7 @@ public class TestAuthScope {
     }
 
     @Test
-    public void testByOrigin() {
+    void testByOrigin() {
         final HttpHost host = new HttpHost("http", "somehost", 8080);
         final AuthScope authscope = new AuthScope(host);
         Assertions.assertNull(authscope.getSchemeName());
@@ -59,7 +59,7 @@ public class TestAuthScope {
     }
 
     @Test
-    public void testMixedCaseHostname() {
+    void testMixedCaseHostname() {
         final AuthScope authscope = new AuthScope("SomeHost", 80);
         Assertions.assertNull(authscope.getSchemeName());
         Assertions.assertEquals("somehost", authscope.getHost());
@@ -69,14 +69,14 @@ public class TestAuthScope {
     }
 
     @Test
-    public void testByOriginMixedCaseHostname() throws Exception {
+    void testByOriginMixedCaseHostname() {
         final HttpHost host = new HttpHost("http", "SomeHost", 8080);
         final AuthScope authscope = new AuthScope(host);
         Assertions.assertEquals("somehost", authscope.getHost());
     }
 
     @Test
-    public void testBasicsAllOptional() {
+    void testBasicsAllOptional() {
         final AuthScope authscope = new AuthScope(null, null, -1, null, null);
         Assertions.assertNull(authscope.getSchemeName());
         Assertions.assertNull(authscope.getHost());
@@ -86,7 +86,7 @@ public class TestAuthScope {
     }
 
     @Test
-    public void testScopeMatching() {
+    void testScopeMatching() {
         final AuthScope authscope1 = new AuthScope("http", "somehost", 80, "somerealm", "somescheme");
         final AuthScope authscope2 = new AuthScope("http", "someotherhost", 80, "somerealm", "somescheme");
         Assertions.assertTrue(authscope1.match(authscope2) < 0);
@@ -117,7 +117,7 @@ public class TestAuthScope {
     }
 
     @Test
-    public void testEquals() {
+    void testEquals() {
         final AuthScope authscope1 = new AuthScope("http", "somehost", 80, "somerealm", "somescheme");
         final AuthScope authscope2 = new AuthScope("http", "someotherhost", 80, "somerealm", "somescheme");
         final AuthScope authscope3 = new AuthScope("http", "somehost", 80, "somerealm", "somescheme");
@@ -137,7 +137,7 @@ public class TestAuthScope {
     }
 
     @Test
-    public void testHash() {
+    void testHash() {
         final AuthScope authscope1 = new AuthScope("http", "somehost", 80, "somerealm", "somescheme");
         final AuthScope authscope2 = new AuthScope("http", "someotherhost", 80, "somerealm", "somescheme");
         final AuthScope authscope3 = new AuthScope("http", "somehost", 80, "somerealm", "somescheme");

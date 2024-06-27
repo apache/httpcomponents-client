@@ -43,17 +43,17 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestAuthChallengeParser {
+class TestAuthChallengeParser {
 
     private AuthChallengeParser parser;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() {
         this.parser = new AuthChallengeParser();
     }
 
     @Test
-    public void testParseTokenTerminatedByBlank() throws Exception {
+    void testParseTokenTerminatedByBlank() {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("aaabbbbccc ");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -61,7 +61,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseTokenTerminatedByComma() throws Exception {
+    void testParseTokenTerminatedByComma() {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("aaabbbbccc, ");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -69,7 +69,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseTokenTerminatedByEndOfStream() throws Exception {
+    void testParseTokenTerminatedByEndOfStream() {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("aaabbbbccc");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -77,7 +77,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParsePaddedToken68() throws Exception {
+    void testParsePaddedToken68() {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("aaabbbbccc==== ");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -87,7 +87,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParsePaddedToken68SingleEqual() throws Exception {
+    void testParsePaddedToken68SingleEqual() {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("aaabbbbccc=");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -96,7 +96,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParsePaddedToken68MultipleEquals() throws Exception {
+    void testParsePaddedToken68MultipleEquals() {
         final CharArrayBuffer buffer = new CharArrayBuffer(16);
         buffer.append("aaabbbbccc======");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -105,7 +105,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParsePaddedToken68TerminatedByComma() throws Exception {
+    void testParsePaddedToken68TerminatedByComma() {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("aaabbbbccc====,");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -115,7 +115,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseTokenTerminatedByParameter() throws Exception {
+    void testParseTokenTerminatedByParameter() {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("aaabbbbccc=blah");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -125,7 +125,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseBasicAuthChallenge() throws Exception {
+    void testParseBasicAuthChallenge() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append(StandardAuthScheme.BASIC + " realm=blah");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -142,7 +142,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseAuthChallengeWithBlanks() throws Exception {
+    void testParseAuthChallengeWithBlanks() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("   " + StandardAuthScheme.BASIC + "  realm = blah   ");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -159,7 +159,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseMultipleAuthChallenge() throws Exception {
+    void testParseMultipleAuthChallenge() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("This  xxxxxxxxxxxxxxxxxxxxxx, " +
                 "That yyyyyyyyyyyyyyyyyyyyyy  ");
@@ -180,7 +180,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseMultipleAuthChallengeWithParams() throws Exception {
+    void testParseMultipleAuthChallengeWithParams() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append(StandardAuthScheme.BASIC + " realm=blah, param1 = this, param2=that, " +
                 StandardAuthScheme.BASIC + " realm=\"\\\"yada\\\"\", this, that=,this-and-that  ");
@@ -212,7 +212,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseMultipleAuthChallengeWithParamsContainingComma() throws Exception {
+    void testParseMultipleAuthChallengeWithParamsContainingComma() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append(StandardAuthScheme.BASIC + " realm=blah, param1 = \"this, param2=that\", " +
                 StandardAuthScheme.BASIC + " realm=\"\\\"yada,,,,\\\"\"");
@@ -240,7 +240,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseEmptyAuthChallenge1() throws Exception {
+    void testParseEmptyAuthChallenge1() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("This");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -255,7 +255,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseMalformedAuthChallenge1() throws Exception {
+    void testParseMalformedAuthChallenge1() {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("This , ");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -264,7 +264,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseMalformedAuthChallenge2() throws Exception {
+    void testParseMalformedAuthChallenge2() {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("This = that");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -273,7 +273,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseMalformedAuthChallenge3() throws Exception {
+    void testParseMalformedAuthChallenge3() {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("blah blah blah");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -282,7 +282,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseValidAuthChallenge1() throws Exception {
+    void testParseValidAuthChallenge1() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("blah blah");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -297,7 +297,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseValidAuthChallenge2() throws Exception {
+    void testParseValidAuthChallenge2() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("blah blah, blah");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -316,7 +316,7 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseParameterAndToken68AuthChallengeMix() throws Exception {
+    void testParseParameterAndToken68AuthChallengeMix() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("scheme1 aaaa  , scheme2 aaaa==,  scheme3 aaaa=aaaa, scheme4 aaaa=");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());

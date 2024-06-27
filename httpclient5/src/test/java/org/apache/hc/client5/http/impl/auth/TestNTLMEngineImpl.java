@@ -36,10 +36,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("deprecation")
-public class TestNTLMEngineImpl {
+class TestNTLMEngineImpl {
 
     @Test
-    public void testMD4() throws Exception {
+    void testMD4() throws Exception {
         checkMD4("", "31d6cfe0d16ae931b73c59d7e0c089c0");
         checkMD4("a", "bde52cb31de33e46245e05fbdbd6fb24");
         checkMD4("abc", "a448017aaf21d8525fc10ae87aa6729d");
@@ -96,7 +96,7 @@ public class TestNTLMEngineImpl {
     }
 
     @Test
-    public void testLMResponse() throws Exception {
+    void testLMResponse() throws Exception {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             new Random(1234),
             1234L,
@@ -116,7 +116,7 @@ public class TestNTLMEngineImpl {
     }
 
     @Test
-    public void testNTLMResponse() throws Exception {
+    void testNTLMResponse() throws Exception {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             new Random(1234),
             1234L,
@@ -136,7 +136,7 @@ public class TestNTLMEngineImpl {
     }
 
     @Test
-    public void testLMv2Response() throws Exception {
+    void testLMv2Response() throws Exception {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             new Random(1234),
             1234L,
@@ -156,7 +156,7 @@ public class TestNTLMEngineImpl {
     }
 
     @Test
-    public void testNTLMv2Response() throws Exception {
+    void testNTLMv2Response() throws Exception {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             new Random(1234),
             1234L,
@@ -178,7 +178,7 @@ public class TestNTLMEngineImpl {
     }
 
     @Test
-    public void testLM2SessionResponse() throws Exception {
+    void testLM2SessionResponse() {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             new Random(1234),
             1234L,
@@ -198,7 +198,7 @@ public class TestNTLMEngineImpl {
     }
 
     @Test
-    public void testNTLM2SessionResponse() throws Exception {
+    void testNTLM2SessionResponse() throws Exception {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             new Random(1234),
             1234L,
@@ -218,7 +218,7 @@ public class TestNTLMEngineImpl {
     }
 
     @Test
-    public void testNTLMUserSessionKey() throws Exception {
+    void testNTLMUserSessionKey() throws Exception {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             new Random(1234),
             1234L,
@@ -238,14 +238,14 @@ public class TestNTLMEngineImpl {
     }
 
     @Test
-    public void testType1Message() throws Exception {
+    void testType1Message() {
         final byte[] bytes = new NTLMEngineImpl.Type1Message("myhost", "mydomain").getBytes();
         final byte[] bytes2 = toBytes("4E544C4D5353500001000000018208A20C000C003800000010001000280000000501280A0000000F6D00790064006F006D00610069006E004D00590048004F0053005400");
         checkArraysMatch(bytes2, bytes);
     }
 
     @Test
-    public void testType3Message() throws Exception {
+    void testType3Message() throws Exception {
         final byte[] bytes = new NTLMEngineImpl.Type3Message(
                 new Random(1234),
                 1234L,
@@ -286,7 +286,7 @@ public class TestNTLMEngineImpl {
         "-----END CERTIFICATE-----";
 
     @Test
-    public void testType3MessageWithCert() throws Exception {
+    void testType3MessageWithCert() throws Exception {
         final ByteArrayInputStream fis = new ByteArrayInputStream(cannedCert.getBytes(StandardCharsets.US_ASCII));
 
         final CertificateFactory cf = CertificateFactory.getInstance("X.509");
@@ -310,15 +310,14 @@ public class TestNTLMEngineImpl {
     }
 
     @Test
-    public void testRC4() throws Exception {
+    void testRC4() throws Exception {
         checkArraysMatch(toBytes("e37f97f2544f4d7e"),
             NTLMEngineImpl.RC4(toBytes("0a003602317a759a"),
                 toBytes("2785f595293f3e2813439d73a223810d")));
     }
 
     /* Byte array check helper */
-    static void checkArraysMatch(final byte[] a1, final byte[] a2)
-        throws Exception {
+    static void checkArraysMatch(final byte[] a1, final byte[] a2) {
         Assertions.assertEquals(a1.length,a2.length);
         for (int i = 0; i < a1.length; i++) {
             Assertions.assertEquals(a1[i],a2[i]);

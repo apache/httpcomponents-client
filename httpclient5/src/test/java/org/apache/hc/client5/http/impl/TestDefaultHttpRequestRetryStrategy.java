@@ -47,17 +47,17 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestDefaultHttpRequestRetryStrategy {
+class TestDefaultHttpRequestRetryStrategy {
 
     private DefaultHttpRequestRetryStrategy retryStrategy;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         this.retryStrategy = new DefaultHttpRequestRetryStrategy(3, TimeValue.ofMilliseconds(1234L));
     }
 
     @Test
-    public void testBasics() throws Exception {
+    void testBasics() {
         final HttpResponse response1 = new BasicHttpResponse(503, "Oopsie");
         Assertions.assertTrue(this.retryStrategy.retryRequest(response1, 1, null));
         Assertions.assertTrue(this.retryStrategy.retryRequest(response1, 2, null));
@@ -75,7 +75,7 @@ public class TestDefaultHttpRequestRetryStrategy {
     }
 
     @Test
-    public void testRetryAfterHeaderAsLong() throws Exception {
+    void testRetryAfterHeaderAsLong() {
         final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
         response.setHeader(HttpHeaders.RETRY_AFTER, "321");
 
@@ -83,7 +83,7 @@ public class TestDefaultHttpRequestRetryStrategy {
     }
 
     @Test
-    public void testRetryAfterHeaderAsDate() throws Exception {
+    void testRetryAfterHeaderAsDate() {
         this.retryStrategy = new DefaultHttpRequestRetryStrategy(3, TimeValue.ZERO_MILLISECONDS);
         final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
         response.setHeader(HttpHeaders.RETRY_AFTER, DateUtils.formatStandardDate(Instant.now().plus(100, ChronoUnit.SECONDS)));
@@ -92,7 +92,7 @@ public class TestDefaultHttpRequestRetryStrategy {
     }
 
     @Test
-    public void testRetryAfterHeaderAsPastDate() throws Exception {
+    void testRetryAfterHeaderAsPastDate() {
         final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
         response.setHeader(HttpHeaders.RETRY_AFTER, DateUtils.formatStandardDate(Instant.now().minus(100, ChronoUnit.SECONDS)));
 
@@ -100,7 +100,7 @@ public class TestDefaultHttpRequestRetryStrategy {
     }
 
     @Test
-    public void testInvalidRetryAfterHeader() throws Exception {
+    void testInvalidRetryAfterHeader() {
         final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
         response.setHeader(HttpHeaders.RETRY_AFTER, "Stuff");
 
@@ -108,49 +108,49 @@ public class TestDefaultHttpRequestRetryStrategy {
     }
 
     @Test
-    public void noRetryOnConnectTimeout() throws Exception {
+    void noRetryOnConnectTimeout() {
         final HttpGet request = new HttpGet("/");
 
         Assertions.assertFalse(retryStrategy.retryRequest(request, new SocketTimeoutException(), 1, null));
     }
 
     @Test
-    public void noRetryOnConnect() throws Exception {
+    void noRetryOnConnect() {
         final HttpGet request = new HttpGet("/");
 
         Assertions.assertFalse(retryStrategy.retryRequest(request, new ConnectException(), 1, null));
     }
 
     @Test
-    public void noRetryOnConnectionClosed() throws Exception {
+    void noRetryOnConnectionClosed() {
         final HttpGet request = new HttpGet("/");
 
         Assertions.assertFalse(retryStrategy.retryRequest(request, new ConnectionClosedException(), 1, null));
     }
 
     @Test
-    public void noRetryForNoRouteToHostException() {
+    void noRetryForNoRouteToHostException() {
         final HttpGet request = new HttpGet("/");
 
         Assertions.assertFalse(retryStrategy.retryRequest(request, new NoRouteToHostException(), 1, null));
     }
 
     @Test
-    public void noRetryOnSSLFailure() throws Exception {
+    void noRetryOnSSLFailure() {
         final HttpGet request = new HttpGet("/");
 
         Assertions.assertFalse(retryStrategy.retryRequest(request, new SSLException("encryption failed"), 1, null));
     }
 
     @Test
-    public void noRetryOnUnknownHost() throws Exception {
+    void noRetryOnUnknownHost() {
         final HttpGet request = new HttpGet("/");
 
         Assertions.assertFalse(retryStrategy.retryRequest(request, new UnknownHostException(), 1, null));
     }
 
     @Test
-    public void noRetryOnAbortedRequests() throws Exception {
+    void noRetryOnAbortedRequests() {
         final HttpGet request = new HttpGet("/");
         request.cancel();
 
@@ -158,7 +158,7 @@ public class TestDefaultHttpRequestRetryStrategy {
     }
 
     @Test
-    public void retryOnNonAbortedRequests() throws Exception {
+    void retryOnNonAbortedRequests() {
         final HttpGet request = new HttpGet("/");
 
         Assertions.assertTrue(retryStrategy.retryRequest(request, new IOException(), 1, null));

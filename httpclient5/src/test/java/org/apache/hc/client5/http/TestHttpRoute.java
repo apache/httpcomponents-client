@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests for {@link HttpRoute}.
  */
-public class TestHttpRoute {
+class TestHttpRoute {
 
     // a selection of constants for generating routes
     public final static
@@ -83,7 +83,7 @@ public class TestHttpRoute {
     }
 
     @Test
-    public void testCstrFullRoute() {
+    void testCstrFullRoute() {
         // create a route with all arguments and check the details
         final HttpHost[] chain3 = { PROXY1, PROXY2, PROXY3 };
 
@@ -110,7 +110,7 @@ public class TestHttpRoute {
     }
 
     @Test
-    public void testCstrFullFlags() {
+    void testCstrFullFlags() {
         // tests the flag parameters in the full-blown constructor
 
         final HttpHost[] chain3 = { PROXY1, PROXY2, PROXY3 };
@@ -174,7 +174,7 @@ public class TestHttpRoute {
     }
 
     @Test
-    public void testInvalidArguments() {
+    void testInvalidArguments() {
         final HttpHost[] chain1 = { PROXY1 };
 
         // for reference: this one should succeed
@@ -189,7 +189,7 @@ public class TestHttpRoute {
     }
 
     @Test
-    public void testNullEnums() {
+    void testNullEnums() {
 
         // tests the default values for the enum parameters
         // also covers the accessors for the enum attributes
@@ -205,7 +205,7 @@ public class TestHttpRoute {
     }
 
     @Test
-    public void testEqualsHashcodeClone() throws CloneNotSupportedException {
+    void testEqualsHashcodeClone() throws CloneNotSupportedException {
         final HttpHost[] chain0 = { };
         final HttpHost[] chain1 = { PROXY1 };
         final HttpHost[] chain3 = { PROXY1, PROXY2, PROXY3 };
@@ -337,7 +337,7 @@ public class TestHttpRoute {
     }
 
     @Test
-    public void testHopping() {
+    void testHopping() {
         // test getHopCount() and getHopTarget() with different proxy chains
         final HttpHost[] proxies = null;
         final HttpRoute  route   = new HttpRoute(TARGET1, null, proxies, true,
@@ -369,7 +369,7 @@ public class TestHttpRoute {
     }
 
     @Test
-    public void testCstr1() {
+    void testCstr1() {
         final HttpRoute route = new HttpRoute(TARGET2);
         final HttpRoute should = new HttpRoute
             (TARGET2, null, (HttpHost[]) null, false,
@@ -378,7 +378,7 @@ public class TestHttpRoute {
     }
 
     @Test
-    public void testCstr3() {
+    void testCstr3() {
         // test convenience constructor with 3 arguments
         HttpRoute route = new HttpRoute(TARGET2, LOCAL61, false);
         HttpRoute should = new HttpRoute
@@ -394,7 +394,7 @@ public class TestHttpRoute {
 
     @SuppressWarnings("unused")
     @Test
-    public void testCstr4() {
+    void testCstr4() {
         // test convenience constructor with 4 arguments
         HttpRoute route = new HttpRoute(TARGET2, null, PROXY2, false);
         HttpRoute should = new HttpRoute
@@ -414,7 +414,7 @@ public class TestHttpRoute {
     }
 
     @Test
-    public void testCstr6() {
+    void testCstr6() {
         // test convenience constructor with 6 arguments
         HttpRoute route = new HttpRoute
             (TARGET2, null, PROXY2, true,
@@ -436,7 +436,7 @@ public class TestHttpRoute {
     }
 
     @Test
-    public void testImmutable() throws CloneNotSupportedException {
+    void testImmutable() throws CloneNotSupportedException {
 
         final HttpHost[] proxies = new HttpHost[]{ PROXY1, PROXY2, PROXY3 };
         final HttpRoute route1 = new HttpRoute(TARGET1, null, proxies, false,

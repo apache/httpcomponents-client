@@ -45,7 +45,7 @@ import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 
-public abstract class TestHttpAsyncProtocolPolicy extends AbstractIntegrationTestBase {
+abstract  class TestHttpAsyncProtocolPolicy extends AbstractIntegrationTestBase {
 
     private final HttpVersion version;
 
@@ -55,7 +55,7 @@ public abstract class TestHttpAsyncProtocolPolicy extends AbstractIntegrationTes
     }
 
     @Test
-    public void testRequestContext() throws Exception {
+    void testRequestContext() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
         final HttpHost target = startServer();
 

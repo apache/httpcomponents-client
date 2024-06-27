@@ -41,44 +41,44 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 
-public class TestDefaultBackoffStrategy {
+class TestDefaultBackoffStrategy {
 
     private DefaultBackoffStrategy impl;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         impl = new DefaultBackoffStrategy();
     }
 
     @Test
-    public void backsOffForSocketTimeouts() {
+    void backsOffForSocketTimeouts() {
         assertTrue(impl.shouldBackoff(new SocketTimeoutException()));
     }
 
     @Test
-    public void backsOffForConnectionTimeouts() {
+    void backsOffForConnectionTimeouts() {
         assertTrue(impl.shouldBackoff(new ConnectException()));
     }
 
     @Test
-    public void doesNotBackOffForConnectionManagerTimeout() {
+    void doesNotBackOffForConnectionManagerTimeout() {
         assertFalse(impl.shouldBackoff(new ConnectionRequestTimeoutException()));
     }
 
     @Test
-    public void backsOffForServiceUnavailable() {
+    void backsOffForServiceUnavailable() {
         final HttpResponse resp = new BasicHttpResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "Service Unavailable");
         assertTrue(impl.shouldBackoff(resp));
     }
 
     @Test
-    public void backsOffForTooManyRequests() {
+    void backsOffForTooManyRequests() {
         final HttpResponse resp = new BasicHttpResponse(HttpStatus.SC_TOO_MANY_REQUESTS, "Too Many Requests");
         assertTrue(impl.shouldBackoff(resp));
     }
 
     @Test
-    public void doesNotBackOffForNon429And503StatusCodes() {
+    void doesNotBackOffForNon429And503StatusCodes() {
         for(int i = 100; i <= 599; i++) {
             if (i== HttpStatus.SC_TOO_MANY_REQUESTS || i == HttpStatus.SC_SERVICE_UNAVAILABLE) {
                 continue;

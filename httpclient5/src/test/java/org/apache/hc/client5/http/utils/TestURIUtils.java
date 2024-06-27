@@ -39,12 +39,12 @@ import org.junit.jupiter.api.Test;
  * This TestCase contains test methods for URI resolving according to RFC 3986.
  * The examples are listed in section "5.4 Reference Resolution Examples"
  */
-public class TestURIUtils {
+class TestURIUtils {
 
     private final URI baseURI = URI.create("http://a/b/c/d;p?q");
 
     @Test
-    public void testResolve() {
+    void testResolve() {
         Assertions.assertEquals("g:h", URIUtils.resolve(this.baseURI, "g:h").toString());
         Assertions.assertEquals("http://a/b/c/g", URIUtils.resolve(this.baseURI, "g").toString());
         Assertions.assertEquals("http://a/b/c/g", URIUtils.resolve(this.baseURI, "./g").toString());
@@ -107,7 +107,7 @@ public class TestURIUtils {
     }
 
     @Test
-    public void testResolveOpaque() {
+    void testResolveOpaque() {
         Assertions.assertEquals("example://a/./b/../b/%63/%7bfoo%7d", URIUtils.resolve(this.baseURI, "eXAMPLE://a/./b/../b/%63/%7bfoo%7d").toString());
         Assertions.assertEquals("file://localhost/etc/fstab", URIUtils.resolve(this.baseURI, "file://localhost/etc/fstab").toString());
         Assertions.assertEquals("file:///etc/fstab", URIUtils.resolve(this.baseURI, "file:///etc/fstab").toString());
@@ -121,7 +121,7 @@ public class TestURIUtils {
     }
 
     @Test
-    public void testExtractHost() throws Exception {
+    void testExtractHost() throws Exception {
         Assertions.assertEquals(new HttpHost("localhost"),
                 URIUtils.extractHost(new URI("http://localhost/abcd")));
         Assertions.assertEquals(new HttpHost("localhost"),
@@ -166,7 +166,7 @@ public class TestURIUtils {
     }
 
     @Test
-    public void testHttpLocationWithRelativeFragment() throws Exception {
+    void testHttpLocationWithRelativeFragment() throws Exception {
         final HttpHost target = new HttpHost("http", "localhost", -1);
         final URI requestURI = new URI("/stuff#blahblah");
 
@@ -179,7 +179,7 @@ public class TestURIUtils {
     }
 
     @Test
-    public void testHttpLocationWithAbsoluteFragment() throws Exception {
+    void testHttpLocationWithAbsoluteFragment() throws Exception {
         final HttpHost target = new HttpHost("http", "localhost", 80);
 
         final URI requestURI = new URIBuilder()
@@ -195,7 +195,7 @@ public class TestURIUtils {
     }
 
     @Test
-    public void testHttpLocationRedirect() throws Exception {
+    void testHttpLocationRedirect() throws Exception {
         final HttpHost target = new HttpHost("http", "localhost", -1);
         final URI requestURI = new URI("/People.htm#tim");
 
@@ -212,7 +212,7 @@ public class TestURIUtils {
     }
 
     @Test
-    public void testHttpLocationWithRedirectFragment() throws Exception {
+    void testHttpLocationWithRedirectFragment() throws Exception {
         final HttpHost target = new HttpHost("http", "localhost", -1);
         final URI requestURI = new URI("/~tim");
 

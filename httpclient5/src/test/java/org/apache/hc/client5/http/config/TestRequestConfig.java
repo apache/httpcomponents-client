@@ -37,16 +37,16 @@ import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestRequestConfig {
+class TestRequestConfig {
 
     @Test
-    public void testBasics() {
+    void testBasics() {
         final RequestConfig config = RequestConfig.custom().build();
         config.toString();
     }
 
     @Test
-    public void testDefaults() {
+    void testDefaults() {
         final RequestConfig config = RequestConfig.DEFAULT;
         Assertions.assertEquals(Timeout.ofMinutes(3), config.getConnectionRequestTimeout());
         Assertions.assertFalse(config.isExpectContinueEnabled());
@@ -61,7 +61,7 @@ public class TestRequestConfig {
     }
 
     @Test
-    public void testBuildAndCopy() throws Exception {
+    void testBuildAndCopy() {
         final RequestConfig config0 = RequestConfig.custom()
                 .setConnectionRequestTimeout(44, TimeUnit.MILLISECONDS)
                 .setExpectContinueEnabled(true)

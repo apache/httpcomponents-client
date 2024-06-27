@@ -29,10 +29,10 @@ package org.apache.hc.client5.http.validator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestETag {
+class TestETag {
 
     @Test
-    public void testHashCodeEquals() {
+    void testHashCodeEquals() {
         final ETag tag1 = new ETag("this");
         final ETag tag2 = new ETag("this");
         final ETag tag3 = new ETag("this", ValidatorType.WEAK);
@@ -48,14 +48,14 @@ public class TestETag {
     }
 
     @Test
-    public void testToString() {
+    void testToString() {
         Assertions.assertEquals("\"blah\"", new ETag("blah").toString());
         Assertions.assertEquals("W/\"blah\"", new ETag("blah", ValidatorType.WEAK).toString());
         Assertions.assertEquals("\"\"", new ETag("").toString());
     }
 
     @Test
-    public void testParse() {
+    void testParse() {
         Assertions.assertEquals(new ETag("blah", ValidatorType.WEAK), ETag.parse("  W/\"blah\"  "));
         Assertions.assertEquals(new ETag(" huh?"), ETag.parse("  \" huh?\"   "));
         Assertions.assertEquals(new ETag(" ", ValidatorType.WEAK), ETag.parse("W/\" \""));
@@ -71,7 +71,7 @@ public class TestETag {
     }
 
     @Test
-    public void testComparison() {
+    void testComparison() {
         Assertions.assertFalse(ETag.strongCompare(new ETag("1", ValidatorType.WEAK), new ETag("1", ValidatorType.WEAK)));
         Assertions.assertTrue(ETag.weakCompare(new ETag("1", ValidatorType.WEAK), new ETag("1", ValidatorType.WEAK)));
         Assertions.assertFalse(ETag.strongCompare(new ETag("1", ValidatorType.WEAK), new ETag("2", ValidatorType.WEAK)));

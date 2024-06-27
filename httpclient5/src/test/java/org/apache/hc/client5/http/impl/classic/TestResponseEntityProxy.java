@@ -49,7 +49,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-public class TestResponseEntityProxy {
+class TestResponseEntityProxy {
 
     @Mock
     private ClassicHttpResponse response;
@@ -59,14 +59,14 @@ public class TestResponseEntityProxy {
     private HttpEntity entity;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
         Mockito.when(entity.isStreaming()).thenReturn(Boolean.TRUE);
         Mockito.when(response.getEntity()).thenReturn(entity);
     }
 
     @Test
-    public void testGetTrailersWithNoChunkedInputStream() throws Exception {
+    void testGetTrailersWithNoChunkedInputStream() throws Exception {
         final ByteArrayInputStream inputStream = new ByteArrayInputStream("Test payload".getBytes());
         Mockito.when(entity.getContent()).thenReturn(inputStream);
         final ArgumentCaptor<HttpEntity> httpEntityArgumentCaptor = ArgumentCaptor.forClass(HttpEntity.class);
@@ -84,7 +84,7 @@ public class TestResponseEntityProxy {
     }
 
     @Test
-    public void testGetTrailersWithChunkedInputStream() throws Exception {
+    void testGetTrailersWithChunkedInputStream() throws Exception {
         final SessionInputBuffer sessionInputBuffer = new SessionInputBufferImpl(100);
         final ByteArrayInputStream inputStream = new ByteArrayInputStream("0\r\nX-Test-Trailer-Header: test\r\n".getBytes());
         final ChunkedInputStream chunkedInputStream = new ChunkedInputStream(sessionInputBuffer, inputStream);
@@ -109,7 +109,7 @@ public class TestResponseEntityProxy {
     }
 
     @Test
-    public void testWriteToNullDrainsAndReleasesStream() throws Exception {
+    void testWriteToNullDrainsAndReleasesStream() throws Exception {
         final SessionInputBuffer sessionInputBuffer = new SessionInputBufferImpl(100);
         final ByteArrayInputStream inputStream = new ByteArrayInputStream("0\r\nX-Test-Trailer-Header: test\r\n".getBytes());
         final ChunkedInputStream chunkedInputStream = new ChunkedInputStream(sessionInputBuffer, inputStream);

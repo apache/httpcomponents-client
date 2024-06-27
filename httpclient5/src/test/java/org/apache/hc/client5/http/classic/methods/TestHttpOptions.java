@@ -33,10 +33,10 @@ import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestHttpOptions {
+class TestHttpOptions {
 
     @Test
-    public void testMultipleAllows() {
+    void testMultipleAllows() {
         final BasicHttpResponse resp = new BasicHttpResponse(200, "test reason");
         resp.addHeader("Allow", "POST");
         resp.addHeader("Allow", "GET");

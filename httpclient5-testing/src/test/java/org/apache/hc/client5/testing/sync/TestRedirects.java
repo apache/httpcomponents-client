@@ -75,14 +75,14 @@ import org.junit.jupiter.api.Test;
 /**
  * Redirection test cases.
  */
-public abstract class TestRedirects extends AbstractIntegrationTestBase {
+abstract  class TestRedirects extends AbstractIntegrationTestBase {
 
     protected TestRedirects(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD);
     }
 
     @Test
-    public void testBasicRedirect300() throws Exception {
+    void testBasicRedirect300() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -110,7 +110,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testBasicRedirect300NoKeepAlive() throws Exception {
+    void testBasicRedirect300NoKeepAlive() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -140,7 +140,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testBasicRedirect301() throws Exception {
+    void testBasicRedirect301() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -172,7 +172,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testBasicRedirect302() throws Exception {
+    void testBasicRedirect302() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -198,7 +198,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testBasicRedirect302NoLocation() throws Exception {
+    void testBasicRedirect302NoLocation() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -229,7 +229,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testBasicRedirect303() throws Exception {
+    void testBasicRedirect303() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -254,7 +254,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testBasicRedirect304() throws Exception {
+    void testBasicRedirect304() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/oldlocation/*", (request, response, context) -> {
                     response.setCode(HttpStatus.SC_NOT_MODIFIED);
@@ -284,7 +284,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testBasicRedirect305() throws Exception {
+    void testBasicRedirect305() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/oldlocation/*", (request, response, context) -> {
                     response.setCode(HttpStatus.SC_USE_PROXY);
@@ -314,7 +314,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testBasicRedirect307() throws Exception {
+    void testBasicRedirect307() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -339,7 +339,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testMaxRedirectCheck() throws Exception {
+    void testMaxRedirectCheck() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -362,7 +362,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testCircularRedirect() throws Exception {
+    void testCircularRedirect() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -385,7 +385,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testPostRedirectSeeOther() throws Exception {
+    void testPostRedirectSeeOther() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -412,7 +412,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testRelativeRedirect() throws Exception {
+    void testRelativeRedirect() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -444,7 +444,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testRelativeRedirect2() throws Exception {
+    void testRelativeRedirect2() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -476,7 +476,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testRejectBogusRedirectLocation() throws Exception {
+    void testRejectBogusRedirectLocation() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -500,7 +500,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testRejectInvalidRedirectLocation() throws Exception {
+    void testRejectInvalidRedirectLocation() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -524,7 +524,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testRedirectWithCookie() throws Exception {
+    void testRedirectWithCookie() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
                         requestHandler,
@@ -561,7 +561,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testDefaultHeadersRedirect() throws Exception {
+    void testDefaultHeadersRedirect() throws Exception {
         configureClient(builder -> builder
                 .setDefaultHeaders(Collections.singletonList(new BasicHeader(HttpHeaders.USER_AGENT, "my-test-client")))
         );
@@ -593,7 +593,7 @@ public abstract class TestRedirects extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testCompressionHeaderRedirect() throws Exception {
+    void testCompressionHeaderRedirect() throws Exception {
         final Queue<String> values = new ConcurrentLinkedQueue<>();
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(new Decorator<HttpServerRequestHandler>() {

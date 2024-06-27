@@ -49,17 +49,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings({"boxing","static-access"}) // this is test code
-public class TestCacheKeyGenerator {
+class TestCacheKeyGenerator {
 
     private CacheKeyGenerator extractor;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() {
         extractor = CacheKeyGenerator.INSTANCE;
     }
 
     @Test
-    public void testGetRequestUri() {
+    void testGetRequestUri() {
         Assertions.assertEquals("http://foo.example.com/stuff?huh",
                 CacheKeyGenerator.getRequestUri(
                         new HttpHost("bar.example.com"),
@@ -92,7 +92,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testNormalizeRequestUri() throws URISyntaxException {
+    void testNormalizeRequestUri() throws URISyntaxException {
         Assertions.assertEquals(URI.create("http://bar.example.com:80/stuff?huh"),
                 CacheKeyGenerator.normalize(URI.create("//bar.example.com/stuff?huh")));
 
@@ -107,14 +107,14 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testExtractsUriFromAbsoluteUriInRequest() {
+    void testExtractsUriFromAbsoluteUriInRequest() {
         final HttpHost host = new HttpHost("bar.example.com");
         final HttpRequest req = new HttpGet("http://foo.example.com/");
         Assertions.assertEquals("http://foo.example.com:80/", extractor.generateKey(host, req));
     }
 
     @Test
-    public void testGetURIWithDefaultPortAndScheme() {
+    void testGetURIWithDefaultPortAndScheme() {
         Assertions.assertEquals("http://www.comcast.net:80/", extractor.generateKey(
                 new HttpHost("www.comcast.net"),
                 new BasicHttpRequest("GET", "/")));
@@ -125,7 +125,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testGetURIWithDifferentScheme() {
+    void testGetURIWithDifferentScheme() {
         Assertions.assertEquals("https://www.comcast.net:443/", extractor.generateKey(
                 new HttpHost("https", "www.comcast.net", -1),
                 new BasicHttpRequest("GET", "/")));
@@ -136,7 +136,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testGetURIWithDifferentPort() {
+    void testGetURIWithDifferentPort() {
         Assertions.assertEquals("http://www.comcast.net:8080/", extractor.generateKey(
                 new HttpHost("www.comcast.net", 8080),
                 new BasicHttpRequest("GET", "/")));
@@ -147,7 +147,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testGetURIWithDifferentPortAndScheme() {
+    void testGetURIWithDifferentPortAndScheme() {
         Assertions.assertEquals("https://www.comcast.net:8080/", extractor.generateKey(
                 new HttpHost("https", "www.comcast.net", 8080),
                 new BasicHttpRequest("GET", "/")));
@@ -158,7 +158,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testEmptyPortEquivalentToDefaultPortForHttp() {
+    void testEmptyPortEquivalentToDefaultPortForHttp() {
         final HttpHost host1 = new HttpHost("foo.example.com:");
         final HttpHost host2 = new HttpHost("foo.example.com:80");
         final HttpRequest req = new BasicHttpRequest("GET", "/");
@@ -166,7 +166,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testEmptyPortEquivalentToDefaultPortForHttps() {
+    void testEmptyPortEquivalentToDefaultPortForHttps() {
         final HttpHost host1 = new HttpHost("https", "foo.example.com", -1);
         final HttpHost host2 = new HttpHost("https", "foo.example.com", 443);
         final HttpRequest req = new BasicHttpRequest("GET", "/");
@@ -176,7 +176,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testEmptyPortEquivalentToDefaultPortForHttpsAbsoluteURI() {
+    void testEmptyPortEquivalentToDefaultPortForHttpsAbsoluteURI() {
         final HttpHost host = new HttpHost("https", "foo.example.com", -1);
         final HttpGet get1 = new HttpGet("https://bar.example.com:/");
         final HttpGet get2 = new HttpGet("https://bar.example.com:443/");
@@ -186,7 +186,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testNotProvidedPortEquivalentToDefaultPortForHttpsAbsoluteURI() {
+    void testNotProvidedPortEquivalentToDefaultPortForHttpsAbsoluteURI() {
         final HttpHost host = new HttpHost("https", "foo.example.com", -1);
         final HttpGet get1 = new HttpGet("https://bar.example.com/");
         final HttpGet get2 = new HttpGet("https://bar.example.com:443/");
@@ -196,7 +196,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testNotProvidedPortEquivalentToDefaultPortForHttp() {
+    void testNotProvidedPortEquivalentToDefaultPortForHttp() {
         final HttpHost host1 = new HttpHost("foo.example.com");
         final HttpHost host2 = new HttpHost("foo.example.com:80");
         final HttpRequest req = new BasicHttpRequest("GET", "/");
@@ -204,7 +204,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testHostNameComparisonsAreCaseInsensitive() {
+    void testHostNameComparisonsAreCaseInsensitive() {
         final HttpHost host1 = new HttpHost("foo.example.com");
         final HttpHost host2 = new HttpHost("FOO.EXAMPLE.COM");
         final HttpRequest req = new BasicHttpRequest("GET", "/");
@@ -212,7 +212,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testSchemeNameComparisonsAreCaseInsensitive() {
+    void testSchemeNameComparisonsAreCaseInsensitive() {
         final HttpHost host1 = new HttpHost("http", "foo.example.com", -1);
         final HttpHost host2 = new HttpHost("HTTP", "foo.example.com", -1);
         final HttpRequest req = new BasicHttpRequest("GET", "/");
@@ -220,7 +220,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testEmptyAbsPathIsEquivalentToSlash() {
+    void testEmptyAbsPathIsEquivalentToSlash() {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/");
         final HttpRequest req2 = new HttpGet("http://foo.example.com");
@@ -228,7 +228,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testExtraDotSegmentsAreIgnored() {
+    void testExtraDotSegmentsAreIgnored() {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/");
         final HttpRequest req2 = new HttpGet("http://foo.example.com/./");
@@ -236,7 +236,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testExtraDotDotSegmentsAreIgnored() {
+    void testExtraDotDotSegmentsAreIgnored() {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/");
         final HttpRequest req2 = new HttpGet("http://foo.example.com/.././../");
@@ -244,7 +244,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testIntermidateDotDotSegementsAreEquivalent() {
+    void testIntermidateDotDotSegementsAreEquivalent() {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/home.html");
         final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/../home.html");
@@ -252,7 +252,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testIntermidateEncodedDotDotSegementsAreEquivalent() {
+    void testIntermidateEncodedDotDotSegementsAreEquivalent() {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/home.html");
         final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/../home.html");
@@ -260,7 +260,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testIntermidateDotSegementsAreEquivalent() {
+    void testIntermidateDotSegementsAreEquivalent() {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home.html");
         final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/./home.html");
@@ -268,7 +268,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testEquivalentPathEncodingsAreEquivalent() {
+    void testEquivalentPathEncodingsAreEquivalent() {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home.html");
         final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/home.html");
@@ -276,7 +276,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testEquivalentExtraPathEncodingsAreEquivalent() {
+    void testEquivalentExtraPathEncodingsAreEquivalent() {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home.html");
         final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/home.html");
@@ -284,7 +284,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testEquivalentExtraPathEncodingsWithPercentAreEquivalent() {
+    void testEquivalentExtraPathEncodingsWithPercentAreEquivalent() {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home%20folder.html");
         final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/home%20folder.html");
@@ -292,7 +292,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testGetURIWithQueryParameters() {
+    void testGetURIWithQueryParameters() {
         Assertions.assertEquals("http://www.comcast.net:80/?foo=bar", extractor.generateKey(
                 new HttpHost("http", "www.comcast.net", -1), new BasicHttpRequest("GET", "/?foo=bar")));
         Assertions.assertEquals("http://www.fancast.com:80/full_episodes?foo=bar", extractor.generateKey(
@@ -305,7 +305,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testNormalizeHeaderElements() {
+    void testNormalizeHeaderElements() {
         final List<String> tokens = new ArrayList<>();
         CacheKeyGenerator.normalizeElements(headers(
                 new BasicHeader("Accept-Encoding", "gzip,zip,deflate")
@@ -336,7 +336,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testGetVariantKey() {
+    void testGetVariantKey() {
         final HttpRequest request = BasicRequestBuilder.get("/blah")
                 .addHeader(HttpHeaders.USER_AGENT, "some-agent")
                 .addHeader(HttpHeaders.ACCEPT_ENCODING, "gzip,zip")
@@ -352,7 +352,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testGetVariantKeyInputNormalization() {
+    void testGetVariantKeyInputNormalization() {
         final HttpRequest request = BasicRequestBuilder.get("/blah")
                 .addHeader(HttpHeaders.USER_AGENT, "Some-Agent")
                 .addHeader(HttpHeaders.ACCEPT_ENCODING, "gzip, ZIP,,")
@@ -370,7 +370,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testGetVariantKeyInputNormalizationReservedChars() {
+    void testGetVariantKeyInputNormalizationReservedChars() {
         final HttpRequest request = BasicRequestBuilder.get("/blah")
                 .addHeader(HttpHeaders.USER_AGENT, "*===some-agent===*")
                 .build();
@@ -380,7 +380,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testGetVariantKeyInputNoMatchingHeaders() {
+    void testGetVariantKeyInputNoMatchingHeaders() {
         final HttpRequest request = BasicRequestBuilder.get("/blah")
                 .build();
 
@@ -389,7 +389,7 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
-    public void testGetVariantKeyFromCachedResponse() {
+    void testGetVariantKeyFromCachedResponse() {
         final HttpRequest request = BasicRequestBuilder.get("/blah")
                 .addHeader("User-Agent", "agent1")
                 .addHeader("Accept-Encoding", "text/plain")

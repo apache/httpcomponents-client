@@ -40,14 +40,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestPublicSuffixListParser {
+class TestPublicSuffixListParser {
 
     private static final String SOURCE_FILE = "suffixlist.txt";
 
     private PublicSuffixDomainFilter filter;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         final ClassLoader classLoader = getClass().getClassLoader();
         final InputStream in = classLoader.getResourceAsStream(SOURCE_FILE);
         Assertions.assertNotNull(in);
@@ -63,7 +63,7 @@ public class TestPublicSuffixListParser {
     }
 
     @Test
-    public void testParse() throws Exception {
+    void testParse() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
 
         cookie.setAttribute(Cookie.DOMAIN_ATTR, ".jp");
@@ -82,7 +82,7 @@ public class TestPublicSuffixListParser {
     }
 
     @Test
-    public void testParseLocal() throws Exception {
+    void testParseLocal() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
 
         cookie.setDomain("localhost");
@@ -115,7 +115,7 @@ public class TestPublicSuffixListParser {
     }
 
     @Test
-    public void testUnicode() throws Exception {
+    void testUnicode() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
 
         cookie.setDomain(".h\u00E5.no"); // \u00E5 is <aring>

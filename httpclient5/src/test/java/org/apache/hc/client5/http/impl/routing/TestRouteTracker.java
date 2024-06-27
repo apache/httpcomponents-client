@@ -44,7 +44,7 @@ import org.junit.jupiter.api.Test;
  * Tests for {@link RouteTracker}.
  */
 @SuppressWarnings("boxing") // test code
-public class TestRouteTracker {
+class TestRouteTracker {
 
     // a selection of constants for generating routes
     public final static
@@ -87,7 +87,7 @@ public class TestRouteTracker {
 
     @SuppressWarnings("unused")
     @Test
-    public void testCstrTargetLocal() {
+    void testCstrTargetLocal() {
 
         RouteTracker rt = new RouteTracker(TARGET1, null);
         Assertions.assertEquals(TARGET1, rt.getTargetHost(), "wrong target (target,null)");
@@ -111,7 +111,7 @@ public class TestRouteTracker {
 
     @SuppressWarnings("unused")
     @Test
-    public void testCstrRoute() {
+    void testCstrRoute() {
 
         HttpRoute r  = new HttpRoute(TARGET1);
         RouteTracker rt = new RouteTracker(r);
@@ -145,7 +145,7 @@ public class TestRouteTracker {
     }
 
     @Test
-    public void testIllegalArgs() {
+    void testIllegalArgs() {
 
         final RouteTracker rt = new RouteTracker(TARGET2, null);
 
@@ -161,7 +161,7 @@ public class TestRouteTracker {
     }
 
     @Test
-    public void testIllegalStates() {
+    void testIllegalStates() {
 
         final RouteTracker rt = new RouteTracker(TARGET1, null);
 
@@ -179,7 +179,7 @@ public class TestRouteTracker {
     }
 
     @Test
-    public void testDirectRoutes() {
+    void testDirectRoutes() {
 
         final HttpRouteDirector rd = BasicRouteDirector.INSTANCE;
         HttpRoute r = new HttpRoute(TARGET1, LOCAL41, false);
@@ -194,7 +194,7 @@ public class TestRouteTracker {
     }
 
     @Test
-    public void testProxyRoutes() {
+    void testProxyRoutes() {
 
         final HttpRouteDirector rd = BasicRouteDirector.INSTANCE;
         HttpRoute r = new HttpRoute(TARGET2, null, PROXY1, false);
@@ -224,7 +224,7 @@ public class TestRouteTracker {
     }
 
     @Test
-    public void testProxyChainRoutes() {
+    void testProxyChainRoutes() {
 
         final HttpRouteDirector rd = BasicRouteDirector.INSTANCE;
         HttpHost[] proxies = { PROXY1, PROXY2 };
@@ -260,7 +260,7 @@ public class TestRouteTracker {
     }
 
     @Test
-    public void testEqualsHashcodeCloneToString()
+    void testEqualsHashcodeCloneToString()
         throws CloneNotSupportedException {
 
         final RouteTracker rt0 = new RouteTracker(TARGET1, null);

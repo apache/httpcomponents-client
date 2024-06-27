@@ -40,10 +40,10 @@ import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestDefaultRedirectStrategy {
+class TestDefaultRedirectStrategy {
 
     @Test
-    public void testIsRedirectedMovedTemporary() throws Exception {
+    void testIsRedirectedMovedTemporary() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -54,7 +54,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testIsRedirectedMovedTemporaryNoLocation() throws Exception {
+    void testIsRedirectedMovedTemporaryNoLocation() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -63,7 +63,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testIsRedirectedMovedPermanently() throws Exception {
+    void testIsRedirectedMovedPermanently() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -74,7 +74,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testIsRedirectedTemporaryRedirect() throws Exception {
+    void testIsRedirectedTemporaryRedirect() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -85,7 +85,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testIsRedirectedSeeOther() throws Exception {
+    void testIsRedirectedSeeOther() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -96,7 +96,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testIsRedirectedUnknownStatus() throws Exception {
+    void testIsRedirectedUnknownStatus() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -107,7 +107,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testIsRedirectedInvalidInput() throws Exception {
+    void testIsRedirectedInvalidInput() {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -119,7 +119,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testGetLocationUri() throws Exception {
+    void testGetLocationUri() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -130,7 +130,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testGetLocationUriMissingHeader() throws Exception {
+    void testGetLocationUriMissingHeader() {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -140,7 +140,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testGetLocationUriInvalidLocation() throws Exception {
+    void testGetLocationUriInvalidLocation() {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -151,7 +151,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testGetLocationUriRelative() throws Exception {
+    void testGetLocationUriRelative() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -162,7 +162,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testGetLocationUriRelativeWithFragment() throws Exception {
+    void testGetLocationUriRelativeWithFragment() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -173,7 +173,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testGetLocationUriAbsoluteWithFragment() throws Exception {
+    void testGetLocationUriAbsoluteWithFragment() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -184,7 +184,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testGetLocationUriNormalized() throws Exception {
+    void testGetLocationUriNormalized() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -195,7 +195,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testGetLocationUriInvalidInput() throws Exception {
+    void testGetLocationUriInvalidInput() {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
@@ -210,21 +210,21 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testCreateLocationURI() throws Exception {
+    void testCreateLocationURI() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         Assertions.assertEquals("http://blahblah/",
                 redirectStrategy.createLocationURI("http://BlahBlah").toASCIIString());
     }
 
     @Test
-    public void testCreateLocationURIInvalid() throws Exception {
+    void testCreateLocationURIInvalid() {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         Assertions.assertThrows(ProtocolException.class, () ->
                 redirectStrategy.createLocationURI(":::::::"));
     }
 
     @Test
-    public void testResolveRelativeLocation() throws Exception {
+    void testResolveRelativeLocation() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet request = new HttpGet("http://localhost/");
@@ -237,7 +237,7 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
-    public void testUseAbsoluteLocation() throws Exception {
+    void testUseAbsoluteLocation() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet request = new HttpGet("http://localhost/");

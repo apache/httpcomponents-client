@@ -40,10 +40,10 @@ import org.apache.hc.core5.http.message.ParserCursor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestMultipartFormHttpEntity {
+class TestMultipartFormHttpEntity {
 
     @Test
-    public void testExplictContractorParams() throws Exception {
+    void testExplicitContractorParams() {
         final HttpEntity entity = MultipartEntityBuilder.create()
                 .setLaxMode()
                 .setBoundary("whatever")
@@ -65,7 +65,7 @@ public class TestMultipartFormHttpEntity {
     }
 
     @Test
-    public void testImplictContractorParams() throws Exception {
+    void testImplicitContractorParams() {
         final HttpEntity entity = MultipartEntityBuilder.create().build();
         Assertions.assertNull(entity.getContentEncoding());
         final String contentType = entity.getContentType();
@@ -86,7 +86,7 @@ public class TestMultipartFormHttpEntity {
     }
 
     @Test
-    public void testRepeatable() throws Exception {
+    void testRepeatable() throws Exception {
         final HttpEntity entity = MultipartEntityBuilder.create()
                 .addTextBody("p1", "blah blah", ContentType.DEFAULT_TEXT)
                 .addTextBody("p2", "yada yada", ContentType.DEFAULT_TEXT)
@@ -118,7 +118,7 @@ public class TestMultipartFormHttpEntity {
     }
 
     @Test
-    public void testNonRepeatable() throws Exception {
+    void testNonRepeatable() {
         final HttpEntity entity = MultipartEntityBuilder.create()
             .addPart("p1", new InputStreamBody(
                 new ByteArrayInputStream("blah blah".getBytes()), ContentType.DEFAULT_BINARY))

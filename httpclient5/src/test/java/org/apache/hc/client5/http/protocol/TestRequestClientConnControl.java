@@ -39,10 +39,10 @@ import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestRequestClientConnControl {
+class TestRequestClientConnControl {
 
     @Test
-    public void testRequestParameterCheck() throws Exception {
+    void testRequestParameterCheck() {
         final HttpClientContext context = HttpClientContext.create();
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         Assertions.assertThrows(NullPointerException.class, () ->
@@ -50,7 +50,7 @@ public class TestRequestClientConnControl {
     }
 
     @Test
-    public void testConnectionKeepAliveForConnectRequest() throws Exception {
+    void testConnectionKeepAliveForConnectRequest() throws Exception {
         final HttpRequest request = new BasicHttpRequest("CONNECT", "www.somedomain.com");
         final HttpClientContext context = HttpClientContext.create();
 
@@ -61,7 +61,7 @@ public class TestRequestClientConnControl {
     }
 
     @Test
-    public void testConnectionKeepAliveForDirectRequests() throws Exception {
+    void testConnectionKeepAliveForDirectRequests() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpClientContext context = HttpClientContext.create();
 
@@ -79,7 +79,7 @@ public class TestRequestClientConnControl {
     }
 
     @Test
-    public void testConnectionKeepAliveForTunneledRequests() throws Exception {
+    void testConnectionKeepAliveForTunneledRequests() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpClientContext context = HttpClientContext.create();
 
@@ -99,7 +99,7 @@ public class TestRequestClientConnControl {
     }
 
     @Test
-    public void testProxyConnectionKeepAliveForRequestsOverProxy() throws Exception {
+    void testProxyConnectionKeepAliveForRequestsOverProxy() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpClientContext context = HttpClientContext.create();
 
@@ -118,7 +118,7 @@ public class TestRequestClientConnControl {
     }
 
     @Test
-    public void testPreserveCustomConnectionHeader() throws Exception {
+    void testPreserveCustomConnectionHeader() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         request.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
         final HttpClientContext context = HttpClientContext.create();

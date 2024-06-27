@@ -43,14 +43,14 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.util.TimeValue;
 import org.junit.jupiter.api.Test;
 
-public class TestIdleConnectionEviction extends AbstractIntegrationTestBase {
+class TestIdleConnectionEviction extends AbstractIntegrationTestBase {
 
     public TestIdleConnectionEviction() {
         super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
     }
 
     @Test
-    public void testIdleConnectionEviction() throws Exception {
+    void testIdleConnectionEviction() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", new RandomHandler()));
         final HttpHost target = startServer();

@@ -51,7 +51,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-public class TestFluent {
+class TestFluent {
 
     public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
 
@@ -59,7 +59,7 @@ public class TestFluent {
     private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, ClientProtocolLevel.STANDARD, TIMEOUT);
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() {
         testResources.configureServer(bootstrap -> bootstrap
                 .register("/", (request, response, context) ->
                         response.setEntity(new StringEntity("All is well", ContentType.TEXT_PLAIN)))
@@ -99,7 +99,7 @@ public class TestFluent {
     }
 
     @Test
-    public void testGetRequest() throws Exception {
+    void testGetRequest() throws Exception {
         final HttpHost target = startServer();
         final String baseURL = "http://localhost:" + target.getPort();
         final String message = Request.get(baseURL + "/").execute().returnContent().asString();
@@ -107,7 +107,7 @@ public class TestFluent {
     }
 
     @Test
-    public void testGetRequestByName() throws Exception {
+    void testGetRequestByName() throws Exception {
         final HttpHost target = startServer();
         final String baseURL = "http://localhost:" + target.getPort();
         final String message = Request.create("GET", baseURL + "/").execute().returnContent().asString();
@@ -115,7 +115,7 @@ public class TestFluent {
     }
 
     @Test
-    public void testGetRequestByNameWithURI() throws Exception {
+    void testGetRequestByNameWithURI() throws Exception {
         final HttpHost target = startServer();
         final String baseURL = "http://localhost:" + target.getPort();
         final String message = Request.create("GET", new URI(baseURL + "/")).execute().returnContent().asString();
@@ -123,7 +123,7 @@ public class TestFluent {
     }
 
     @Test
-    public void testGetRequestFailure() throws Exception {
+    void testGetRequestFailure() throws Exception {
         final HttpHost target = startServer();
         final String baseURL = "http://localhost:" + target.getPort();
         Assertions.assertThrows(ClientProtocolException.class, () ->
@@ -131,7 +131,7 @@ public class TestFluent {
     }
 
     @Test
-    public void testPostRequest() throws Exception {
+    void testPostRequest() throws Exception {
         final HttpHost target = startServer();
         final String baseURL = "http://localhost:" + target.getPort();
         final String message1 = Request.post(baseURL + "/echo")
@@ -145,7 +145,7 @@ public class TestFluent {
     }
 
     @Test
-    public void testContentAsStringWithCharset() throws Exception {
+    void testContentAsStringWithCharset() throws Exception {
         final HttpHost target = startServer();
         final String baseURL = "http://localhost:" + target.getPort();
         final Content content = Request.post(baseURL + "/echo").bodyByteArray("Ü".getBytes(StandardCharsets.UTF_8)).execute()
@@ -156,7 +156,7 @@ public class TestFluent {
     }
 
     @Test
-    public void testConnectionRelease() throws Exception {
+    void testConnectionRelease() throws Exception {
         final HttpHost target = startServer();
         final String baseURL = "http://localhost:" + target.getPort();
         for (int i = 0; i < 20; i++) {
@@ -182,7 +182,7 @@ public class TestFluent {
     }
 
     @Test
-    public void testLargeResponse() throws Exception {
+    void testLargeResponse() throws Exception {
 
         final HttpHost target = startServer();
         final String baseURL = "http://localhost:" + target.getPort();
@@ -192,7 +192,7 @@ public class TestFluent {
     }
 
     @Test
-    public void testLargeResponseError() throws Exception {
+    void testLargeResponseError() throws Exception {
         final HttpHost target = startServer();
         final String baseURL = "http://localhost:" + target.getPort();
 

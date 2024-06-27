@@ -48,12 +48,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestMalformedServerResponse {
+class TestMalformedServerResponse {
 
     private HttpServer server;
 
     @AfterEach
-    public void shutDown() throws Exception {
+    void shutDown() {
         if (this.server != null) {
             this.server.close(CloseMode.GRACEFUL);
         }
@@ -95,7 +95,7 @@ public class TestMalformedServerResponse {
     }
 
     @Test
-    public void testNoContentResponseWithGarbage() throws Exception {
+    void testNoContentResponseWithGarbage() throws Exception {
         server = ServerBootstrap.bootstrap()
                 .setCanonicalHostName("localhost")
                 .setConnectionFactory(new BrokenServerConnectionFactory())

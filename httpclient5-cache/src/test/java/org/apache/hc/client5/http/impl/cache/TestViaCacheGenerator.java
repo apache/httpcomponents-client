@@ -34,17 +34,17 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestViaCacheGenerator {
+class TestViaCacheGenerator {
 
     private ViaCacheGenerator impl;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         impl = new ViaCacheGenerator();
     }
 
     @Test
-    public void testViaValueGeneration() {
+    void testViaValueGeneration() {
         Assertions.assertEquals("1.1 localhost (Apache-HttpClient/UNAVAILABLE (cache))",
                 impl.generateViaHeader(null, HttpVersion.DEFAULT));
         Assertions.assertEquals("2.0 localhost (Apache-HttpClient/UNAVAILABLE (cache))",
@@ -52,7 +52,7 @@ public class TestViaCacheGenerator {
     }
 
     @Test
-    public void testViaValueLookup() {
+    void testViaValueLookup() {
         MatcherAssert.assertThat(impl.lookup(HttpVersion.DEFAULT),
                 Matchers.startsWith("1.1 localhost (Apache-HttpClient/"));
         MatcherAssert.assertThat(impl.lookup(HttpVersion.HTTP_1_0),

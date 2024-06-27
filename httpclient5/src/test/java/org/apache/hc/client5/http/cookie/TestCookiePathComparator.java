@@ -36,10 +36,10 @@ import org.junit.jupiter.api.Test;
 /**
  * Test cases for {@link CookiePathComparator}.
  */
-public class TestCookiePathComparator {
+class TestCookiePathComparator {
 
     @Test
-    public void testUnequality1() {
+    void testUnequality1() {
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value");
         cookie1.setPath("/a/b/");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
@@ -50,7 +50,7 @@ public class TestCookiePathComparator {
     }
 
     @Test
-    public void testUnequality2() {
+    void testUnequality2() {
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value");
         cookie1.setPath("/a/b");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
@@ -61,7 +61,7 @@ public class TestCookiePathComparator {
     }
 
     @Test
-    public void testEquality1() {
+    void testEquality1() {
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value");
         cookie1.setPath("/a");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
@@ -72,7 +72,7 @@ public class TestCookiePathComparator {
     }
 
     @Test
-    public void testEquality2() {
+    void testEquality2() {
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value");
         cookie1.setPath("/a/");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
@@ -83,7 +83,7 @@ public class TestCookiePathComparator {
     }
 
     @Test
-    public void testEquality3() {
+    void testEquality3() {
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value");
         cookie1.setPath(null);
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
@@ -94,7 +94,7 @@ public class TestCookiePathComparator {
     }
 
     @Test
-    public void testEquality4() {
+    void testEquality4() {
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value");
         cookie1.setPath("/this");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");

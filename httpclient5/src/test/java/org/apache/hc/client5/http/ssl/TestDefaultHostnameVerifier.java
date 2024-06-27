@@ -50,7 +50,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for {@link org.apache.hc.client5.http.ssl.DefaultHostnameVerifier}.
  */
-public class TestDefaultHostnameVerifier {
+class TestDefaultHostnameVerifier {
 
     private DefaultHostnameVerifier impl;
     private PublicSuffixMatcher publicSuffixMatcher;
@@ -59,7 +59,7 @@ public class TestDefaultHostnameVerifier {
     private static final String PUBLIC_SUFFIX_MATCHER_SOURCE_FILE = "suffixlistmatcher.txt";
 
     @BeforeEach
-    public void setup() throws IOException {
+    void setup() throws IOException {
         impl = new DefaultHostnameVerifier();
 
         // Load the test PublicSuffixMatcher
@@ -74,7 +74,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testVerify() throws Exception {
+    void testVerify() throws Exception {
         final CertificateFactory cf = CertificateFactory.getInstance("X.509");
         InputStream in;
         X509Certificate x509;
@@ -188,7 +188,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testSubjectAlt() throws Exception {
+    void testSubjectAlt() throws Exception {
         final CertificateFactory cf = CertificateFactory.getInstance("X.509");
         final InputStream in = new ByteArrayInputStream(CertificatesToPlayWith.X509_MULTIPLE_SUBJECT_ALT);
         final X509Certificate x509 = (X509Certificate) cf.generateCertificate(in);
@@ -210,7 +210,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testDomainRootMatching() {
+    void testDomainRootMatching() {
 
         Assertions.assertFalse(DefaultHostnameVerifier.matchDomainRoot("a.b.c", null));
         Assertions.assertTrue(DefaultHostnameVerifier.matchDomainRoot("a.b.c", "a.b.c"));
@@ -220,7 +220,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testIdentityMatching() {
+    void testIdentityMatching() {
 
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.c", "*.b.c"));
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.b.c", "*.b.c"));
@@ -269,7 +269,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testHTTPCLIENT_1097() {
+    void testHTTPCLIENT_1097() {
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.c", "a*.b.c"));
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.b.c", "a*.b.c"));
 
@@ -278,13 +278,13 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testHTTPCLIENT_1255() {
+    void testHTTPCLIENT_1255() {
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("mail.a.b.c.com", "m*.a.b.c.com"));
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("mail.a.b.c.com", "m*.a.b.c.com"));
     }
 
     @Test
-    public void testHTTPCLIENT_1997_ANY() { // Only True on all domains
+    void testHTTPCLIENT_1997_ANY() { // Only True on all domains
         String domain;
         // Unknown
         domain = "dev.b.cloud.a";
@@ -309,7 +309,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testHTTPCLIENT_1997_ICANN() { // Only True on ICANN domains
+    void testHTTPCLIENT_1997_ICANN() { // Only True on ICANN domains
         String domain;
         // Unknown
         domain = "dev.b.cloud.a";
@@ -328,7 +328,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testHTTPCLIENT_1997_PRIVATE() { // Only True on PRIVATE domains
+    void testHTTPCLIENT_1997_PRIVATE() { // Only True on PRIVATE domains
         String domain;
         // Unknown
         domain = "dev.b.cloud.a";
@@ -347,7 +347,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testHTTPCLIENT_1997_UNKNOWN() { // Only True on all domains (same as ANY)
+    void testHTTPCLIENT_1997_UNKNOWN() { // Only True on all domains (same as ANY)
         String domain;
         // Unknown
         domain = "dev.b.cloud.a";
@@ -366,7 +366,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test // Check compressed IPv6 hostname matching
-    public void testHTTPCLIENT_1316() throws Exception{
+    void testHTTPCLIENT_1316() throws Exception{
         final String host1 = "2001:0db8:aaaa:bbbb:cccc:0:0:0001";
         DefaultHostnameVerifier.matchIPv6Address(host1, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc:0:0:0001")));
         DefaultHostnameVerifier.matchIPv6Address(host1, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::1")));
@@ -380,7 +380,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testHTTPCLIENT_2149() throws Exception {
+    void testHTTPCLIENT_2149() throws Exception {
         final CertificateFactory cf = CertificateFactory.getInstance("X.509");
         final InputStream in = new ByteArrayInputStream(CertificatesToPlayWith.SUBJECT_ALT_IP_ONLY);
         final X509Certificate x509 = (X509Certificate) cf.generateCertificate(in);
@@ -395,7 +395,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testExtractCN() throws Exception {
+    void testExtractCN() throws Exception {
         Assertions.assertEquals("blah", DefaultHostnameVerifier.extractCN("cn=blah, ou=blah, o=blah"));
         Assertions.assertEquals("blah", DefaultHostnameVerifier.extractCN("cn=blah, cn=yada, cn=booh"));
         Assertions.assertEquals("blah", DefaultHostnameVerifier.extractCN("c = pampa ,  cn  =    blah    , ou = blah , o = blah"));
@@ -411,7 +411,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testMatchDNSName() throws Exception {
+    void testMatchDNSName() throws Exception {
         DefaultHostnameVerifier.matchDNSName(
                 "host.domain.com",
                 Collections.singletonList(SubjectName.DNS("*.domain.com")),

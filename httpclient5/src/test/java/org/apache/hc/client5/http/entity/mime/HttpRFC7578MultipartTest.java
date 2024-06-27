@@ -32,10 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.apache.hc.core5.net.PercentCodec;
 import org.junit.jupiter.api.Test;
 
-public class HttpRFC7578MultipartTest {
+class HttpRFC7578MultipartTest {
 
     @Test
-    public void testPercentDecodingWithValidMessages() throws Exception {
+    void testPercentDecodingWithValidMessages() {
         final String[][] tests = new String[][] {
                 {"test", "test"},
                 {"%20", " "},

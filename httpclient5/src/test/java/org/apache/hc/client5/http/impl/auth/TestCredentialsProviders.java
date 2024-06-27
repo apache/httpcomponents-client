@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests for {@link org.apache.hc.client5.http.auth.CredentialsProvider} implementations.
  */
-public class TestCredentialsProviders {
+class TestCredentialsProviders {
 
     public final static Credentials CREDS1 =
         new UsernamePasswordCredentials("user1", "pass1".toCharArray());
@@ -51,7 +51,7 @@ public class TestCredentialsProviders {
     public final static AuthScope DEFSCOPE = new AuthScope(null, "host", -1, "realm", null);
 
     @Test
-    public void testBasicCredentialsProviderCredentials() {
+    void testBasicCredentialsProviderCredentials() {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
         state.setCredentials(SCOPE1, CREDS1);
         state.setCredentials(SCOPE2, CREDS2);
@@ -60,13 +60,13 @@ public class TestCredentialsProviders {
     }
 
     @Test
-    public void testBasicCredentialsProviderNoCredentials() {
+    void testBasicCredentialsProviderNoCredentials() {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
         Assertions.assertNull(state.getCredentials(BOGUS, null));
     }
 
     @Test
-    public void testBasicCredentialsProviderDefaultCredentials() {
+    void testBasicCredentialsProviderDefaultCredentials() {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
         state.setCredentials(new AuthScope(null, null, -1, null ,null), CREDS1);
         state.setCredentials(SCOPE2, CREDS2);
@@ -74,7 +74,7 @@ public class TestCredentialsProviders {
     }
 
     @Test
-    public void testDefaultCredentials() throws Exception {
+    void testDefaultCredentials() {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
         final Credentials expected = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(new AuthScope(null, null, -1, null ,null), expected);
@@ -83,7 +83,7 @@ public class TestCredentialsProviders {
     }
 
     @Test
-    public void testRealmCredentials() throws Exception {
+    void testRealmCredentials() {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
         final Credentials expected = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(DEFSCOPE, expected);
@@ -92,7 +92,7 @@ public class TestCredentialsProviders {
     }
 
     @Test
-    public void testHostCredentials() throws Exception {
+    void testHostCredentials() {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
         final Credentials expected = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(new AuthScope(null, "host", -1, null, null), expected);
@@ -101,7 +101,7 @@ public class TestCredentialsProviders {
     }
 
     @Test
-    public void testWrongHostCredentials() throws Exception {
+    void testWrongHostCredentials() {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
         final Credentials expected = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(new AuthScope(null, "host1", -1, "realm", null), expected);
@@ -110,7 +110,7 @@ public class TestCredentialsProviders {
     }
 
     @Test
-    public void testWrongRealmCredentials() throws Exception {
+    void testWrongRealmCredentials() {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
         final Credentials cred = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(new AuthScope(null, "host", -1, "realm1", null), cred);
@@ -119,7 +119,7 @@ public class TestCredentialsProviders {
     }
 
     @Test
-    public void testMixedCaseHostname() throws Exception {
+    void testMixedCaseHostname() {
         final HttpHost httpHost = new HttpHost("hOsT", 80);
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
         final Credentials expected = new UsernamePasswordCredentials("name", "pass".toCharArray());
@@ -129,7 +129,7 @@ public class TestCredentialsProviders {
     }
 
     @Test
-    public void testCredentialsMatching() {
+    void testCredentialsMatching() {
         final Credentials creds1 = new UsernamePasswordCredentials("name1", "pass1".toCharArray());
         final Credentials creds2 = new UsernamePasswordCredentials("name2", "pass2".toCharArray());
         final Credentials creds3 = new UsernamePasswordCredentials("name3", "pass3".toCharArray());
@@ -157,7 +157,7 @@ public class TestCredentialsProviders {
     }
 
     @Test
-    public void testSingleCredentialsProvider() {
+    void testSingleCredentialsProvider() {
         final Credentials creds1 = new UsernamePasswordCredentials("name1", "pass1".toCharArray());
         final CredentialsProvider credentialsProvider1 = new SingleCredentialsProvider(new AuthScope(null, null, -1, null, null), creds1);
 

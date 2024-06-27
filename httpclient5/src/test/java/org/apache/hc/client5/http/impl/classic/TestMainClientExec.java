@@ -56,7 +56,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-public class TestMainClientExec {
+class TestMainClientExec {
 
     @Mock
     private HttpClientConnectionManager connectionManager;
@@ -75,14 +75,14 @@ public class TestMainClientExec {
     private HttpHost target;
 
     @BeforeEach
-    public void setup() throws Exception {
+    void setup() {
         MockitoAnnotations.openMocks(this);
         mainClientExec = new MainClientExec(connectionManager, httpProcessor, reuseStrategy, keepAliveStrategy, userTokenHandler);
         target = new HttpHost("foo", 80);
     }
 
     @Test
-    public void testFundamentals() throws Exception {
+    void testFundamentals() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final ClassicHttpRequest request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -112,7 +112,7 @@ public class TestMainClientExec {
     }
 
     @Test
-    public void testExecRequestNonPersistentConnection() throws Exception {
+    void testExecRequestNonPersistentConnection() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -143,7 +143,7 @@ public class TestMainClientExec {
     }
 
     @Test
-    public void testExecRequestNonPersistentConnectionNoResponseEntity() throws Exception {
+    void testExecRequestNonPersistentConnectionNoResponseEntity() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -172,7 +172,7 @@ public class TestMainClientExec {
     }
 
     @Test
-    public void testExecRequestPersistentConnection() throws Exception {
+    void testExecRequestPersistentConnection() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -208,7 +208,7 @@ public class TestMainClientExec {
     }
 
     @Test
-    public void testExecRequestPersistentConnectionNoResponseEntity() throws Exception {
+    void testExecRequestPersistentConnectionNoResponseEntity() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -238,7 +238,7 @@ public class TestMainClientExec {
     }
 
     @Test
-    public void testExecRequestConnectionRelease() throws Exception {
+    void testExecRequestConnectionRelease() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -273,7 +273,7 @@ public class TestMainClientExec {
     }
 
     @Test
-    public void testExecConnectionShutDown() throws Exception {
+    void testExecConnectionShutDown() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -291,7 +291,7 @@ public class TestMainClientExec {
     }
 
     @Test
-    public void testExecRuntimeException() throws Exception {
+    void testExecRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -309,7 +309,7 @@ public class TestMainClientExec {
     }
 
     @Test
-    public void testExecHttpException() throws Exception {
+    void testExecHttpException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -327,7 +327,7 @@ public class TestMainClientExec {
     }
 
     @Test
-    public void testExecIOException() throws Exception {
+    void testExecIOException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");

@@ -59,14 +59,14 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestConnectionReuse extends AbstractIntegrationTestBase {
+class TestConnectionReuse extends AbstractIntegrationTestBase {
 
     public TestConnectionReuse() {
         super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
     }
 
     @Test
-    public void testReuseOfPersistentConnections() throws Exception {
+    void testReuseOfPersistentConnections() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", new RandomHandler()));
         final HttpHost target = startServer();
@@ -103,7 +103,7 @@ public class TestConnectionReuse extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testReuseOfPersistentConnectionsWithStreamedRequestAndResponse() throws Exception {
+    void testReuseOfPersistentConnectionsWithStreamedRequestAndResponse() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", new RandomHandler()));
         final HttpHost target = startServer();
@@ -150,14 +150,14 @@ public class TestConnectionReuse extends AbstractIntegrationTestBase {
         public void process(
                 final HttpResponse response,
                 final EntityDetails entityDetails,
-                final HttpContext context) throws HttpException, IOException {
+                final HttpContext context) {
             response.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
         }
 
     }
 
     @Test
-    public void testReuseOfClosedConnections() throws Exception {
+    void testReuseOfClosedConnections() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setHttpProcessor(HttpProcessors.customServer(null)
                         .add(new AlwaysCloseConn())
@@ -196,7 +196,7 @@ public class TestConnectionReuse extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testReuseOfAbortedConnections() throws Exception {
+    void testReuseOfAbortedConnections() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", new RandomHandler()));
         final HttpHost target = startServer();
@@ -233,7 +233,7 @@ public class TestConnectionReuse extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testKeepAliveHeaderRespected() throws Exception {
+    void testKeepAliveHeaderRespected() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setHttpProcessor(HttpProcessors.customServer(null)
                         .add(new ResponseKeepAlive())
@@ -350,7 +350,7 @@ public class TestConnectionReuse extends AbstractIntegrationTestBase {
         public void process(
                 final HttpResponse response,
                 final EntityDetails entityDetails,
-                final HttpContext context) throws HttpException, IOException {
+                final HttpContext context) {
             final Header connection = response.getFirstHeader(HttpHeaders.CONNECTION);
             if(connection != null) {
                 if(!connection.getValue().equalsIgnoreCase("Close")) {

@@ -53,7 +53,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Test cases for state-ful connections.
  */
-public class TestStatefulConnManagement extends AbstractIntegrationTestBase {
+class TestStatefulConnManagement extends AbstractIntegrationTestBase {
 
     public static final Timeout LONG_TIMEOUT = Timeout.ofMinutes(3);
 
@@ -71,7 +71,7 @@ public class TestStatefulConnManagement extends AbstractIntegrationTestBase {
         public void handle(
                 final ClassicHttpRequest request,
                 final ClassicHttpResponse response,
-                final HttpContext context) throws HttpException, IOException {
+                final HttpContext context) {
             response.setCode(HttpStatus.SC_OK);
             final StringEntity entity = new StringEntity("Whatever");
             response.setEntity(entity);
@@ -79,7 +79,7 @@ public class TestStatefulConnManagement extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testStatefulConnections() throws Exception {
+    void testStatefulConnections() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("*", new SimpleService()));
         final HttpHost target = startServer();
@@ -193,7 +193,7 @@ public class TestStatefulConnManagement extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testRouteSpecificPoolRecylcing() throws Exception {
+    void testRouteSpecificPoolRecylcing() throws Exception {
         configureServer(bootstrap -> bootstrap.register("*", new SimpleService()));
         final HttpHost target = startServer();
 

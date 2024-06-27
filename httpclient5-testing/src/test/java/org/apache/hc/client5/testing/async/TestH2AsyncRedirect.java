@@ -30,7 +30,7 @@ import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
 import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
 import org.apache.hc.core5.http.URIScheme;
 
-public abstract class TestH2AsyncRedirect extends AbstractHttpAsyncRedirectsTest {
+abstract  class TestH2AsyncRedirect extends AbstractHttpAsyncRedirectsTest {
 
     public TestH2AsyncRedirect(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.H2_ONLY, ServerProtocolLevel.H2_ONLY);

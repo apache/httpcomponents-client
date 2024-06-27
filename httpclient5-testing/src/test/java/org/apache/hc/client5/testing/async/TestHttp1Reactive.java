@@ -57,7 +57,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Publisher;
 
-public abstract class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest {
+abstract  class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest {
 
     public TestHttp1Reactive(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);

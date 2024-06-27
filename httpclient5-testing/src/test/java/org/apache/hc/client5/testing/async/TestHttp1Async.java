@@ -52,7 +52,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-public abstract class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest {
+abstract  class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest {
 
     public TestHttp1Async(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);
@@ -86,7 +86,7 @@ public abstract class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest {
     }
 
     @Test
-    public void testSharedPool() throws Exception {
+    void testSharedPool() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
         final HttpHost target = startServer();
 
@@ -138,7 +138,7 @@ public abstract class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest {
     }
 
     @Test
-    public void testRequestCancellation() throws Exception {
+    void testRequestCancellation() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
         final HttpHost target = startServer();
 

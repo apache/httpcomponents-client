@@ -53,7 +53,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Client protocol handling tests.
  */
-public abstract class TestMinimalClientRequestExecution extends AbstractIntegrationTestBase {
+abstract  class TestMinimalClientRequestExecution extends AbstractIntegrationTestBase {
 
     protected TestMinimalClientRequestExecution(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.MINIMAL);
@@ -69,7 +69,7 @@ public abstract class TestMinimalClientRequestExecution extends AbstractIntegrat
         public void handle(
                 final ClassicHttpRequest request,
                 final ClassicHttpResponse response,
-                final HttpContext context) throws HttpException, IOException {
+                final HttpContext context) {
             response.setCode(HttpStatus.SC_OK);
             final StringEntity entity = new StringEntity("Whatever");
             response.setEntity(entity);
@@ -77,7 +77,7 @@ public abstract class TestMinimalClientRequestExecution extends AbstractIntegrat
     }
 
     @Test
-    public void testNonCompliantURIWithContext() throws Exception {
+    void testNonCompliantURIWithContext() throws Exception {
         configureServer(bootstrap -> bootstrap.register("*", new SimpleService()));
         final HttpHost target = startServer();
 
@@ -108,7 +108,7 @@ public abstract class TestMinimalClientRequestExecution extends AbstractIntegrat
     }
 
     @Test
-    public void testNonCompliantURIWithoutContext() throws Exception {
+    void testNonCompliantURIWithoutContext() throws Exception {
         configureServer(bootstrap -> bootstrap.register("*", new SimpleService()));
         final HttpHost target = startServer();
 

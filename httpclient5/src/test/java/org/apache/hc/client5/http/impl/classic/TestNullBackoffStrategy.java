@@ -35,22 +35,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 
-public class TestNullBackoffStrategy {
+class TestNullBackoffStrategy {
 
     private NullBackoffStrategy impl;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         impl = new NullBackoffStrategy();
     }
 
     @Test
-    public void doesNotBackoffForThrowables() {
+    void doesNotBackoffForThrowables() {
         assertFalse(impl.shouldBackoff(new Exception()));
     }
 
     @Test
-    public void doesNotBackoffForResponses() {
+    void doesNotBackoffForResponses() {
         final HttpResponse resp = new BasicHttpResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "Service Unavailable");
         assertFalse(impl.shouldBackoff(resp));
     }

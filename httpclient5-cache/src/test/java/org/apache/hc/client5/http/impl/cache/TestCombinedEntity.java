@@ -38,10 +38,10 @@ import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestCombinedEntity {
+class TestCombinedEntity {
 
     @Test
-    public void testCombinedEntityBasics() throws Exception {
+    void testCombinedEntityBasics() throws Exception {
         final HttpEntity httpEntity = mock(HttpEntity.class);
         when(httpEntity.getContent()).thenReturn(
                 new ByteArrayInputStream(new byte[] { 6, 7, 8, 9, 10 }));

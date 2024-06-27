@@ -43,10 +43,10 @@ import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestRoutingSupport {
+class TestRoutingSupport {
 
     @Test
-    public void testDetermineHost() throws Exception {
+    void testDetermineHost() throws Exception {
         final HttpRequest request1 = new BasicHttpRequest("GET", "/");
         final HttpHost host1 = RoutingSupport.determineHost(request1);
         assertThat(host1, CoreMatchers.nullValue());
@@ -57,7 +57,7 @@ public class TestRoutingSupport {
     }
 
     @Test
-    public void testDetermineHostMissingScheme() throws Exception {
+    void testDetermineHostMissingScheme() {
         final HttpRequest request1 = new BasicHttpRequest("GET", "/");
         request1.setAuthority(new URIAuthority("host"));
         Assertions.assertThrows(ProtocolException.class, () ->
@@ -65,7 +65,7 @@ public class TestRoutingSupport {
     }
 
     @Test
-    public void testNormalizeHost() throws Exception {
+    void testNormalizeHost() throws Exception {
         Assertions.assertEquals(new HttpHost("http", "somehost", 80),
                 RoutingSupport.normalize(
                         new HttpHost("http", "somehost", -1),

@@ -46,7 +46,7 @@ import org.mockito.Mockito;
 /**
  * Simple tests for {@link SystemDefaultCredentialsProvider}.
  */
-public class TestSystemDefaultCredentialsProvider {
+class TestSystemDefaultCredentialsProvider {
 
     private final static String PROXY_PROTOCOL1 = "http";
     private final static String PROXY_HOST1 = "proxyhost1";
@@ -88,7 +88,7 @@ public class TestSystemDefaultCredentialsProvider {
     }
 
     @Test
-    public void testSystemCredentialsProviderCredentials() throws Exception {
+    void testSystemCredentialsProviderCredentials() throws Exception {
 
         final AuthenticatorDelegate authenticatorDelegate = installAuthenticator(AUTH1);
 
@@ -110,7 +110,7 @@ public class TestSystemDefaultCredentialsProvider {
     }
 
     @Test
-    public void testSystemCredentialsProviderNoContext() throws Exception {
+    void testSystemCredentialsProviderNoContext() {
 
         final AuthenticatorDelegate authenticatorDelegate = installAuthenticator(AUTH1);
 

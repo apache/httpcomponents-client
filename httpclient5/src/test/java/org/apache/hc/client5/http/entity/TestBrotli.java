@@ -33,7 +33,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestBrotli {
+class TestBrotli {
 
     /**
      * Brotli decompression test implemented by request with specified response encoding br
@@ -41,7 +41,7 @@ public class TestBrotli {
      * @throws Exception
      */
     @Test
-    public void testDecompressionWithBrotli() throws Exception {
+    void testDecompressionWithBrotli() throws Exception {
 
         final byte[] bytes = new byte[] {33, 44, 0, 4, 116, 101, 115, 116, 32, 98, 114, 111, 116, 108, 105, 10, 3};
 

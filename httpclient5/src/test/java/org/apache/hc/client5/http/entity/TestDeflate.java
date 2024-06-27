@@ -37,10 +37,10 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestDeflate {
+class TestDeflate {
 
     @Test
-    public void testCompressDecompress() throws Exception {
+    void testCompressDecompress() throws Exception {
 
         final String s = "some kind of text";
         final byte[] input = s.getBytes(StandardCharsets.US_ASCII);

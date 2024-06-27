@@ -38,23 +38,23 @@ import org.junit.jupiter.api.Test;
  * Unit tests for exceptions.
  * Trivial, but it looks better in the Clover reports.
  */
-public class ConnectExceptionSupportTest {
+class ConnectExceptionSupportTest {
 
     @Test
-    public void testConnectTimeoutExceptionFromNullMessageAndHost() {
+    void testConnectTimeoutExceptionFromNullMessageAndHost() {
         final ConnectTimeoutException ctx = ConnectExceptionSupport.createConnectTimeoutException(null, null);
         Assertions.assertEquals("Connect to remote endpoint timed out", ctx.getMessage());
     }
 
     @Test
-    public void testConnectTimeoutExceptionFromCause() {
+    void testConnectTimeoutExceptionFromCause() {
         final IOException cause = new IOException("something awful");
         final ConnectTimeoutException ctx = ConnectExceptionSupport.createConnectTimeoutException(cause, null);
         Assertions.assertEquals("Connect to remote endpoint failed: something awful", ctx.getMessage());
     }
 
     @Test
-    public void testConnectTimeoutExceptionFromCauseAndHost() {
+    void testConnectTimeoutExceptionFromCauseAndHost() {
         final HttpHost target = new HttpHost("localhost");
         final IOException cause = new IOException();
         final ConnectTimeoutException ctx = ConnectExceptionSupport.createConnectTimeoutException(cause, target);
@@ -62,7 +62,7 @@ public class ConnectExceptionSupportTest {
     }
 
     @Test
-    public void testConnectTimeoutExceptionFromCauseHostAndRemoteAddress() throws Exception {
+    void testConnectTimeoutExceptionFromCauseHostAndRemoteAddress() throws Exception {
         final HttpHost target = new HttpHost("localhost");
         final InetAddress remoteAddress = InetAddress.getByAddress(new byte[] {1,2,3,4});
         final IOException cause = new IOException();
@@ -71,21 +71,21 @@ public class ConnectExceptionSupportTest {
     }
 
     @Test
-    public void testHttpHostConnectExceptionFromNullCause() {
+    void testHttpHostConnectExceptionFromNullCause() {
         final HttpHostConnectException ctx = ConnectExceptionSupport.createHttpHostConnectException(null, null,
                 (InetAddress [])null);
         Assertions.assertEquals("Connect to remote endpoint refused", ctx.getMessage());
     }
 
     @Test
-    public void testHttpHostConnectExceptionFromCause() {
+    void testHttpHostConnectExceptionFromCause() {
         final IOException cause = new IOException("something awful");
         final HttpHostConnectException ctx = ConnectExceptionSupport.createHttpHostConnectException(cause, null);
         Assertions.assertEquals("Connect to remote endpoint failed: something awful", ctx.getMessage());
     }
 
     @Test
-    public void testHttpHostConnectExceptionFromCauseAndHost() {
+    void testHttpHostConnectExceptionFromCauseAndHost() {
         final HttpHost target = new HttpHost("localhost");
         final IOException cause = new IOException();
         final HttpHostConnectException ctx = ConnectExceptionSupport.createHttpHostConnectException(cause, target);
@@ -93,7 +93,7 @@ public class ConnectExceptionSupportTest {
     }
 
     @Test
-    public void testHttpHostConnectExceptionFromCauseHostAndRemoteAddress() throws Exception {
+    void testHttpHostConnectExceptionFromCauseHostAndRemoteAddress() throws Exception {
         final HttpHost target = new HttpHost("localhost");
         final InetAddress remoteAddress1 = InetAddress.getByAddress(new byte[] {1,2,3,4});
         final InetAddress remoteAddress2 = InetAddress.getByAddress(new byte[] {5,6,7,8});

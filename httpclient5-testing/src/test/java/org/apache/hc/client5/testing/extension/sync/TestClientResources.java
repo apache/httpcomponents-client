@@ -70,7 +70,7 @@ public class TestClientResources implements AfterEachCallback {
     }
 
     @Override
-    public void afterEach(final ExtensionContext extensionContext) throws Exception {
+    public void afterEach(final ExtensionContext extensionContext) {
         LOG.debug("Shutting down test server");
 
         if (client != null) {

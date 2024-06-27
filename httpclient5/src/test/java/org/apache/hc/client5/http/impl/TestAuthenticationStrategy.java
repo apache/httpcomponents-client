@@ -55,10 +55,10 @@ import org.junit.jupiter.api.Test;
  * Simple tests for {@link DefaultAuthenticationStrategy}.
  */
 @SuppressWarnings("boxing") // test code
-public class TestAuthenticationStrategy {
+class TestAuthenticationStrategy {
 
     @Test
-    public void testSelectInvalidInput() throws Exception {
+    void testSelectInvalidInput() {
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final HttpClientContext context = HttpClientContext.create();
         Assertions.assertThrows(NullPointerException.class, () ->
@@ -70,7 +70,7 @@ public class TestAuthenticationStrategy {
     }
 
     @Test
-    public void testSelectNoSchemeRegistry() throws Exception {
+    void testSelectNoSchemeRegistry() {
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final HttpClientContext context = HttpClientContext.create();
 
@@ -86,7 +86,7 @@ public class TestAuthenticationStrategy {
     }
 
     @Test
-    public void testUnsupportedScheme() throws Exception {
+    void testUnsupportedScheme() {
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final HttpClientContext context = HttpClientContext.create();
 
@@ -116,7 +116,7 @@ public class TestAuthenticationStrategy {
     }
 
     @Test
-    public void testCustomAuthPreference() throws Exception {
+    void testCustomAuthPreference() {
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final RequestConfig config = RequestConfig.custom()
             .setTargetPreferredAuthSchemes(Collections.singletonList(StandardAuthScheme.BASIC))

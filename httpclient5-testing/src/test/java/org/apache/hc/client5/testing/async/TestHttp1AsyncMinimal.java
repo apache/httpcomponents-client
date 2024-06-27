@@ -52,14 +52,14 @@ import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 
-public abstract class TestHttp1AsyncMinimal extends AbstractHttpAsyncFundamentalsTest {
+abstract  class TestHttp1AsyncMinimal extends AbstractHttpAsyncFundamentalsTest {
 
     public TestHttp1AsyncMinimal(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.MINIMAL, ServerProtocolLevel.STANDARD);
     }
 
     @Test
-    public void testConcurrentPostRequestsSameEndpoint() throws Exception {
+    void testConcurrentPostRequestsSameEndpoint() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/echo/*", AsyncEchoHandler::new));
         final HttpHost target = startServer();
 

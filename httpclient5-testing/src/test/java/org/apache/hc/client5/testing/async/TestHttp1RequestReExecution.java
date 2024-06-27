@@ -47,14 +47,14 @@ import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public abstract class TestHttp1RequestReExecution extends AbstractIntegrationTestBase {
+abstract  class TestHttp1RequestReExecution extends AbstractIntegrationTestBase {
 
     public TestHttp1RequestReExecution(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);
     }
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         final Resolver<HttpRequest, TimeValue> serviceAvailabilityResolver = new Resolver<HttpRequest, TimeValue>() {
 
             private final AtomicInteger count = new AtomicInteger(0);
@@ -72,7 +72,7 @@ public abstract class TestHttp1RequestReExecution extends AbstractIntegrationTes
     }
 
     @Test
-    public void testGiveUpAfterOneRetry() throws Exception {
+    void testGiveUpAfterOneRetry() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
         final HttpHost target = startServer();
 
@@ -91,7 +91,7 @@ public abstract class TestHttp1RequestReExecution extends AbstractIntegrationTes
     }
 
     @Test
-    public void testDoNotGiveUpEasily() throws Exception {
+    void testDoNotGiveUpEasily() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
         final HttpHost target = startServer();
 

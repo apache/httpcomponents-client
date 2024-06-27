@@ -44,17 +44,17 @@ class SimpleHttpCacheStorage implements HttpCacheStorage {
     }
 
     @Override
-    public void putEntry(final String key, final HttpCacheEntry entry) throws ResourceIOException {
+    public void putEntry(final String key, final HttpCacheEntry entry) {
         map.put(key, entry);
     }
 
     @Override
-    public HttpCacheEntry getEntry(final String key) throws ResourceIOException {
+    public HttpCacheEntry getEntry(final String key) {
         return map.get(key);
     }
 
     @Override
-    public void removeEntry(final String key) throws ResourceIOException {
+    public void removeEntry(final String key) {
         map.remove(key);
     }
 

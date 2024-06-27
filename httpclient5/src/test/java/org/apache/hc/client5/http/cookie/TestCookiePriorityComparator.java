@@ -38,17 +38,17 @@ import org.junit.jupiter.api.Test;
 /**
  * Test cases for {@link org.apache.hc.client5.http.cookie.CookiePriorityComparator}.
  */
-public class TestCookiePriorityComparator {
+class TestCookiePriorityComparator {
 
     private Comparator<Cookie> comparator;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         comparator = CookiePriorityComparator.INSTANCE;
     }
 
     @Test
-    public void testUnequality() {
+    void testUnequality() {
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value");
         cookie1.setPath("/a/b/");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
@@ -58,7 +58,7 @@ public class TestCookiePriorityComparator {
     }
 
     @Test
-    public void testEquality() {
+    void testEquality() {
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value");
         cookie1.setPath("/a");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
@@ -68,7 +68,7 @@ public class TestCookiePriorityComparator {
     }
 
     @Test
-    public void testUnequalityTrailingSlash() {
+    void testUnequalityTrailingSlash() {
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value");
         cookie1.setPath("/a/");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
@@ -78,7 +78,7 @@ public class TestCookiePriorityComparator {
     }
 
     @Test
-    public void testEqualityNullPath() {
+    void testEqualityNullPath() {
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value");
         cookie1.setPath(null);
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
@@ -88,7 +88,7 @@ public class TestCookiePriorityComparator {
     }
 
     @Test
-    public void testEqualitySameLength() {
+    void testEqualitySameLength() {
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value");
         cookie1.setPath("/this");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
@@ -98,7 +98,7 @@ public class TestCookiePriorityComparator {
     }
 
     @Test
-    public void testUnequalityCreationDate() {
+    void testUnequalityCreationDate() {
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value");
         cookie1.setPath("/blah");
         cookie1.setCreationDate(Instant.now().minusMillis(200000));
