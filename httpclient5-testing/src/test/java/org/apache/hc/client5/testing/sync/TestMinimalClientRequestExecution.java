@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.testing.sync;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -38,7 +37,6 @@ import org.apache.hc.client5.testing.extension.sync.TestClient;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;

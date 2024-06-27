@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.testing.sync;
 
-import java.io.IOException;
-
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -38,7 +36,6 @@ import org.apache.hc.client5.testing.extension.sync.TestClient;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.EndpointDetails;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.URIScheme;

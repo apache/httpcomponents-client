@@ -111,7 +111,7 @@ class TestHttpRequestRetryExec {
         final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
-        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
+        Mockito.mock(ClassicHttpResponse.class);
 
         Mockito.when(chain.proceed(
                 Mockito.same(request),

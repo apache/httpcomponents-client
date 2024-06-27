@@ -33,7 +33,6 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.message.BasicHeader;
@@ -48,11 +47,6 @@ class TestDateUtils {
 
     private static Instant createInstant(final int year, final Month month, final int day) {
         return LocalDate.of(year, month, day).atStartOfDay(ZoneId.of("GMT")).toInstant();
-    }
-
-    private static Date createDate(final int year, final Month month, final int day) {
-        final Instant instant = createInstant(year, month, day);
-        return new Date(instant.toEpochMilli());
     }
 
     @Test

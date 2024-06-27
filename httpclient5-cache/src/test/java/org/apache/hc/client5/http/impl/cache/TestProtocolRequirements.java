@@ -465,8 +465,6 @@ class TestProtocolRequirements {
     @Test
     void testNotModifiedOfNonCachedEntityShouldRevalidateWithUnconditionalGET() throws Exception {
 
-        final Instant now = Instant.now();
-
         // load cache with cacheable entry
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();

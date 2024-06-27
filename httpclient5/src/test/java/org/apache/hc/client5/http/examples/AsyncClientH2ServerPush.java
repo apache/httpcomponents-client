@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.examples;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.util.concurrent.Future;
@@ -39,7 +38,6 @@ import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.impl.routing.RequestRouter;

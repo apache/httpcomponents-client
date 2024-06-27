@@ -261,7 +261,7 @@ class TestHttpByteArrayCacheEntrySerializer {
                 "Cache-control: public, max-age=31536000\n" +
                 "\n" +
                 "Hello World";
-        final byte[] bytes2 = content1.getBytes(StandardCharsets.UTF_8);
+        final byte[] bytes2 = content2.getBytes(StandardCharsets.UTF_8);
         final ResourceIOException exception2 = Assertions.assertThrows(ResourceIOException.class, () ->
                 httpCacheEntrySerializer.deserialize(bytes2));
         Assertions.assertEquals("Invalid cache header format", exception2.getMessage());
@@ -432,7 +432,7 @@ class TestHttpByteArrayCacheEntrySerializer {
         final byte[] bytes2 = content2.getBytes(StandardCharsets.UTF_8);
         final ResourceIOException exception2 = Assertions.assertThrows(ResourceIOException.class, () ->
                 httpCacheEntrySerializer.deserialize(bytes2));
-        Assertions.assertEquals("Unexpected content at the end of cache content", exception1.getMessage());
+        Assertions.assertEquals("Unexpected content at the end of cache content", exception2.getMessage());
     }
 
     static HeapResource load(final URL resource) throws IOException {
