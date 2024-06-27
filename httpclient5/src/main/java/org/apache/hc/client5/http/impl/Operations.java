@@ -48,7 +48,10 @@ public final class Operations {
      * The outcome of the future cannot be altered and it cannot be cancelled.
      *
      * @param <T> operation result representation.
+     *
+     * @deprecated Use {@link org.apache.hc.core5.concurrent.CompletedFuture}.
      */
+    @Deprecated
     public static class CompletedFuture<T> implements Future<T> {
 
         private final T result;
