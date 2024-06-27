@@ -36,10 +36,10 @@ import org.apache.hc.client5.http.utils.DateUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestLaxCookieAttribHandlers {
+class TestLaxCookieAttribHandlers {
 
     @Test
-    public void testParseMaxAge() throws Exception {
+    void testParseMaxAge() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxMaxAgeHandler.INSTANCE;
         h.parse(cookie, "2000");
@@ -47,7 +47,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseMaxNegative() throws Exception {
+    void testParseMaxNegative() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxMaxAgeHandler.INSTANCE;
         h.parse(cookie, "-2000");
@@ -55,7 +55,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseMaxZero() throws Exception {
+    void testParseMaxZero() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxMaxAgeHandler.INSTANCE;
         h.parse(cookie, "0000");
@@ -63,7 +63,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testBasicMaxAgeParseEmpty() throws Exception {
+    void testBasicMaxAgeParseEmpty() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxMaxAgeHandler.INSTANCE;
         h.parse(cookie, "  ");
@@ -71,7 +71,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testBasicMaxAgeParseInvalid() throws Exception {
+    void testBasicMaxAgeParseInvalid() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxMaxAgeHandler.INSTANCE;
         h.parse(cookie, "garbage");
@@ -79,13 +79,13 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testBasicMaxAgeInvalidInput() throws Exception {
+    void testBasicMaxAgeInvalidInput() {
         final CookieAttributeHandler h = LaxMaxAgeHandler.INSTANCE;
         Assertions.assertThrows(NullPointerException.class, () -> h.parse(null, "stuff"));
     }
 
     @Test
-    public void testExpiryGarbage() throws Exception {
+    void testExpiryGarbage() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         Assertions.assertThrows(MalformedCookieException.class, () ->
@@ -93,7 +93,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiry() throws Exception {
+    void testParseExpiry() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         h.parse(cookie, "1:0:12 8-jan-2012");
@@ -111,7 +111,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryInstant() throws Exception {
+    void testParseExpiryInstant() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         h.parse(cookie, "1:0:12 8-jan-2012");
@@ -129,7 +129,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryInvalidTime0() throws Exception {
+    void testParseExpiryInvalidTime0() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         h.parse(cookie, null);
@@ -137,7 +137,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryInvalidTime1() throws Exception {
+    void testParseExpiryInvalidTime1() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         Assertions.assertThrows(MalformedCookieException.class, () ->
@@ -145,7 +145,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryInvalidTime2() throws Exception {
+    void testParseExpiryInvalidTime2() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         Assertions.assertThrows(MalformedCookieException.class, () ->
@@ -153,7 +153,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryInvalidTime3() throws Exception {
+    void testParseExpiryInvalidTime3() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         Assertions.assertThrows(MalformedCookieException.class, () ->
@@ -161,7 +161,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryInvalidTime4() throws Exception {
+    void testParseExpiryInvalidTime4() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         Assertions.assertThrows(MalformedCookieException.class, () ->
@@ -169,7 +169,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryFunnyTime() throws Exception {
+    void testParseExpiryFunnyTime() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         h.parse(cookie, "1:59:00blah; 8-feb-2000");
@@ -187,7 +187,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryFunnyTimeInstant() throws Exception {
+    void testParseExpiryFunnyTimeInstant() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         h.parse(cookie, "1:59:00blah; 8-feb-2000");
@@ -205,7 +205,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryInvalidDayOfMonth1() throws Exception {
+    void testParseExpiryInvalidDayOfMonth1() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         Assertions.assertThrows(MalformedCookieException.class, () ->
@@ -213,7 +213,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryInvalidDayOfMonth2() throws Exception {
+    void testParseExpiryInvalidDayOfMonth2() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         Assertions.assertThrows(MalformedCookieException.class, () ->
@@ -221,7 +221,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryInvalidDayOfMonth3() throws Exception {
+    void testParseExpiryInvalidDayOfMonth3() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         Assertions.assertThrows(MalformedCookieException.class, () ->
@@ -229,7 +229,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryFunnyDayOfMonth() throws Exception {
+    void testParseExpiryFunnyDayOfMonth() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         h.parse(cookie, "12:00:00 8blah;mar;1880");
@@ -247,7 +247,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryFunnyDayOfMonthInstant() throws Exception {
+    void testParseExpiryFunnyDayOfMonthInstant() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         h.parse(cookie, "12:00:00 8blah;mar;1880");
@@ -265,7 +265,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryInvalidMonth() throws Exception {
+    void testParseExpiryInvalidMonth() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         Assertions.assertThrows(MalformedCookieException.class, () ->
@@ -273,7 +273,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryFunnyMonth() throws Exception {
+    void testParseExpiryFunnyMonth() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         h.parse(cookie, "23:59:59; 1-ApriLLLLL-2008");
@@ -291,7 +291,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryFunnyMonthInstant() throws Exception {
+    void testParseExpiryFunnyMonthInstant() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         h.parse(cookie, "23:59:59; 1-ApriLLLLL-2008");
@@ -309,7 +309,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryInvalidYearTooShort() throws Exception {
+    void testParseExpiryInvalidYearTooShort() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         Assertions.assertThrows(MalformedCookieException.class, () ->
@@ -317,7 +317,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryInvalidYearTooLong() throws Exception {
+    void testParseExpiryInvalidYearTooLong() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         Assertions.assertThrows(MalformedCookieException.class, () ->
@@ -325,7 +325,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryInvalidYearTooLongAgo() throws Exception {
+    void testParseExpiryInvalidYearTooLongAgo() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         Assertions.assertThrows(MalformedCookieException.class, () ->
@@ -333,7 +333,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryFunnyYear() throws Exception {
+    void testParseExpiryFunnyYear() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         h.parse(cookie, "23:59:59; 1-Apr-2008blah");
@@ -351,7 +351,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryFunnyYearInstant() throws Exception {
+    void testParseExpiryFunnyYearInstant() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         h.parse(cookie, "23:59:59; 1-Apr-2008blah");
@@ -369,7 +369,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryYearTwoDigit1() throws Exception {
+    void testParseExpiryYearTwoDigit1() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         h.parse(cookie, "23:59:59; 1-Apr-70");
@@ -381,7 +381,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryYearTwoDigit2() throws Exception {
+    void testParseExpiryYearTwoDigit2() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         h.parse(cookie, "23:59:59; 1-Apr-99");
@@ -393,7 +393,7 @@ public class TestLaxCookieAttribHandlers {
     }
 
     @Test
-    public void testParseExpiryYearTwoDigit3() throws Exception {
+    void testParseExpiryYearTwoDigit3() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = LaxExpiresHandler.INSTANCE;
         h.parse(cookie, "23:59:59; 1-Apr-00");

@@ -58,14 +58,14 @@ import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 
-public abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrationTestBase {
+abstract  class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrationTestBase {
 
     protected AbstractHttpAsyncFundamentalsTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
         super(scheme, clientProtocolLevel, serverProtocolLevel);
     }
 
     @Test
-    public void testSequentialGetRequests() throws Exception {
+    void testSequentialGetRequests() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
         final HttpHost target = startServer();
 
@@ -87,7 +87,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrat
     }
 
     @Test
-    public void testSequentialHeadRequests() throws Exception {
+    void testSequentialHeadRequests() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
         final HttpHost target = startServer();
         final TestAsyncClient client = startClient();
@@ -106,7 +106,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrat
     }
 
     @Test
-    public void testSequentialPostRequests() throws Exception {
+    void testSequentialPostRequests() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/echo/*", AsyncEchoHandler::new));
         final HttpHost target = startServer();
         final TestAsyncClient client = startClient();
@@ -128,7 +128,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrat
     }
 
     @Test
-    public void testConcurrentPostRequests() throws Exception {
+    void testConcurrentPostRequests() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/echo/*", AsyncEchoHandler::new));
         final HttpHost target = startServer();
         final TestAsyncClient client = startClient();
@@ -159,7 +159,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrat
     }
 
     @Test
-    public void testRequestExecutionFromCallback() throws Exception {
+    void testRequestExecutionFromCallback() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
         final HttpHost target = startServer();
         final TestAsyncClient client = startClient();
@@ -226,7 +226,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrat
     }
 
     @Test
-    public void testBadRequest() throws Exception {
+    void testBadRequest() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
         final HttpHost target = startServer();
         final TestAsyncClient client = startClient();

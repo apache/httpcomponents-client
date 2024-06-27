@@ -34,7 +34,7 @@ import java.net.UnknownHostException;
 
 import org.junit.jupiter.api.Test;
 
-public class SystemDefaultDnsResolverTest {
+class SystemDefaultDnsResolverTest {
 
     @Test
     void resolve() throws UnknownHostException {

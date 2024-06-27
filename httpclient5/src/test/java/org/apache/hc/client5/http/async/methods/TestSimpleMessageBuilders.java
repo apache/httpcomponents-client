@@ -50,10 +50,10 @@ import org.junit.jupiter.api.Test;
 /**
  * Simple tests for {@link SimpleResponseBuilder} and {@link SimpleRequestBuilder}.
  */
-public class TestSimpleMessageBuilders {
+class TestSimpleMessageBuilders {
 
     @Test
-    public void testResponseBasics() throws Exception {
+    void testResponseBasics() {
         final SimpleResponseBuilder builder = SimpleResponseBuilder.create(200);
         Assertions.assertEquals(200, builder.getStatus());
         Assertions.assertNull(builder.getHeaders());
@@ -111,7 +111,7 @@ public class TestSimpleMessageBuilders {
     }
 
     @Test
-    public void testRequestBasics() throws Exception {
+    void testRequestBasics() throws Exception {
         final SimpleRequestBuilder builder = SimpleRequestBuilder.get();
         Assertions.assertEquals(URI.create("/"), builder.getUri());
         Assertions.assertEquals("GET", builder.getMethod());
@@ -205,7 +205,7 @@ public class TestSimpleMessageBuilders {
     }
 
     @Test
-    public void testResponseCopy() throws Exception {
+    void testResponseCopy() {
         final SimpleHttpResponse response = SimpleHttpResponse.create(400);
         response.addHeader("h1", "v1");
         response.addHeader("h1", "v2");
@@ -220,7 +220,7 @@ public class TestSimpleMessageBuilders {
     }
 
     @Test
-    public void testRequestCopy() throws Exception {
+    void testRequestCopy() {
         final SimpleHttpRequest request = SimpleHttpRequest.create(Method.GET, URI.create("https://host:3456/stuff?blah")) ;
         request.addHeader("h1", "v1");
         request.addHeader("h1", "v2");
@@ -238,7 +238,7 @@ public class TestSimpleMessageBuilders {
     }
 
     @Test
-    public void testGetParameters() throws Exception {
+    void testGetParameters() {
         final SimpleRequestBuilder builder = SimpleRequestBuilder.get(URI.create("https://host:3456/stuff?p0=p0"));
         builder.addParameter("p1", "v1");
         builder.addParameters(new BasicNameValuePair("p2", "v2"), new BasicNameValuePair("p3", "v3"));
@@ -256,7 +256,7 @@ public class TestSimpleMessageBuilders {
     }
 
     @Test
-    public void testPostParameters() throws Exception {
+    void testPostParameters() {
         final SimpleRequestBuilder builder = SimpleRequestBuilder.post(URI.create("https://host:3456/stuff?p0=p0"));
         builder.addParameter("p1", "v1");
         builder.addParameters(new BasicNameValuePair("p2", "v2"), new BasicNameValuePair("p3", "v3"));

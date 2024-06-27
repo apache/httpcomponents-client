@@ -66,14 +66,14 @@ import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegrationTestBase {
+abstract  class AbstractHttpAsyncRedirectsTest extends AbstractIntegrationTestBase {
 
     public AbstractHttpAsyncRedirectsTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
         super(scheme, clientProtocolLevel, serverProtocolLevel);
     }
 
     @Test
-    public void testBasicRedirect300() throws Exception {
+    void testBasicRedirect300() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -99,7 +99,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testBasicRedirect301() throws Exception {
+    void testBasicRedirect301() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -126,7 +126,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testBasicRedirect302() throws Exception {
+    void testBasicRedirect302() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -153,7 +153,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testBasicRedirect302NoLocation() throws Exception {
+    void testBasicRedirect302NoLocation() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -185,7 +185,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testBasicRedirect303() throws Exception {
+    void testBasicRedirect303() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -213,14 +213,14 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testBasicRedirect304() throws Exception {
+    void testBasicRedirect304() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .register("/oldlocation/*", () -> new AbstractSimpleServerExchangeHandler() {
 
                     @Override
                     protected SimpleHttpResponse handle(final SimpleHttpRequest request,
-                                                        final HttpCoreContext context) throws HttpException {
+                                                        final HttpCoreContext context) {
                         return SimpleHttpResponse.create(HttpStatus.SC_NOT_MODIFIED, (String) null);
                     }
                 }));
@@ -244,14 +244,14 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testBasicRedirect305() throws Exception {
+    void testBasicRedirect305() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .register("/oldlocation/*", () -> new AbstractSimpleServerExchangeHandler() {
 
                     @Override
                     protected SimpleHttpResponse handle(final SimpleHttpRequest request,
-                                                        final HttpCoreContext context) throws HttpException {
+                                                        final HttpCoreContext context) {
                         return SimpleHttpResponse.create(HttpStatus.SC_USE_PROXY, (String) null);
                     }
                 }));
@@ -275,7 +275,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testBasicRedirect307() throws Exception {
+    void testBasicRedirect307() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -302,7 +302,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testMaxRedirectCheck() throws Exception {
+    void testMaxRedirectCheck() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -328,7 +328,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testCircularRedirect() throws Exception {
+    void testCircularRedirect() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -355,7 +355,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testPostRedirect() throws Exception {
+    void testPostRedirect() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/echo/*", AsyncEchoHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -383,7 +383,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testPostRedirectSeeOther() throws Exception {
+    void testPostRedirectSeeOther() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/echo/*", AsyncEchoHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -411,7 +411,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testRelativeRedirect() throws Exception {
+    void testRelativeRedirect() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -446,7 +446,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testRelativeRedirect2() throws Exception {
+    void testRelativeRedirect2() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -481,7 +481,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testRejectBogusRedirectLocation() throws Exception {
+    void testRejectBogusRedirectLocation() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -510,7 +510,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testRejectInvalidRedirectLocation() throws Exception {
+    void testRejectInvalidRedirectLocation() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -538,7 +538,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testRedirectWithCookie() throws Exception {
+    void testRedirectWithCookie() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -576,7 +576,7 @@ public abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegration
     }
 
     @Test
-    public void testCrossSiteRedirect() throws Exception {
+    void testCrossSiteRedirect() throws Exception {
         final URIScheme scheme = scheme();
         final TestAsyncServer secondServer = new TestAsyncServerBootstrap(scheme(), getServerProtocolLevel())
                 .register("/random/*", AsyncRandomHandler::new)

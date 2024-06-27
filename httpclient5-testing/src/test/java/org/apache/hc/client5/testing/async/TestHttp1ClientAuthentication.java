@@ -49,14 +49,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-public abstract class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthenticationTest {
+abstract  class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthenticationTest {
 
     public TestHttp1ClientAuthentication(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);
     }
 
     @Test
-    public void testBasicAuthenticationSuccessNonPersistentConnection() throws Exception {
+    void testBasicAuthenticationSuccessNonPersistentConnection() throws Exception {
         final HttpHost target = startServer();
         configureServer(bootstrap -> bootstrap
                 .register("*", AsyncEchoHandler::new)

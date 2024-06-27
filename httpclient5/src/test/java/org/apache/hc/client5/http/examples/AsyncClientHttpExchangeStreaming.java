@@ -80,7 +80,7 @@ public class AsyncClientHttpExchangeStreaming {
                         @Override
                         protected void start(
                                 final HttpResponse response,
-                                final ContentType contentType) throws HttpException, IOException {
+                                final ContentType contentType) {
                             System.out.println(request + "->" + new StatusLine(response));
                         }
 
@@ -90,7 +90,7 @@ public class AsyncClientHttpExchangeStreaming {
                         }
 
                         @Override
-                        protected void data(final CharBuffer data, final boolean endOfStream) throws IOException {
+                        protected void data(final CharBuffer data, final boolean endOfStream) {
                             while (data.hasRemaining()) {
                                 System.out.print(data.get());
                             }
@@ -100,7 +100,7 @@ public class AsyncClientHttpExchangeStreaming {
                         }
 
                         @Override
-                        protected Void buildResult() throws IOException {
+                        protected Void buildResult() {
                             return null;
                         }
 

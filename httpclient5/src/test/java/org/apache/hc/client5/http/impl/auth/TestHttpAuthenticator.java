@@ -60,7 +60,7 @@ import org.mockito.Answers;
 import org.mockito.Mockito;
 
 @SuppressWarnings({"boxing","static-access"})
-public class TestHttpAuthenticator {
+class TestHttpAuthenticator {
 
     @AuthStateCacheable
     abstract class CacheableAuthState implements AuthScheme {
@@ -81,7 +81,7 @@ public class TestHttpAuthenticator {
     private HttpAuthenticator httpAuthenticator;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() {
         this.authExchange = new AuthExchange();
         this.authScheme = Mockito.mock(CacheableAuthState.class, Mockito.withSettings()
                 .defaultAnswer(Answers.CALLS_REAL_METHODS));
@@ -99,7 +99,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testUpdateAuthExchange() throws Exception {
+    void testUpdateAuthExchange() {
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.setHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
         Assertions.assertTrue(this.httpAuthenticator.isChallenged(
@@ -107,7 +107,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthenticationRequestedAfterSuccess() throws Exception {
+    void testAuthenticationRequestedAfterSuccess() {
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.setHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
 
@@ -119,7 +119,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthenticationNotRequestedUnchallenged() throws Exception {
+    void testAuthenticationNotRequestedUnchallenged() {
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
 
         Assertions.assertFalse(this.httpAuthenticator.isChallenged(
@@ -128,7 +128,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthenticationNotRequestedSuccess1() throws Exception {
+    void testAuthenticationNotRequestedSuccess1() {
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         this.authExchange.select(this.authScheme);
         this.authExchange.setState(AuthExchange.State.CHALLENGED);
@@ -139,7 +139,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthenticationNotRequestedSuccess2() throws Exception {
+    void testAuthenticationNotRequestedSuccess2() {
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         this.authExchange.select(this.authScheme);
         this.authExchange.setState(AuthExchange.State.HANDSHAKE);
@@ -150,7 +150,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthentication() throws Exception {
+    void testAuthentication() {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -179,7 +179,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthenticationCredentialsForBasic() throws Exception {
+    void testAuthenticationCredentialsForBasic() {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response =
             new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
@@ -205,7 +205,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthenticationNoChallenges() throws Exception {
+    void testAuthenticationNoChallenges() {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
 
@@ -216,7 +216,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthenticationNoSupportedChallenges() throws Exception {
+    void testAuthenticationNoSupportedChallenges() {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "This realm=\"test\""));
@@ -229,7 +229,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthenticationNoCredentials() throws Exception {
+    void testAuthenticationNoCredentials() {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -242,7 +242,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthenticationFailed() throws Exception {
+    void testAuthenticationFailed() {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -260,7 +260,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthenticationFailedPreviously() throws Exception {
+    void testAuthenticationFailedPreviously() {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -277,7 +277,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthenticationFailure() throws Exception {
+    void testAuthenticationFailure() {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -295,7 +295,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthenticationHandshaking() throws Exception {
+    void testAuthenticationHandshaking() {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -314,7 +314,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthenticationNoMatchingChallenge() throws Exception {
+    void testAuthenticationNoMatchingChallenge() {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"1234\""));
@@ -342,7 +342,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthenticationException() throws Exception {
+    void testAuthenticationException() {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "blah blah blah"));
@@ -359,7 +359,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthFailureState() throws Exception {
+    void testAuthFailureState() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         this.authExchange.setState(AuthExchange.State.FAILURE);
         this.authExchange.select(this.authScheme);
@@ -375,7 +375,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthChallengeStateNoOption() throws Exception {
+    void testAuthChallengeStateNoOption() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         this.authExchange.setState(AuthExchange.State.CHALLENGED);
         this.authExchange.select(this.authScheme);
@@ -391,7 +391,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthChallengeStateOneOptions() throws Exception {
+    void testAuthChallengeStateOneOptions() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         this.authExchange.setState(AuthExchange.State.CHALLENGED);
         final LinkedList<AuthScheme> authOptions = new LinkedList<>();
@@ -412,7 +412,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthChallengeStateMultipleOption() throws Exception {
+    void testAuthChallengeStateMultipleOption() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         this.authExchange.setState(AuthExchange.State.CHALLENGED);
 
@@ -440,7 +440,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthSuccess() throws Exception {
+    void testAuthSuccess() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         this.authExchange.setState(AuthExchange.State.SUCCESS);
         this.authExchange.select(this.authScheme);
@@ -460,7 +460,7 @@ public class TestHttpAuthenticator {
     }
 
     @Test
-    public void testAuthSuccessConnectionBased() throws Exception {
+    void testAuthSuccessConnectionBased() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         this.authExchange.setState(AuthExchange.State.SUCCESS);
         this.authExchange.select(this.authScheme);

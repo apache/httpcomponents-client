@@ -45,19 +45,19 @@ import org.mockito.Mockito;
 /**
  * Tests for {@link DefaultRoutePlanner}.
  */
-public class TestDefaultRoutePlanner {
+class TestDefaultRoutePlanner {
 
     private SchemePortResolver schemePortResolver;
     private DefaultRoutePlanner routePlanner;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         schemePortResolver = Mockito.mock(SchemePortResolver.class);
         routePlanner = new DefaultRoutePlanner(schemePortResolver);
     }
 
     @Test
-    public void testDirect() throws Exception {
+    void testDirect() throws Exception {
         final HttpHost target = new HttpHost("http", "somehost", 80);
 
         final HttpContext context = HttpClientContext.create();
@@ -70,7 +70,7 @@ public class TestDefaultRoutePlanner {
     }
 
     @Test
-    public void testDirectDefaultPort() throws Exception {
+    void testDirectDefaultPort() throws Exception {
         final HttpHost target = new HttpHost("https", "somehost", -1);
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(443);
 
@@ -84,7 +84,7 @@ public class TestDefaultRoutePlanner {
 
     @Test
     @SuppressWarnings("deprecation")
-    public void testViaProxy() throws Exception {
+    void testViaProxy() throws Exception {
         final HttpHost target = new HttpHost("http", "somehost", 80);
         final HttpHost proxy = new HttpHost("proxy", 8080);
 
@@ -100,14 +100,14 @@ public class TestDefaultRoutePlanner {
     }
 
     @Test
-    public void testNullTarget() throws Exception {
+    void testNullTarget() {
         final HttpContext context = HttpClientContext.create();
         Assertions.assertThrows(ProtocolException.class, () ->
                 routePlanner.determineRoute(null, context));
     }
 
     @Test
-    public void testVirtualSecureHost() throws Exception {
+    void testVirtualSecureHost() throws Exception {
         final HttpHost target = new HttpHost("https", "somehost", 443);
         final URIAuthority virtualHost = new URIAuthority("someotherhost", 443);
         final HttpRequest request = new BasicHttpRequest("https", "GET", virtualHost, "/");
@@ -123,7 +123,7 @@ public class TestDefaultRoutePlanner {
     }
 
     @Test
-    public void testVirtualInsecureHost() throws Exception {
+    void testVirtualInsecureHost() throws Exception {
         final HttpHost target = new HttpHost("http", "somehost", 80);
         final URIAuthority virtualHost = new URIAuthority("someotherhost", 80);
         final HttpRequest request = new BasicHttpRequest("http", "GET", virtualHost, "/");

@@ -41,21 +41,21 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestResponseProcessCookies {
+class TestResponseProcessCookies {
 
     private CookieOrigin cookieOrigin;
     private CookieSpec cookieSpec;
     private CookieStore cookieStore;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() {
         this.cookieOrigin = new CookieOrigin("localhost", 80, "/", false);
         this.cookieSpec = new RFC6265LaxSpec();
         this.cookieStore = new BasicCookieStore();
     }
 
     @Test
-    public void testResponseParameterCheck() throws Exception {
+    void testResponseParameterCheck() {
         final HttpClientContext context = HttpClientContext.create();
         final HttpResponseInterceptor interceptor = ResponseProcessCookies.INSTANCE;
         Assertions.assertThrows(NullPointerException.class, () ->
@@ -63,7 +63,7 @@ public class TestResponseProcessCookies {
     }
 
     @Test
-    public void testContextParameterCheck() throws Exception {
+    void testContextParameterCheck() {
         final HttpResponse response = new BasicHttpResponse(200, "OK");
         final HttpResponseInterceptor interceptor = ResponseProcessCookies.INSTANCE;
         Assertions.assertThrows(NullPointerException.class, () ->
@@ -71,7 +71,7 @@ public class TestResponseProcessCookies {
     }
 
     @Test
-    public void testParseCookies() throws Exception {
+    void testParseCookies() throws Exception {
         final HttpResponse response = new BasicHttpResponse(200, "OK");
         response.addHeader("Set-Cookie", "name1=value1");
 
@@ -94,7 +94,7 @@ public class TestResponseProcessCookies {
     }
 
     @Test
-    public void testNoCookieOrigin() throws Exception {
+    void testNoCookieOrigin() throws Exception {
         final HttpResponse response = new BasicHttpResponse(200, "OK");
         response.addHeader("Set-Cookie", "name1=value1");
 
@@ -112,7 +112,7 @@ public class TestResponseProcessCookies {
     }
 
     @Test
-    public void testNoCookieSpec() throws Exception {
+    void testNoCookieSpec() throws Exception {
         final HttpResponse response = new BasicHttpResponse(200, "OK");
         response.addHeader("Set-Cookie", "name1=value1");
 
@@ -130,7 +130,7 @@ public class TestResponseProcessCookies {
     }
 
     @Test
-    public void testNoCookieStore() throws Exception {
+    void testNoCookieStore() throws Exception {
         final HttpResponse response = new BasicHttpResponse(200, "OK");
         response.addHeader("Set-Cookie", "name1=value1");
 

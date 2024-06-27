@@ -37,10 +37,10 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.junit.jupiter.api.Test;
 
-public class TestHttpAsyncClientBuilder {
+class TestHttpAsyncClientBuilder {
 
     @Test
-    public void testAddInterceptorFirstDoesNotThrow() throws IOException {
+    void testAddInterceptorFirstDoesNotThrow() throws IOException {
         HttpAsyncClients.custom()
                 .addExecInterceptorFirst("first", NopExecChainHandler.INSTANCE)
                 .build()
@@ -48,7 +48,7 @@ public class TestHttpAsyncClientBuilder {
     }
 
     @Test
-    public void testAddInterceptorLastDoesNotThrow() throws IOException {
+    void testAddInterceptorLastDoesNotThrow() throws IOException {
         HttpAsyncClients.custom()
                 .addExecInterceptorLast("last", NopExecChainHandler.INSTANCE)
                 .build()
@@ -56,7 +56,7 @@ public class TestHttpAsyncClientBuilder {
     }
 
     @Test
-    public void testH2AddInterceptorFirstDoesNotThrow() throws IOException {
+    void testH2AddInterceptorFirstDoesNotThrow() throws IOException {
         HttpAsyncClients.customHttp2()
                 .addExecInterceptorFirst("first", NopExecChainHandler.INSTANCE)
                 .build()
@@ -64,7 +64,7 @@ public class TestHttpAsyncClientBuilder {
     }
 
     @Test
-    public void testH2AddInterceptorLastDoesNotThrow() throws IOException {
+    void testH2AddInterceptorLastDoesNotThrow() throws IOException {
         HttpAsyncClients.customHttp2()
                 .addExecInterceptorLast("last", NopExecChainHandler.INSTANCE)
                 .build()

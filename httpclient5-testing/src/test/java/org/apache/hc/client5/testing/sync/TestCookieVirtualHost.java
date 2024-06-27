@@ -50,19 +50,19 @@ import org.junit.jupiter.api.Test;
 /**
  * This class tests cookie matching when using Virtual Host.
  */
-public class TestCookieVirtualHost {
+class TestCookieVirtualHost {
 
     private HttpServer server;
 
     @AfterEach
-    public void shutDown() throws Exception {
+    void shutDown() {
         if (this.server != null) {
             this.server.close(CloseMode.GRACEFUL);
         }
     }
 
     @Test
-    public void testCookieMatchingWithVirtualHosts() throws Exception {
+    void testCookieMatchingWithVirtualHosts() throws Exception {
         server = ServerBootstrap.bootstrap()
                 .register("app.mydomain.fr", "*", (request, response, context) -> {
 

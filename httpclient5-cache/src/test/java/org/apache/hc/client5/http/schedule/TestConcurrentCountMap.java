@@ -31,7 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 
-public class TestConcurrentCountMap
+class TestConcurrentCountMap
 {
 
     private static final String IDENTIFIER = "some-identifier";
@@ -39,7 +39,7 @@ public class TestConcurrentCountMap
     private final ConcurrentCountMap<String> map = new ConcurrentCountMap<>();
 
     @Test
-    public void testBasics() {
+    void testBasics() {
         map.increaseCount(IDENTIFIER);
         map.increaseCount(IDENTIFIER);
         assertThat(map.getCount(IDENTIFIER), CoreMatchers.equalTo(2));

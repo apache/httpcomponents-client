@@ -31,12 +31,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestExponentialBackingOffSchedulingStrategy {
+class TestExponentialBackingOffSchedulingStrategy {
 
     private ExponentialBackOffSchedulingStrategy impl;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         impl = new ExponentialBackOffSchedulingStrategy(
                 ExponentialBackOffSchedulingStrategy.DEFAULT_BACK_OFF_RATE,
                 ExponentialBackOffSchedulingStrategy.DEFAULT_INITIAL_EXPIRY,
@@ -45,7 +45,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
     }
 
     @Test
-    public void testSchedule() {
+    void testSchedule() {
         Assertions.assertEquals(TimeValue.ofMilliseconds(0), impl.schedule(0));
         Assertions.assertEquals(TimeValue.ofMilliseconds(6000), impl.schedule(1));
         Assertions.assertEquals(TimeValue.ofMilliseconds(60000), impl.schedule(2));

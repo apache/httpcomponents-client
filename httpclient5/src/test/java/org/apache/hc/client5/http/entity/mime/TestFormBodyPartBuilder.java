@@ -35,10 +35,10 @@ import org.apache.hc.core5.http.ContentType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestFormBodyPartBuilder {
+class TestFormBodyPartBuilder {
 
     @Test
-    public void testBuildBodyPartBasics() throws Exception {
+    void testBuildBodyPartBasics() {
         final StringBody stringBody = new StringBody("stuff", ContentType.TEXT_PLAIN);
         final FormBodyPart bodyPart = FormBodyPartBuilder.create()
                 .setName("blah")
@@ -56,7 +56,7 @@ public class TestFormBodyPartBuilder {
     }
 
     @Test
-    public void testBuildBodyPartMultipleBuilds() throws Exception {
+    void testBuildBodyPartMultipleBuilds() {
         final StringBody stringBody = new StringBody("stuff", ContentType.TEXT_PLAIN);
         final FormBodyPartBuilder builder = FormBodyPartBuilder.create();
         final FormBodyPart bodyPart1 = builder
@@ -90,7 +90,7 @@ public class TestFormBodyPartBuilder {
     }
 
     @Test
-    public void testBuildBodyPartCustomHeaders() throws Exception {
+    void testBuildBodyPartCustomHeaders() {
         final StringBody stringBody = new StringBody("stuff", ContentType.TEXT_PLAIN);
         final FormBodyPartBuilder builder = FormBodyPartBuilder.create("blah", stringBody);
         final FormBodyPart bodyPart1 = builder

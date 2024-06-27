@@ -44,14 +44,14 @@ import org.apache.hc.core5.ssl.SSLContexts;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestHttpAsyncMinimalTlsHandshake extends AbstractIntegrationTestBase {
+class TestHttpAsyncMinimalTlsHandshake extends AbstractIntegrationTestBase {
 
     public TestHttpAsyncMinimalTlsHandshake() {
         super(URIScheme.HTTPS, ClientProtocolLevel.MINIMAL, ServerProtocolLevel.STANDARD);
     }
 
     @Test
-    public void testSuccessfulTlsHandshake() throws Exception {
+    void testSuccessfulTlsHandshake() throws Exception {
         final HttpHost target = startServer();
 
         final int maxConnNo = 2;
@@ -69,7 +69,7 @@ public class TestHttpAsyncMinimalTlsHandshake extends AbstractIntegrationTestBas
     }
 
     @Test
-    public void testTlsHandshakeFailure() throws Exception {
+    void testTlsHandshakeFailure() throws Exception {
         final HttpHost target = startServer();
 
         configureClient(builder ->

@@ -52,14 +52,14 @@ import org.junit.jupiter.api.Test;
 /**
  * Redirection test cases.
  */
-public abstract class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest {
+abstract  class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest {
 
     public TestHttp1AsyncRedirects(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);
     }
 
     @Test
-    public void testBasicRedirect300NoKeepAlive() throws Exception {
+    void testBasicRedirect300NoKeepAlive() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -85,7 +85,7 @@ public abstract class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirects
     }
 
     @Test
-    public void testBasicRedirect301NoKeepAlive() throws Exception {
+    void testBasicRedirect301NoKeepAlive() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
@@ -112,7 +112,7 @@ public abstract class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirects
     }
 
     @Test
-    public void testDefaultHeadersRedirect() throws Exception {
+    void testDefaultHeadersRedirect() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", AsyncRandomHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(

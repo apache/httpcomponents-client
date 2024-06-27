@@ -42,10 +42,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
-public class TestRFC6265CookieSpec {
+class TestRFC6265CookieSpec {
 
     @Test
-    public void testParseCookieBasics() throws Exception {
+    void testParseCookieBasics() throws Exception {
         final CommonCookieAttributeHandler h1 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h1.getAttributeName()).thenReturn("this");
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
@@ -71,7 +71,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testParseCookieQuotedValue() throws Exception {
+    void testParseCookieQuotedValue() throws Exception {
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "name = \" one, two, three; four \" ; this = stuff;");
@@ -86,7 +86,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testParseCookieWrongHeader() throws Exception {
+    void testParseCookieWrongHeader() {
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie2", "blah");
@@ -96,7 +96,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testParseCookieMissingName() throws Exception {
+    void testParseCookieMissingName() throws Exception {
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "=blah ; this = stuff;");
@@ -106,7 +106,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testParseCookieMissingValue1() throws Exception {
+    void testParseCookieMissingValue1() throws Exception {
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "blah");
@@ -116,7 +116,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testParseCookieMissingValue2() throws Exception {
+    void testParseCookieMissingValue2() {
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "blah;");
@@ -126,7 +126,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testParseCookieEmptyValue() throws Exception {
+    void testParseCookieEmptyValue() throws Exception {
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "blah=;");
@@ -139,7 +139,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testParseCookieWithAttributes() throws Exception {
+    void testParseCookieWithAttributes() throws Exception {
         final CommonCookieAttributeHandler h1 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h1.getAttributeName()).thenReturn("this");
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
@@ -163,7 +163,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testParseCookieWithAttributes2() throws Exception {
+    void testParseCookieWithAttributes2() throws Exception {
         final CommonCookieAttributeHandler h1 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h1.getAttributeName()).thenReturn("this");
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
@@ -183,7 +183,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testParseCookieWithAttributes3() throws Exception {
+    void testParseCookieWithAttributes3() throws Exception {
         final CommonCookieAttributeHandler h1 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h1.getAttributeName()).thenReturn("this");
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
@@ -203,7 +203,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testValidateCookieBasics() throws Exception {
+    void testValidateCookieBasics() throws Exception {
         final CommonCookieAttributeHandler h1 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h1.getAttributeName()).thenReturn("this");
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
@@ -220,7 +220,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testMatchCookie() throws Exception {
+    void testMatchCookie() {
         final CommonCookieAttributeHandler h1 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h1.getAttributeName()).thenReturn("this");
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
@@ -241,7 +241,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testMatchCookieNoMatch() throws Exception {
+    void testMatchCookieNoMatch() {
         final CommonCookieAttributeHandler h1 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h1.getAttributeName()).thenReturn("this");
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
@@ -262,7 +262,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testFormatCookiesBasics() throws Exception {
+    void testFormatCookiesBasics() {
         final Cookie cookie1 = new BasicClientCookie("name1", "value");
 
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
@@ -275,7 +275,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testFormatCookiesIllegalCharsInValue() throws Exception {
+    void testFormatCookiesIllegalCharsInValue() {
         final Cookie cookie1 = new BasicClientCookie("name1", "value");
         final Cookie cookie2 = new BasicClientCookie("name2", "some value");
         final Cookie cookie3 = new BasicClientCookie("name3", "\"\\\"");
@@ -289,7 +289,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testParseCookieMultipleAttributes() throws Exception {
+    void testParseCookieMultipleAttributes() throws Exception {
         final CommonCookieAttributeHandler h1 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h1.getAttributeName()).thenReturn("this");
 
@@ -304,7 +304,7 @@ public class TestRFC6265CookieSpec {
     }
 
     @Test
-    public void testParseCookieMaxAgeOverExpires() throws Exception {
+    void testParseCookieMaxAgeOverExpires() throws Exception {
         final CommonCookieAttributeHandler h1 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h1.getAttributeName()).thenReturn("Expires");
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);

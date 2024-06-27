@@ -38,11 +38,11 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for {@link BasicClientCookie}.
  */
-public class TestBasicClientCookie {
+class TestBasicClientCookie {
 
     @SuppressWarnings("unused")
     @Test
-    public void testConstructor() {
+    void testConstructor() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         Assertions.assertEquals("name", cookie.getName());
         Assertions.assertEquals("value", cookie.getValue());
@@ -50,7 +50,7 @@ public class TestBasicClientCookie {
     }
 
     @Test
-    public void testCloning() throws Exception {
+    void testCloning() throws Exception {
         final BasicClientCookie orig = new BasicClientCookie("name", "value");
         orig.setDomain("domain");
         orig.setPath("/");
@@ -64,7 +64,7 @@ public class TestBasicClientCookie {
     }
 
     @Test
-    public void testSerialization() throws Exception {
+    void testSerialization() throws Exception {
         final BasicClientCookie orig = new BasicClientCookie("name", "value");
         orig.setDomain("domain");
         orig.setPath("/");

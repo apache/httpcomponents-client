@@ -49,21 +49,21 @@ import org.mockito.Mockito;
  * Tests for {@link SystemDefaultRoutePlanner}.
  */
 @SuppressWarnings("boxing") // test code
-public class TestSystemDefaultRoutePlanner {
+class TestSystemDefaultRoutePlanner {
 
     private SchemePortResolver schemePortResolver;
     private ProxySelector proxySelector;
     private SystemDefaultRoutePlanner routePlanner;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         schemePortResolver = Mockito.mock(SchemePortResolver.class);
         proxySelector = Mockito.mock(ProxySelector.class);
         routePlanner = new SystemDefaultRoutePlanner(schemePortResolver, proxySelector);
     }
 
     @Test
-    public void testDirect() throws Exception {
+    void testDirect() throws Exception {
         final HttpHost target = new HttpHost("http", "somehost", 80);
 
         final HttpClientContext context = HttpClientContext.create();
@@ -76,7 +76,7 @@ public class TestSystemDefaultRoutePlanner {
     }
 
     @Test
-    public void testDirectDefaultPort() throws Exception {
+    void testDirectDefaultPort() throws Exception {
         final HttpHost target = new HttpHost("https", "somehost", -1);
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(443);
 
@@ -89,7 +89,7 @@ public class TestSystemDefaultRoutePlanner {
     }
 
     @Test
-    public void testProxy() throws Exception {
+    void testProxy() throws Exception {
 
         final InetAddress ia = InetAddress.getByAddress(new byte[] {
             (byte)127, (byte)0, (byte)0, (byte)1

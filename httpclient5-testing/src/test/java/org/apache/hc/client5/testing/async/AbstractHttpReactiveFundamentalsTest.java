@@ -77,7 +77,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.reactivestreams.Publisher;
 
-public abstract class AbstractHttpReactiveFundamentalsTest extends AbstractIntegrationTestBase {
+abstract  class AbstractHttpReactiveFundamentalsTest extends AbstractIntegrationTestBase {
 
     public AbstractHttpReactiveFundamentalsTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
         super(scheme, clientProtocolLevel, serverProtocolLevel);
@@ -271,7 +271,7 @@ public abstract class AbstractHttpReactiveFundamentalsTest extends AbstractInteg
     }
 
     @Test
-    public void testBadRequest() throws Exception {
+    void testBadRequest() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", () ->
                 new ReactiveServerExchangeHandler(new ReactiveRandomProcessor())));
         final HttpHost target = startServer();

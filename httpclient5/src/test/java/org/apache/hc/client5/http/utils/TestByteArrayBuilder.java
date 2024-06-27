@@ -35,10 +35,10 @@ import org.junit.jupiter.api.Test;
 /**
  * {@link ByteArrayBuilder} test cases.
  */
-public class TestByteArrayBuilder {
+class TestByteArrayBuilder {
 
     @Test
-    public void testEmptyBuffer() throws Exception {
+    void testEmptyBuffer() {
         final ByteArrayBuilder buffer = new ByteArrayBuilder();
         final ByteBuffer byteBuffer = buffer.toByteBuffer();
         Assertions.assertNotNull(byteBuffer);
@@ -50,7 +50,7 @@ public class TestByteArrayBuilder {
     }
 
     @Test
-    public void testAppendBytes() throws Exception {
+    void testAppendBytes() {
         final ByteArrayBuilder buffer = new ByteArrayBuilder();
         buffer.append(new byte[]{1, 2, 3, 4, 5});
         buffer.append(new byte[]{3, 4, 5, 6, 7, 8, 9, 10, 11}, 3, 5);
@@ -62,7 +62,7 @@ public class TestByteArrayBuilder {
     }
 
     @Test
-    public void testInvalidAppendBytes() throws Exception {
+    void testInvalidAppendBytes() {
         final ByteArrayBuilder buffer = new ByteArrayBuilder();
         buffer.append((byte[])null, 0, 0);
 
@@ -75,7 +75,7 @@ public class TestByteArrayBuilder {
     }
 
     @Test
-    public void testEnsureCapacity() throws Exception {
+    void testEnsureCapacity() {
         final ByteArrayBuilder buffer = new ByteArrayBuilder();
         buffer.ensureFreeCapacity(10);
         Assertions.assertEquals(10, buffer.capacity());
@@ -89,7 +89,7 @@ public class TestByteArrayBuilder {
     }
 
     @Test
-    public void testAppendText() throws Exception {
+    void testAppendText() {
         final ByteArrayBuilder buffer = new ByteArrayBuilder();
         buffer.append(new char[]{'1', '2', '3', '4', '5'});
         buffer.append(new char[]{'3', '4', '5', '6', '7', '8', '9', 'a', 'b'}, 3, 5);
@@ -106,7 +106,7 @@ public class TestByteArrayBuilder {
     }
 
     @Test
-    public void testInvalidAppendChars() throws Exception {
+    void testInvalidAppendChars() {
         final ByteArrayBuilder buffer = new ByteArrayBuilder();
         buffer.append((char[])null, 0, 0);
 
@@ -119,7 +119,7 @@ public class TestByteArrayBuilder {
     }
 
     @Test
-    public void testReset() throws Exception {
+    void testReset() {
         final ByteArrayBuilder buffer = new ByteArrayBuilder();
         buffer.append("abcd");
         buffer.append("e");
@@ -137,7 +137,7 @@ public class TestByteArrayBuilder {
     }
 
     @Test
-    public void testNonAsciiCharset() throws Exception {
+    void testNonAsciiCharset() {
         final int[] germanChars = { 0xE4, 0x2D, 0xF6, 0x2D, 0xFc };
         final StringBuilder tmp = new StringBuilder();
         for (final int germanChar : germanChars) {

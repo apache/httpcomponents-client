@@ -52,7 +52,7 @@ import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 
 @SuppressWarnings({"static-access"}) // test code
-public class TestInternalExecRuntime {
+class TestInternalExecRuntime {
 
     @Mock
     private Logger log;
@@ -71,14 +71,14 @@ public class TestInternalExecRuntime {
     private InternalExecRuntime execRuntime;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         MockitoAnnotations.openMocks(this);
         route = new HttpRoute(new HttpHost("host", 80));
         execRuntime = new InternalExecRuntime(log, mgr, requestExecutor, cancellableDependency);
     }
 
     @Test
-    public void testAcquireEndpoint() throws Exception {
+    void testAcquireEndpoint() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         @SuppressWarnings("deprecation")
         final RequestConfig config = RequestConfig.custom()
@@ -106,7 +106,7 @@ public class TestInternalExecRuntime {
     }
 
     @Test
-    public void testAcquireEndpointAlreadyAcquired() throws Exception {
+    void testAcquireEndpointAlreadyAcquired() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(mgr.lease(Mockito.eq("some-id"), Mockito.eq(route), Mockito.any(), Mockito.any()))
@@ -123,7 +123,7 @@ public class TestInternalExecRuntime {
     }
 
     @Test
-    public void testAcquireEndpointLeaseRequestTimeout() throws Exception {
+    void testAcquireEndpointLeaseRequestTimeout() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(mgr.lease(Mockito.eq("some-id"), Mockito.eq(route), Mockito.any(), Mockito.any()))
@@ -135,7 +135,7 @@ public class TestInternalExecRuntime {
     }
 
     @Test
-    public void testAcquireEndpointLeaseRequestFailure() throws Exception {
+    void testAcquireEndpointLeaseRequestFailure() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(mgr.lease(Mockito.eq("some-id"), Mockito.eq(route), Mockito.any(), Mockito.any()))
@@ -147,7 +147,7 @@ public class TestInternalExecRuntime {
     }
 
     @Test
-    public void testAbortEndpoint() throws Exception {
+    void testAbortEndpoint() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         Mockito.when(mgr.lease(Mockito.eq("some-id"), Mockito.eq(route), Mockito.any(), Mockito.any()))
                 .thenReturn(leaseRequest);
@@ -172,7 +172,7 @@ public class TestInternalExecRuntime {
     }
 
     @Test
-    public void testCancell() throws Exception {
+    void testCancell() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(mgr.lease(Mockito.eq("some-id"), Mockito.eq(route), Mockito.any(), Mockito.any()))
@@ -199,7 +199,7 @@ public class TestInternalExecRuntime {
     }
 
     @Test
-    public void testReleaseEndpointReusable() throws Exception {
+    void testReleaseEndpointReusable() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(mgr.lease(Mockito.eq("some-id"), Mockito.eq(route), Mockito.any(), Mockito.any()))
@@ -227,7 +227,7 @@ public class TestInternalExecRuntime {
     }
 
     @Test
-    public void testReleaseEndpointNonReusable() throws Exception {
+    void testReleaseEndpointNonReusable() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(mgr.lease(Mockito.eq("some-id"), Mockito.eq(route), Mockito.any(), Mockito.any()))
@@ -256,7 +256,7 @@ public class TestInternalExecRuntime {
     }
 
     @Test
-    public void testConnectEndpoint() throws Exception {
+    void testConnectEndpoint() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         @SuppressWarnings("deprecation")
         final RequestConfig config = RequestConfig.custom()
@@ -281,7 +281,7 @@ public class TestInternalExecRuntime {
     }
 
     @Test
-    public void testDisonnectEndpoint() throws Exception {
+    void testDisonnectEndpoint() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(mgr.lease(Mockito.eq("some-id"), Mockito.eq(route), Mockito.any(), Mockito.any()))

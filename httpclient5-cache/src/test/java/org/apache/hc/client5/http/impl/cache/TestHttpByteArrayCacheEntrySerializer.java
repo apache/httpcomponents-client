@@ -50,17 +50,17 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestHttpByteArrayCacheEntrySerializer {
+class TestHttpByteArrayCacheEntrySerializer {
 
     private HttpCacheEntrySerializer<byte[]> httpCacheEntrySerializer;
 
     @BeforeEach
-    public void before() {
+    void before() {
         httpCacheEntrySerializer = HttpByteArrayCacheEntrySerializer.INSTANCE;
     }
 
     @Test
-    public void testSimpleSerializeAndDeserialize() throws Exception {
+    void testSimpleSerializeAndDeserialize() throws Exception {
         final String content = "Hello World";
         final ContentType contentType = ContentType.TEXT_PLAIN.withCharset(StandardCharsets.UTF_8);
         final HttpCacheEntry cacheEntry = new HttpCacheEntry(Instant.now(), Instant.now(),
@@ -77,7 +77,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
     }
 
     @Test
-    public void testSerializeAndDeserializeLargeContent() throws Exception {
+    void testSerializeAndDeserializeLargeContent() throws Exception {
         final ContentType contentType = ContentType.IMAGE_JPEG;
         final HeapResource resource = load(getClass().getResource("/ApacheLogo.png"));
         final HttpCacheEntry cacheEntry = new HttpCacheEntry(Instant.now(), Instant.now(),
@@ -97,7 +97,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
      * Deserialize a cache entry in a bad format, expecting an exception.
      */
     @Test
-    public void testInvalidCacheEntry() throws Exception {
+    void testInvalidCacheEntry() throws Exception {
         // This file is a JPEG not a cache entry, so should fail to deserialize
         final HeapResource resource = load(getClass().getResource("/ApacheLogo.png"));
         Assertions.assertThrows(ResourceIOException.class, () ->
@@ -108,7 +108,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
      * Deserialize truncated cache entries.
      */
     @Test
-    public void testTruncatedCacheEntry() throws Exception {
+    void testTruncatedCacheEntry() {
         final String content1 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
                 "HC-Key: unique-cache-key\n" +
                 "HC-Resource-Length: 11\n" +
@@ -190,7 +190,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
      * Deserialize cache entries with a missing mandatory header.
      */
     @Test
-    public void testMissingHeaderCacheEntry() throws Exception {
+    void testMissingHeaderCacheEntry() {
         final String content1 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
                 "HC-Key: unique-cache-key\n" +
                 "HC-Resource-Length: 11\n" +
@@ -230,7 +230,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
      * Deserialize cache entries with an invalid header value.
      */
     @Test
-    public void testInvalidHeaderCacheEntry() throws Exception {
+    void testInvalidHeaderCacheEntry() {
         final String content1 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
                 "HC-Key: unique-cache-key\n" +
                 "HC-Resource-Length: 11\n" +
@@ -271,7 +271,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
      * Deserialize cache entries with an invalid request line.
      */
     @Test
-    public void testInvalidRequestLineCacheEntry() throws Exception {
+    void testInvalidRequestLineCacheEntry() {
         final String content1 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
                 "HC-Key: unique-cache-key\n" +
                 "HC-Resource-Length: 11\n" +
@@ -295,7 +295,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
      * Deserialize cache entries with an invalid request line.
      */
     @Test
-    public void testInvalidStatusLineCacheEntry() throws Exception {
+    void testInvalidStatusLineCacheEntry() {
         final String content1 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
                 "HC-Key: unique-cache-key\n" +
                 "HC-Resource-Length: 11\n" +
@@ -319,7 +319,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
      * Serialize and deserialize a cache entry with no headers.
      */
     @Test
-    public void noHeadersTest() throws Exception {
+    void noHeadersTest() throws Exception {
         final String content = "Hello World";
         final ContentType contentType = ContentType.TEXT_PLAIN.withCharset(StandardCharsets.UTF_8);
         final HttpCacheEntry cacheEntry = new HttpCacheEntry(Instant.now(), Instant.now(),
@@ -339,7 +339,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
      * Serialize and deserialize a cache entry with an empty body.
      */
     @Test
-    public void emptyBodyTest() throws Exception {
+    void emptyBodyTest() throws Exception {
         final HttpCacheEntry cacheEntry = new HttpCacheEntry(Instant.now(), Instant.now(),
                 "GET", "/stuff", HttpTestUtils.headers(),
                 HttpStatus.SC_OK, HttpTestUtils.headers(),
@@ -357,7 +357,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
      * Serialize and deserialize a cache entry with no body.
      */
     @Test
-    public void noBodyTest() throws Exception {
+    void noBodyTest() throws Exception {
         final HttpCacheEntry cacheEntry = new HttpCacheEntry(Instant.now(), Instant.now(),
                 "GET", "/stuff", HttpTestUtils.headers(),
                 HttpStatus.SC_OK, HttpTestUtils.headers(),
@@ -375,7 +375,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
      * Serialize and deserialize a cache entry with a variant map.
      */
     @Test
-    public void testSimpleVariantMap() throws Exception {
+    void testSimpleVariantMap() throws Exception {
         final String content = "Hello World";
         final ContentType contentType = ContentType.TEXT_PLAIN.withCharset(StandardCharsets.UTF_8);
         final Set<String> variants = new HashSet<>();
@@ -398,7 +398,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
      * Deserialize cache entries with trailing garbage.
      */
     @Test
-    public void testDeserializeCacheEntryWithTrailingGarbage() throws Exception {
+    void testDeserializeCacheEntryWithTrailingGarbage() {
         final String content1 =HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
                 "HC-Key: unique-cache-key\n" +
                         "HC-Resource-Length: 11\n" +

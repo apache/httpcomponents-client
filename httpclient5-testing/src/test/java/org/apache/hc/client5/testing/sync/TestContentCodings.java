@@ -68,7 +68,7 @@ import org.junit.jupiter.api.Test;
  * require no intervention from the user of HttpClient, but we still want to let clients do their
  * own thing if they so wish.
  */
-public abstract class TestContentCodings extends AbstractIntegrationTestBase {
+abstract  class TestContentCodings extends AbstractIntegrationTestBase {
 
     protected TestContentCodings(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD);
@@ -82,7 +82,7 @@ public abstract class TestContentCodings extends AbstractIntegrationTestBase {
      *             if there was a problem
      */
     @Test
-    public void testResponseWithNoContent() throws Exception {
+    void testResponseWithNoContent() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("*", new HttpRequestHandler() {
 
@@ -93,7 +93,7 @@ public abstract class TestContentCodings extends AbstractIntegrationTestBase {
                     public void handle(
                             final ClassicHttpRequest request,
                             final ClassicHttpResponse response,
-                            final HttpContext context) throws HttpException, IOException {
+                            final HttpContext context) {
                         response.setCode(HttpStatus.SC_NO_CONTENT);
                     }
                 }));
@@ -117,7 +117,7 @@ public abstract class TestContentCodings extends AbstractIntegrationTestBase {
      * @throws Exception
      */
     @Test
-    public void testDeflateSupportForServerReturningRfc1950Stream() throws Exception {
+    void testDeflateSupportForServerReturningRfc1950Stream() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
         configureServer(bootstrap -> bootstrap
@@ -142,7 +142,7 @@ public abstract class TestContentCodings extends AbstractIntegrationTestBase {
      * @throws Exception
      */
     @Test
-    public void testDeflateSupportForServerReturningRfc1951Stream() throws Exception {
+    void testDeflateSupportForServerReturningRfc1951Stream() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
         configureServer(bootstrap -> bootstrap
@@ -166,7 +166,7 @@ public abstract class TestContentCodings extends AbstractIntegrationTestBase {
      * @throws Exception
      */
     @Test
-    public void testGzipSupport() throws Exception {
+    void testGzipSupport() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
         configureServer(bootstrap -> bootstrap
@@ -191,7 +191,7 @@ public abstract class TestContentCodings extends AbstractIntegrationTestBase {
      *             if there was a problem
      */
     @Test
-    public void testThreadSafetyOfContentCodings() throws Exception {
+    void testThreadSafetyOfContentCodings() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
         configureServer(bootstrap -> bootstrap
@@ -241,7 +241,7 @@ public abstract class TestContentCodings extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testHttpEntityWriteToForGzip() throws Exception {
+    void testHttpEntityWriteToForGzip() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
         configureServer(bootstrap -> bootstrap
@@ -262,7 +262,7 @@ public abstract class TestContentCodings extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testHttpEntityWriteToForDeflate() throws Exception {
+    void testHttpEntityWriteToForDeflate() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
         configureServer(bootstrap -> bootstrap
@@ -282,7 +282,7 @@ public abstract class TestContentCodings extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void gzipResponsesWorkWithBasicResponseHandler() throws Exception {
+    void gzipResponsesWorkWithBasicResponseHandler() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
         configureServer(bootstrap -> bootstrap
@@ -298,7 +298,7 @@ public abstract class TestContentCodings extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void deflateResponsesWorkWithBasicResponseHandler() throws Exception {
+    void deflateResponsesWorkWithBasicResponseHandler() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
         configureServer(bootstrap -> bootstrap
@@ -336,7 +336,7 @@ public abstract class TestContentCodings extends AbstractIntegrationTestBase {
             public void handle(
                     final ClassicHttpRequest request,
                     final ClassicHttpResponse response,
-                    final HttpContext context) throws HttpException, IOException {
+                    final HttpContext context) {
                 response.setEntity(new StringEntity(entityText));
                 response.addHeader("Content-Type", "text/plain");
                 final Iterator<HeaderElement> it = MessageSupport.iterate(request, "Accept-Encoding");
@@ -384,7 +384,7 @@ public abstract class TestContentCodings extends AbstractIntegrationTestBase {
             public void handle(
                     final ClassicHttpRequest request,
                     final ClassicHttpResponse response,
-                    final HttpContext context) throws HttpException, IOException {
+                    final HttpContext context) throws IOException {
                 response.setEntity(new StringEntity(entityText));
                 response.addHeader("Content-Type", "text/plain");
                 response.addHeader("Content-Type", "text/plain");

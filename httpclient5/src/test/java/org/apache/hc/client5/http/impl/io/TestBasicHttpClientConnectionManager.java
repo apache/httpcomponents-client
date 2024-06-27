@@ -59,7 +59,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-public class TestBasicHttpClientConnectionManager {
+class TestBasicHttpClientConnectionManager {
 
     @Mock
     private ManagedHttpClientConnection conn;
@@ -83,7 +83,7 @@ public class TestBasicHttpClientConnectionManager {
     private BasicHttpClientConnectionManager mgr;
 
     @BeforeEach
-    public void setup() throws Exception {
+    void setup() {
         MockitoAnnotations.openMocks(this);
         mgr = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperator(
                 detachedSocketFactory, schemePortResolver, dnsResolver, tlsSocketStrategyLookup),
@@ -91,7 +91,7 @@ public class TestBasicHttpClientConnectionManager {
     }
 
     @Test
-    public void testLeaseReleaseNonReusable() throws Exception {
+    void testLeaseReleaseNonReusable() throws Exception {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -116,7 +116,7 @@ public class TestBasicHttpClientConnectionManager {
     }
 
     @Test
-    public void testLeaseReleaseReusable() throws Exception {
+    void testLeaseReleaseReusable() throws Exception {
         final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -146,7 +146,7 @@ public class TestBasicHttpClientConnectionManager {
     }
 
     @Test
-    public void testLeaseReleaseReusableWithState() throws Exception {
+    void testLeaseReleaseReusableWithState() throws Exception {
         final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -175,7 +175,7 @@ public class TestBasicHttpClientConnectionManager {
     }
 
     @Test
-    public void testLeaseDifferentRoute() throws Exception {
+    void testLeaseDifferentRoute() throws Exception {
         final HttpHost target1 = new HttpHost("somehost", 80);
         final HttpRoute route1 = new HttpRoute(target1);
 
@@ -207,7 +207,7 @@ public class TestBasicHttpClientConnectionManager {
     }
 
     @Test
-    public void testLeaseExpired() throws Exception {
+    void testLeaseExpired() throws Exception {
         final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -239,20 +239,20 @@ public class TestBasicHttpClientConnectionManager {
     }
 
     @Test
-    public void testReleaseInvalidArg() throws Exception {
+    void testReleaseInvalidArg() {
         Assertions.assertThrows(NullPointerException.class, () ->
                 mgr.release(null, null, TimeValue.NEG_ONE_MILLISECOND));
     }
 
     @Test
-    public void testReleaseAnotherConnection() throws Exception {
+    void testReleaseAnotherConnection() {
         final ConnectionEndpoint wrongCon = Mockito.mock(ConnectionEndpoint.class);
         Assertions.assertThrows(IllegalStateException.class, () ->
                 mgr.release(wrongCon, null, TimeValue.NEG_ONE_MILLISECOND));
     }
 
     @Test
-    public void testShutdown() throws Exception {
+    void testShutdown() throws Exception {
         final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -285,7 +285,7 @@ public class TestBasicHttpClientConnectionManager {
     }
 
     @Test
-    public void testCloseExpired() throws Exception {
+    void testCloseExpired() throws Exception {
         final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -313,7 +313,7 @@ public class TestBasicHttpClientConnectionManager {
     }
 
     @Test
-    public void testCloseIdle() throws Exception {
+    void testCloseIdle() throws Exception {
         final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -341,7 +341,7 @@ public class TestBasicHttpClientConnectionManager {
     }
 
     @Test
-    public void testAlreadyLeased() throws Exception {
+    void testAlreadyLeased() throws Exception {
         final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -358,7 +358,7 @@ public class TestBasicHttpClientConnectionManager {
     }
 
     @Test
-    public void testTargetConnect() throws Exception {
+    void testTargetConnect() throws Exception {
         final HttpHost target = new HttpHost("https", "somehost", 443);
         final InetAddress remote = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
@@ -414,7 +414,7 @@ public class TestBasicHttpClientConnectionManager {
     }
 
     @Test
-    public void testProxyConnectAndUpgrade() throws Exception {
+    void testProxyConnectAndUpgrade() throws Exception {
         final HttpHost target = new HttpHost("https", "somehost", 443);
         final HttpHost proxy = new HttpHost("someproxy", 8080);
         final InetAddress remote = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
@@ -464,7 +464,7 @@ public class TestBasicHttpClientConnectionManager {
 
 
     @Test
-    public void shouldCloseStaleConnectionAndCreateNewOne() throws Exception {
+    void shouldCloseStaleConnectionAndCreateNewOne() throws Exception {
         final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -494,7 +494,7 @@ public class TestBasicHttpClientConnectionManager {
     }
 
     @Test
-    public void shouldCloseGRACEFULStaleConnection() throws Exception {
+    void shouldCloseGRACEFULStaleConnection() throws Exception {
         final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 

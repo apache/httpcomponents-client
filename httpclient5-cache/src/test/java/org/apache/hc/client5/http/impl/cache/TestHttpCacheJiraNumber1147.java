@@ -56,7 +56,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-public class TestHttpCacheJiraNumber1147 {
+class TestHttpCacheJiraNumber1147 {
 
     private File cacheDir;
 
@@ -72,7 +72,7 @@ public class TestHttpCacheJiraNumber1147 {
     }
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         cacheDir = File.createTempFile("cachedir", "");
         if (cacheDir.exists()) {
             cacheDir.delete();
@@ -81,12 +81,12 @@ public class TestHttpCacheJiraNumber1147 {
     }
 
     @AfterEach
-    public void cleanUp() {
+    void cleanUp() {
         removeCache();
     }
 
     @Test
-    public void testIssue1147() throws Exception {
+    void testIssue1147() throws Exception {
         final CacheConfig cacheConfig = CacheConfig.custom()
             .setSharedCache(true)
             .setMaxObjectSize(262144) //256kb

@@ -37,12 +37,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class TestRequest {
+class TestRequest {
 
     private static final String URI_STRING_FIXTURE = "http://localhost";
     private static final URI URI_FIXTURE = URI.create(URI_STRING_FIXTURE);
 
-    public static Stream<Arguments> data() {
+    static Stream<Arguments> data() {
         return Stream.of(
                 Arguments.of("delete", "DELETE"),
                 Arguments.of("get", "GET"),
@@ -57,7 +57,7 @@ public class TestRequest {
 
     @ParameterizedTest(name = "{index}: {0} => {1}")
     @MethodSource("data")
-    public void testCreateFromString(final String methodName, final String expectedMethod) throws Exception {
+    void testCreateFromString(final String methodName, final String expectedMethod) throws Exception {
         final Method method = Request.class.getMethod(methodName, String.class);
         final Request request = (Request) method.invoke(null, URI_STRING_FIXTURE);
         final ClassicHttpRequest classicHttpRequest = request.getRequest();
@@ -66,7 +66,7 @@ public class TestRequest {
 
     @ParameterizedTest(name = "{index}: {0} => {1}")
     @MethodSource("data")
-    public void testCreateFromURI(final String methodName, final String expectedMethod) throws Exception {
+    void testCreateFromURI(final String methodName, final String expectedMethod) throws Exception {
         final Method method = Request.class.getMethod(methodName, URI.class);
         final Request request = (Request) method.invoke(null, URI_FIXTURE);
         final ClassicHttpRequest classicHttpRequest = request.getRequest();

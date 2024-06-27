@@ -68,12 +68,12 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for {@link DefaultClientTlsStrategy}.
  */
-public class TestDefaultClientTlsStrategy {
+class TestDefaultClientTlsStrategy {
 
     private HttpServer server;
 
     @AfterEach
-    public void shutDown() throws Exception {
+    void shutDown() {
         if (this.server != null) {
             this.server.close(CloseMode.GRACEFUL);
         }
@@ -96,7 +96,7 @@ public class TestDefaultClientTlsStrategy {
     }
 
     @Test
-    public void testBasicSSL() throws Exception {
+    void testBasicSSL() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
@@ -126,7 +126,7 @@ public class TestDefaultClientTlsStrategy {
     }
 
     @Test
-    public void testBasicDefaultHostnameVerifier() throws Exception {
+    void testBasicDefaultHostnameVerifier() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
@@ -153,7 +153,7 @@ public class TestDefaultClientTlsStrategy {
     }
 
     @Test
-    public void testClientAuthSSL() throws Exception {
+    void testClientAuthSSL() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
@@ -183,7 +183,7 @@ public class TestDefaultClientTlsStrategy {
     }
 
     @Test
-    public void testClientAuthSSLFailure() throws Exception {
+    void testClientAuthSSLFailure() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
@@ -217,7 +217,7 @@ public class TestDefaultClientTlsStrategy {
     }
 
     @Test
-    public void testSSLTrustVerification() throws Exception {
+    void testSSLTrustVerification() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
@@ -245,13 +245,13 @@ public class TestDefaultClientTlsStrategy {
     }
 
     @Test
-    public void testSSLTrustVerificationOverrideWithCustom() throws Exception {
+    void testSSLTrustVerificationOverrideWithCustom() throws Exception {
         final TrustStrategy trustStrategy = (chain, authType) -> chain.length == 1;
         testSSLTrustVerificationOverride(trustStrategy);
     }
 
     private void testSSLTrustVerificationOverride(final TrustStrategy trustStrategy)
-            throws Exception, IOException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
+            throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
@@ -284,7 +284,7 @@ public class TestDefaultClientTlsStrategy {
     }
 
     @Test
-    public void testSSLDisabledByDefault() throws Exception {
+    void testSSLDisabledByDefault() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
@@ -310,7 +310,7 @@ public class TestDefaultClientTlsStrategy {
     }
 
     @Test
-    public void testWeakCiphersDisabledByDefault() {
+    void testWeakCiphersDisabledByDefault() {
         final String[] weakCiphersSuites = {
                 "SSL_RSA_WITH_RC4_128_SHA",
                 "SSL_RSA_WITH_3DES_EDE_CBC_SHA",
@@ -362,7 +362,7 @@ public class TestDefaultClientTlsStrategy {
     }
 
     @Test
-    public void testHostnameVerificationClient() throws Exception {
+    void testHostnameVerificationClient() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
@@ -424,7 +424,7 @@ public class TestDefaultClientTlsStrategy {
     }
 
     @Test
-    public void testHostnameVerificationBuiltIn() throws Exception {
+    void testHostnameVerificationBuiltIn() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())

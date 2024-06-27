@@ -33,10 +33,10 @@ import org.apache.hc.core5.http.ContentType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class FormBodyPartTest {
+class FormBodyPartTest {
 
     @Test
-    public void testConstructorCompat() throws Exception {
+    void testConstructorCompat() throws Exception {
         final File tmp= File.createTempFile("test", "test");
         tmp.deleteOnExit();
         final FileBody obj = new FileBody(tmp, ContentType.APPLICATION_OCTET_STREAM);

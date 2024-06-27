@@ -82,7 +82,7 @@ public class AsyncClientH2ServerPush {
                     protected void start(
                             final HttpRequest promise,
                             final HttpResponse response,
-                            final ContentType contentType) throws HttpException, IOException {
+                            final ContentType contentType) {
                         System.out.println(promise.getPath() + " (push)->" + new StatusLine(response));
                     }
 
@@ -92,7 +92,7 @@ public class AsyncClientH2ServerPush {
                     }
 
                     @Override
-                    protected void data(final ByteBuffer data, final boolean endOfStream) throws IOException {
+                    protected void data(final ByteBuffer data, final boolean endOfStream) {
                     }
 
                     @Override
@@ -121,7 +121,7 @@ public class AsyncClientH2ServerPush {
                     @Override
                     protected void start(
                             final HttpResponse response,
-                            final ContentType contentType) throws HttpException, IOException {
+                            final ContentType contentType) {
                         System.out.println(request + "->" + new StatusLine(response));
                     }
 
@@ -131,11 +131,11 @@ public class AsyncClientH2ServerPush {
                     }
 
                     @Override
-                    protected void data(final CharBuffer data, final boolean endOfStream) throws IOException {
+                    protected void data(final CharBuffer data, final boolean endOfStream) {
                     }
 
                     @Override
-                    protected Void buildResult() throws IOException {
+                    protected Void buildResult() {
                         return null;
                     }
 

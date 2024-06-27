@@ -30,10 +30,10 @@ package org.apache.hc.client5.http.entity.mime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestMultipartFormat {
+class TestMultipartFormat {
 
     @Test
-    public void testLineBreak() {
+    void testLineBreak() {
         Assertions.assertTrue(AbstractMultipartFormat.isLineBreak('\r'));
         Assertions.assertTrue(AbstractMultipartFormat.isLineBreak('\n'));
         Assertions.assertTrue(AbstractMultipartFormat.isLineBreak('\f'));
@@ -43,7 +43,7 @@ public class TestMultipartFormat {
     }
 
     @Test
-    public void testLineBreakRewrite() {
+    void testLineBreakRewrite() {
         final String s = "blah blah blah";
         Assertions.assertSame(s, AbstractMultipartFormat.stripLineBreaks(s));
         Assertions.assertEquals("blah blah blah ", AbstractMultipartFormat.stripLineBreaks("blah\rblah\nblah\f"));

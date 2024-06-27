@@ -42,7 +42,7 @@ public class ConsumableInputStream extends InputStream {
     }
 
     @Override
-    public int read() throws IOException {
+    public int read() {
         return buf.read();
     }
 

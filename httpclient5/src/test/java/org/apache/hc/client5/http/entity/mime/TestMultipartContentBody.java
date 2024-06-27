@@ -34,10 +34,10 @@ import org.apache.hc.core5.http.ContentType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestMultipartContentBody {
+class TestMultipartContentBody {
 
     @Test
-    public void testStringBody() throws Exception {
+    void testStringBody() {
         final StringBody b1 = new StringBody("text", ContentType.DEFAULT_TEXT);
         Assertions.assertEquals(4, b1.getContentLength());
 
@@ -60,7 +60,7 @@ public class TestMultipartContentBody {
     }
 
     @Test
-    public void testInputStreamBody() throws Exception {
+    void testInputStreamBody() {
         final byte[] stuff = "Stuff".getBytes(StandardCharsets.US_ASCII);
         final InputStreamBody b1 = new InputStreamBody(new ByteArrayInputStream(stuff), "stuff");
         Assertions.assertEquals(-1, b1.getContentLength());

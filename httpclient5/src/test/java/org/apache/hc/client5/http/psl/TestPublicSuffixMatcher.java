@@ -36,14 +36,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestPublicSuffixMatcher {
+class TestPublicSuffixMatcher {
 
     private static final String SOURCE_FILE = "suffixlistmatcher.txt";
 
     private PublicSuffixMatcher matcher;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         final ClassLoader classLoader = getClass().getClassLoader();
         final InputStream in = classLoader.getResourceAsStream(SOURCE_FILE);
         Assertions.assertNotNull(in);
@@ -53,7 +53,7 @@ public class TestPublicSuffixMatcher {
     }
 
     @Test
-    public void testGetDomainRootAnyType() {
+    void testGetDomainRootAnyType() {
         // Private
         Assertions.assertEquals("xx", matcher.getDomainRoot("example.XX"));
         Assertions.assertEquals("xx", matcher.getDomainRoot("www.example.XX"));
@@ -77,7 +77,7 @@ public class TestPublicSuffixMatcher {
     }
 
     @Test
-    public void testGetDomainRootOnlyPRIVATE() {
+    void testGetDomainRootOnlyPRIVATE() {
         // Private
         Assertions.assertEquals("xx", matcher.getDomainRoot("example.XX", DomainType.PRIVATE));
         Assertions.assertEquals("xx", matcher.getDomainRoot("www.example.XX", DomainType.PRIVATE));
@@ -99,7 +99,7 @@ public class TestPublicSuffixMatcher {
     }
 
     @Test
-    public void testGetDomainRootOnlyICANN() {
+    void testGetDomainRootOnlyICANN() {
         // Private
         Assertions.assertNull(matcher.getDomainRoot("example.XX", DomainType.ICANN));
         Assertions.assertNull(matcher.getDomainRoot("www.example.XX", DomainType.ICANN));
@@ -122,7 +122,7 @@ public class TestPublicSuffixMatcher {
 
 
     @Test
-    public void testMatch() {
+    void testMatch() {
         Assertions.assertTrue(matcher.matches(".jp"));
         Assertions.assertTrue(matcher.matches(".ac.jp"));
         Assertions.assertTrue(matcher.matches(".any.tokyo.jp"));
@@ -133,7 +133,7 @@ public class TestPublicSuffixMatcher {
     }
 
     @Test
-    public void testMatchUnicode() {
+    void testMatchUnicode() {
         Assertions.assertTrue(matcher.matches(".h\u00E5.no")); // \u00E5 is <aring>
         Assertions.assertTrue(matcher.matches(".xn--h-2fa.no"));
         Assertions.assertTrue(matcher.matches(".h\u00E5.no"));

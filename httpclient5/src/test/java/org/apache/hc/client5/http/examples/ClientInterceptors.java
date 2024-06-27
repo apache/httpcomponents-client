@@ -67,7 +67,7 @@ public class ClientInterceptors {
                     public void process(
                             final HttpRequest request,
                             final EntityDetails entity,
-                            final HttpContext context) throws HttpException, IOException {
+                            final HttpContext context) {
                         request.setHeader("request-id", Long.toString(count.incrementAndGet()));
                     }
                 })

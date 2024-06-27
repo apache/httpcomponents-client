@@ -67,7 +67,7 @@ import org.junit.jupiter.api.Test;
  * Tests for {@code PoolingHttpClientConnectionManager} that do require a server
  * to communicate with.
  */
-public class TestConnectionManagement extends AbstractIntegrationTestBase {
+class TestConnectionManagement extends AbstractIntegrationTestBase {
 
     public TestConnectionManagement() {
         super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
@@ -76,7 +76,7 @@ public class TestConnectionManagement extends AbstractIntegrationTestBase {
     ConnectionEndpoint.RequestExecutor exec;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         exec = new ConnectionEndpoint.RequestExecutor() {
 
             final HttpRequestExecutor requestExecutor = new HttpRequestExecutor();
@@ -99,7 +99,7 @@ public class TestConnectionManagement extends AbstractIntegrationTestBase {
      * Tests releasing and re-using a connection after a response is read.
      */
     @Test
-    public void testReleaseConnection() throws Exception {
+    void testReleaseConnection() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", new RandomHandler()));
         final HttpHost target = startServer();
@@ -162,7 +162,7 @@ public class TestConnectionManagement extends AbstractIntegrationTestBase {
      * Tests releasing with time limits.
      */
     @Test
-    public void testReleaseConnectionWithTimeLimits() throws Exception {
+    void testReleaseConnectionWithTimeLimits() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", new RandomHandler()));
         final HttpHost target = startServer();
@@ -233,7 +233,7 @@ public class TestConnectionManagement extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testCloseExpiredIdleConnections() throws Exception {
+    void testCloseExpiredIdleConnections() throws Exception {
         final HttpHost target = startServer();
         final TestClient client = client();
         final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
@@ -273,7 +273,7 @@ public class TestConnectionManagement extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testCloseExpiredTTLConnections() throws Exception {
+    void testCloseExpiredTTLConnections() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", new RandomHandler()));
         final HttpHost target = startServer();

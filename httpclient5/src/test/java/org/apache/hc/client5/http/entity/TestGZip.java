@@ -44,10 +44,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
-public class TestGZip {
+class TestGZip {
 
     @Test
-    public void testBasic() throws Exception {
+    void testBasic() throws Exception {
         final String s = "some kind of text";
         final StringEntity e = new StringEntity(s, ContentType.TEXT_PLAIN, false);
         try (final GzipCompressingEntity gzipe = new GzipCompressingEntity(e)) {
@@ -59,7 +59,7 @@ public class TestGZip {
     }
 
     @Test
-    public void testCompressionDecompression() throws Exception {
+    void testCompressionDecompression() throws Exception {
         final StringEntity in = new StringEntity("some kind of text", ContentType.TEXT_PLAIN);
         try (final GzipCompressingEntity gzipe = new GzipCompressingEntity(in)) {
             final ByteArrayOutputStream buf = new ByteArrayOutputStream();
@@ -71,7 +71,7 @@ public class TestGZip {
     }
 
     @Test
-    public void testCompressionIOExceptionLeavesOutputStreamOpen() throws Exception {
+    void testCompressionIOExceptionLeavesOutputStreamOpen() throws Exception {
         final HttpEntity in = Mockito.mock(HttpEntity.class);
         Mockito.doThrow(new IOException("Ooopsie")).when(in).writeTo(ArgumentMatchers.any());
         try (final GzipCompressingEntity gzipe = new GzipCompressingEntity(in)) {
@@ -85,7 +85,7 @@ public class TestGZip {
     }
 
     @Test
-    public void testDecompressionWithMultipleGZipStream() throws Exception {
+    void testDecompressionWithMultipleGZipStream() throws Exception {
         final int[] data = new int[] {
                 0x1f, 0x8b, 0x08, 0x08, 0x03, 0xf1, 0x55, 0x5a, 0x00, 0x03, 0x74, 0x65, 0x73, 0x74, 0x31, 0x00,
                 0x2b, 0x2e, 0x29, 0x4a, 0x4d, 0xcc, 0xd5, 0x35, 0xe4, 0x02, 0x00, 0x03, 0x61, 0xf0, 0x5f, 0x09,

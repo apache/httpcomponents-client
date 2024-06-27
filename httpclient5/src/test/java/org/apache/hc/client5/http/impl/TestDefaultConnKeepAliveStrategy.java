@@ -39,10 +39,10 @@ import org.junit.jupiter.api.Test;
 /**
  *  Simple tests for {@link DefaultConnectionKeepAliveStrategy}.
  */
-public class TestDefaultConnKeepAliveStrategy {
+class TestDefaultConnKeepAliveStrategy {
 
     @Test
-    public void testIllegalResponseArg() throws Exception {
+    void testIllegalResponseArg() {
         final HttpClientContext context = HttpClientContext.create();
         final ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
         Assertions.assertThrows(NullPointerException.class, () ->
@@ -50,7 +50,7 @@ public class TestDefaultConnKeepAliveStrategy {
     }
 
     @Test
-    public void testNoKeepAliveHeader() throws Exception {
+    void testNoKeepAliveHeader() {
         final HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig( RequestConfig.custom()
                 .setConnectionKeepAlive(TimeValue.NEG_ONE_MILLISECOND)
@@ -62,7 +62,7 @@ public class TestDefaultConnKeepAliveStrategy {
     }
 
     @Test
-    public void testEmptyKeepAliveHeader() throws Exception {
+    void testEmptyKeepAliveHeader() {
         final HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig( RequestConfig.custom()
                 .setConnectionKeepAlive(TimeValue.NEG_ONE_MILLISECOND)
@@ -75,7 +75,7 @@ public class TestDefaultConnKeepAliveStrategy {
     }
 
     @Test
-    public void testInvalidKeepAliveHeader() throws Exception {
+    void testInvalidKeepAliveHeader() {
         final HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig( RequestConfig.custom()
                 .setConnectionKeepAlive(TimeValue.NEG_ONE_MILLISECOND)
@@ -88,7 +88,7 @@ public class TestDefaultConnKeepAliveStrategy {
     }
 
     @Test
-    public void testKeepAliveHeader() throws Exception {
+    void testKeepAliveHeader() {
         final HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig( RequestConfig.custom()
                 .setConnectionKeepAlive(TimeValue.NEG_ONE_MILLISECOND)

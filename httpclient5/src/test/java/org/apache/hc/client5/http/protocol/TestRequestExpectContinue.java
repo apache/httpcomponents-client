@@ -40,10 +40,10 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestRequestExpectContinue {
+class TestRequestExpectContinue {
 
     @Test
-    public void testRequestExpectContinueGenerated() throws Exception {
+    void testRequestExpectContinueGenerated() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
         context.setRequestConfig(config);
@@ -59,7 +59,7 @@ public class TestRequestExpectContinue {
     }
 
     @Test
-    public void testRequestExpectContinueNotGenerated() throws Exception {
+    void testRequestExpectContinueNotGenerated() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(false).build();
         context.setRequestConfig(config);
@@ -74,7 +74,7 @@ public class TestRequestExpectContinue {
     }
 
     @Test
-    public void testRequestExpectContinueHTTP10() throws Exception {
+    void testRequestExpectContinueHTTP10() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
         context.setRequestConfig(config);
@@ -90,7 +90,7 @@ public class TestRequestExpectContinue {
     }
 
     @Test
-    public void testRequestExpectContinueZeroContent() throws Exception {
+    void testRequestExpectContinueZeroContent() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
         context.setRequestConfig(config);
@@ -105,13 +105,13 @@ public class TestRequestExpectContinue {
     }
 
     @Test
-    public void testRequestExpectContinueInvalidInput() throws Exception {
+    void testRequestExpectContinueInvalidInput() {
         final RequestExpectContinue interceptor = new RequestExpectContinue();
         Assertions.assertThrows(NullPointerException.class, () -> interceptor.process(null, null, null));
     }
 
     @Test
-    public void testRequestExpectContinueIgnoreNonenclosingRequests() throws Exception {
+    void testRequestExpectContinueIgnoreNonenclosingRequests() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
         final RequestExpectContinue interceptor = new RequestExpectContinue();

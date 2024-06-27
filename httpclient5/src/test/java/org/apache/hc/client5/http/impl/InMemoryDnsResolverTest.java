@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests {@link InMemoryDnsResolver}.
  */
-public class InMemoryDnsResolverTest {
+class InMemoryDnsResolverTest {
 
     @Test
     void resolve() throws UnknownHostException {

@@ -94,14 +94,14 @@ import org.mockito.Mockito;
 /**
  * Unit tests for automatic client authentication.
  */
-public abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
+abstract  class TestClientAuthentication extends AbstractIntegrationTestBase {
 
     protected TestClientAuthentication(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD);
     }
 
     public void configureServerWithBasicAuth(final Authenticator authenticator,
-                                             final Consumer<TestServerBootstrap> serverCustomizer) throws IOException {
+                                             final Consumer<TestServerBootstrap> serverCustomizer) {
         configureServer(bootstrap -> {
             bootstrap.setExchangeHandlerDecorator(requestHandler ->
                     new AuthenticatingDecorator(requestHandler, authenticator));
@@ -109,14 +109,14 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
         });
     }
 
-    public void configureServerWithBasicAuth(final Consumer<TestServerBootstrap> serverCustomizer) throws IOException {
+    public void configureServerWithBasicAuth(final Consumer<TestServerBootstrap> serverCustomizer) {
         configureServerWithBasicAuth(
                 new BasicTestAuthenticator("test:test", "test realm"),
                 serverCustomizer);
     }
 
     @Test
-    public void testBasicAuthenticationNoCreds() throws Exception {
+    void testBasicAuthenticationNoCreds() throws Exception {
         configureServerWithBasicAuth(bootstrap -> bootstrap
                 .register("*", new EchoHandler()));
         final HttpHost target = startServer();
@@ -140,7 +140,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testBasicAuthenticationFailure() throws Exception {
+    void testBasicAuthenticationFailure() throws Exception {
         configureServerWithBasicAuth(bootstrap -> bootstrap
                 .register("*", new EchoHandler()));
         final HttpHost target = startServer();
@@ -166,7 +166,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testBasicAuthenticationSuccess() throws Exception {
+    void testBasicAuthenticationSuccess() throws Exception {
         configureServerWithBasicAuth(bootstrap -> bootstrap
                 .register("*", new EchoHandler()));
         final HttpHost target = startServer();
@@ -191,7 +191,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testBasicAuthenticationSuccessOnNonRepeatablePutExpectContinue() throws Exception {
+    void testBasicAuthenticationSuccessOnNonRepeatablePutExpectContinue() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("*", new EchoHandler()));
         final HttpHost target = startServer();
@@ -222,7 +222,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testBasicAuthenticationFailureOnNonRepeatablePutDontExpectContinue() throws Exception {
+    void testBasicAuthenticationFailureOnNonRepeatablePutDontExpectContinue() throws Exception {
         configureServerWithBasicAuth(bootstrap -> bootstrap
                 .register("*", new EchoHandler()));
         final HttpHost target = startServer();
@@ -253,7 +253,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testBasicAuthenticationSuccessOnRepeatablePost() throws Exception {
+    void testBasicAuthenticationSuccessOnRepeatablePost() throws Exception {
         configureServerWithBasicAuth(bootstrap -> bootstrap
                 .register("*", new EchoHandler()));
         final HttpHost target = startServer();
@@ -281,7 +281,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testBasicAuthenticationFailureOnNonRepeatablePost() throws Exception {
+    void testBasicAuthenticationFailureOnNonRepeatablePost() throws Exception {
         configureServerWithBasicAuth(bootstrap -> bootstrap
                 .register("*", new EchoHandler()));
         final HttpHost target = startServer();
@@ -312,7 +312,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testBasicAuthenticationCredentialsCaching() throws Exception {
+    void testBasicAuthenticationCredentialsCaching() throws Exception {
         configureServerWithBasicAuth(bootstrap -> bootstrap
                 .register("*", new EchoHandler()));
         final HttpHost target = startServer();
@@ -350,7 +350,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testBasicAuthenticationCredentialsCachingByPathPrefix() throws Exception {
+    void testBasicAuthenticationCredentialsCachingByPathPrefix() throws Exception {
         configureServerWithBasicAuth(bootstrap -> bootstrap
                 .register("*", new EchoHandler()));
         final HttpHost target = startServer();
@@ -415,7 +415,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testAuthenticationCredentialsCachingReAuthenticationOnDifferentRealm() throws Exception {
+    void testAuthenticationCredentialsCachingReAuthenticationOnDifferentRealm() throws Exception {
         configureServerWithBasicAuth(new Authenticator() {
 
             @Override
@@ -492,7 +492,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testAuthenticationUserinfoInRequest() throws Exception {
+    void testAuthenticationUserinfoInRequest() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("*", new EchoHandler()));
         final HttpHost target = startServer();
@@ -505,7 +505,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testPreemptiveAuthentication() throws Exception {
+    void testPreemptiveAuthentication() throws Exception {
         final Authenticator authenticator = Mockito.spy(new BasicTestAuthenticator("test:test", "test realm"));
         configureServerWithBasicAuth(authenticator,
                 bootstrap -> bootstrap
@@ -534,7 +534,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testPreemptiveAuthenticationFailure() throws Exception {
+    void testPreemptiveAuthenticationFailure() throws Exception {
         final Authenticator authenticator = Mockito.spy(new BasicTestAuthenticator("test:test", "test realm"));
         configureServerWithBasicAuth(authenticator,
                 bootstrap -> bootstrap
@@ -569,7 +569,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
         public void handle(
                 final ClassicHttpRequest request,
                 final ClassicHttpResponse response,
-                final HttpContext context) throws HttpException, IOException {
+                final HttpContext context) {
             final String creds = (String) context.getAttribute("creds");
             if (creds == null || !creds.equals("test:test")) {
                 response.setCode(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED);
@@ -583,7 +583,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testAuthenticationTargetAsProxy() throws Exception {
+    void testAuthenticationTargetAsProxy() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("*", new ProxyAuthHandler()));
         final HttpHost target = startServer();
@@ -604,7 +604,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testConnectionCloseAfterAuthenticationSuccess() throws Exception {
+    void testConnectionCloseAfterAuthenticationSuccess() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler ->
                         new AuthenticatingDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm")) {
@@ -640,7 +640,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testReauthentication() throws Exception {
+    void testReauthentication() throws Exception {
         final BasicSchemeFactory myBasicAuthSchemeFactory = new BasicSchemeFactory() {
 
             @Override
@@ -720,7 +720,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     }
 
     @Test
-    public void testAuthenticationFallback() throws Exception {
+    void testAuthenticationFallback() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .setExchangeHandlerDecorator(requestHandler ->
                         new AuthenticatingDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm")) {
@@ -759,7 +759,7 @@ public abstract class TestClientAuthentication extends AbstractIntegrationTestBa
     private final static String CHARS = "0123456789abcdef";
 
     @Test
-    public void testBearerTokenAuthentication() throws Exception {
+    void testBearerTokenAuthentication() throws Exception {
         final SecureRandom secureRandom = SecureRandom.getInstanceStrong();
         secureRandom.setSeed(System.currentTimeMillis());
         final StringBuilder buf = new StringBuilder();

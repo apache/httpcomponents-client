@@ -40,74 +40,74 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.jupiter.api.Test;
 
-public class CacheControlParserTest {
+class CacheControlParserTest {
 
     private final CacheControlHeaderParser parser = CacheControlHeaderParser.INSTANCE;
 
     @Test
-    public void testParseMaxAgeZero() {
+    void testParseMaxAgeZero() {
         final Header header = new BasicHeader("Cache-Control", "max-age=0 , this = stuff;");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
         assertEquals(0L, cacheControl.getMaxAge());
     }
 
     @Test
-    public void testParseSMaxAge() {
+    void testParseSMaxAge() {
         final Header header = new BasicHeader("Cache-Control", "s-maxage=3600");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
         assertEquals(3600L, cacheControl.getSharedMaxAge());
     }
 
     @Test
-    public void testParseInvalidCacheValue() {
+    void testParseInvalidCacheValue() {
         final Header header = new BasicHeader("Cache-Control", "max-age=invalid");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
         assertEquals(0L, cacheControl.getMaxAge());
     }
 
     @Test
-    public void testParseInvalidHeader() {
+    void testParseInvalidHeader() {
         final Header header = new BasicHeader("Cache-Control", "max-age");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
         assertEquals(-1L, cacheControl.getMaxAge());
     }
 
     @Test
-    public void testParseNullHeader() {
+    void testParseNullHeader() {
         final Header header = null;
         assertThrows(NullPointerException.class, () -> parser.parseResponse(Collections.singletonList(header).iterator()));
     }
 
     @Test
-    public void testParseEmptyHeader() {
+    void testParseEmptyHeader() {
         final Header header = new BasicHeader("Cache-Control", "");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
         assertEquals(-1L, cacheControl.getMaxAge());
     }
 
     @Test
-    public void testParseCookieEmptyValue() {
+    void testParseCookieEmptyValue() {
         final Header header = new BasicHeader("Cache-Control", "max-age=,");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
         assertEquals(-1L, cacheControl.getMaxAge());
     }
 
     @Test
-    public void testParseNoCache() {
+    void testParseNoCache() {
         final Header header = new BasicHeader(" Cache-Control", "no-cache");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
         assertEquals(-1L, cacheControl.getMaxAge());
     }
 
     @Test
-    public void testParseNoDirective() {
+    void testParseNoDirective() {
         final Header header = new BasicHeader(" Cache-Control", "");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
         assertEquals(-1L, cacheControl.getMaxAge());
     }
 
     @Test
-    public void testGarbage() {
+    void testGarbage() {
         final Header header = new BasicHeader("Cache-Control", ",,= blah,");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
         assertEquals(-1L, cacheControl.getMaxAge());
@@ -115,7 +115,7 @@ public class CacheControlParserTest {
 
 
     @Test
-    public void testParseMultipleDirectives() {
+    void testParseMultipleDirectives() {
         final Header header = new BasicHeader("Cache-Control", "max-age=604800, stale-while-revalidate=86400, s-maxage=3600, must-revalidate, private");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
 
@@ -128,7 +128,7 @@ public class CacheControlParserTest {
     }
 
     @Test
-    public void testParseMultipleDirectives2() {
+    void testParseMultipleDirectives2() {
         final Header header = new BasicHeader("Cache-Control", "max-age=604800, stale-while-revalidate=86400, must-revalidate, private, s-maxage=3600");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
 
@@ -141,7 +141,7 @@ public class CacheControlParserTest {
     }
 
     @Test
-    public void testParsePublic() {
+    void testParsePublic() {
         final Header header = new BasicHeader("Cache-Control", "public");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
 
@@ -149,7 +149,7 @@ public class CacheControlParserTest {
     }
 
     @Test
-    public void testParsePrivate() {
+    void testParsePrivate() {
         final Header header = new BasicHeader("Cache-Control", "private");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
 
@@ -157,7 +157,7 @@ public class CacheControlParserTest {
     }
 
     @Test
-    public void testParseNoStore() {
+    void testParseNoStore() {
         final Header header = new BasicHeader("Cache-Control", "no-store");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
 
@@ -165,7 +165,7 @@ public class CacheControlParserTest {
     }
 
     @Test
-    public void testParseStaleWhileRevalidate() {
+    void testParseStaleWhileRevalidate() {
         final Header header = new BasicHeader("Cache-Control", "max-age=3600, stale-while-revalidate=120");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
 
@@ -173,7 +173,7 @@ public class CacheControlParserTest {
     }
 
     @Test
-    public void testParseNoCacheFields() {
+    void testParseNoCacheFields() {
         final Header header = new BasicHeader("Cache-Control", "no-cache=\"Set-Cookie, Content-Language\", stale-while-revalidate=120");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
 
@@ -185,7 +185,7 @@ public class CacheControlParserTest {
     }
 
     @Test
-    public void testParseNoCacheFieldsNoQuote() {
+    void testParseNoCacheFieldsNoQuote() {
         final Header header = new BasicHeader("Cache-Control", "no-cache=Set-Cookie, Content-Language, stale-while-revalidate=120");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
 
@@ -196,7 +196,7 @@ public class CacheControlParserTest {
     }
 
     @Test
-    public void testParseNoCacheFieldsMessy() {
+    void testParseNoCacheFieldsMessy() {
         final Header header = new BasicHeader("Cache-Control", "no-cache=\"  , , ,,, Set-Cookie  , , Content-Language ,   \", stale-while-revalidate=120");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
 
@@ -209,7 +209,7 @@ public class CacheControlParserTest {
 
 
     @Test
-    public void testParseMultipleHeaders() {
+    void testParseMultipleHeaders() {
         // Create headers
         final Header header1 = new BasicHeader("Cache-Control", "max-age=3600, no-store");
         final Header header2 = new BasicHeader("Cache-Control", "private, must-revalidate");
@@ -230,7 +230,7 @@ public class CacheControlParserTest {
     }
 
     @Test
-    public void testParseRequestMultipleDirectives() {
+    void testParseRequestMultipleDirectives() {
         final Header header = new BasicHeader("Cache-Control", "blah, max-age=1111, max-stale=2222, " +
                 "min-fresh=3333, no-cache, no-store, no-cache, no-stuff, only-if-cached, only-if-cached-or-maybe-not");
         final RequestCacheControl cacheControl = parser.parseRequest(Collections.singletonList(header).iterator());
@@ -246,14 +246,14 @@ public class CacheControlParserTest {
     }
 
     @Test
-    public void testParseIsImmutable() {
+    void testParseIsImmutable() {
         final Header header = new BasicHeader("Cache-Control", "max-age=0 , immutable");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
         assertTrue(cacheControl.isImmutable());
     }
 
     @Test
-    public void testParseMultipleIsImmutable() {
+    void testParseMultipleIsImmutable() {
         final Header header = new BasicHeader("Cache-Control", "immutable, nmax-age=0 , immutable");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
         assertTrue(cacheControl.isImmutable());

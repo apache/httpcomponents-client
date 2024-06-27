@@ -54,14 +54,14 @@ import org.apache.hc.core5.testing.reactive.ReactiveEchoProcessor;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 
-public abstract class TestHttp1ReactiveMinimal extends AbstractHttpReactiveFundamentalsTest {
+abstract  class TestHttp1ReactiveMinimal extends AbstractHttpReactiveFundamentalsTest {
 
     public TestHttp1ReactiveMinimal(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.MINIMAL, ServerProtocolLevel.STANDARD);
     }
 
     @Test
-    public void testConcurrentPostRequestsSameEndpoint() throws Exception {
+    void testConcurrentPostRequestsSameEndpoint() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/echo/*", () ->
                 new ReactiveServerExchangeHandler(new ReactiveEchoProcessor())));
         final HttpHost target = startServer();

@@ -51,7 +51,7 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
 @SuppressWarnings("boxing") // test code
-public class TestAbstractSerializingCacheStorage {
+class TestAbstractSerializingCacheStorage {
 
     public static byte[] serialize(final String key, final HttpCacheEntry value) throws ResourceIOException {
         return HttpByteArrayCacheEntrySerializer.INSTANCE.serialize(new HttpCacheStorageEntry(key, value));
@@ -67,7 +67,7 @@ public class TestAbstractSerializingCacheStorage {
     }
 
     @Test
-    public void testCachePut() throws Exception {
+    void testCachePut() throws Exception {
         final String key = "foo";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
 
@@ -81,7 +81,7 @@ public class TestAbstractSerializingCacheStorage {
     }
 
     @Test
-    public void testCacheGetNullEntry() throws Exception {
+    void testCacheGetNullEntry() throws Exception {
         final String key = "foo";
 
         when(impl.digestToStorageKey(key)).thenReturn("bar");
@@ -95,7 +95,7 @@ public class TestAbstractSerializingCacheStorage {
     }
 
     @Test
-    public void testCacheGet() throws Exception {
+    void testCacheGet() throws Exception {
         final String key = "foo";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
 
@@ -110,7 +110,7 @@ public class TestAbstractSerializingCacheStorage {
     }
 
     @Test
-    public void testCacheGetKeyMismatch() throws Exception {
+    void testCacheGetKeyMismatch() throws Exception {
         final String key = "foo";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
 
@@ -125,7 +125,7 @@ public class TestAbstractSerializingCacheStorage {
     }
 
     @Test
-    public void testCacheRemove()  throws Exception{
+    void testCacheRemove()  throws Exception{
         final String key = "foo";
 
         when(impl.digestToStorageKey(key)).thenReturn("bar");
@@ -135,7 +135,7 @@ public class TestAbstractSerializingCacheStorage {
     }
 
     @Test
-    public void testCacheUpdateNullEntry() throws Exception {
+    void testCacheUpdateNullEntry() throws Exception {
         final String key = "foo";
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
@@ -152,7 +152,7 @@ public class TestAbstractSerializingCacheStorage {
     }
 
     @Test
-    public void testCacheCASUpdate() throws Exception {
+    void testCacheCASUpdate() throws Exception {
         final String key = "foo";
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
@@ -170,7 +170,7 @@ public class TestAbstractSerializingCacheStorage {
     }
 
     @Test
-    public void testCacheCASUpdateKeyMismatch() throws Exception {
+    void testCacheCASUpdateKeyMismatch() throws Exception {
         final String key = "foo";
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
@@ -191,7 +191,7 @@ public class TestAbstractSerializingCacheStorage {
     }
 
     @Test
-    public void testSingleCacheUpdateRetry() throws Exception {
+    void testSingleCacheUpdateRetry() throws Exception {
         final String key = "foo";
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
@@ -209,7 +209,7 @@ public class TestAbstractSerializingCacheStorage {
     }
 
     @Test
-    public void testCacheUpdateFail() throws Exception {
+    void testCacheUpdateFail() throws Exception {
         final String key = "foo";
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
@@ -228,7 +228,7 @@ public class TestAbstractSerializingCacheStorage {
     }
 
     @Test
-    public void testBulkGet() throws Exception {
+    void testBulkGet() throws Exception {
         final String key1 = "foo this";
         final String key2 = "foo that";
         final String storageKey1 = "bar this";
@@ -262,7 +262,7 @@ public class TestAbstractSerializingCacheStorage {
     }
 
     @Test
-    public void testBulkGetKeyMismatch() throws Exception {
+    void testBulkGetKeyMismatch() throws Exception {
         final String key1 = "foo this";
         final String key2 = "foo that";
         final String storageKey1 = "bar this";

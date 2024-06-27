@@ -76,14 +76,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-public abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegrationTestBase {
+abstract  class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegrationTestBase {
 
     public AbstractHttpAsyncClientAuthenticationTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
         super(scheme, clientProtocolLevel, serverProtocolLevel);
     }
 
     @Test
-    public void testBasicAuthenticationNoCreds() throws Exception {
+    void testBasicAuthenticationNoCreds() throws Exception {
         final HttpHost target = startServer();
         configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
@@ -106,7 +106,7 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest extends Abstract
     }
 
     @Test
-    public void testBasicAuthenticationFailure() throws Exception {
+    void testBasicAuthenticationFailure() throws Exception {
         final HttpHost target = startServer();
         configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
@@ -131,7 +131,7 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest extends Abstract
     }
 
     @Test
-    public void testBasicAuthenticationSuccess() throws Exception {
+    void testBasicAuthenticationSuccess() throws Exception {
         final HttpHost target = startServer();
         configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
@@ -157,7 +157,7 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest extends Abstract
     }
 
     @Test
-    public void testBasicAuthenticationWithEntitySuccess() throws Exception {
+    void testBasicAuthenticationWithEntitySuccess() throws Exception {
         final HttpHost target = startServer();
         configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
@@ -183,7 +183,7 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest extends Abstract
     }
 
     @Test
-    public void testBasicAuthenticationExpectationFailure() throws Exception {
+    void testBasicAuthenticationExpectationFailure() throws Exception {
         final HttpHost target = startServer();
         configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
@@ -208,7 +208,7 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest extends Abstract
     }
 
     @Test
-    public void testBasicAuthenticationExpectationSuccess() throws Exception {
+    void testBasicAuthenticationExpectationSuccess() throws Exception {
         final HttpHost target = startServer();
         configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
@@ -235,7 +235,7 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest extends Abstract
     }
 
     @Test
-    public void testBasicAuthenticationCredentialsCaching() throws Exception {
+    void testBasicAuthenticationCredentialsCaching() throws Exception {
         final HttpHost target = startServer();
         configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
@@ -262,7 +262,7 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest extends Abstract
     }
 
     @Test
-    public void testBasicAuthenticationCredentialsCachingByPathPrefix() throws Exception {
+    void testBasicAuthenticationCredentialsCachingByPathPrefix() throws Exception {
         final HttpHost target = startServer();
         configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
@@ -327,7 +327,7 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest extends Abstract
     }
 
     @Test
-    public void testAuthenticationUserinfoInRequestFailure() throws Exception {
+    void testAuthenticationUserinfoInRequestFailure() throws Exception {
         final HttpHost target = startServer();
         configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
@@ -344,7 +344,7 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest extends Abstract
     }
 
     @Test
-    public void testReauthentication() throws Exception {
+    void testReauthentication() throws Exception {
         final Authenticator authenticator = new BasicTestAuthenticator("test:test", "test realm") {
 
             private final AtomicLong count = new AtomicLong(0);
@@ -413,7 +413,7 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest extends Abstract
     }
 
     @Test
-    public void testAuthenticationFallback() throws Exception {
+    void testAuthenticationFallback() throws Exception {
         final HttpHost target = startServer();
         configureServer(bootstrap -> bootstrap
                 .register("*", AsyncEchoHandler::new)
@@ -448,7 +448,7 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest extends Abstract
     private final static String CHARS = "0123456789abcdef";
 
     @Test
-    public void testBearerTokenAuthentication() throws Exception {
+    void testBearerTokenAuthentication() throws Exception {
         final SecureRandom secureRandom = SecureRandom.getInstanceStrong();
         secureRandom.setSeed(System.currentTimeMillis());
         final StringBuilder buf = new StringBuilder();

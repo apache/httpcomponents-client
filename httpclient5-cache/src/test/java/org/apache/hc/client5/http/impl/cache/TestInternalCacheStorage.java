@@ -33,10 +33,10 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestInternalCacheStorage {
+class TestInternalCacheStorage {
 
     @Test
-    public void testCacheBasics() {
+    void testCacheBasics() {
         final InternalCacheStorage storage = new InternalCacheStorage();
         final String key1 = "some-key-1";
         Assertions.assertNull(storage.get(key1));
@@ -61,7 +61,7 @@ public class TestInternalCacheStorage {
     }
 
     @Test
-    public void testCacheEviction() {
+    void testCacheEviction() {
         final Queue<HttpCacheEntry> evictedEntries = new LinkedList<>();
         final InternalCacheStorage storage = new InternalCacheStorage(2, e -> evictedEntries.add(e.getContent()));
         final String key1 = "some-key-1";

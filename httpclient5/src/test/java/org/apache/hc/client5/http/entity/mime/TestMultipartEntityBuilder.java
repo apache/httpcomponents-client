@@ -40,10 +40,10 @@ import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestMultipartEntityBuilder {
+class TestMultipartEntityBuilder {
 
     @Test
-    public void testBasics() throws Exception {
+    void testBasics() {
         final MultipartFormEntity entity = MultipartEntityBuilder.create().buildEntity();
         Assertions.assertNotNull(entity);
         Assertions.assertTrue(entity.getMultipart() instanceof HttpStrictMultipart);
@@ -51,7 +51,7 @@ public class TestMultipartEntityBuilder {
     }
 
     @Test
-    public void testMultipartOptions() throws Exception {
+    void testMultipartOptions() {
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .setBoundary("blah-blah")
                 .setCharset(StandardCharsets.UTF_8)
@@ -64,7 +64,7 @@ public class TestMultipartEntityBuilder {
     }
 
     @Test
-    public void testAddBodyParts() throws Exception {
+    void testAddBodyParts() {
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .addTextBody("p1", "stuff")
                 .addBinaryBody("p2", new File("stuff"))
@@ -80,7 +80,7 @@ public class TestMultipartEntityBuilder {
 
 
     @Test
-    public void testMultipartCustomContentType() throws Exception {
+    void testMultipartCustomContentType() {
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .setContentType(ContentType.APPLICATION_XML)
                 .setBoundary("blah-blah")
@@ -92,7 +92,7 @@ public class TestMultipartEntityBuilder {
     }
 
     @Test
-    public void testMultipartContentTypeParameter() throws Exception {
+    void testMultipartContentTypeParameter() {
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .setContentType(ContentType.MULTIPART_FORM_DATA.withParameters(
                         new BasicNameValuePair("boundary", "yada-yada"),
@@ -105,7 +105,7 @@ public class TestMultipartEntityBuilder {
     }
 
     @Test
-    public void testMultipartDefaultContentTypeOmitsCharset() throws Exception {
+    void testMultipartDefaultContentTypeOmitsCharset() {
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .setCharset(StandardCharsets.UTF_8)
                 .setBoundary("yada-yada")
@@ -116,7 +116,7 @@ public class TestMultipartEntityBuilder {
     }
 
     @Test
-    public void testMultipartFormDataContentTypeOmitsCharset() throws Exception {
+    void testMultipartFormDataContentTypeOmitsCharset() {
         // Note: org.apache.hc.core5.http.ContentType.MULTIPART_FORM_DATA uses StandardCharsets.ISO_8859_1,
         // so we create a custom ContentType here
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
@@ -130,7 +130,7 @@ public class TestMultipartEntityBuilder {
     }
 
     @Test
-    public void testMultipartCustomContentTypeParameterOverrides() throws Exception {
+    void testMultipartCustomContentTypeParameterOverrides() {
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .setContentType(ContentType.MULTIPART_FORM_DATA.withParameters(
                         new BasicNameValuePair("boundary", "yada-yada"),
@@ -146,7 +146,7 @@ public class TestMultipartEntityBuilder {
     }
 
     @Test
-    public void testMultipartCustomContentTypeUsingAddParameter() {
+    void testMultipartCustomContentTypeUsingAddParameter() {
         final MultipartEntityBuilder eb = MultipartEntityBuilder.create();
         eb.setMimeSubtype("related");
         eb.addParameter(new BasicNameValuePair("boundary", "yada-yada"));
@@ -160,7 +160,7 @@ public class TestMultipartEntityBuilder {
     }
 
     @Test
-    public void testMultipartWriteTo() throws Exception {
+    void testMultipartWriteTo() throws Exception {
         final String helloWorld = "hello world";
         final List<NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, "test"));
@@ -188,7 +188,7 @@ public class TestMultipartEntityBuilder {
     }
 
     @Test
-    public void testMultipartWriteToRFC7578Mode() throws Exception {
+    void testMultipartWriteToRFC7578Mode() throws Exception {
         final String helloWorld = "hello \u03BA\u03CC\u03C3\u03BC\u03B5!%";
         final List<NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, "test"));
@@ -216,7 +216,7 @@ public class TestMultipartEntityBuilder {
     }
 
     @Test
-    public void testMultipartWriteToRFC6532Mode() throws Exception {
+    void testMultipartWriteToRFC6532Mode() throws Exception {
         final String helloWorld = "hello \u03BA\u03CC\u03C3\u03BC\u03B5!%";
         final List<NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, "test"));
@@ -246,7 +246,7 @@ public class TestMultipartEntityBuilder {
     }
 
     @Test
-    public void testMultipartWriteToWithPreambleAndEpilogue() throws Exception {
+    void testMultipartWriteToWithPreambleAndEpilogue() throws Exception {
         final String helloWorld = "hello \u03BA\u03CC\u03C3\u03BC\u03B5!%";
         final List<NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, "test"));
@@ -280,7 +280,7 @@ public class TestMultipartEntityBuilder {
     }
 
     @Test
-    public void testMultipartWriteToRFC7578ModeWithFilenameStar() throws Exception {
+    void testMultipartWriteToRFC7578ModeWithFilenameStar() throws Exception {
         final String helloWorld = "hello \u03BA\u03CC\u03C3\u03BC\u03B5!%";
         final List<NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, "test"));

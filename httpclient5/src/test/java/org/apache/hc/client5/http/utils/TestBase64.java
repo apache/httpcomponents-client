@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class TestBase64 {
+class TestBase64 {
 
     public static final char CHAR_ZERO = 0;
     public static final String EMPTY_STR = "";

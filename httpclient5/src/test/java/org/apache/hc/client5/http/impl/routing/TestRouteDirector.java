@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests for {@link BasicRouteDirector}.
  */
-public class TestRouteDirector {
+class TestRouteDirector {
 
     // a selection of constants for generating routes
     public final static
@@ -82,7 +82,7 @@ public class TestRouteDirector {
     }
 
     @Test
-    public void testIllegal() {
+    void testIllegal() {
         final HttpRouteDirector rowdy = BasicRouteDirector.INSTANCE;
         final HttpRoute route = new HttpRoute(TARGET1);
         Assertions.assertThrows(NullPointerException.class, () ->
@@ -90,7 +90,7 @@ public class TestRouteDirector {
     }
 
     @Test
-    public void testDirect() {
+    void testDirect() {
 
         final HttpRouteDirector rowdy = BasicRouteDirector.INSTANCE;
         final HttpRoute route1   = new HttpRoute(TARGET1);
@@ -117,7 +117,7 @@ public class TestRouteDirector {
     }
 
     @Test
-    public void testProxy() {
+    void testProxy() {
 
         final HttpRouteDirector rowdy = BasicRouteDirector.INSTANCE;
         final HttpRoute route1p1 = new HttpRoute(TARGET1, null, PROXY1, false);
@@ -155,7 +155,7 @@ public class TestRouteDirector {
     }
 
     @Test
-    public void testProxyChain() {
+    void testProxyChain() {
         final HttpHost[] chainA = { PROXY1 };
         final HttpHost[] chainB = { PROXY1, PROXY2 };
         final HttpHost[] chainC = { PROXY2, PROXY1 };
@@ -201,7 +201,7 @@ public class TestRouteDirector {
     }
 
     @Test
-    public void testLocalDirect() {
+    void testLocalDirect() {
 
         final HttpRouteDirector rowdy = BasicRouteDirector.INSTANCE;
         final HttpRoute route1l41 = new HttpRoute(TARGET1, LOCAL41, false);
@@ -255,7 +255,7 @@ public class TestRouteDirector {
     }
 
     @Test
-    public void testDirectSecure() {
+    void testDirectSecure() {
 
         final HttpRouteDirector rowdy = BasicRouteDirector.INSTANCE;
         final HttpRoute route1u   = new HttpRoute(TARGET1, null, false);
@@ -287,7 +287,7 @@ public class TestRouteDirector {
     }
 
     @Test
-    public void testProxyTLS() {
+    void testProxyTLS() {
 
         final HttpRouteDirector rowdy = BasicRouteDirector.INSTANCE;
         final HttpRoute route1    = new HttpRoute

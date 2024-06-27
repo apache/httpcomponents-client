@@ -37,14 +37,14 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestBasicConnectionManager extends AbstractIntegrationTestBase {
+class TestBasicConnectionManager extends AbstractIntegrationTestBase {
 
     public TestBasicConnectionManager() {
         super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
     }
 
     @Test
-    public void testBasics() throws Exception {
+    void testBasics() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", new RandomHandler()));
         final HttpHost target = startServer();
@@ -62,7 +62,7 @@ public class TestBasicConnectionManager extends AbstractIntegrationTestBase {
     }
 
     @Test
-    public void testConnectionStillInUse() throws Exception {
+    void testConnectionStillInUse() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", new RandomHandler()));
         final HttpHost target = startServer();

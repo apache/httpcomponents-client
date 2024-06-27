@@ -72,7 +72,7 @@ import org.mockito.MockitoAnnotations;
  * This test class captures functionality required to achieve conditional
  * compliance with the HTTP/1.1 caching protocol (MUST and MUST NOT behaviors).
  */
-public class TestProtocolRequirements {
+class TestProtocolRequirements {
 
     static final int MAX_BYTES = 1024;
     static final int MAX_ENTRIES = 100;
@@ -95,7 +95,7 @@ public class TestProtocolRequirements {
     HttpCache cache;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
         host = new HttpHost("foo.example.com", 80);
 
@@ -128,7 +128,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testCacheMissOnGETUsesOriginResponse() throws Exception {
+    void testCacheMissOnGETUsesOriginResponse() throws Exception {
 
         Mockito.when(mockExecChain.proceed(RequestEquivalent.eq(request), Mockito.any())).thenReturn(originResponse);
 
@@ -149,7 +149,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testOrderOfMultipleAllowHeadersIsPreservedOnResponses() throws Exception {
+    void testOrderOfMultipleAllowHeadersIsPreservedOnResponses() throws Exception {
         originResponse = new BasicClassicHttpResponse(405, "Method Not Allowed");
         originResponse.addHeader("Allow", "HEAD");
         originResponse.addHeader("Allow", "DELETE");
@@ -157,35 +157,35 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testOrderOfMultipleCacheControlHeadersIsPreservedOnResponses() throws Exception {
+    void testOrderOfMultipleCacheControlHeadersIsPreservedOnResponses() throws Exception {
         originResponse.addHeader("Cache-Control", "max-age=0");
         originResponse.addHeader("Cache-Control", "no-store, must-revalidate");
         testOrderOfMultipleHeadersIsPreservedOnResponses("Cache-Control");
     }
 
     @Test
-    public void testOrderOfMultipleContentEncodingHeadersIsPreservedOnResponses() throws Exception {
+    void testOrderOfMultipleContentEncodingHeadersIsPreservedOnResponses() throws Exception {
         originResponse.addHeader("Content-Encoding", "gzip");
         originResponse.addHeader("Content-Encoding", "compress");
         testOrderOfMultipleHeadersIsPreservedOnResponses("Content-Encoding");
     }
 
     @Test
-    public void testOrderOfMultipleContentLanguageHeadersIsPreservedOnResponses() throws Exception {
+    void testOrderOfMultipleContentLanguageHeadersIsPreservedOnResponses() throws Exception {
         originResponse.addHeader("Content-Language", "mi");
         originResponse.addHeader("Content-Language", "en");
         testOrderOfMultipleHeadersIsPreservedOnResponses("Content-Language");
     }
 
     @Test
-    public void testOrderOfMultipleViaHeadersIsPreservedOnResponses() throws Exception {
+    void testOrderOfMultipleViaHeadersIsPreservedOnResponses() throws Exception {
         originResponse.addHeader(HttpHeaders.VIA, "1.0 fred, 1.1 nowhere.com (Apache/1.1)");
         originResponse.addHeader(HttpHeaders.VIA, "1.0 ricky, 1.1 mertz, 1.0 lucy");
         testOrderOfMultipleHeadersIsPreservedOnResponses(HttpHeaders.VIA);
     }
 
     @Test
-    public void testOrderOfMultipleWWWAuthenticateHeadersIsPreservedOnResponses() throws Exception {
+    void testOrderOfMultipleWWWAuthenticateHeadersIsPreservedOnResponses() throws Exception {
         originResponse.addHeader("WWW-Authenticate", "x-challenge-1");
         originResponse.addHeader("WWW-Authenticate", "x-challenge-2");
         testOrderOfMultipleHeadersIsPreservedOnResponses("WWW-Authenticate");
@@ -208,7 +208,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testUnknownResponseStatusCodesAreNotCached() throws Exception {
+    void testUnknownResponseStatusCodesAreNotCached() throws Exception {
         for (int i = 100; i <= 199; i++) {
             testUnknownResponseStatusCodeIsNotCached(i);
         }
@@ -227,7 +227,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testUnknownHeadersOnRequestsAreForwarded() throws Exception {
+    void testUnknownHeadersOnRequestsAreForwarded() throws Exception {
         request.addHeader("X-Unknown-Header", "blahblah");
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
@@ -240,7 +240,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testUnknownHeadersOnResponsesAreForwarded() throws Exception {
+    void testUnknownHeadersOnResponsesAreForwarded() throws Exception {
         originResponse.addHeader("X-Unknown-Header", "blahblah");
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
@@ -249,7 +249,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testResponsesToOPTIONSAreNotCacheable() throws Exception {
+    void testResponsesToOPTIONSAreNotCacheable() throws Exception {
         request = new BasicClassicHttpRequest("OPTIONS", "/");
         originResponse.addHeader("Cache-Control", "max-age=3600");
 
@@ -261,7 +261,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testResponsesToPOSTWithoutCacheControlOrExpiresAreNotCached() throws Exception {
+    void testResponsesToPOSTWithoutCacheControlOrExpiresAreNotCached() throws Exception {
 
         final BasicClassicHttpRequest post = new BasicClassicHttpRequest("POST", "/");
         post.setHeader("Content-Length", "128");
@@ -278,7 +278,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testResponsesToPUTsAreNotCached() throws Exception {
+    void testResponsesToPUTsAreNotCached() throws Exception {
 
         final BasicClassicHttpRequest put = new BasicClassicHttpRequest("PUT", "/");
         put.setEntity(HttpTestUtils.makeBody(128));
@@ -294,7 +294,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testResponsesToDELETEsAreNotCached() throws Exception {
+    void testResponsesToDELETEsAreNotCached() throws Exception {
 
         request = new BasicClassicHttpRequest("DELETE", "/");
         originResponse.setHeader("Cache-Control", "max-age=3600");
@@ -307,7 +307,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testResponsesToTRACEsAreNotCached() throws Exception {
+    void testResponsesToTRACEsAreNotCached() throws Exception {
 
         request = new BasicClassicHttpRequest("TRACE", "/");
         originResponse.setHeader("Cache-Control", "max-age=3600");
@@ -320,7 +320,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void test304ResponseGeneratedFromCacheIncludesDateHeader() throws Exception {
+    void test304ResponseGeneratedFromCacheIncludesDateHeader() throws Exception {
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         originResponse.setHeader("Cache-Control", "max-age=3600");
@@ -340,7 +340,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void test304ResponseGeneratedFromCacheIncludesEtagIfOriginResponseDid() throws Exception {
+    void test304ResponseGeneratedFromCacheIncludesEtagIfOriginResponseDid() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         originResponse.setHeader("Cache-Control", "max-age=3600");
         originResponse.setHeader("ETag", "\"etag\"");
@@ -359,7 +359,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void test304ResponseGeneratedFromCacheIncludesContentLocationIfOriginResponseDid() throws Exception {
+    void test304ResponseGeneratedFromCacheIncludesContentLocationIfOriginResponseDid() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         originResponse.setHeader("Cache-Control", "max-age=3600");
         originResponse.setHeader("Content-Location", "http://foo.example.com/other");
@@ -379,7 +379,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void test304ResponseGeneratedFromCacheIncludesExpiresCacheControlAndOrVaryIfResponseMightDiffer() throws Exception {
+    void test304ResponseGeneratedFromCacheIncludesExpiresCacheControlAndOrVaryIfResponseMightDiffer() throws Exception {
 
         final Instant now = Instant.now();
         final Instant inTwoHours = now.plus(2, ChronoUnit.HOURS);
@@ -426,7 +426,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void test304GeneratedFromCacheOnWeakValidatorDoesNotIncludeOtherEntityHeaders() throws Exception {
+    void test304GeneratedFromCacheOnWeakValidatorDoesNotIncludeOtherEntityHeaders() throws Exception {
 
         final Instant now = Instant.now();
         final Instant oneHourAgo = now.minus(1, ChronoUnit.HOURS);
@@ -463,7 +463,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testNotModifiedOfNonCachedEntityShouldRevalidateWithUnconditionalGET() throws Exception {
+    void testNotModifiedOfNonCachedEntityShouldRevalidateWithUnconditionalGET() throws Exception {
 
         final Instant now = Instant.now();
 
@@ -497,7 +497,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testCacheEntryIsUpdatedWithNewFieldValuesIn304Response() throws Exception {
+    void testCacheEntryIsUpdatedWithNewFieldValuesIn304Response() throws Exception {
 
         final Instant now = Instant.now();
         final Instant inFiveSeconds = now.plusSeconds(5);
@@ -539,7 +539,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testMustReturnACacheEntryIfItCanRevalidateIt() throws Exception {
+    void testMustReturnACacheEntryIfItCanRevalidateIt() throws Exception {
 
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
@@ -594,7 +594,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testMustReturnAFreshEnoughCacheEntryIfItHasIt() throws Exception {
+    void testMustReturnAFreshEnoughCacheEntryIfItHasIt() throws Exception {
 
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
@@ -624,7 +624,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testAgeHeaderPopulatedFromCacheEntryCurrentAge() throws Exception {
+    void testAgeHeaderPopulatedFromCacheEntryCurrentAge() throws Exception {
 
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
@@ -661,7 +661,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testKeepsMostRecentDateHeaderForFreshResponse() throws Exception {
+    void testKeepsMostRecentDateHeaderForFreshResponse() throws Exception {
 
         final Instant now = Instant.now();
         final Instant inFiveSecond = now.plusSeconds(5);
@@ -699,7 +699,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testValidationMustUseETagIfProvidedByOriginServer() throws Exception {
+    void testValidationMustUseETagIfProvidedByOriginServer() throws Exception {
 
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
@@ -744,7 +744,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testConditionalRequestWhereNotAllValidatorsMatchCannotBeServedFromCache() throws Exception {
+    void testConditionalRequestWhereNotAllValidatorsMatchCannotBeServedFromCache() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
         final Instant twentySecondsAgo = now.plusSeconds(20);
@@ -771,7 +771,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testConditionalRequestWhereAllValidatorsMatchMayBeServedFromCache() throws Exception {
+    void testConditionalRequestWhereAllValidatorsMatchMayBeServedFromCache() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
 
@@ -797,7 +797,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testCacheWithoutSupportForRangeAndContentRangeHeadersDoesNotCacheA206Response() throws Exception {
+    void testCacheWithoutSupportForRangeAndContentRangeHeadersDoesNotCacheA206Response() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("GET", "/");
         req.setHeader("Range", "bytes=0-50");
 
@@ -814,7 +814,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void test302ResponseWithoutExplicitCacheabilityIsNotReturnedFromCache() throws Exception {
+    void test302ResponseWithoutExplicitCacheabilityIsNotReturnedFromCache() throws Exception {
         originResponse = new BasicClassicHttpResponse(302, "Temporary Redirect");
         originResponse.setHeader("Location", "http://foo.example.com/other");
         originResponse.removeHeaders("Expires");
@@ -840,24 +840,24 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testDoesNotModifyContentLocationHeaderFromOrigin() throws Exception {
+    void testDoesNotModifyContentLocationHeaderFromOrigin() throws Exception {
 
         final String url = "http://foo.example.com/other";
         testDoesNotModifyHeaderFromOrigin("Content-Location", url);
     }
 
     @Test
-    public void testDoesNotModifyContentMD5HeaderFromOrigin() throws Exception {
+    void testDoesNotModifyContentMD5HeaderFromOrigin() throws Exception {
         testDoesNotModifyHeaderFromOrigin("Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
     }
 
     @Test
-    public void testDoesNotModifyEtagHeaderFromOrigin() throws Exception {
+    void testDoesNotModifyEtagHeaderFromOrigin() throws Exception {
         testDoesNotModifyHeaderFromOrigin("Etag", "\"the-etag\"");
     }
 
     @Test
-    public void testDoesNotModifyLastModifiedHeaderFromOrigin() throws Exception {
+    void testDoesNotModifyLastModifiedHeaderFromOrigin() throws Exception {
         final String lm = DateUtils.formatStandardDate(Instant.now());
         testDoesNotModifyHeaderFromOrigin("Last-Modified", lm);
     }
@@ -873,22 +873,22 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testDoesNotAddContentLocationToOriginResponse() throws Exception {
+    void testDoesNotAddContentLocationToOriginResponse() throws Exception {
         testDoesNotAddHeaderToOriginResponse("Content-Location");
     }
 
     @Test
-    public void testDoesNotAddContentMD5ToOriginResponse() throws Exception {
+    void testDoesNotAddContentMD5ToOriginResponse() throws Exception {
         testDoesNotAddHeaderToOriginResponse("Content-MD5");
     }
 
     @Test
-    public void testDoesNotAddEtagToOriginResponse() throws Exception {
+    void testDoesNotAddEtagToOriginResponse() throws Exception {
         testDoesNotAddHeaderToOriginResponse("ETag");
     }
 
     @Test
-    public void testDoesNotAddLastModifiedToOriginResponse() throws Exception {
+    void testDoesNotAddLastModifiedToOriginResponse() throws Exception {
         testDoesNotAddHeaderToOriginResponse("Last-Modified");
     }
 
@@ -910,23 +910,23 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testDoesNotModifyContentLocationFromOriginOnCacheHit() throws Exception {
+    void testDoesNotModifyContentLocationFromOriginOnCacheHit() throws Exception {
         final String url = "http://foo.example.com/other";
         testDoesNotModifyHeaderFromOriginOnCacheHit("Content-Location", url);
     }
 
     @Test
-    public void testDoesNotModifyContentMD5FromOriginOnCacheHit() throws Exception {
+    void testDoesNotModifyContentMD5FromOriginOnCacheHit() throws Exception {
         testDoesNotModifyHeaderFromOriginOnCacheHit("Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
     }
 
     @Test
-    public void testDoesNotModifyEtagFromOriginOnCacheHit() throws Exception {
+    void testDoesNotModifyEtagFromOriginOnCacheHit() throws Exception {
         testDoesNotModifyHeaderFromOriginOnCacheHit("Etag", "\"the-etag\"");
     }
 
     @Test
-    public void testDoesNotModifyLastModifiedFromOriginOnCacheHit() throws Exception {
+    void testDoesNotModifyLastModifiedFromOriginOnCacheHit() throws Exception {
         final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         testDoesNotModifyHeaderFromOriginOnCacheHit("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo));
     }
@@ -948,22 +948,22 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testDoesNotAddContentLocationHeaderOnCacheHit() throws Exception {
+    void testDoesNotAddContentLocationHeaderOnCacheHit() throws Exception {
         testDoesNotAddHeaderOnCacheHit("Content-Location");
     }
 
     @Test
-    public void testDoesNotAddContentMD5HeaderOnCacheHit() throws Exception {
+    void testDoesNotAddContentMD5HeaderOnCacheHit() throws Exception {
         testDoesNotAddHeaderOnCacheHit("Content-MD5");
     }
 
     @Test
-    public void testDoesNotAddETagHeaderOnCacheHit() throws Exception {
+    void testDoesNotAddETagHeaderOnCacheHit() throws Exception {
         testDoesNotAddHeaderOnCacheHit("ETag");
     }
 
     @Test
-    public void testDoesNotAddLastModifiedHeaderOnCacheHit() throws Exception {
+    void testDoesNotAddLastModifiedHeaderOnCacheHit() throws Exception {
         testDoesNotAddHeaderOnCacheHit("Last-Modified");
     }
 
@@ -983,23 +983,23 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testDoesNotModifyContentLocationHeaderOnRequest() throws Exception {
+    void testDoesNotModifyContentLocationHeaderOnRequest() throws Exception {
         final String url = "http://foo.example.com/other";
         testDoesNotModifyHeaderOnRequest("Content-Location",url);
     }
 
     @Test
-    public void testDoesNotModifyContentMD5HeaderOnRequest() throws Exception {
+    void testDoesNotModifyContentMD5HeaderOnRequest() throws Exception {
         testDoesNotModifyHeaderOnRequest("Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
     }
 
     @Test
-    public void testDoesNotModifyETagHeaderOnRequest() throws Exception {
+    void testDoesNotModifyETagHeaderOnRequest() throws Exception {
         testDoesNotModifyHeaderOnRequest("ETag","\"etag\"");
     }
 
     @Test
-    public void testDoesNotModifyLastModifiedHeaderOnRequest() throws Exception {
+    void testDoesNotModifyLastModifiedHeaderOnRequest() throws Exception {
         final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         testDoesNotModifyHeaderOnRequest("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo));
     }
@@ -1022,39 +1022,39 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testDoesNotAddContentLocationToRequestIfNotPresent() throws Exception {
+    void testDoesNotAddContentLocationToRequestIfNotPresent() throws Exception {
         testDoesNotAddHeaderToRequestIfNotPresent("Content-Location");
     }
 
     @Test
-    public void testDoesNotAddContentMD5ToRequestIfNotPresent() throws Exception {
+    void testDoesNotAddContentMD5ToRequestIfNotPresent() throws Exception {
         testDoesNotAddHeaderToRequestIfNotPresent("Content-MD5");
     }
 
     @Test
-    public void testDoesNotAddETagToRequestIfNotPresent() throws Exception {
+    void testDoesNotAddETagToRequestIfNotPresent() throws Exception {
         testDoesNotAddHeaderToRequestIfNotPresent("ETag");
     }
 
     @Test
-    public void testDoesNotAddLastModifiedToRequestIfNotPresent() throws Exception {
+    void testDoesNotAddLastModifiedToRequestIfNotPresent() throws Exception {
         testDoesNotAddHeaderToRequestIfNotPresent("Last-Modified");
     }
 
     @Test
-    public void testDoesNotModifyExpiresHeaderFromOrigin() throws Exception {
+    void testDoesNotModifyExpiresHeaderFromOrigin() throws Exception {
         final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         testDoesNotModifyHeaderFromOrigin("Expires", DateUtils.formatStandardDate(tenSecondsAgo));
     }
 
     @Test
-    public void testDoesNotModifyExpiresHeaderFromOriginOnCacheHit() throws Exception {
+    void testDoesNotModifyExpiresHeaderFromOriginOnCacheHit() throws Exception {
         final Instant inTenSeconds = Instant.now().plusSeconds(10);
         testDoesNotModifyHeaderFromOriginOnCacheHit("Expires", DateUtils.formatStandardDate(inTenSeconds));
     }
 
     @Test
-    public void testExpiresHeaderMatchesDateIfAddedToOriginResponse() throws Exception {
+    void testExpiresHeaderMatchesDateIfAddedToOriginResponse() throws Exception {
         originResponse.removeHeaders("Expires");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
@@ -1080,12 +1080,12 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testDoesNotModifyContentEncodingHeaderFromOriginResponseWithNoTransform() throws Exception {
+    void testDoesNotModifyContentEncodingHeaderFromOriginResponseWithNoTransform() throws Exception {
         testDoesNotModifyHeaderFromOriginResponseWithNoTransform("Content-Encoding","gzip");
     }
 
     @Test
-    public void testDoesNotModifyContentRangeHeaderFromOriginResponseWithNoTransform() throws Exception {
+    void testDoesNotModifyContentRangeHeaderFromOriginResponseWithNoTransform() throws Exception {
         request.setHeader("If-Range","\"etag\"");
         request.setHeader("Range","bytes=0-49");
 
@@ -1095,7 +1095,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testDoesNotModifyContentTypeHeaderFromOriginResponseWithNoTransform() throws Exception {
+    void testDoesNotModifyContentTypeHeaderFromOriginResponseWithNoTransform() throws Exception {
         testDoesNotModifyHeaderFromOriginResponseWithNoTransform("Content-Type","text/html;charset=utf-8");
     }
 
@@ -1115,85 +1115,85 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testDoesNotModifyContentEncodingHeaderOnCachedResponseWithNoTransform() throws Exception {
+    void testDoesNotModifyContentEncodingHeaderOnCachedResponseWithNoTransform() throws Exception {
         testDoesNotModifyHeaderOnCachedResponseWithNoTransform("Content-Encoding","gzip");
     }
 
     @Test
-    public void testDoesNotModifyContentTypeHeaderOnCachedResponseWithNoTransform() throws Exception {
+    void testDoesNotModifyContentTypeHeaderOnCachedResponseWithNoTransform() throws Exception {
         testDoesNotModifyHeaderOnCachedResponseWithNoTransform("Content-Type","text/html;charset=utf-8");
     }
 
     @Test
-    public void testDoesNotAddContentEncodingHeaderToOriginResponseWithNoTransformIfNotPresent() throws Exception {
+    void testDoesNotAddContentEncodingHeaderToOriginResponseWithNoTransformIfNotPresent() throws Exception {
         originResponse.addHeader("Cache-Control","no-transform");
         testDoesNotAddHeaderToOriginResponse("Content-Encoding");
     }
 
     @Test
-    public void testDoesNotAddContentRangeHeaderToOriginResponseWithNoTransformIfNotPresent() throws Exception {
+    void testDoesNotAddContentRangeHeaderToOriginResponseWithNoTransformIfNotPresent() throws Exception {
         originResponse.addHeader("Cache-Control","no-transform");
         testDoesNotAddHeaderToOriginResponse("Content-Range");
     }
 
     @Test
-    public void testDoesNotAddContentTypeHeaderToOriginResponseWithNoTransformIfNotPresent() throws Exception {
+    void testDoesNotAddContentTypeHeaderToOriginResponseWithNoTransformIfNotPresent() throws Exception {
         originResponse.addHeader("Cache-Control","no-transform");
         testDoesNotAddHeaderToOriginResponse("Content-Type");
     }
 
     /* no add on cache hit with no-transform */
     @Test
-    public void testDoesNotAddContentEncodingHeaderToCachedResponseWithNoTransformIfNotPresent() throws Exception {
+    void testDoesNotAddContentEncodingHeaderToCachedResponseWithNoTransformIfNotPresent() throws Exception {
         originResponse.addHeader("Cache-Control","no-transform");
         testDoesNotAddHeaderOnCacheHit("Content-Encoding");
     }
 
     @Test
-    public void testDoesNotAddContentRangeHeaderToCachedResponseWithNoTransformIfNotPresent() throws Exception {
+    void testDoesNotAddContentRangeHeaderToCachedResponseWithNoTransformIfNotPresent() throws Exception {
         originResponse.addHeader("Cache-Control","no-transform");
         testDoesNotAddHeaderOnCacheHit("Content-Range");
     }
 
     @Test
-    public void testDoesNotAddContentTypeHeaderToCachedResponseWithNoTransformIfNotPresent() throws Exception {
+    void testDoesNotAddContentTypeHeaderToCachedResponseWithNoTransformIfNotPresent() throws Exception {
         originResponse.addHeader("Cache-Control","no-transform");
         testDoesNotAddHeaderOnCacheHit("Content-Type");
     }
 
     /* no modify on request */
     @Test
-    public void testDoesNotAddContentEncodingToRequestIfNotPresent() throws Exception {
+    void testDoesNotAddContentEncodingToRequestIfNotPresent() throws Exception {
         testDoesNotAddHeaderToRequestIfNotPresent("Content-Encoding");
     }
 
     @Test
-    public void testDoesNotAddContentRangeToRequestIfNotPresent() throws Exception {
+    void testDoesNotAddContentRangeToRequestIfNotPresent() throws Exception {
         testDoesNotAddHeaderToRequestIfNotPresent("Content-Range");
     }
 
     @Test
-    public void testDoesNotAddContentTypeToRequestIfNotPresent() throws Exception {
+    void testDoesNotAddContentTypeToRequestIfNotPresent() throws Exception {
         testDoesNotAddHeaderToRequestIfNotPresent("Content-Type");
     }
 
     @Test
-    public void testDoesNotAddContentEncodingHeaderToRequestIfNotPresent() throws Exception {
+    void testDoesNotAddContentEncodingHeaderToRequestIfNotPresent() throws Exception {
         testDoesNotAddHeaderToRequestIfNotPresent("Content-Encoding");
     }
 
     @Test
-    public void testDoesNotAddContentRangeHeaderToRequestIfNotPresent() throws Exception {
+    void testDoesNotAddContentRangeHeaderToRequestIfNotPresent() throws Exception {
         testDoesNotAddHeaderToRequestIfNotPresent("Content-Range");
     }
 
     @Test
-    public void testDoesNotAddContentTypeHeaderToRequestIfNotPresent() throws Exception {
+    void testDoesNotAddContentTypeHeaderToRequestIfNotPresent() throws Exception {
         testDoesNotAddHeaderToRequestIfNotPresent("Content-Type");
     }
 
     @Test
-    public void testCachedEntityBodyIsUsedForResponseAfter304Validation() throws Exception {
+    void testCachedEntityBodyIsUsedForResponseAfter304Validation() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
@@ -1238,7 +1238,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testResponseIncludesCacheEntryEndToEndHeadersForResponseAfter304Validation() throws Exception {
+    void testResponseIncludesCacheEntryEndToEndHeadersForResponseAfter304Validation() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
@@ -1271,7 +1271,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testUpdatedEndToEndHeadersFrom304ArePassedOnResponseAndUpdatedInCacheEntry() throws Exception {
+    void testUpdatedEndToEndHeadersFrom304ArePassedOnResponseAndUpdatedInCacheEntry() throws Exception {
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -1317,7 +1317,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testMultiHeadersAreSuccessfullyReplacedOn304Validation() throws Exception {
+    void testMultiHeadersAreSuccessfullyReplacedOn304Validation() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.addHeader("Cache-Control","max-age=3600");
@@ -1348,7 +1348,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testCannotUseVariantCacheEntryIfNotAllSelectingRequestHeadersMatch() throws Exception {
+    void testCannotUseVariantCacheEntryIfNotAllSelectingRequestHeadersMatch() throws Exception {
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Accept-Encoding","gzip");
@@ -1378,7 +1378,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testCannotServeFromCacheForVaryStar() throws Exception {
+    void testCannotServeFromCacheForVaryStar() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -1405,7 +1405,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testNonMatchingVariantCannotBeServedFromCacheUnlessConditionallyValidated() throws Exception {
+    void testNonMatchingVariantCannotBeServedFromCacheUnlessConditionallyValidated() throws Exception {
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("User-Agent","MyBrowser/1.0");
@@ -1473,19 +1473,19 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testPutToUriInvalidatesCacheForThatUri() throws Exception {
+    void testPutToUriInvalidatesCacheForThatUri() throws Exception {
         final ClassicHttpRequest req = makeRequestWithBody("PUT","/");
         testUnsafeOperationInvalidatesCacheForThatUri(req);
     }
 
     @Test
-    public void testDeleteToUriInvalidatesCacheForThatUri() throws Exception {
+    void testDeleteToUriInvalidatesCacheForThatUri() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("DELETE","/");
         testUnsafeOperationInvalidatesCacheForThatUri(req);
     }
 
     @Test
-    public void testPostToUriInvalidatesCacheForThatUri() throws Exception {
+    void testPostToUriInvalidatesCacheForThatUri() throws Exception {
         final ClassicHttpRequest req = makeRequestWithBody("POST","/");
         testUnsafeOperationInvalidatesCacheForThatUri(req);
     }
@@ -1535,55 +1535,55 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testPutInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
+    void testPutInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
         final ClassicHttpRequest req2 = makeRequestWithBody("PUT","/");
         testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(req2);
     }
 
     @Test
-    public void testPutInvalidatesCacheForThatUriInLocationHeader() throws Exception {
+    void testPutInvalidatesCacheForThatUriInLocationHeader() throws Exception {
         final ClassicHttpRequest req = makeRequestWithBody("PUT","/");
         testUnsafeMethodInvalidatesCacheForUriInLocationHeader(req);
     }
 
     @Test
-    public void testPutInvalidatesCacheForThatUriInRelativeContentLocationHeader() throws Exception {
+    void testPutInvalidatesCacheForThatUriInRelativeContentLocationHeader() throws Exception {
         final ClassicHttpRequest req = makeRequestWithBody("PUT","/");
         testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(req);
     }
 
     @Test
-    public void testDeleteInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
+    void testDeleteInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("DELETE", "/");
         testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(req);
     }
 
     @Test
-    public void testDeleteInvalidatesCacheForThatUriInRelativeContentLocationHeader() throws Exception {
+    void testDeleteInvalidatesCacheForThatUriInRelativeContentLocationHeader() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("DELETE", "/");
         testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(req);
     }
 
     @Test
-    public void testDeleteInvalidatesCacheForThatUriInLocationHeader() throws Exception {
+    void testDeleteInvalidatesCacheForThatUriInLocationHeader() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("DELETE", "/");
         testUnsafeMethodInvalidatesCacheForUriInLocationHeader(req);
     }
 
     @Test
-    public void testPostInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
+    void testPostInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
         final ClassicHttpRequest req = makeRequestWithBody("POST","/");
         testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(req);
     }
 
     @Test
-    public void testPostInvalidatesCacheForThatUriInLocationHeader() throws Exception {
+    void testPostInvalidatesCacheForThatUriInLocationHeader() throws Exception {
         final ClassicHttpRequest req = makeRequestWithBody("POST","/");
         testUnsafeMethodInvalidatesCacheForUriInLocationHeader(req);
     }
 
     @Test
-    public void testPostInvalidatesCacheForRelativeUriInContentLocationHeader() throws Exception {
+    void testPostInvalidatesCacheForRelativeUriInContentLocationHeader() throws Exception {
         final ClassicHttpRequest req = makeRequestWithBody("POST","/");
         testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(req);
     }
@@ -1597,13 +1597,13 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testOPTIONSRequestsAreWrittenThroughToOrigin() throws Exception {
+    void testOPTIONSRequestsAreWrittenThroughToOrigin() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("OPTIONS","*");
         testRequestIsWrittenThroughToOrigin(req);
     }
 
     @Test
-    public void testPOSTRequestsAreWrittenThroughToOrigin() throws Exception {
+    void testPOSTRequestsAreWrittenThroughToOrigin() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("POST","/");
         req.setEntity(HttpTestUtils.makeBody(128));
         req.setHeader("Content-Length","128");
@@ -1611,7 +1611,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testPUTRequestsAreWrittenThroughToOrigin() throws Exception {
+    void testPUTRequestsAreWrittenThroughToOrigin() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("PUT","/");
         req.setEntity(HttpTestUtils.makeBody(128));
         req.setHeader("Content-Length","128");
@@ -1619,31 +1619,31 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testDELETERequestsAreWrittenThroughToOrigin() throws Exception {
+    void testDELETERequestsAreWrittenThroughToOrigin() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("DELETE", "/");
         testRequestIsWrittenThroughToOrigin(req);
     }
 
     @Test
-    public void testTRACERequestsAreWrittenThroughToOrigin() throws Exception {
+    void testTRACERequestsAreWrittenThroughToOrigin() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("TRACE","/");
         testRequestIsWrittenThroughToOrigin(req);
     }
 
     @Test
-    public void testCONNECTRequestsAreWrittenThroughToOrigin() throws Exception {
+    void testCONNECTRequestsAreWrittenThroughToOrigin() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("CONNECT","/");
         testRequestIsWrittenThroughToOrigin(req);
     }
 
     @Test
-    public void testUnknownMethodRequestsAreWrittenThroughToOrigin() throws Exception {
+    void testUnknownMethodRequestsAreWrittenThroughToOrigin() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("UNKNOWN","/");
         testRequestIsWrittenThroughToOrigin(req);
     }
 
     @Test
-    public void testTransmitsAgeHeaderIfIncomingAgeHeaderTooBig() throws Exception {
+    void testTransmitsAgeHeaderIfIncomingAgeHeaderTooBig() throws Exception {
         final String reallyOldAge = "1" + Long.MAX_VALUE;
         originResponse.setHeader("Age",reallyOldAge);
 
@@ -1656,7 +1656,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testDoesNotModifyAllowHeaderWithUnknownMethods() throws Exception {
+    void testDoesNotModifyAllowHeaderWithUnknownMethods() throws Exception {
         final String allowHeaderValue = "GET, HEAD, FOOBAR";
         originResponse.setHeader("Allow",allowHeaderValue);
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
@@ -1690,7 +1690,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testSharedCacheMustNotNormallyCacheAuthorizedResponses() throws Exception {
+    void testSharedCacheMustNotNormallyCacheAuthorizedResponses() throws Exception {
         final ClassicHttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","max-age=3600");
         resp.setHeader("ETag","\"etag\"");
@@ -1698,7 +1698,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testSharedCacheMayCacheAuthorizedResponsesWithSMaxAgeHeader() throws Exception {
+    void testSharedCacheMayCacheAuthorizedResponsesWithSMaxAgeHeader() throws Exception {
         final ClassicHttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","s-maxage=3600");
         resp.setHeader("ETag","\"etag\"");
@@ -1706,7 +1706,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testSharedCacheMustRevalidateAuthorizedResponsesWhenSMaxAgeIsZero() throws Exception {
+    void testSharedCacheMustRevalidateAuthorizedResponsesWhenSMaxAgeIsZero() throws Exception {
         final ClassicHttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","s-maxage=0");
         resp.setHeader("ETag","\"etag\"");
@@ -1714,7 +1714,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testSharedCacheMayCacheAuthorizedResponsesWithMustRevalidate() throws Exception {
+    void testSharedCacheMayCacheAuthorizedResponsesWithMustRevalidate() throws Exception {
         final ClassicHttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","must-revalidate");
         resp.setHeader("ETag","\"etag\"");
@@ -1722,7 +1722,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testSharedCacheMayCacheAuthorizedResponsesWithCacheControlPublic() throws Exception {
+    void testSharedCacheMayCacheAuthorizedResponsesWithCacheControlPublic() throws Exception {
         final ClassicHttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","public");
         testSharedCacheRevalidatesAuthorizedResponse(resp, 0, 1);
@@ -1763,7 +1763,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponsesWithSMaxAge() throws Exception {
+    void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponsesWithSMaxAge() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -1775,7 +1775,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponsesWithMustRevalidate() throws Exception {
+    void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponsesWithMustRevalidate() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -1814,7 +1814,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testCacheIsNotUsedWhenRespondingToRequestWithCacheControlNoCache() throws Exception {
+    void testCacheIsNotUsedWhenRespondingToRequestWithCacheControlNoCache() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("GET", "/");
         req.setHeader("Cache-Control","no-cache");
         testCacheIsNotUsedWhenRespondingToRequest(req);
@@ -1856,7 +1856,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testStaleEntryWithMustRevalidateIsNotUsedWithoutRevalidatingWithOrigin() throws Exception {
+    void testStaleEntryWithMustRevalidateIsNotUsedWithoutRevalidatingWithOrigin() throws Exception {
         final ClassicHttpResponse response = HttpTestUtils.make200Response();
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
@@ -1886,7 +1886,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testGenerates504IfCannotRevalidateAMustRevalidateEntry() throws Exception {
+    void testGenerates504IfCannotRevalidateAMustRevalidateEntry() throws Exception {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
@@ -1898,7 +1898,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testStaleEntryWithProxyRevalidateOnSharedCacheIsNotUsedWithoutRevalidatingWithOrigin() throws Exception {
+    void testStaleEntryWithProxyRevalidateOnSharedCacheIsNotUsedWithoutRevalidatingWithOrigin() throws Exception {
         if (config.isSharedCache()) {
             final ClassicHttpResponse response = HttpTestUtils.make200Response();
             final Instant now = Instant.now();
@@ -1912,7 +1912,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testGenerates504IfSharedCacheCannotRevalidateAProxyRevalidateEntry() throws Exception {
+    void testGenerates504IfSharedCacheCannotRevalidateAProxyRevalidateEntry() throws Exception {
         if (config.isSharedCache()) {
             final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
             final Instant now = Instant.now();
@@ -1926,7 +1926,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testCacheControlPrivateIsNotCacheableBySharedCache() throws Exception {
+    void testCacheControlPrivateIsNotCacheableBySharedCache() throws Exception {
         if (config.isSharedCache()) {
             final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
             final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -1945,7 +1945,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testCacheControlPrivateOnFieldIsNotReturnedBySharedCache() throws Exception {
+    void testCacheControlPrivateOnFieldIsNotReturnedBySharedCache() throws Exception {
         if (config.isSharedCache()) {
             final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
             final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -1970,7 +1970,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testNoCacheCannotSatisfyASubsequentRequestWithoutRevalidation() throws Exception {
+    void testNoCacheCannotSatisfyASubsequentRequestWithoutRevalidation() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag\"");
@@ -1992,7 +1992,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testNoCacheCannotSatisfyASubsequentRequestWithoutRevalidationEvenWithContraryIndications() throws Exception {
+    void testNoCacheCannotSatisfyASubsequentRequestWithoutRevalidationEvenWithContraryIndications() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag\"");
@@ -2013,7 +2013,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testNoCacheOnFieldIsNotReturnedWithoutRevalidation() throws Exception {
+    void testNoCacheOnFieldIsNotReturnedWithoutRevalidation() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag\"");
@@ -2044,7 +2044,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testNoStoreOnRequestIsNotStoredInCache() throws Exception {
+    void testNoStoreOnRequestIsNotStoredInCache() throws Exception {
         request.setHeader("Cache-Control","no-store");
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
@@ -2054,7 +2054,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testNoStoreOnRequestIsNotStoredInCacheEvenIfResponseMarkedCacheable() throws Exception {
+    void testNoStoreOnRequestIsNotStoredInCacheEvenIfResponseMarkedCacheable() throws Exception {
         request.setHeader("Cache-Control","no-store");
         originResponse.setHeader("Cache-Control","max-age=3600");
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
@@ -2065,7 +2065,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testNoStoreOnResponseIsNotStoredInCache() throws Exception {
+    void testNoStoreOnResponseIsNotStoredInCache() throws Exception {
         originResponse.setHeader("Cache-Control","no-store");
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
@@ -2075,7 +2075,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testNoStoreOnResponseIsNotStoredInCacheEvenWithContraryIndicators() throws Exception {
+    void testNoStoreOnResponseIsNotStoredInCacheEvenWithContraryIndicators() throws Exception {
         originResponse.setHeader("Cache-Control","no-store,max-age=3600");
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
@@ -2085,7 +2085,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testOrderOfMultipleContentEncodingHeaderValuesIsPreserved() throws Exception {
+    void testOrderOfMultipleContentEncodingHeaderValuesIsPreserved() throws Exception {
         originResponse.addHeader("Content-Encoding","gzip");
         originResponse.addHeader("Content-Encoding","deflate");
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
@@ -2111,7 +2111,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testOrderOfMultipleParametersInContentEncodingHeaderIsPreserved() throws Exception {
+    void testOrderOfMultipleParametersInContentEncodingHeaderIsPreserved() throws Exception {
         originResponse.addHeader("Content-Encoding","gzip,deflate");
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
@@ -2136,7 +2136,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testCacheDoesNotAssumeContentLocationHeaderIndicatesAnotherCacheableResource() throws Exception {
+    void testCacheDoesNotAssumeContentLocationHeaderIndicatesAnotherCacheableResource() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/foo");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","public,max-age=3600");
@@ -2157,7 +2157,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testCachedResponsesWithMissingDateHeadersShouldBeAssignedOne() throws Exception {
+    void testCachedResponsesWithMissingDateHeadersShouldBeAssignedOne() throws Exception {
         originResponse.removeHeaders("Date");
         originResponse.setHeader("Cache-Control","public");
         originResponse.setHeader("ETag","\"etag\"");
@@ -2189,17 +2189,17 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testMalformedExpiresHeaderIsTreatedAsStale() throws Exception {
+    void testMalformedExpiresHeaderIsTreatedAsStale() throws Exception {
         testInvalidExpiresHeaderIsTreatedAsStale("garbage");
     }
 
     @Test
-    public void testExpiresZeroHeaderIsTreatedAsStale() throws Exception {
+    void testExpiresZeroHeaderIsTreatedAsStale() throws Exception {
         testInvalidExpiresHeaderIsTreatedAsStale("0");
     }
 
     @Test
-    public void testExpiresHeaderEqualToDateHeaderIsTreatedAsStale() throws Exception {
+    void testExpiresHeaderEqualToDateHeaderIsTreatedAsStale() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","public");
@@ -2219,7 +2219,7 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testDoesNotModifyServerResponseHeader() throws Exception {
+    void testDoesNotModifyServerResponseHeader() throws Exception {
         final String server = "MockServer/1.0";
         originResponse.setHeader("Server", server);
 

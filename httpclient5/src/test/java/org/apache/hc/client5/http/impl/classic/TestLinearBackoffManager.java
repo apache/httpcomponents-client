@@ -39,7 +39,7 @@ import org.apache.hc.core5.util.TimeValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestLinearBackoffManager {
+class TestLinearBackoffManager {
 
     private LinearBackoffManager impl;
     private MockConnPoolControl connPerRoute;
@@ -47,7 +47,7 @@ public class TestLinearBackoffManager {
     private static final long DEFAULT_COOL_DOWN_MS = 10;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         connPerRoute = new MockConnPoolControl();
         route = new HttpRoute(new HttpHost("localhost", 80));
         impl = new LinearBackoffManager(connPerRoute);
@@ -55,7 +55,7 @@ public class TestLinearBackoffManager {
     }
 
     @Test
-    public void incrementsConnectionsOnBackoff() {
+    void incrementsConnectionsOnBackoff() {
         final LinearBackoffManager impl = new LinearBackoffManager(connPerRoute);
         impl.setCoolDown(TimeValue.ofMilliseconds(DEFAULT_COOL_DOWN_MS)); // Set the cool-down period
         connPerRoute.setMaxPerRoute(route, 4);
@@ -64,14 +64,14 @@ public class TestLinearBackoffManager {
     }
 
     @Test
-    public void decrementsConnectionsOnProbe() {
+    void decrementsConnectionsOnProbe() {
         connPerRoute.setMaxPerRoute(route, 4);
         impl.probe(route);
         assertEquals(3, connPerRoute.getMaxPerRoute(route));
     }
 
     @Test
-    public void backoffDoesNotAdjustDuringCoolDownPeriod() {
+    void backoffDoesNotAdjustDuringCoolDownPeriod() {
         // Arrange
         connPerRoute.setMaxPerRoute(route, 4);
         impl.backOff(route);
@@ -88,7 +88,7 @@ public class TestLinearBackoffManager {
         assertEquals(max, connPerRoute.getMaxPerRoute(route));
     }
     @Test
-    public void backoffStillAdjustsAfterCoolDownPeriod() {
+    void backoffStillAdjustsAfterCoolDownPeriod() {
         // Arrange
         final LinearBackoffManager impl = new LinearBackoffManager(connPerRoute);
         impl.setCoolDown(TimeValue.ofMilliseconds(DEFAULT_COOL_DOWN_MS)); // Set the cool-down period
@@ -109,7 +109,7 @@ public class TestLinearBackoffManager {
     }
 
     @Test
-    public void probeDoesNotAdjustDuringCooldownPeriod() {
+    void probeDoesNotAdjustDuringCooldownPeriod() {
         // Arrange
         connPerRoute.setMaxPerRoute(route, 4);
         impl.probe(route);
@@ -127,7 +127,7 @@ public class TestLinearBackoffManager {
     }
 
     @Test
-    public void probeStillAdjustsAfterCoolDownPeriod() {
+    void probeStillAdjustsAfterCoolDownPeriod() {
         // Arrange
         connPerRoute.setMaxPerRoute(route, 4);
         impl.probe(route);
@@ -146,7 +146,7 @@ public class TestLinearBackoffManager {
 
 
     @Test
-    public void testSetPerHostConnectionCap() {
+    void testSetPerHostConnectionCap() {
         connPerRoute.setMaxPerRoute(route, 5);
         impl.setPerHostConnectionCap(10); // Set the cap to a higher value
         impl.backOff(route);
@@ -185,7 +185,7 @@ public class TestLinearBackoffManager {
     }
 
     @Test
-    public void linearIncrementTest() {
+    void linearIncrementTest() {
         final int initialMax = 4;
         connPerRoute.setMaxPerRoute(route, initialMax);
 

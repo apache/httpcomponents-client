@@ -30,13 +30,13 @@ import org.apache.hc.core5.http.URIScheme;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 
-public class HttpIntegrationTests {
+class HttpIntegrationTests {
 
     @Nested
     @DisplayName("Request execution (HTTP/1.1)")
-    public class RequestExecution extends TestClientRequestExecution {
+    class RequestExecution extends TestClientRequestExecution {
 
-        public RequestExecution() throws Exception {
+        public RequestExecution() {
             super(URIScheme.HTTP);
         }
 
@@ -44,9 +44,9 @@ public class HttpIntegrationTests {
 
     @Nested
     @DisplayName("Request execution (HTTP/1.1, TLS)")
-    public class RequestExecutionTls extends TestClientRequestExecution {
+    class RequestExecutionTls extends TestClientRequestExecution {
 
-        public RequestExecutionTls() throws Exception {
+        public RequestExecutionTls() {
             super(URIScheme.HTTPS);
         }
 
@@ -54,9 +54,9 @@ public class HttpIntegrationTests {
 
     @Nested
     @DisplayName("Authentication (HTTP/1.1)")
-    public class Authentication extends TestClientAuthentication {
+    class Authentication extends TestClientAuthentication {
 
-        public Authentication() throws Exception {
+        public Authentication() {
             super(URIScheme.HTTP);
         }
 
@@ -64,9 +64,9 @@ public class HttpIntegrationTests {
 
     @Nested
     @DisplayName("Authentication (HTTP/1.1, TLS)")
-    public class AuthenticationTls extends TestClientAuthentication {
+    class AuthenticationTls extends TestClientAuthentication {
 
-        public AuthenticationTls() throws Exception {
+        public AuthenticationTls() {
             super(URIScheme.HTTPS);
         }
 
@@ -74,9 +74,9 @@ public class HttpIntegrationTests {
 
     @Nested
     @DisplayName("Content coding (HTTP/1.1)")
-    public class ContentCoding extends TestContentCodings {
+    class ContentCoding extends TestContentCodings {
 
-        public ContentCoding() throws Exception {
+        public ContentCoding() {
             super(URIScheme.HTTP);
         }
 
@@ -84,9 +84,9 @@ public class HttpIntegrationTests {
 
     @Nested
     @DisplayName("Content coding (HTTP/1.1, TLS)")
-    public class ContentCodingTls extends TestContentCodings {
+    class ContentCodingTls extends TestContentCodings {
 
-        public ContentCodingTls() throws Exception {
+        public ContentCodingTls() {
             super(URIScheme.HTTPS);
         }
 
@@ -94,9 +94,9 @@ public class HttpIntegrationTests {
 
     @Nested
     @DisplayName("Redirects (HTTP/1.1)")
-    public class Redirects extends TestRedirects {
+    class Redirects extends TestRedirects {
 
-        public Redirects() throws Exception {
+        public Redirects() {
             super(URIScheme.HTTP);
         }
 
@@ -104,9 +104,9 @@ public class HttpIntegrationTests {
 
     @Nested
     @DisplayName("Redirects (HTTP/1.1, TLS)")
-    public class RedirectsTls extends TestRedirects {
+    class RedirectsTls extends TestRedirects {
 
-        public RedirectsTls() throws Exception {
+        public RedirectsTls() {
             super(URIScheme.HTTPS);
         }
 

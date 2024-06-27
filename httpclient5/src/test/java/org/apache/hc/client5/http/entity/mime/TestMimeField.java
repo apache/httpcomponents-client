@@ -34,10 +34,10 @@ import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestMimeField {
+class TestMimeField {
 
     @Test
-    public void testBasics() {
+    void testBasics() {
         final MimeField f1 = new MimeField("some-field", "some-value",
                 Arrays.<NameValuePair>asList(
                         new BasicNameValuePair("p1", "this"),

@@ -42,7 +42,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-public class TestCacheRevalidatorBase {
+class TestCacheRevalidatorBase {
 
     @Mock
     private SchedulingStrategy mockSchedulingStrategy;
@@ -55,13 +55,13 @@ public class TestCacheRevalidatorBase {
 
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
         impl = new CacheRevalidatorBase(mockScheduledExecutor, mockSchedulingStrategy);
     }
 
     @Test
-    public void testRevalidateCacheEntrySchedulesExecutionAndPopulatesIdentifier() {
+    void testRevalidateCacheEntrySchedulesExecutionAndPopulatesIdentifier() {
         when(mockSchedulingStrategy.schedule(ArgumentMatchers.anyInt())).thenReturn(TimeValue.ofSeconds(1));
 
         final String cacheKey = "blah";
@@ -74,7 +74,7 @@ public class TestCacheRevalidatorBase {
     }
 
     @Test
-    public void testMarkCompleteRemovesIdentifier() {
+    void testMarkCompleteRemovesIdentifier() {
         when(mockSchedulingStrategy.schedule(ArgumentMatchers.anyInt())).thenReturn(TimeValue.ofSeconds(3));
 
         final String cacheKey = "blah";
@@ -92,7 +92,7 @@ public class TestCacheRevalidatorBase {
     }
 
     @Test
-    public void testRevalidateCacheEntryDoesNotPopulateIdentifierOnRejectedExecutionException() {
+    void testRevalidateCacheEntryDoesNotPopulateIdentifierOnRejectedExecutionException() {
         when(mockSchedulingStrategy.schedule(ArgumentMatchers.anyInt())).thenReturn(TimeValue.ofSeconds(2));
         doThrow(new RejectedExecutionException()).when(mockScheduledExecutor).schedule(ArgumentMatchers.any(), ArgumentMatchers.any());
 
@@ -104,7 +104,7 @@ public class TestCacheRevalidatorBase {
     }
 
     @Test
-    public void testRevalidateCacheEntryProperlyCollapsesRequest() {
+    void testRevalidateCacheEntryProperlyCollapsesRequest() {
         when(mockSchedulingStrategy.schedule(ArgumentMatchers.anyInt())).thenReturn(TimeValue.ofSeconds(2));
 
         final String cacheKey = "blah";
@@ -119,7 +119,7 @@ public class TestCacheRevalidatorBase {
     }
 
     @Test
-    public void testShutdown() throws Exception {
+    void testShutdown() throws Exception {
         impl.close();
         impl.awaitTermination(Timeout.ofMinutes(2));
 

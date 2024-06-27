@@ -33,10 +33,10 @@ import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestAuthChallenge {
+class TestAuthChallenge {
 
     @Test
-    public void testAuthChallengeWithValue() {
+    void testAuthChallengeWithValue() {
         final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.BASIC, "blah", null);
         Assertions.assertEquals(StandardAuthScheme.BASIC, authChallenge.getSchemeName());
         Assertions.assertEquals("blah", authChallenge.getValue());
@@ -45,7 +45,7 @@ public class TestAuthChallenge {
     }
 
     @Test
-    public void testAuthChallengeWithParams() {
+    void testAuthChallengeWithParams() {
         final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.BASIC, null,
                 Arrays.asList(new BasicNameValuePair("blah", "this"), new BasicNameValuePair("blah", "that")));
         Assertions.assertEquals(StandardAuthScheme.BASIC, authChallenge.getSchemeName());

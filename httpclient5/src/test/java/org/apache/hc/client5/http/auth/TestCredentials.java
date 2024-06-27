@@ -36,10 +36,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("deprecation")
-public class TestCredentials {
+class TestCredentials {
 
     @Test
-    public void testUsernamePasswordCredentialsBasics() {
+    void testUsernamePasswordCredentialsBasics() {
         final UsernamePasswordCredentials creds1 = new UsernamePasswordCredentials(
                 "name","pwd".toCharArray());
         Assertions.assertEquals("name", creds1.getUserName());
@@ -57,7 +57,7 @@ public class TestCredentials {
     }
 
     @Test
-    public void testNTCredentialsBasics() {
+    void testNTCredentialsBasics() {
         final NTCredentials creds1 = new NTCredentials(
                 "name","pwd".toCharArray(), "localhost", "domain");
         Assertions.assertEquals("name", creds1.getUserName());
@@ -77,7 +77,7 @@ public class TestCredentials {
     }
 
     @Test
-    public void testUsernamePasswordCredentialsHashCode() {
+    void testUsernamePasswordCredentialsHashCode() {
         final UsernamePasswordCredentials creds1 = new UsernamePasswordCredentials(
                 "name","pwd".toCharArray());
         final UsernamePasswordCredentials creds2 = new UsernamePasswordCredentials(
@@ -91,7 +91,7 @@ public class TestCredentials {
     }
 
     @Test
-    public void testUsernamePasswordCredentialsEquals() {
+    void testUsernamePasswordCredentialsEquals() {
         final UsernamePasswordCredentials creds1 = new UsernamePasswordCredentials(
                 "name","pwd".toCharArray());
         final UsernamePasswordCredentials creds2 = new UsernamePasswordCredentials(
@@ -105,13 +105,13 @@ public class TestCredentials {
     }
 
     @Test
-    public void tesBearerTokenBasics() {
+    void tesBearerTokenBasics() {
         final BearerToken creds1 = new BearerToken("token of some sort");
         Assertions.assertEquals("token of some sort", creds1.getToken());
     }
 
     @Test
-    public void testBearerTokenHashCode() {
+    void testBearerTokenHashCode() {
         final BearerToken creds1 = new BearerToken("token of some sort");
         final BearerToken creds2 = new BearerToken("another token of some sort");
         final BearerToken creds3 = new BearerToken("token of some sort");
@@ -122,7 +122,7 @@ public class TestCredentials {
     }
 
     @Test
-    public void testBearerTokenEquals() {
+    void testBearerTokenEquals() {
         final BearerToken creds1 = new BearerToken("token of some sort");
         final BearerToken creds2 = new BearerToken("another token of some sort");
         final BearerToken creds3 = new BearerToken("token of some sort");
@@ -133,7 +133,7 @@ public class TestCredentials {
     }
 
     @Test
-    public void testNTCredentialsHashCode() {
+    void testNTCredentialsHashCode() {
         final NTCredentials creds1 = new NTCredentials(
                 "name","pwd".toCharArray(), "somehost", "domain");
         final NTCredentials creds2 = new NTCredentials(
@@ -165,7 +165,7 @@ public class TestCredentials {
     }
 
     @Test
-    public void testNTCredentialsEquals() {
+    void testNTCredentialsEquals() {
         final NTCredentials creds1 = new NTCredentials(
                 "name","pwd".toCharArray(), "somehost", "domain");
         final NTCredentials creds2 = new NTCredentials(
@@ -198,7 +198,7 @@ public class TestCredentials {
     }
 
     @Test
-    public void testUsernamePasswordCredentialsSerialization() throws Exception {
+    void testUsernamePasswordCredentialsSerialization() throws Exception {
         final UsernamePasswordCredentials orig = new UsernamePasswordCredentials("name","pwd".toCharArray());
         final ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
         final ObjectOutputStream outStream = new ObjectOutputStream(outbuffer);
@@ -212,7 +212,7 @@ public class TestCredentials {
     }
 
     @Test
-    public void testNTCredentialsSerialization() throws Exception {
+    void testNTCredentialsSerialization() throws Exception {
         final NTCredentials orig = new NTCredentials("name","pwd".toCharArray(), "somehost", "domain");
         final ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
         final ObjectOutputStream outStream = new ObjectOutputStream(outbuffer);
