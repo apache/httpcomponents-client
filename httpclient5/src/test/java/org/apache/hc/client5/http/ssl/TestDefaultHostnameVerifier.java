@@ -276,11 +276,11 @@ class TestDefaultHostnameVerifier {
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.xxx.uk", "a.b.xxx.uk", publicSuffixMatcher));
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.b.xxx.uk", "a.b.xxx.uk", publicSuffixMatcher));
 
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.xxx.uk", "*.b.xxx.uk", publicSuffixMatcher));
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.b.xxx.uk", "*.b.xxx.uk", publicSuffixMatcher));
+        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("a.b.xxx.uk", "*.b.xxx.uk", publicSuffixMatcher));
+        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("a.b.xxx.uk", "*.b.xxx.uk", publicSuffixMatcher));
 
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
+        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
+        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
 
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("b.xxx.uk", "*.xxx.uk", publicSuffixMatcher));
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("b.xxx.uk", "*.xxx.uk", publicSuffixMatcher));

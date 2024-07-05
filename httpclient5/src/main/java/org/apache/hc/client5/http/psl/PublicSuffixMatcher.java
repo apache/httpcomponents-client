@@ -128,7 +128,6 @@ public final class PublicSuffixMatcher {
      * @param domain
      * @param expectedType expected domain type or {@code null} if any.
      * @return domain root
-     *
      * @since 4.5
      */
     public String getDomainRoot(final String domain, final DomainType expectedType) {
@@ -149,24 +148,30 @@ public final class PublicSuffixMatcher {
             }
             final DomainType domainRule = findEntry(rules, key);
             if (match(domainRule, expectedType)) {
-                if (domainRule == DomainType.PRIVATE) {
-                    return segment;
-                }
+                // Prior to version 5.4 the result for "private" rules was different. However, the
+                // PSL algorithm doesn't have any rules changing the result based on "domain type"
+                // see https://github.com/publicsuffix/list/wiki/Format#formal-algorithm
                 return result;
             }
 
             final int nextdot = segment.indexOf('.');
             final String nextSegment = nextdot != -1 ? segment.substring(nextdot + 1) : null;
 
-            if (nextSegment != null) {
-                final DomainType wildcardDomainRule = findEntry(rules, "*." + IDN.toUnicode(nextSegment));
-                if (match(wildcardDomainRule, expectedType)) {
-                    if (wildcardDomainRule == DomainType.PRIVATE) {
-                        return segment;
-                    }
-                    return result;
-                }
+            // look for wildcard entries
+            final String wildcardKey = (nextSegment == null) ? "*" : "*." + IDN.toUnicode(nextSegment);
+            final DomainType wildcardDomainRule = findEntry(rules, wildcardKey);
+            if (match(wildcardDomainRule, expectedType)) {
+                return result;
             }
+
+            // If we're out of segments, and we're not looking for a specific type of entry,
+            // apply the default `*` rule.
+            // This wildcard rule means any final segment in a domain is a public suffix,
+            // so the current `result` is the desired public suffix plus 1
+            if (nextSegment == null && (expectedType == null || expectedType == DomainType.UNKNOWN)) {
+                return result;
+            }
+
             result = segment;
             segment = nextSegment;
         }
@@ -181,7 +186,7 @@ public final class PublicSuffixMatcher {
     }
 
     /**
-     * Tests whether the given domain matches any of entry from the public suffix list.
+     * Tests whether the given domain matches any of the entries from the public suffix list.
      */
     public boolean matches(final String domain) {
         return matches(domain, null);
