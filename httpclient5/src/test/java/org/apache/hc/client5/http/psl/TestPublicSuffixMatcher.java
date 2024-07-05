@@ -151,7 +151,7 @@ class TestPublicSuffixMatcher {
     private URL publixSuffixListUrl = new File("./target/classes/mozilla/public-suffix-list.txt").toURI().toURL();
     private PublicSuffixMatcher defaultMatcher = PublicSuffixMatcherLoader.load(publixSuffixListUrl);
 
-    private void checkPublicSuffix(String input, String expected) {
+    private void checkPublicSuffix(final String input, final String expected) {
         Assertions.assertEquals(expected, defaultMatcher.getDomainRoot(input));
     }
 

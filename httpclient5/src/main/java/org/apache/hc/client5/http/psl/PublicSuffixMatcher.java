@@ -162,7 +162,7 @@ public final class PublicSuffixMatcher {
 
             // HUMAN code change - looks for wildcard entries and don't change the result based on "domain type"
             // Check for wildcard entries.
-            String wildcardKey = (nextSegment == null) ? "*" : "*." + IDN.toUnicode(nextSegment);
+            final String wildcardKey = (nextSegment == null) ? "*" : "*." + IDN.toUnicode(nextSegment);
             final DomainType wildcardDomainRule = findEntry(rules, wildcardKey);
             if (match(wildcardDomainRule, expectedType)) {
                 return result;
