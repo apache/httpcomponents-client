@@ -84,11 +84,15 @@ public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
         this.localDomainMap = createLocalDomainMap();
     }
 
+    @Override
+    public boolean match(final Cookie cookie, final CookieOrigin origin) {
+        return match(cookie, origin, false);
+    }
+
     /**
      * Never matches if the cookie's domain is from the blacklist.
      */
-    @Override
-    public boolean match(final Cookie cookie, final CookieOrigin origin) {
+    public boolean match(final Cookie cookie, final CookieOrigin origin, final boolean legacyMode) {
         final String host = cookie.getDomain();
         if (host == null) {
             return false;
@@ -97,13 +101,13 @@ public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
         if (i >= 0) {
             final String domain = host.substring(i);
             if (!this.localDomainMap.containsKey(domain)) {
-                if (this.publicSuffixMatcher.matches(host)) {
+                if (this.publicSuffixMatcher.matches(host, legacyMode)) {
                     return false;
                 }
             }
         } else {
             if (!host.equalsIgnoreCase(origin.getHost())) {
-                if (this.publicSuffixMatcher.matches(host)) {
+                if (this.publicSuffixMatcher.matches(host, legacyMode)) {
                     return false;
                 }
             }
