@@ -26,16 +26,16 @@
  */
 package org.apache.hc.client5.http.psl;
 
-import org.apache.hc.client5.http.utils.DnsUtils;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.util.Args;
-
 import java.net.IDN;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.hc.client5.http.utils.DnsUtils;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Utility class that can test if DNS names match the content of the Public Suffix List.
@@ -65,12 +65,12 @@ public final class PublicSuffixMatcher {
         Args.notNull(domainType, "Domain type");
         Args.notNull(rules, "Domain suffix rules");
         this.rules = new ConcurrentHashMap<>(rules.size());
-        for (final String rule : rules) {
+        for (final String rule: rules) {
             this.rules.put(rule, domainType);
         }
         this.exceptions = new ConcurrentHashMap<>();
         if (exceptions != null) {
-            for (final String exception : exceptions) {
+            for (final String exception: exceptions) {
                 this.exceptions.put(exception, domainType);
             }
         }
@@ -80,10 +80,10 @@ public final class PublicSuffixMatcher {
      * @since 4.5
      */
     public PublicSuffixMatcher(final Collection<PublicSuffixList> lists) {
-        Args.notNull(lists, "Domain suffix lists");
+        Args.notNull(lists,"Domain suffix lists");
         this.rules = new ConcurrentHashMap<>();
         this.exceptions = new ConcurrentHashMap<>();
-        for (final PublicSuffixList list : lists) {
+        for (final PublicSuffixList list: lists) {
             final DomainType domainType = list.getType();
             final List<String> rules = list.getRules();
             for (final String rule : rules) {
@@ -91,7 +91,7 @@ public final class PublicSuffixMatcher {
             }
             final List<String> exceptions = list.getExceptions();
             if (exceptions != null) {
-                for (final String exception : exceptions) {
+                for (final String exception: exceptions) {
                     this.exceptions.put(exception, domainType);
                 }
             }
