@@ -45,6 +45,7 @@ import org.apache.hc.core5.util.Args;
  * </p>
  *
  * @see PublicSuffixList
+ *
  * @since 4.4
  */
 @Contract(threading = ThreadingBehavior.SAFE)
@@ -62,8 +63,8 @@ public final class PublicSuffixMatcher {
      */
     public PublicSuffixMatcher(
             final DomainType domainType, final Collection<String> rules, final Collection<String> exceptions) {
-        Args.notNull(domainType, "Domain type");
-        Args.notNull(rules, "Domain suffix rules");
+        Args.notNull(domainType,  "Domain type");
+        Args.notNull(rules,  "Domain suffix rules");
         this.rules = new ConcurrentHashMap<>(rules.size());
         for (final String rule: rules) {
             this.rules.put(rule, domainType);
@@ -80,13 +81,13 @@ public final class PublicSuffixMatcher {
      * @since 4.5
      */
     public PublicSuffixMatcher(final Collection<PublicSuffixList> lists) {
-        Args.notNull(lists,"Domain suffix lists");
+        Args.notNull(lists,  "Domain suffix lists");
         this.rules = new ConcurrentHashMap<>();
         this.exceptions = new ConcurrentHashMap<>();
         for (final PublicSuffixList list: lists) {
             final DomainType domainType = list.getType();
             final List<String> rules = list.getRules();
-            for (final String rule : rules) {
+            for (final String rule: rules) {
                 this.rules.put(rule, domainType);
             }
             final List<String> exceptions = list.getExceptions();
