@@ -156,7 +156,7 @@ public final class PublicSuffixMatcher {
             }
             final DomainType domainRule = findEntry(rules, key);
             if (match(domainRule, expectedType)) {
-                // HUMAN code change - PSL algorithm doesn't have any rules changing the result based on "domain type"
+                // PSL algorithm doesn't have any rules changing the result based on "domain type"
                 // see https://github.com/publicsuffix/list/wiki/Format#formal-algorithm
                 if (legacyMode && domainRule == DomainType.PRIVATE) {
                     return segment;
@@ -167,24 +167,7 @@ public final class PublicSuffixMatcher {
             final int nextdot = segment.indexOf('.');
             final String nextSegment = nextdot != -1 ? segment.substring(nextdot + 1) : null;
 
-            if (!legacyMode) {
-                // HUMAN code change - looks for wildcard entries and don't change the result based on "domain type"
-                // Check for wildcard entries.
-                final String wildcardKey = (nextSegment == null) ? "*" : "*." + IDN.toUnicode(nextSegment);
-                final DomainType wildcardDomainRule = findEntry(rules, wildcardKey);
-                if (match(wildcardDomainRule, expectedType)) {
-                    return result;
-                }
-
-                // If we're out of segments and we're not looking for a specific type of entry,
-                // apply the default `*` rule.
-                // This wildcard rule means any final segment in a domain is a public suffix,
-                // so the current `result` is the desired public suffix plus 1
-                if (nextSegment == null && (expectedType == null || expectedType == DomainType.UNKNOWN)) {
-                    return result;
-                }
-            } else {
-                // HUMAN code change, above code has replaced below commented out section
+            if (legacyMode) {
                 if (nextSegment != null) {
                     final DomainType wildcardDomainRule = findEntry(rules, "*." + IDN.toUnicode(nextSegment));
                     if (match(wildcardDomainRule, expectedType)) {
@@ -194,13 +177,27 @@ public final class PublicSuffixMatcher {
                         return result;
                     }
                 }
+            } else {
+                // look for wildcard entries and don't change the result based on "domain type"
+                final String wildcardKey = (nextSegment == null) ? "*" : "*." + IDN.toUnicode(nextSegment);
+                final DomainType wildcardDomainRule = findEntry(rules, wildcardKey);
+                if (match(wildcardDomainRule, expectedType)) {
+                    return result;
+                }
+
+                // If we're out of segments, and we're not looking for a specific type of entry,
+                // apply the default `*` rule.
+                // This wildcard rule means any final segment in a domain is a public suffix,
+                // so the current `result` is the desired public suffix plus 1
+                if (nextSegment == null && (expectedType == null || expectedType == DomainType.UNKNOWN)) {
+                    return result;
+                }
             }
 
             result = segment;
             segment = nextSegment;
         }
 
-        // HUMAN code change - commented out this case as now covered by new code within loop above
         // If no expectations then this result is good.
         if (legacyMode && (expectedType == null || expectedType == DomainType.UNKNOWN)) {
             return result;
