@@ -29,10 +29,16 @@ package org.apache.hc.client5.testing.sync;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.net.ConnectException;
+import java.net.NoRouteToHostException;
 import java.net.URI;
+import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.ClientProtocolException;
@@ -42,6 +48,7 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectLocations;
@@ -54,6 +61,8 @@ import org.apache.hc.client5.testing.extension.sync.TestClient;
 import org.apache.hc.client5.testing.redirect.Redirect;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ConnectionClosedException;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -62,12 +71,14 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.URIScheme;
+import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.HttpServerRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIBuilder;
+import org.apache.hc.core5.util.TimeValue;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -640,6 +651,67 @@ abstract  class TestRedirects extends AbstractIntegrationTestBase {
         assertThat(values.poll(), CoreMatchers.equalTo("gzip, x-gzip, deflate"));
         assertThat(values.poll(), CoreMatchers.equalTo("gzip, x-gzip, deflate"));
         assertThat(values.poll(), CoreMatchers.nullValue());
+    }
+
+    @Test
+    void testRetryUponRedirect() throws Exception {
+        configureClient(builder -> builder
+                .setRetryStrategy(new DefaultHttpRequestRetryStrategy(
+                        3,
+                        TimeValue.ofSeconds(1),
+                        Arrays.asList(
+                                InterruptedIOException.class,
+                                UnknownHostException.class,
+                                ConnectException.class,
+                                ConnectionClosedException.class,
+                                NoRouteToHostException.class),
+                        Arrays.asList(
+                                HttpStatus.SC_TOO_MANY_REQUESTS,
+                                HttpStatus.SC_SERVICE_UNAVAILABLE)) {
+                })
+        );
+
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)))
+                .register("/random/*", new HttpRequestHandler() {
+
+                    final AtomicLong count = new AtomicLong();
+
+                    @Override
+                    public void handle(final ClassicHttpRequest request,
+                                       final ClassicHttpResponse response,
+                                       final HttpContext context) throws HttpException, IOException {
+                        if (count.incrementAndGet() == 1) {
+                            throw new IOException("Boom");
+                        } else {
+                            response.setCode(200);
+                            response.setEntity(new StringEntity("test"));
+                        }
+                    }
+
+                }));
+
+        final HttpHost target = startServer();
+
+        final TestClient client = client();
+        final HttpClientContext context = HttpClientContext.create();
+
+        final HttpGet httpget = new HttpGet("/oldlocation/50");
+
+        client.execute(target, httpget, context, response -> {
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            EntityUtils.consume(response.getEntity());
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assertions.assertEquals(new URIBuilder()
+                        .setHttpHost(target)
+                        .setPath("/random/50")
+                        .build(),
+                reqWrapper.getUri());
     }
 
 }

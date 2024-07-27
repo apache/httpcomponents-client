@@ -90,7 +90,6 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
         volatile URI redirectURI;
         volatile int maxRedirects;
         volatile int redirectCount;
-        volatile HttpRequest originalRequest;
         volatile HttpRequest currentRequest;
         volatile AsyncEntityProducer currentEntityProducer;
         volatile RedirectLocations redirectLocations;
@@ -109,7 +108,6 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
         final AsyncExecChain.Scope scope = state.currentScope;
         final HttpClientContext clientContext = scope.clientContext;
         final String exchangeId = scope.exchangeId;
-        final HttpRoute currentRoute = scope.route;
         chain.proceed(request, entityProducer, scope, new AsyncExecCallback() {
 
             @Override
@@ -137,6 +135,7 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                     }
                     state.redirectLocations.add(redirectUri);
 
+                    final AsyncExecChain.Scope currentScope = state.currentScope;
                     final HttpHost newTarget = URIUtils.extractHost(redirectUri);
                     if (newTarget == null) {
                         throw new ProtocolException("Redirect URI does not specify a valid host name: " + redirectUri);
@@ -151,7 +150,7 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                                 redirectBuilder = BasicRequestBuilder.get();
                                 state.currentEntityProducer = null;
                             } else {
-                                redirectBuilder = BasicRequestBuilder.copy(state.originalRequest);
+                                redirectBuilder = BasicRequestBuilder.copy(currentScope.originalRequest);
                             }
                             break;
                         case HttpStatus.SC_SEE_OTHER:
@@ -159,18 +158,18 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                                 redirectBuilder = BasicRequestBuilder.get();
                                 state.currentEntityProducer = null;
                             } else {
-                                redirectBuilder = BasicRequestBuilder.copy(state.originalRequest);
+                                redirectBuilder = BasicRequestBuilder.copy(currentScope.originalRequest);
                             }
                             break;
                         default:
-                            redirectBuilder = BasicRequestBuilder.copy(state.originalRequest);
+                            redirectBuilder = BasicRequestBuilder.copy(currentScope.originalRequest);
                     }
                     redirectBuilder.setUri(redirectUri);
                     state.reroute = false;
                     state.redirectURI = redirectUri;
-                    state.originalRequest = redirectBuilder.build();
                     state.currentRequest = redirectBuilder.build();
 
+                    HttpRoute currentRoute = currentScope.route;
                     if (!Objects.equals(currentRoute.getTargetHost(), newTarget)) {
                         final HttpRoute newRoute = routePlanner.determineRoute(newTarget, clientContext);
                         if (!Objects.equals(currentRoute, newRoute)) {
@@ -189,21 +188,20 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                                     proxyAuthExchange.reset();
                                 }
                             }
-                            state.currentScope = new AsyncExecChain.Scope(
-                                    scope.exchangeId,
-                                    newRoute,
-                                    scope.originalRequest,
-                                    scope.cancellableDependency,
-                                    scope.clientContext,
-                                    scope.execRuntime,
-                                    scope.scheduler,
-                                    scope.execCount);
+                            currentRoute = newRoute;
                         }
                     }
-                }
-                if (state.redirectURI != null) {
+                    state.currentScope = new AsyncExecChain.Scope(
+                            scope.exchangeId,
+                            currentRoute,
+                            redirectBuilder.build(),
+                            scope.cancellableDependency,
+                            scope.clientContext,
+                            scope.execRuntime,
+                            scope.scheduler,
+                            scope.execCount);
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{} redirecting to '{}' via {}", exchangeId, state.redirectURI, currentRoute);
+                        LOG.debug("{} redirecting to '{}' via {}", exchangeId, redirectUri, currentRoute);
                     }
                     return null;
                 }
@@ -272,7 +270,6 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
         final State state = new State();
         state.maxRedirects = config.getMaxRedirects() > 0 ? config.getMaxRedirects() : 50;
         state.redirectCount = 0;
-        state.originalRequest = scope.originalRequest;
         state.currentRequest = request;
         state.currentEntityProducer = entityProducer;
         state.redirectLocations = redirectLocations;
