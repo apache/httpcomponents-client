@@ -103,7 +103,6 @@ public final class RedirectExec implements ExecChainHandler {
 
         final RequestConfig config = context.getRequestConfigOrDefault();
         final int maxRedirects = config.getMaxRedirects() > 0 ? config.getMaxRedirects() : 50;
-        ClassicHttpRequest originalRequest = scope.originalRequest;
         ClassicHttpRequest currentRequest = request;
         ExecChain.Scope currentScope = scope;
         for (int redirectCount = 0;;) {
@@ -150,22 +149,22 @@ public final class RedirectExec implements ExecChainHandler {
                             if (Method.POST.isSame(request.getMethod())) {
                                 redirectBuilder = ClassicRequestBuilder.get();
                             } else {
-                                redirectBuilder = ClassicRequestBuilder.copy(originalRequest);
+                                redirectBuilder = ClassicRequestBuilder.copy(currentScope.originalRequest);
                             }
                             break;
                         case HttpStatus.SC_SEE_OTHER:
                             if (!Method.GET.isSame(request.getMethod()) && !Method.HEAD.isSame(request.getMethod())) {
                                 redirectBuilder = ClassicRequestBuilder.get();
                             } else {
-                                redirectBuilder = ClassicRequestBuilder.copy(originalRequest);
+                                redirectBuilder = ClassicRequestBuilder.copy(currentScope.originalRequest);
                             }
                             break;
                         default:
-                            redirectBuilder = ClassicRequestBuilder.copy(originalRequest);
+                            redirectBuilder = ClassicRequestBuilder.copy(currentScope.originalRequest);
                     }
                     redirectBuilder.setUri(redirectUri);
 
-                    final HttpRoute currentRoute = currentScope.route;
+                    HttpRoute currentRoute = currentScope.route;
                     if (!Objects.equals(currentRoute.getTargetHost(), newTarget)) {
                         final HttpRoute newRoute = this.routePlanner.determineRoute(newTarget, context);
                         if (!Objects.equals(currentRoute, newRoute)) {
@@ -186,19 +185,19 @@ public final class RedirectExec implements ExecChainHandler {
                                     proxyAuthExchange.reset();
                                 }
                             }
-                            currentScope = new ExecChain.Scope(
-                                    currentScope.exchangeId,
-                                    newRoute,
-                                    currentScope.originalRequest,
-                                    currentScope.execRuntime,
-                                    currentScope.clientContext);
+                            currentRoute = newRoute;
                         }
                     }
 
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} redirecting to '{}' via {}", exchangeId, redirectUri, currentRoute);
                     }
-                    originalRequest = redirectBuilder.build();
+                    currentScope = new ExecChain.Scope(
+                            scope.exchangeId,
+                            currentRoute,
+                            redirectBuilder.build(),
+                            scope.execRuntime,
+                            scope.clientContext);
                     currentRequest = redirectBuilder.build();
                     RequestEntityProxy.enhance(currentRequest);
 
