@@ -121,10 +121,29 @@ public final class PublicSuffixMatcher {
         return getDomainRoot(domain, null, false);
     }
 
+    /**
+     * Returns registrable part of the domain for the given domain name or {@code null}
+     * if given domain represents a public suffix.
+     *
+     * @param domain
+     * @param legacyMode set to {@code true} to preserve behaviour prior to version 5.4.
+     * @return domain root
+     * @since 5.4
+     */
     public String getDomainRoot(final String domain, final boolean legacyMode) {
         return getDomainRoot(domain, null, legacyMode);
     }
 
+    /**
+     * Returns registrable part of the domain for the given domain name or {@code null}
+     * if given domain represents a public suffix. For backwards-compatability reasons this uses
+     * "legacy mode" to retain previous behaviour.
+     *
+     * @param domain
+     * @param expectedType expected domain type or {@code null} if any.
+     * @return domain root
+     * @since 4.5
+     */
     public String getDomainRoot(final String domain, final DomainType expectedType) {
         return getDomainRoot(domain, expectedType, false);
     }
@@ -135,8 +154,9 @@ public final class PublicSuffixMatcher {
      *
      * @param domain
      * @param expectedType expected domain type or {@code null} if any.
+     * @param legacyMode set to {@code true} to preserve behaviour prior to version 5.4.
      * @return domain root
-     * @since 4.5
+     * @since 5.4
      */
     public String getDomainRoot(final String domain, final DomainType expectedType, final boolean legacyMode) {
         if (domain == null) {
