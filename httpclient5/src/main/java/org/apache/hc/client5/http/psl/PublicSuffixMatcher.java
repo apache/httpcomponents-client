@@ -240,6 +240,7 @@ public final class PublicSuffixMatcher {
      * @param domain
      * @param expectedType expected domain type or {@code null} if any.
      * @return {@code true} if the given domain matches any of the public suffixes.
+     *
      * @since 4.5
      */
     public boolean matches(final String domain, final DomainType expectedType) {
