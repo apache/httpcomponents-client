@@ -195,7 +195,7 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
                                          final DomainType domainType,
                                          final boolean strict) {
         if (publicSuffixMatcher != null && host.contains(".")) {
-            if (!matchDomainRoot(host, publicSuffixMatcher.getDomainRoot(identity, domainType, true))) {
+            if (!matchDomainRoot(host, publicSuffixMatcher.getDomainRoot(identity, domainType))) {
                 return false;
             }
         }

@@ -158,10 +158,10 @@ class TestPublicSuffixMatcher {
         Assertions.assertTrue(matcher.matches(".jp"));
         Assertions.assertTrue(matcher.matches(".ac.jp"));
         Assertions.assertTrue(matcher.matches(".any.tokyo.jp"));
+        Assertions.assertTrue(matcher.matches(".xx"));
+        Assertions.assertTrue(matcher.matches(".appspot.com"));
         // exception
         Assertions.assertFalse(matcher.matches(".metro.tokyo.jp"));
-        Assertions.assertFalse(matcher.matches(".xx", true));
-        Assertions.assertFalse(matcher.matches(".appspot.com", true));
     }
 
     @Test

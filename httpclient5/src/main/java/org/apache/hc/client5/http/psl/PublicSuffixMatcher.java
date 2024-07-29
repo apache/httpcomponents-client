@@ -208,18 +208,10 @@ public final class PublicSuffixMatcher {
     }
 
     /**
-     * Tests whether the given domain matches any of entry from the public suffix list.
+     * Tests whether the given domain matches any of the entries from the public suffix list.
      */
     public boolean matches(final String domain) {
-        return matches(domain, null, false);
-    }
-
-    public boolean matches(final String domain, final boolean legacyMode) {
-        return matches(domain, null, legacyMode);
-    }
-
-    public boolean matches(final String domain, final DomainType expectedType) {
-        return matches(domain, expectedType, false);
+        return matches(domain, null);
     }
 
     /**
@@ -230,12 +222,12 @@ public final class PublicSuffixMatcher {
      * @return {@code true} if the given domain matches any of the public suffixes.
      * @since 4.5
      */
-    public boolean matches(final String domain, final DomainType expectedType, final boolean legacyMode) {
+    public boolean matches(final String domain, final DomainType expectedType) {
         if (domain == null) {
             return false;
         }
         final String domainRoot = getDomainRoot(
-                domain.startsWith(".") ? domain.substring(1) : domain, expectedType, legacyMode);
+                domain.startsWith(".") ? domain.substring(1) : domain, expectedType);
         return domainRoot == null;
     }
 
