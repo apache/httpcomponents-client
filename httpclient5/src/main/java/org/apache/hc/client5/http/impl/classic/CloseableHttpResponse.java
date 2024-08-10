@@ -38,6 +38,8 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -45,7 +47,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.3
  */
-public final class CloseableHttpResponse implements ClassicHttpResponse {
+public final class CloseableHttpResponse implements ClassicHttpResponse, ModalCloseable {
 
     private final ClassicHttpResponse response;
     private final ExecRuntime execRuntime;
@@ -198,11 +200,12 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
         return response.headerIterator(name);
     }
 
-    @Override
-    public void close() throws IOException {
+    private void doClose(final CloseMode closeMode) throws IOException {
         if (execRuntime != null) {
             try {
-                response.close();
+                if (closeMode == CloseMode.GRACEFUL) {
+                    response.close();
+                }
                 execRuntime.disconnectEndpoint();
             } finally {
                 execRuntime.discardEndpoint();
@@ -210,6 +213,19 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
         } else {
             response.close();
         }
+    }
+
+    @Override
+    public void close(final CloseMode closeMode) {
+        try {
+            doClose(closeMode);
+        } catch (final IOException ignore) {
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        doClose(CloseMode.GRACEFUL);
     }
 
     @Override
