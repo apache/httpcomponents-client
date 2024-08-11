@@ -43,7 +43,6 @@ import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.schedule.ImmediateSchedulingStrategy;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
-import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.http.config.NamedElementChain;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
@@ -53,7 +52,6 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * @since 5.0
  */
-@Experimental
 public class CachingHttpAsyncClientBuilder extends HttpAsyncClientBuilder {
 
     private ResourceFactory resourceFactory;
