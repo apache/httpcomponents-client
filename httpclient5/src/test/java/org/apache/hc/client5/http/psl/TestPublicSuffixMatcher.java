@@ -59,7 +59,7 @@ class TestPublicSuffixMatcher {
         // Create a matcher using the public suffix list file provided by Mozilla
         // Note: the test requires `mvn generate-resources` to have been called to fetch the Mozilla file into
         // target/classes so that it is on the classpath
-        URL publicSuffixListUrl = classLoader.getResource(PUBLIC_SUFFIX_LIST_FILE);
+        final URL publicSuffixListUrl = classLoader.getResource(PUBLIC_SUFFIX_LIST_FILE);
         pslMatcher = PublicSuffixMatcherLoader.load(publicSuffixListUrl);
     }
 
