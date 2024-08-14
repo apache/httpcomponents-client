@@ -175,6 +175,7 @@ public final class PublicSuffixMatcher {
             }
             final DomainType domainRule = findEntry(rules, key);
             if (match(domainRule, expectedType)) {
+                // Prior to version 5.4 the result for "private" rules was different. However, the
                 // PSL algorithm doesn't have any rules changing the result based on "domain type"
                 // see https://github.com/publicsuffix/list/wiki/Format#formal-algorithm
                 if (legacyMode && domainRule == DomainType.PRIVATE) {
@@ -188,6 +189,8 @@ public final class PublicSuffixMatcher {
 
             if (legacyMode) {
                 if (nextSegment != null) {
+                    // look for wildcard entries and change the result based on "domain type"
+                    // to match legacy behavior prior to version 5.4.
                     final DomainType wildcardDomainRule = findEntry(rules, "*." + IDN.toUnicode(nextSegment));
                     if (match(wildcardDomainRule, expectedType)) {
                         if (wildcardDomainRule == DomainType.PRIVATE) {
@@ -197,7 +200,7 @@ public final class PublicSuffixMatcher {
                     }
                 }
             } else {
-                // look for wildcard entries and don't change the result based on "domain type"
+                // look for wildcard entries
                 final String wildcardKey = (nextSegment == null) ? "*" : "*." + IDN.toUnicode(nextSegment);
                 final DomainType wildcardDomainRule = findEntry(rules, wildcardKey);
                 if (match(wildcardDomainRule, expectedType)) {
