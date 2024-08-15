@@ -88,23 +88,6 @@ class TestPublicSuffixMatcher {
     }
 
     @Test
-    void testGetDomainRootAnyTypeLegacyMode() {
-        // Private
-        Assertions.assertEquals("xx", matcher.getDomainRoot("example.XX", true));
-        Assertions.assertEquals("xx", matcher.getDomainRoot("www.example.XX", true));
-        Assertions.assertEquals("xx", matcher.getDomainRoot("www.blah.blah.example.XX", true));
-        Assertions.assertEquals("appspot.com", matcher.getDomainRoot("example.appspot.com", true));
-
-        // Unknown
-        Assertions.assertEquals("garbage", matcher.getDomainRoot("garbage", true));
-        Assertions.assertEquals("garbage", matcher.getDomainRoot("garbage.garbage", true));
-        Assertions.assertEquals("garbage", matcher.getDomainRoot("*.garbage.garbage", true));
-        Assertions.assertEquals("garbage", matcher.getDomainRoot("*.garbage.garbage.garbage", true));
-
-        Assertions.assertEquals("*.compute-1.amazonaws.com", matcher.getDomainRoot("*.compute-1.amazonaws.com", true));
-    }
-
-    @Test
     void testGetDomainRootOnlyPRIVATE() {
         // Private
         Assertions.assertEquals("example.xx", matcher.getDomainRoot("example.XX", DomainType.PRIVATE));
@@ -124,15 +107,6 @@ class TestPublicSuffixMatcher {
         Assertions.assertNull(matcher.getDomainRoot("garbage.garbage", DomainType.PRIVATE));
         Assertions.assertNull(matcher.getDomainRoot("*.garbage.garbage", DomainType.PRIVATE));
         Assertions.assertNull(matcher.getDomainRoot("*.garbage.garbage.garbage", DomainType.PRIVATE));
-    }
-
-    @Test
-    void testGetDomainRootOnlyPRIVATELegacyMode() {
-        // Private
-        Assertions.assertEquals("xx", matcher.getDomainRoot("example.XX", DomainType.PRIVATE, true));
-        Assertions.assertEquals("xx", matcher.getDomainRoot("www.example.XX", DomainType.PRIVATE, true));
-        Assertions.assertEquals("xx", matcher.getDomainRoot("www.blah.blah.example.XX", DomainType.PRIVATE, true));
-        Assertions.assertEquals("appspot.com", matcher.getDomainRoot("example.appspot.com", true));
     }
 
     @Test
@@ -156,7 +130,6 @@ class TestPublicSuffixMatcher {
         Assertions.assertNull(matcher.getDomainRoot("*.garbage.garbage", DomainType.ICANN));
         Assertions.assertNull(matcher.getDomainRoot("*.garbage.garbage.garbage", DomainType.ICANN));
     }
-
 
     @Test
     void testMatch() {
