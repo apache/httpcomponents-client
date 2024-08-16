@@ -34,6 +34,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -210,8 +211,25 @@ class TestDefaultHostnameVerifier {
     }
 
     @Test
-    void testDomainRootMatching() {
+    void testParseFQDN() {
+        Assertions.assertEquals(Arrays.asList("blah"),
+                DefaultHostnameVerifier.parseFQDN("blah"));
+        Assertions.assertEquals(Arrays.asList("blah", "blah"),
+                DefaultHostnameVerifier.parseFQDN("blah.blah"));
+        Assertions.assertEquals(Arrays.asList("blah", "blah", "blah"),
+                DefaultHostnameVerifier.parseFQDN("blah.blah.blah"));
+        Assertions.assertEquals(Arrays.asList("", "", "blah", ""),
+                DefaultHostnameVerifier.parseFQDN(".blah.."));
+        Assertions.assertEquals(Arrays.asList(""),
+                DefaultHostnameVerifier.parseFQDN(""));
+        Assertions.assertEquals(Arrays.asList("", ""),
+                DefaultHostnameVerifier.parseFQDN("."));
+        Assertions.assertEquals(Arrays.asList("com", "domain", "host"),
+                DefaultHostnameVerifier.parseFQDN("host.domain.com"));
+    }
 
+    @Test
+    void testDomainRootMatching() {
         Assertions.assertFalse(DefaultHostnameVerifier.matchDomainRoot("a.b.c", null));
         Assertions.assertTrue(DefaultHostnameVerifier.matchDomainRoot("a.b.c", "a.b.c"));
         Assertions.assertFalse(DefaultHostnameVerifier.matchDomainRoot("aa.b.c", "a.b.c"));
