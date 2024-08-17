@@ -201,7 +201,7 @@ public final class ByteArrayBuilder {
 
     @Override
     public String toString() {
-        return this.buffer != null ? this.buffer.toString() : "null";
+        return String.valueOf(this.buffer);
     }
 
 }
