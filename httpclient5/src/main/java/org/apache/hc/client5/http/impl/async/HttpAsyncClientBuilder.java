@@ -300,7 +300,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link AsyncClientConnectionManager} instance.
+     * Sets {@link AsyncClientConnectionManager} instance.
      *
      * @return this instance.
      */
@@ -371,7 +371,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link ConnectionReuseStrategy} instance.
+     * Sets {@link ConnectionReuseStrategy} instance.
      * <p>
      * Please note this strategy applies to HTTP/1.0 and HTTP/1.1 connections only
      * </p>
@@ -384,7 +384,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link ConnectionKeepAliveStrategy} instance.
+     * Sets {@link ConnectionKeepAliveStrategy} instance.
      *
      * @return this instance.
      */
@@ -394,7 +394,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link UserTokenHandler} instance.
+     * Sets {@link UserTokenHandler} instance.
      * <p>
      * Please note this value can be overridden by the {@link #disableConnectionState()}
      * method.
@@ -408,7 +408,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link AuthenticationStrategy} instance for target
+     * Sets {@link AuthenticationStrategy} instance for target
      * host authentication.
      *
      * @return this instance.
@@ -420,7 +420,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link AuthenticationStrategy} instance for proxy
+     * Sets {@link AuthenticationStrategy} instance for proxy
      * authentication.
      *
      * @return this instance.
@@ -576,7 +576,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link HttpRequestRetryStrategy} instance.
+     * Sets {@link HttpRequestRetryStrategy} instance.
      * <p>
      * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
      * method.
@@ -590,7 +590,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link RedirectStrategy} instance.
+     * Sets {@link RedirectStrategy} instance.
      * <p>
      * Please note this value can be overridden by the {@link #disableRedirectHandling()}
      * method.
@@ -604,7 +604,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link SchemePortResolver} instance.
+     * Sets {@link SchemePortResolver} instance.
      *
      * @return this instance.
      */
@@ -614,7 +614,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link ThreadFactory} instance.
+     * Sets {@link ThreadFactory} instance.
      *
      * @return this instance.
      */
@@ -624,7 +624,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns {@code User-Agent} value.
+     * Sets {@code User-Agent} value.
      *
      * @return this instance.
      */
@@ -634,7 +634,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns default request header values.
+     * Sets default request header values.
      *
      * @return this instance.
      */
@@ -658,7 +658,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns default proxy value.
+     * Sets default proxy value.
      * <p>
      * Please note this value can be overridden by the {@link #setRoutePlanner(
      *   HttpRoutePlanner)} method.
@@ -671,7 +671,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link HttpRoutePlanner} instance.
+     * Sets {@link HttpRoutePlanner} instance.
      *
      * @return this instance.
      */
@@ -681,7 +681,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link CredentialsProvider} instance which will be used
+     * Sets default {@link CredentialsProvider} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
      *
@@ -693,7 +693,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link org.apache.hc.client5.http.auth.AuthScheme} registry which will
+     * Sets default {@link org.apache.hc.client5.http.auth.AuthScheme} registry which will
      * be used for request execution if not explicitly set in the client execution
      * context.
      *
@@ -705,7 +705,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link org.apache.hc.client5.http.cookie.CookieSpec} registry
+     * Sets default {@link org.apache.hc.client5.http.cookie.CookieSpec} registry
      * which will be used for request execution if not explicitly set in the client
      * execution context.
      *
@@ -717,7 +717,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link CookieStore} instance which will be used for
+     * Sets default {@link CookieStore} instance which will be used for
      * request execution if not explicitly set in the client execution context.
      *
      * @return this instance.
@@ -728,7 +728,7 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link RequestConfig} instance which will be used
+     * Sets default {@link RequestConfig} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
      *

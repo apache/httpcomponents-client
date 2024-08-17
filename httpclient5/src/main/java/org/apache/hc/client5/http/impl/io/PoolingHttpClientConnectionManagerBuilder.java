@@ -102,7 +102,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link HttpConnectionFactory} instance.
+     * Sets {@link HttpConnectionFactory} instance.
      *
      * @return this instance.
      */
@@ -113,7 +113,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory} instance.
+     * Sets {@link org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory} instance.
      *
      * @return this instance.
      * @deprecated Use {@link #setTlsSocketStrategy(TlsSocketStrategy)}
@@ -127,7 +127,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link TlsSocketStrategy} instance.
+     * Sets {@link TlsSocketStrategy} instance.
      *
      * @return this instance.
      */
@@ -137,7 +137,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link DnsResolver} instance.
+     * Sets {@link DnsResolver} instance.
      *
      * @return this instance.
      */
@@ -147,7 +147,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link SchemePortResolver} instance.
+     * Sets {@link SchemePortResolver} instance.
      *
      * @return this instance.
      */
@@ -157,7 +157,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link PoolConcurrencyPolicy} value.
+     * Sets {@link PoolConcurrencyPolicy} value.
      *
      * @return this instance.
      */
@@ -167,7 +167,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link PoolReusePolicy} value.
+     * Sets {@link PoolReusePolicy} value.
      *
      * @return this instance.
      */
@@ -177,7 +177,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns maximum total connection value.
+     * Sets maximum total connection value.
      *
      * @return this instance.
      */
@@ -187,7 +187,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns maximum connection per route value.
+     * Sets maximum connection per route value.
      *
      * @return this instance.
      */
@@ -197,7 +197,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns the same {@link SocketConfig} for all routes.
+     * Sets the same {@link SocketConfig} for all routes.
      *
      * @return this instance.
      */
@@ -207,7 +207,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link Resolver} of {@link SocketConfig} on a per route basis.
+     * Sets {@link Resolver} of {@link SocketConfig} on a per route basis.
      *
      * @return this instance.
      * @since 5.2
@@ -219,7 +219,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns the same {@link ConnectionConfig} for all routes.
+     * Sets the same {@link ConnectionConfig} for all routes.
      *
      * @return this instance.
      * @since 5.2
@@ -230,7 +230,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link Resolver} of {@link ConnectionConfig} on a per route basis.
+     * Sets {@link Resolver} of {@link ConnectionConfig} on a per route basis.
      *
      * @return this instance.
      * @since 5.2
@@ -242,7 +242,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns the same {@link TlsConfig} for all hosts.
+     * Sets the same {@link TlsConfig} for all hosts.
      *
      * @return this instance.
      * @since 5.2
@@ -253,7 +253,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link Resolver} of {@link TlsConfig} on a per host basis.
+     * Sets {@link Resolver} of {@link TlsConfig} on a per host basis.
      *
      * @return this instance.
      * @since 5.2

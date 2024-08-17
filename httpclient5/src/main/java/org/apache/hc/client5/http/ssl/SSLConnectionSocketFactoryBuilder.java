@@ -73,7 +73,7 @@ public class SSLConnectionSocketFactoryBuilder {
     private boolean systemProperties;
 
     /**
-     * Assigns {@link SSLContext} instance.
+     * Sets {@link SSLContext} instance.
      *
      * @return this instance.
      */
@@ -83,7 +83,7 @@ public class SSLConnectionSocketFactoryBuilder {
     }
 
     /**
-     * Assigns enabled {@code TLS} versions.
+     * Sets enabled {@code TLS} versions.
      *
      * @return this instance.
      */
@@ -93,7 +93,7 @@ public class SSLConnectionSocketFactoryBuilder {
     }
 
     /**
-     * Assigns enabled {@code TLS} versions.
+     * Sets enabled {@code TLS} versions.
      *
      * @return this instance.
      */
@@ -106,7 +106,7 @@ public class SSLConnectionSocketFactoryBuilder {
     }
 
     /**
-     * Assigns enabled ciphers.
+     * Sets enabled ciphers.
      *
      * @return this instance.
      */
@@ -117,7 +117,7 @@ public class SSLConnectionSocketFactoryBuilder {
 
 
     /**
-     * Assigns {@link HostnameVerifier} instance.
+     * Sets {@link HostnameVerifier} instance.
      *
      * @return this instance.
      */

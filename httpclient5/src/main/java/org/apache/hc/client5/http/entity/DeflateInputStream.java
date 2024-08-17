@@ -34,7 +34,7 @@ import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipException;
 
 /**
- * Deflate input stream.    This class includes logic needed for various Rfc's in order
+ * Deflate input stream. This class includes logic needed for various Rfc's in order
  * to reasonably implement the "deflate" compression style.
  */
 public class DeflateInputStream extends InputStream {

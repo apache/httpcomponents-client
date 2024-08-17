@@ -79,7 +79,7 @@ public class ClientTlsStrategyBuilder {
     private boolean systemProperties;
 
     /**
-     * Assigns {@link SSLContext} instance.
+     * Sets {@link SSLContext} instance.
      *
      * @return this instance.
      */
@@ -89,7 +89,7 @@ public class ClientTlsStrategyBuilder {
     }
 
     /**
-     * Assigns enabled {@code TLS} versions.
+     * Sets enabled {@code TLS} versions.
      *
      * @return this instance.
      */
@@ -99,7 +99,7 @@ public class ClientTlsStrategyBuilder {
     }
 
     /**
-     * Assigns enabled {@code TLS} versions.
+     * Sets enabled {@code TLS} versions.
      *
      * @return this instance.
      */
@@ -112,7 +112,7 @@ public class ClientTlsStrategyBuilder {
     }
 
     /**
-     * Assigns enabled ciphers.
+     * Sets enabled ciphers.
      *
      * @return this instance.
      */
@@ -122,7 +122,7 @@ public class ClientTlsStrategyBuilder {
     }
 
     /**
-     * Assigns {@link SSLBufferMode} value.
+     * Sets {@link SSLBufferMode} value.
      *
      * @return this instance.
      */
@@ -132,14 +132,14 @@ public class ClientTlsStrategyBuilder {
     }
 
     /**
-     * Assigns {@link HostnameVerificationPolicy} value.
+     * Sets {@link HostnameVerificationPolicy} value.
      */
     public void setHostnameVerificationPolicy(final HostnameVerificationPolicy hostnameVerificationPolicy) {
         this.hostnameVerificationPolicy = hostnameVerificationPolicy;
     }
 
     /**
-     * Assigns {@link HostnameVerifier} instance.
+     * Sets {@link HostnameVerifier} instance.
      *
      * @return this instance.
      */
@@ -149,7 +149,7 @@ public class ClientTlsStrategyBuilder {
     }
 
     /**
-     * Assigns {@link TlsDetails} {@link Factory} instance.
+     * Sets {@link TlsDetails} {@link Factory} instance.
      *
      * @return this instance.
      * @deprecated Do not use. This method has no effect.

@@ -265,7 +265,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link AuthenticationStrategy} instance for target
+     * Sets {@link AuthenticationStrategy} instance for target
      * host authentication.
      *
      * @return this instance.
@@ -277,7 +277,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link AuthenticationStrategy} instance for proxy
+     * Sets {@link AuthenticationStrategy} instance for proxy
      * authentication.
      *
      * @return this instance.
@@ -445,7 +445,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link HttpRequestRetryStrategy} instance.
+     * Sets {@link HttpRequestRetryStrategy} instance.
      * <p>
      * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
      * method.
@@ -459,7 +459,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link RedirectStrategy} instance.
+     * Sets {@link RedirectStrategy} instance.
      * <p>
      * Please note this value can be overridden by the {@link #disableRedirectHandling()}
      * method.
@@ -473,7 +473,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link SchemePortResolver} instance.
+     * Sets {@link SchemePortResolver} instance.
      *
      * @return this instance.
      */
@@ -483,7 +483,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link DnsResolver} instance.
+     * Sets {@link DnsResolver} instance.
      *
      * @return this instance.
      */
@@ -493,7 +493,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link TlsStrategy} instance.
+     * Sets {@link TlsStrategy} instance.
      *
      * @return this instance.
      */
@@ -503,7 +503,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link ThreadFactory} instance.
+     * Sets {@link ThreadFactory} instance.
      *
      * @return this instance.
      */
@@ -513,7 +513,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@code User-Agent} value.
+     * Sets {@code User-Agent} value.
      *
      * @return this instance.
      */
@@ -523,7 +523,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns default request header values.
+     * Sets default request header values.
      *
      * @return this instance.
      */
@@ -533,7 +533,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link HttpRoutePlanner} instance.
+     * Sets {@link HttpRoutePlanner} instance.
      *
      * @return this instance.
      */
@@ -543,7 +543,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link CredentialsProvider} instance which will be used
+     * Sets default {@link CredentialsProvider} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
      *
@@ -555,7 +555,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link org.apache.hc.client5.http.auth.AuthScheme} registry which will
+     * Sets default {@link org.apache.hc.client5.http.auth.AuthScheme} registry which will
      * be used for request execution if not explicitly set in the client execution
      * context.
      *
@@ -567,7 +567,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link org.apache.hc.client5.http.cookie.CookieSpec} registry
+     * Sets default {@link org.apache.hc.client5.http.cookie.CookieSpec} registry
      * which will be used for request execution if not explicitly set in the client
      * execution context.
      *
@@ -579,7 +579,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link CookieStore} instance which will be used for
+     * Sets default {@link CookieStore} instance which will be used for
      * request execution if not explicitly set in the client execution context.
      *
      * @return this instance.
@@ -590,7 +590,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link RequestConfig} instance which will be used
+     * Sets default {@link RequestConfig} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
      *
@@ -602,7 +602,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link Resolver} for {@link ConnectionConfig} on a per host basis.
+     * Sets {@link Resolver} for {@link ConnectionConfig} on a per host basis.
      *
      * @return this instance.
      * @since 5.2
@@ -613,7 +613,7 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns the same {@link ConnectionConfig} for all hosts.
+     * Sets the same {@link ConnectionConfig} for all hosts.
      *
      * @return this instance.
      * @since 5.2

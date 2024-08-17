@@ -98,7 +98,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link TlsStrategy} instance for TLS connections.
+     * Sets {@link TlsStrategy} instance for TLS connections.
      *
      * @return this instance.
      */
@@ -109,7 +109,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link DnsResolver} instance.
+     * Sets {@link DnsResolver} instance.
      *
      * @return this instance.
      */
@@ -119,7 +119,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link SchemePortResolver} instance.
+     * Sets {@link SchemePortResolver} instance.
      *
      * @return this instance.
      */
@@ -129,7 +129,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link PoolConcurrencyPolicy} value.
+     * Sets {@link PoolConcurrencyPolicy} value.
      *
      * @return this instance.
      */
@@ -139,7 +139,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link PoolReusePolicy} value.
+     * Sets {@link PoolReusePolicy} value.
      *
      * @return this instance.
      */
@@ -149,7 +149,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns maximum total connection value.
+     * Sets maximum total connection value.
      *
      * @return this instance.
      */
@@ -159,7 +159,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns maximum connection per route value.
+     * Sets maximum connection per route value.
      *
      * @return this instance.
      */
@@ -169,7 +169,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns the same {@link ConnectionConfig} for all routes.
+     * Sets the same {@link ConnectionConfig} for all routes.
      *
      * @return this instance.
      * @since 5.2
@@ -180,7 +180,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link Resolver} of {@link ConnectionConfig} on a per route basis.
+     * Sets {@link Resolver} of {@link ConnectionConfig} on a per route basis.
      *
      * @return this instance.
      * @since 5.2
@@ -192,7 +192,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns the same {@link TlsConfig} for all hosts.
+     * Sets the same {@link TlsConfig} for all hosts.
      *
      * @return this instance.
      * @since 5.2
@@ -203,7 +203,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link Resolver} of {@link TlsConfig} on a per host basis.
+     * Sets {@link Resolver} of {@link TlsConfig} on a per host basis.
      *
      * @return this instance.
      * @since 5.2

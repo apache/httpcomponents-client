@@ -243,7 +243,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link HttpRequestExecutor} instance.
+     * Sets {@link HttpRequestExecutor} instance.
      *
      * @return this instance.
      */
@@ -253,7 +253,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link HttpClientConnectionManager} instance.
+     * Sets {@link HttpClientConnectionManager} instance.
      *
      * @return this instance.
      */
@@ -285,7 +285,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link ConnectionReuseStrategy} instance.
+     * Sets {@link ConnectionReuseStrategy} instance.
      *
      * @return this instance.
      */
@@ -296,7 +296,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link ConnectionKeepAliveStrategy} instance.
+     * Sets {@link ConnectionKeepAliveStrategy} instance.
      *
      * @return this instance.
      */
@@ -307,7 +307,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link AuthenticationStrategy} instance for target
+     * Sets {@link AuthenticationStrategy} instance for target
      * host authentication.
      *
      * @return this instance.
@@ -319,7 +319,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link AuthenticationStrategy} instance for proxy
+     * Sets {@link AuthenticationStrategy} instance for proxy
      * authentication.
      *
      * @return this instance.
@@ -331,7 +331,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link UserTokenHandler} instance.
+     * Sets {@link UserTokenHandler} instance.
      * <p>
      * Please note this value can be overridden by the {@link #disableConnectionState()}
      * method.
@@ -355,7 +355,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link SchemePortResolver} instance.
+     * Sets {@link SchemePortResolver} instance.
      *
      * @return this instance.
      */
@@ -366,7 +366,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@code User-Agent} value.
+     * Sets {@code User-Agent} value.
      *
      * @return this instance.
      */
@@ -376,7 +376,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns default request header values.
+     * Sets default request header values.
      *
      * @return this instance.
      */
@@ -549,7 +549,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link HttpRequestRetryStrategy} instance.
+     * Sets {@link HttpRequestRetryStrategy} instance.
      * <p>
      * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
      * method.
@@ -573,7 +573,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns default proxy value.
+     * Sets default proxy value.
      * <p>
      * Please note this value can be overridden by the {@link #setRoutePlanner(
      *   org.apache.hc.client5.http.routing.HttpRoutePlanner)} method.
@@ -587,7 +587,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link HttpRoutePlanner} instance.
+     * Sets {@link HttpRoutePlanner} instance.
      */
     public final HttpClientBuilder setRoutePlanner(final HttpRoutePlanner routePlanner) {
         this.routePlanner = routePlanner;
@@ -595,7 +595,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link RedirectStrategy} instance.
+     * Sets {@link RedirectStrategy} instance.
      * <p>
      * Please note this value can be overridden by the {@link #disableRedirectHandling()}
      * method.
@@ -619,7 +619,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link ConnectionBackoffStrategy} instance.
+     * Sets {@link ConnectionBackoffStrategy} instance.
      *
      * @return this instance.
      */
@@ -630,7 +630,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link BackoffManager} instance.
+     * Sets {@link BackoffManager} instance.
      *
      * @return this instance.
      */
@@ -640,7 +640,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns default {@link CookieStore} instance which will be used for
+     * Sets default {@link CookieStore} instance which will be used for
      * request execution if not explicitly set in the client execution context.
      *
      * @return this instance.
@@ -651,7 +651,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns default {@link CredentialsProvider} instance which will be used
+     * Sets default {@link CredentialsProvider} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
      *
@@ -664,7 +664,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns default {@link org.apache.hc.client5.http.auth.AuthScheme} registry which will
+     * Sets default {@link org.apache.hc.client5.http.auth.AuthScheme} registry which will
      * be used for request execution if not explicitly set in the client execution
      * context.
      *
@@ -677,7 +677,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns default {@link org.apache.hc.client5.http.cookie.CookieSpec} registry which will
+     * Sets default {@link org.apache.hc.client5.http.cookie.CookieSpec} registry which will
      * be used for request execution if not explicitly set in the client execution
      * context.
      *
@@ -692,7 +692,7 @@ public class HttpClientBuilder {
 
 
     /**
-     * Assigns a map of {@link org.apache.hc.client5.http.entity.InputStreamFactory}s
+     * Sets a map of {@link org.apache.hc.client5.http.entity.InputStreamFactory}s
      * to be used for automatic content decompression.
      *
      * @return this instance.
@@ -704,7 +704,7 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns default {@link RequestConfig} instance which will be used
+     * Sets default {@link RequestConfig} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
      *
