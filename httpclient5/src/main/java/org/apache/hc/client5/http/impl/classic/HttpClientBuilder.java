@@ -244,6 +244,8 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link HttpRequestExecutor} instance.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setRequestExecutor(final HttpRequestExecutor requestExec) {
         this.requestExec = requestExec;
@@ -252,6 +254,8 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link HttpClientConnectionManager} instance.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setConnectionManager(
             final HttpClientConnectionManager connManager) {
@@ -270,6 +274,7 @@ public class HttpClientBuilder {
      *
      * @param shared defines whether or not the connection manager can be shared
      *  by multiple clients.
+     * @return this instance.
      *
      * @since 4.4
      */
@@ -281,6 +286,8 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link ConnectionReuseStrategy} instance.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setConnectionReuseStrategy(
             final ConnectionReuseStrategy reuseStrategy) {
@@ -290,6 +297,8 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link ConnectionKeepAliveStrategy} instance.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setKeepAliveStrategy(
             final ConnectionKeepAliveStrategy keepAliveStrategy) {
@@ -300,6 +309,8 @@ public class HttpClientBuilder {
     /**
      * Assigns {@link AuthenticationStrategy} instance for target
      * host authentication.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setTargetAuthenticationStrategy(
             final AuthenticationStrategy targetAuthStrategy) {
@@ -310,6 +321,8 @@ public class HttpClientBuilder {
     /**
      * Assigns {@link AuthenticationStrategy} instance for proxy
      * authentication.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setProxyAuthenticationStrategy(
             final AuthenticationStrategy proxyAuthStrategy) {
@@ -323,6 +336,8 @@ public class HttpClientBuilder {
      * Please note this value can be overridden by the {@link #disableConnectionState()}
      * method.
      * </p>
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setUserTokenHandler(final UserTokenHandler userTokenHandler) {
         this.userTokenHandler = userTokenHandler;
@@ -331,6 +346,8 @@ public class HttpClientBuilder {
 
     /**
      * Disables connection state tracking.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder disableConnectionState() {
         connectionStateDisabled = true;
@@ -339,6 +356,8 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link SchemePortResolver} instance.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setSchemePortResolver(
             final SchemePortResolver schemePortResolver) {
@@ -348,6 +367,8 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@code User-Agent} value.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setUserAgent(final String userAgent) {
         this.userAgent = userAgent;
@@ -356,6 +377,8 @@ public class HttpClientBuilder {
 
     /**
      * Assigns default request header values.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setDefaultHeaders(final Collection<? extends Header> defaultHeaders) {
         this.defaultHeaders = defaultHeaders;
@@ -364,6 +387,8 @@ public class HttpClientBuilder {
 
     /**
      * Adds this protocol interceptor to the head of the protocol processing list.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder addResponseInterceptorFirst(final HttpResponseInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
@@ -376,6 +401,8 @@ public class HttpClientBuilder {
 
     /**
      * Adds this protocol interceptor to the tail of the protocol processing list.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder addResponseInterceptorLast(final HttpResponseInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
@@ -388,6 +415,8 @@ public class HttpClientBuilder {
 
     /**
      * Adds this protocol interceptor to the head of the protocol processing list.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder addRequestInterceptorFirst(final HttpRequestInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
@@ -400,6 +429,8 @@ public class HttpClientBuilder {
 
     /**
      * Adds this protocol interceptor to the tail of the protocol processing list.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder addRequestInterceptorLast(final HttpRequestInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
@@ -412,6 +443,8 @@ public class HttpClientBuilder {
 
     /**
      * Adds this execution interceptor before an existing interceptor.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder addExecInterceptorBefore(final String existing, final String name, final ExecChainHandler interceptor) {
         Args.notBlank(existing, "Existing");
@@ -426,6 +459,8 @@ public class HttpClientBuilder {
 
     /**
      * Adds this execution interceptor after interceptor with the given name.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder addExecInterceptorAfter(final String existing, final String name, final ExecChainHandler interceptor) {
         Args.notBlank(existing, "Existing");
@@ -440,6 +475,8 @@ public class HttpClientBuilder {
 
     /**
      * Replace an existing interceptor with the given name with new interceptor.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder replaceExecInterceptor(final String existing, final ExecChainHandler interceptor) {
         Args.notBlank(existing, "Existing");
@@ -453,6 +490,8 @@ public class HttpClientBuilder {
 
     /**
      * Add an interceptor to the head of the processing list.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder addExecInterceptorFirst(final String name, final ExecChainHandler interceptor) {
         Args.notNull(name, "Name");
@@ -466,6 +505,8 @@ public class HttpClientBuilder {
 
     /**
      * Add an interceptor to the tail of the processing list.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder addExecInterceptorLast(final String name, final ExecChainHandler interceptor) {
         Args.notNull(name, "Name");
@@ -479,6 +520,8 @@ public class HttpClientBuilder {
 
     /**
      * Disables state (cookie) management.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder disableCookieManagement() {
         this.cookieManagementDisabled = true;
@@ -487,6 +530,8 @@ public class HttpClientBuilder {
 
     /**
      * Disables automatic content decompression.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder disableContentCompression() {
         contentCompressionDisabled = true;
@@ -495,6 +540,8 @@ public class HttpClientBuilder {
 
     /**
      * Disables authentication scheme caching.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder disableAuthCaching() {
         this.authCachingDisabled = true;
@@ -506,6 +553,9 @@ public class HttpClientBuilder {
      * <p>
      * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
      * method.
+     * </p>
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setRetryStrategy(final HttpRequestRetryStrategy retryStrategy) {
         this.retryStrategy = retryStrategy;
@@ -514,6 +564,8 @@ public class HttpClientBuilder {
 
     /**
      * Disables automatic request recovery and re-execution.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder disableAutomaticRetries() {
         automaticRetriesDisabled = true;
@@ -525,6 +577,9 @@ public class HttpClientBuilder {
      * <p>
      * Please note this value can be overridden by the {@link #setRoutePlanner(
      *   org.apache.hc.client5.http.routing.HttpRoutePlanner)} method.
+     * </p>
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setProxy(final HttpHost proxy) {
         this.proxy = proxy;
@@ -545,7 +600,9 @@ public class HttpClientBuilder {
      * Please note this value can be overridden by the {@link #disableRedirectHandling()}
      * method.
      * </p>
-`     */
+     *
+     * @return this instance.
+     */
     public final HttpClientBuilder setRedirectStrategy(final RedirectStrategy redirectStrategy) {
         this.redirectStrategy = redirectStrategy;
         return this;
@@ -553,6 +610,8 @@ public class HttpClientBuilder {
 
     /**
      * Disables automatic redirect handling.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder disableRedirectHandling() {
         redirectHandlingDisabled = true;
@@ -561,6 +620,8 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link ConnectionBackoffStrategy} instance.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setConnectionBackoffStrategy(
             final ConnectionBackoffStrategy connectionBackoffStrategy) {
@@ -570,6 +631,8 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link BackoffManager} instance.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setBackoffManager(final BackoffManager backoffManager) {
         this.backoffManager = backoffManager;
@@ -579,6 +642,8 @@ public class HttpClientBuilder {
     /**
      * Assigns default {@link CookieStore} instance which will be used for
      * request execution if not explicitly set in the client execution context.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setDefaultCookieStore(final CookieStore cookieStore) {
         this.cookieStore = cookieStore;
@@ -589,6 +654,8 @@ public class HttpClientBuilder {
      * Assigns default {@link CredentialsProvider} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setDefaultCredentialsProvider(
             final CredentialsProvider credentialsProvider) {
@@ -600,6 +667,8 @@ public class HttpClientBuilder {
      * Assigns default {@link org.apache.hc.client5.http.auth.AuthScheme} registry which will
      * be used for request execution if not explicitly set in the client execution
      * context.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setDefaultAuthSchemeRegistry(
             final Lookup<AuthSchemeFactory> authSchemeRegistry) {
@@ -612,8 +681,8 @@ public class HttpClientBuilder {
      * be used for request execution if not explicitly set in the client execution
      * context.
      *
+     * @return this instance.
      * @see CookieSpecSupport
-     *
      */
     public final HttpClientBuilder setDefaultCookieSpecRegistry(
             final Lookup<CookieSpecFactory> cookieSpecRegistry) {
@@ -625,6 +694,8 @@ public class HttpClientBuilder {
     /**
      * Assigns a map of {@link org.apache.hc.client5.http.entity.InputStreamFactory}s
      * to be used for automatic content decompression.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setContentDecoderRegistry(
             final LinkedHashMap<String, InputStreamFactory> contentDecoderMap) {
@@ -636,6 +707,8 @@ public class HttpClientBuilder {
      * Assigns default {@link RequestConfig} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder setDefaultRequestConfig(final RequestConfig config) {
         this.defaultRequestConfig = config;
@@ -645,6 +718,8 @@ public class HttpClientBuilder {
     /**
      * Use system properties when creating and configuring default
      * implementations.
+     *
+     * @return this instance.
      */
     public final HttpClientBuilder useSystemProperties() {
         this.systemProperties = true;
@@ -657,10 +732,13 @@ public class HttpClientBuilder {
      * <p>
      * One MUST explicitly close HttpClient with {@link CloseableHttpClient#close()} in order
      * to stop and release the background thread.
+     * </p>
      * <p>
      * Please note this method has no effect if the instance of HttpClient is configured to
      * use a shared connection manager.
+     * </p>
      *
+     * @return this instance.
      * @see #setConnectionManagerShared(boolean)
      * @see ConnPoolControl#closeExpired()
      *
@@ -677,9 +755,11 @@ public class HttpClientBuilder {
      * <p>
      * One MUST explicitly close HttpClient with {@link CloseableHttpClient#close()} in order
      * to stop and release the background thread.
+     * </p>
      * <p>
      * Please note this method has no effect if the instance of HttpClient is configured to
      * use a shared connection manager.
+     * </p>
      *
      * @see #setConnectionManagerShared(boolean)
      * @see ConnPoolControl#closeIdle(TimeValue)
@@ -688,6 +768,7 @@ public class HttpClientBuilder {
      * in the connection pool. Connections whose inactivity period exceeds this value will
      * get closed and evicted from the pool.
      *
+     * @return this instance.
      * @since 4.4
      */
     public final HttpClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {
@@ -699,6 +780,7 @@ public class HttpClientBuilder {
     /**
      * Disables the default user agent set by this builder if none has been provided by the user.
      *
+     * @return this instance.
      * @since 4.5.7
      */
     public final HttpClientBuilder disableDefaultUserAgent() {
@@ -707,13 +789,13 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Sets the {@link java.net.ProxySelector} that will be used to select the proxies
+     * Sets the {@link ProxySelector} that will be used to select the proxies
      * to be used for establishing HTTP connections. If a non-null proxy selector is set,
      * it will take precedence over the proxy settings configured in the client.
      *
-     * @param proxySelector the {@link java.net.ProxySelector} to be used, or null to use
+     * @param proxySelector the {@link ProxySelector} to be used, or null to use
      *                      the default system proxy selector.
-     * @return this {@link HttpClientBuilder} instance, to allow for method chaining.
+     * @return this instance.
      */
     public final HttpClientBuilder setProxySelector(final ProxySelector proxySelector) {
         this.proxySelector = proxySelector;
@@ -724,6 +806,7 @@ public class HttpClientBuilder {
      * Request exec chain customization and extension.
      * <p>
      * For internal use.
+     * </p>
      */
     @Internal
     protected void customizeExecChain(final NamedElementChain<ExecChainHandler> execChainDefinition) {
@@ -733,6 +816,7 @@ public class HttpClientBuilder {
      * Adds to the list of {@link Closeable} resources to be managed by the client.
      * <p>
      * For internal use.
+     * </p>
      */
     @Internal
     protected void addCloseable(final Closeable closeable) {

@@ -99,6 +99,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
 
     /**
      * Assigns {@link TlsStrategy} instance for TLS connections.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder setTlsStrategy(
             final TlsStrategy tlsStrategy) {
@@ -108,6 +110,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
 
     /**
      * Assigns {@link DnsResolver} instance.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder setDnsResolver(final DnsResolver dnsResolver) {
         this.dnsResolver = dnsResolver;
@@ -116,6 +120,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
 
     /**
      * Assigns {@link SchemePortResolver} instance.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder setSchemePortResolver(final SchemePortResolver schemePortResolver) {
         this.schemePortResolver = schemePortResolver;
@@ -124,6 +130,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
 
     /**
      * Assigns {@link PoolConcurrencyPolicy} value.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder setPoolConcurrencyPolicy(final PoolConcurrencyPolicy poolConcurrencyPolicy) {
         this.poolConcurrencyPolicy = poolConcurrencyPolicy;
@@ -132,6 +140,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
 
     /**
      * Assigns {@link PoolReusePolicy} value.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder setConnPoolPolicy(final PoolReusePolicy poolReusePolicy) {
         this.poolReusePolicy = poolReusePolicy;
@@ -140,6 +150,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
 
     /**
      * Assigns maximum total connection value.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder setMaxConnTotal(final int maxConnTotal) {
         this.maxConnTotal = maxConnTotal;
@@ -148,6 +160,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
 
     /**
      * Assigns maximum connection per route value.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder setMaxConnPerRoute(final int maxConnPerRoute) {
         this.maxConnPerRoute = maxConnPerRoute;
@@ -157,6 +171,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     /**
      * Assigns the same {@link ConnectionConfig} for all routes.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final PoolingAsyncClientConnectionManagerBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
@@ -167,6 +182,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     /**
      * Assigns {@link Resolver} of {@link ConnectionConfig} on a per route basis.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final PoolingAsyncClientConnectionManagerBuilder setConnectionConfigResolver(
@@ -178,6 +194,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     /**
      * Assigns the same {@link TlsConfig} for all hosts.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final PoolingAsyncClientConnectionManagerBuilder setDefaultTlsConfig(final TlsConfig config) {
@@ -188,6 +205,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     /**
      * Assigns {@link Resolver} of {@link TlsConfig} on a per host basis.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final PoolingAsyncClientConnectionManagerBuilder setTlsConfigResolver(
@@ -199,6 +217,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     /**
      * Sets maximum time to live for persistent connections
      *
+     * @return this instance.
      * @deprecated Use {@link #setDefaultConnectionConfig(ConnectionConfig)}
      */
     @Deprecated
@@ -213,6 +232,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
      * Sets period after inactivity after which persistent
      * connections must be checked to ensure they are still valid.
      *
+     * @return this instance.
      * @deprecated Use {@link #setConnectionConfigResolver(Resolver)}.
      */
     @Deprecated
@@ -226,6 +246,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     /**
      * Use system properties when creating and configuring default
      * implementations.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder useSystemProperties() {
         this.systemProperties = true;

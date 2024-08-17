@@ -140,6 +140,7 @@ public class ConnectionConfig implements Cloneable {
         }
 
         /**
+         * @return this instance.
          * @see #setSocketTimeout(Timeout)
          */
         public Builder setSocketTimeout(final int soTimeout, final TimeUnit timeUnit) {
@@ -153,7 +154,7 @@ public class ConnectionConfig implements Cloneable {
          * Default: {@code null} (undefined)
          * </p>
          *
-         * @return the default socket timeout value for I/O operations.
+         * @return this instance.
          */
         public Builder setSocketTimeout(final Timeout soTimeout) {
             this.socketTimeout = soTimeout;
@@ -168,6 +169,8 @@ public class ConnectionConfig implements Cloneable {
          * <p>
          * Default: 3 minutes
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setConnectTimeout(final Timeout connectTimeout) {
             this.connectTimeout = connectTimeout;
@@ -175,6 +178,7 @@ public class ConnectionConfig implements Cloneable {
         }
 
         /**
+         * @return this instance.
          * @see #setConnectTimeout(Timeout)
          */
         public Builder setConnectTimeout(final long connectTimeout, final TimeUnit timeUnit) {
@@ -189,6 +193,8 @@ public class ConnectionConfig implements Cloneable {
          * <p>
          * Default: {@code null} (undefined)
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setValidateAfterInactivity(final TimeValue validateAfterInactivity) {
             this.validateAfterInactivity = validateAfterInactivity;
@@ -196,6 +202,7 @@ public class ConnectionConfig implements Cloneable {
         }
 
         /**
+         * @return this instance.
          * @see #setValidateAfterInactivity(TimeValue)
          */
         public Builder setValidateAfterInactivity(final long validateAfterInactivity, final TimeUnit timeUnit) {
@@ -208,6 +215,8 @@ public class ConnectionConfig implements Cloneable {
          * <p>
          * Default: {@code null} (undefined)
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setTimeToLive(final TimeValue timeToLive) {
             this.timeToLive = timeToLive;
@@ -215,6 +224,7 @@ public class ConnectionConfig implements Cloneable {
         }
 
         /**
+         * @return this instance.
          * @see #setTimeToLive(TimeValue)
          */
         public Builder setTimeToLive(final long timeToLive, final TimeUnit timeUnit) {

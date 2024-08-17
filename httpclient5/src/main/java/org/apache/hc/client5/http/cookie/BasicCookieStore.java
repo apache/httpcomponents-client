@@ -130,7 +130,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
 
     /**
      * Removes all of {@link Cookie cookies} in this HTTP state
-     * that have expired by the specified {@link java.util.Date date}.
+     * that have expired by the specified {@link Date date}.
      *
      * @return true if any cookies were purged.
      *

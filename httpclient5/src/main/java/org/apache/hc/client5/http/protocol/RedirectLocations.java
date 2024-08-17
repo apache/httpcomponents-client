@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * This class represents a collection of {@link java.net.URI}s used
+ * This class represents a collection of {@link URI}s used
  * as redirect locations.
  *
  * @since 4.0
@@ -44,6 +44,9 @@ public final class RedirectLocations {
     private final Set<URI> unique;
     private final List<URI> all;
 
+    /**
+     * Constructs a new instance.
+     */
     public RedirectLocations() {
         super();
         this.unique = new HashSet<>();

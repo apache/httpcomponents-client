@@ -331,6 +331,8 @@ public class RequestConfig implements Cloneable {
          * <p>
          * Default: {@code false}
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setExpectContinueEnabled(final boolean expectContinueEnabled) {
             this.expectContinueEnabled = expectContinueEnabled;
@@ -343,6 +345,7 @@ public class RequestConfig implements Cloneable {
          * Default: {@code null}
          * </p>
          *
+         * @return this instance.
          * @deprecated Use {@link org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner}
          * or a custom {@link org.apache.hc.client5.http.routing.HttpRoutePlanner}.
          */
@@ -358,6 +361,8 @@ public class RequestConfig implements Cloneable {
          * <p>
          * Default: {@code null}
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setCookieSpec(final String cookieSpec) {
             this.cookieSpec = cookieSpec;
@@ -369,6 +374,8 @@ public class RequestConfig implements Cloneable {
          * <p>
          * Default: {@code true}
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setRedirectsEnabled(final boolean redirectsEnabled) {
             this.redirectsEnabled = redirectsEnabled;
@@ -382,6 +389,8 @@ public class RequestConfig implements Cloneable {
          * <p>
          * Default: {@code false}
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setCircularRedirectsAllowed(final boolean circularRedirectsAllowed) {
             this.circularRedirectsAllowed = circularRedirectsAllowed;
@@ -394,6 +403,8 @@ public class RequestConfig implements Cloneable {
          * <p>
          * Default: {@code 50}
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setMaxRedirects(final int maxRedirects) {
             this.maxRedirects = maxRedirects;
@@ -405,6 +416,8 @@ public class RequestConfig implements Cloneable {
          * <p>
          * Default: {@code true}
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setAuthenticationEnabled(final boolean authenticationEnabled) {
             this.authenticationEnabled = authenticationEnabled;
@@ -417,6 +430,8 @@ public class RequestConfig implements Cloneable {
          * <p>
          * Default: {@code null}
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setTargetPreferredAuthSchemes(final Collection<String> targetPreferredAuthSchemes) {
             this.targetPreferredAuthSchemes = targetPreferredAuthSchemes;
@@ -429,6 +444,8 @@ public class RequestConfig implements Cloneable {
          * <p>
          * Default: {@code null}
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setProxyPreferredAuthSchemes(final Collection<String> proxyPreferredAuthSchemes) {
             this.proxyPreferredAuthSchemes = proxyPreferredAuthSchemes;
@@ -440,6 +457,8 @@ public class RequestConfig implements Cloneable {
          * <p>
          * Default: 3 minutes.
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setConnectionRequestTimeout(final Timeout connectionRequestTimeout) {
             this.connectionRequestTimeout = connectionRequestTimeout;
@@ -447,6 +466,7 @@ public class RequestConfig implements Cloneable {
         }
 
         /**
+         * @return this instance.
          * @see #setConnectionRequestTimeout(Timeout)
          */
         public Builder setConnectionRequestTimeout(final long connectionRequestTimeout, final TimeUnit timeUnit) {
@@ -465,6 +485,7 @@ public class RequestConfig implements Cloneable {
          * Default: 3 minutes
          * </p>
          *
+         * @return this instance.
          * @deprecated Use {@link ConnectionConfig.Builder#setConnectTimeout(Timeout)}.
          */
         @Deprecated
@@ -476,6 +497,7 @@ public class RequestConfig implements Cloneable {
         /**
          * @see #setConnectTimeout(Timeout)
          *
+         * @return this instance.
          * @deprecated Use {@link ConnectionConfig.Builder#setConnectTimeout(long, TimeUnit)}.
          */
         @Deprecated
@@ -498,6 +520,7 @@ public class RequestConfig implements Cloneable {
          * Default: {@code null}
          * </p>
          *
+         * @return this instance.
          * @since 5.0
          */
         public Builder setResponseTimeout(final Timeout responseTimeout) {
@@ -524,6 +547,7 @@ public class RequestConfig implements Cloneable {
          * Default: 3 minutes
          * </p>
          *
+         * @return this instance.
          * @since 5.0
          */
         public Builder setConnectionKeepAlive(final TimeValue connectionKeepAlive) {
@@ -532,6 +556,7 @@ public class RequestConfig implements Cloneable {
         }
 
         /**
+         * @return this instance.
          * @see #setConnectionKeepAlive(TimeValue)
          */
         public Builder setDefaultKeepAlive(final long defaultKeepAlive, final TimeUnit timeUnit) {
@@ -545,6 +570,7 @@ public class RequestConfig implements Cloneable {
          * Default: {@code true}
          * </p>
          *
+         * @return this instance.
          * @since 4.5
          */
         public Builder setContentCompressionEnabled(final boolean contentCompressionEnabled) {
@@ -577,6 +603,7 @@ public class RequestConfig implements Cloneable {
          * Default: {@code true}
          * </p>
          *
+         * @return this instance.
          * @since 5.0
          */
         public Builder setHardCancellationEnabled(final boolean hardCancellationEnabled) {
@@ -594,6 +621,7 @@ public class RequestConfig implements Cloneable {
          * Default: {@code true}
          * </p>
          *
+         * @return this instance.
          * @since 5.4
          */
         public Builder setProtocolUpgradeEnabled(final boolean protocolUpgradeEnabled) {

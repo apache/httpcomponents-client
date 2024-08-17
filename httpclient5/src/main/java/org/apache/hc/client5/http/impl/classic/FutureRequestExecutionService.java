@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.classic;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -55,7 +56,7 @@ public class FutureRequestExecutionService implements Closeable {
     /**
      * Create a new FutureRequestExecutionService.
      *
-     * @param httpclient
+     * @param httpClient
      *            you should tune your httpclient instance to match your needs. You should
      *            align the max number of connections in the pool and the number of threads
      *            in the executor; it doesn't make sense to have more threads than connections
@@ -63,12 +64,12 @@ public class FutureRequestExecutionService implements Closeable {
      *            blocking on getting a connection from the pool.
      * @param executorService
      *            any executorService will do here. E.g.
-     *            {@link java.util.concurrent.Executors#newFixedThreadPool(int)}
+     *            {@link Executors#newFixedThreadPool(int)}
      */
     public FutureRequestExecutionService(
-            final HttpClient httpclient,
+            final HttpClient httpClient,
             final ExecutorService executorService) {
-        this.httpclient = httpclient;
+        this.httpclient = httpClient;
         this.executorService = executorService;
     }
 

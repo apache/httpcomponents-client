@@ -94,6 +94,7 @@ public class Executor {
     }
 
     /**
+     * @return this instance.
      * @since 4.5
      */
     public Executor use(final CredentialsStore credentialsStore) {
@@ -116,6 +117,7 @@ public class Executor {
     }
 
     /**
+     * @return this instance.
      * @since 4.4
      */
     public Executor auth(final String host, final Credentials credentials) {
@@ -142,6 +144,7 @@ public class Executor {
     }
 
     /**
+     * @return this instance.
      * @since 4.4
      */
     public Executor authPreemptive(final String host) {
@@ -168,6 +171,7 @@ public class Executor {
     }
 
     /**
+     * @return this instance.
      * @since 4.4
      */
     public Executor authPreemptiveProxy(final String proxy) {
@@ -186,6 +190,7 @@ public class Executor {
     }
 
     /**
+     * @return this instance.
      * @deprecated Use {@link #auth(HttpHost, String, char[])}.
      */
     @Deprecated
@@ -204,6 +209,7 @@ public class Executor {
     }
 
     /**
+     * @return this instance.
      * @since 4.5
      */
     public Executor use(final CookieStore cookieStore) {

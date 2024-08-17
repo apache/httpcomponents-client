@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Factory for decorated {@link java.io.InputStream}s.
+ * Factory for decorated {@link InputStream}s.
  *
  * @since 4.4
  */

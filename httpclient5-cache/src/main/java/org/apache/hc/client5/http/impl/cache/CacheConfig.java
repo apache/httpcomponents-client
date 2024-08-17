@@ -357,6 +357,7 @@ public class CacheConfig implements Cloneable {
         /**
          * Specifies the maximum response body size that will be eligible for caching.
          * @param maxObjectSize size in bytes
+         * @return this instance.
          */
         public Builder setMaxObjectSize(final long maxObjectSize) {
             this.maxObjectSize = maxObjectSize;
@@ -365,6 +366,8 @@ public class CacheConfig implements Cloneable {
 
         /**
          * Sets the maximum number of cache entries the cache will retain.
+         *
+         * @return this instance.
          */
         public Builder setMaxCacheEntries(final int maxCacheEntries) {
             this.maxCacheEntries = maxCacheEntries;
@@ -373,6 +376,8 @@ public class CacheConfig implements Cloneable {
 
         /**
          * Sets the number of times to retry a cache processChallenge on failure
+         *
+         * @return this instance.
          */
         public Builder setMaxUpdateRetries(final int maxUpdateRetries) {
             this.maxUpdateRetries = maxUpdateRetries;
@@ -380,6 +385,7 @@ public class CacheConfig implements Cloneable {
         }
 
         /**
+         * @return this instance.
          * @deprecated Has no effect. Do not use.
          */
         @Deprecated
@@ -388,6 +394,7 @@ public class CacheConfig implements Cloneable {
         }
 
         /**
+         * @return this instance.
          * @deprecated No longer applicable. Do not use.
          */
         @Deprecated
@@ -399,6 +406,7 @@ public class CacheConfig implements Cloneable {
          * Enables or disables heuristic caching.
          * @param heuristicCachingEnabled should be {@code true} to
          *   permit heuristic caching, {@code false} to enable it.
+         * @return this instance.
          */
         public Builder setHeuristicCachingEnabled(final boolean heuristicCachingEnabled) {
             this.heuristicCachingEnabled = heuristicCachingEnabled;
@@ -412,6 +420,7 @@ public class CacheConfig implements Cloneable {
          * response will be considered heuristically fresh.
          * @param heuristicCoefficient should be between {@code 0.0} and
          *   {@code 1.0}.
+         * @return this instance.
          */
         public Builder setHeuristicCoefficient(final float heuristicCoefficient) {
             this.heuristicCoefficient = heuristicCoefficient;
@@ -427,6 +436,7 @@ public class CacheConfig implements Cloneable {
          * @param heuristicDefaultLifetime is the number to consider a
          *   cache-eligible response fresh in the absence of other information.
          *   Set this to {@code 0} to disable this style of heuristic caching.
+         * @return this instance.
          */
         public Builder setHeuristicDefaultLifetime(final TimeValue heuristicDefaultLifetime) {
             this.heuristicDefaultLifetime = heuristicDefaultLifetime;
@@ -438,6 +448,8 @@ public class CacheConfig implements Cloneable {
          * @param sharedCache true to behave as a shared cache, false to
          * behave as a non-shared (private) cache. To have the cache
          * behave like a browser cache, you want to set this to {@code false}.
+         *
+         * @return this instance.
          */
         public Builder setSharedCache(final boolean sharedCache) {
             this.sharedCache = sharedCache;
@@ -449,6 +461,7 @@ public class CacheConfig implements Cloneable {
          * revalidations due to the {@code stale-while-revalidate} directive.
          * @param asynchronousWorkers number of threads; a value of 0 disables background
          * revalidations.
+         * @return this instance.
          */
         public Builder setAsynchronousWorkers(final int asynchronousWorkers) {
             this.asynchronousWorkers = asynchronousWorkers;
@@ -461,6 +474,7 @@ public class CacheConfig implements Cloneable {
          * string, false to cache if explicit cache headers are found.  Set this to {@code true}
          * to better emulate IE, which also never caches responses, regardless of what caching
          * headers may be present.
+         * @return this instance.
          */
         public Builder setNeverCacheHTTP10ResponsesWithQueryString(
                 final boolean neverCacheHTTP10ResponsesWithQuery) {
@@ -476,10 +490,11 @@ public class CacheConfig implements Cloneable {
          * server and improve performance.
          * <p>
          * By default, the stale-if-error directive is disabled.
+         * </p>
          *
          * @param enabled a boolean value indicating whether the stale-if-error
          *                directive should be enabled.
-         * @return the builder object
+         * @return this instance.
          */
         public Builder setStaleIfErrorEnabled(final boolean enabled) {
             this.staleIfErrorEnabled = enabled;
@@ -495,7 +510,7 @@ public class CacheConfig implements Cloneable {
          * Sets the flag indicating whether HTTP/1.1 responses with a query string should never be cached.
          *
          * @param neverCacheHTTP11ResponsesWithQuery whether to never cache HTTP/1.1 responses with a query string
-         * @return the builder object
+         * @return this instance.
          */
         public Builder setNeverCacheHTTP11ResponsesWithQueryString(
                 final boolean neverCacheHTTP11ResponsesWithQuery) {

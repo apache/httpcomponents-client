@@ -110,7 +110,7 @@ public class EntityBuilder {
      * {@link #setFile(java.io.File)} methods.
      *
      * @param text entity content as a string.
-     * @return this
+     * @return this instance.
      */
     public EntityBuilder setText(final String text) {
         clearContent();
@@ -138,7 +138,7 @@ public class EntityBuilder {
      * {@link #setFile(java.io.File)}.
      *
      * @param binary The new entity content as a byte array.
-     * @return this
+     * @return this instance.
      */
     public EntityBuilder setBinary(final byte[] binary) {
         clearContent();
@@ -166,7 +166,7 @@ public class EntityBuilder {
      * {@link #setFile(java.io.File)}.
      *
      * @param stream The new entity content as an InputStream.
-     * @return this
+     * @return this instance.
      */
     public EntityBuilder setStream(final InputStream stream) {
         clearContent();
@@ -194,7 +194,7 @@ public class EntityBuilder {
      * {@link #setFile(java.io.File)}.
      *
      * @param parameters entity content as a parameter list.
-     * @return this
+     * @return this instance.
      */
     public EntityBuilder setParameters(final List<NameValuePair> parameters) {
         clearContent();
@@ -237,7 +237,7 @@ public class EntityBuilder {
      * {@link #setFile(java.io.File)}.
      *
      * @param serializable entity content as a {@link Serializable}.
-     * @return this
+     * @return this instance.
      */
     public EntityBuilder setSerializable(final Serializable serializable) {
         clearContent();
@@ -265,7 +265,7 @@ public class EntityBuilder {
      * {@link #setSerializable(java.io.Serializable)}.
      *
      * @param file entity content as a {@link File}.
-     * @return this
+     * @return this instance.
      */
     public EntityBuilder setFile(final File file) {
         clearContent();
@@ -286,7 +286,7 @@ public class EntityBuilder {
      * Sets the {@link ContentType} of the entity.
      *
      * @param contentType the {@link ContentType} of the entity, may be null.
-     * @return this
+     * @return this instance.
      */
     public EntityBuilder setContentType(final ContentType contentType) {
         this.contentType = contentType;
@@ -306,7 +306,7 @@ public class EntityBuilder {
      * Sets the content encoding of the entity.
      *
      * @param contentEncoding the content encoding of the entity, may be null.
-     * @return this
+     * @return this instance.
      */
     public EntityBuilder setContentEncoding(final String contentEncoding) {
         this.contentEncoding = contentEncoding;
@@ -324,7 +324,7 @@ public class EntityBuilder {
 
     /**
      * Sets entities to be chunked.
-     * @return this
+     * @return this instance.
      */
     public EntityBuilder chunked() {
         this.chunked = true;
@@ -343,7 +343,7 @@ public class EntityBuilder {
     /**
      * Sets entities to be GZIP compressed.
      *
-     * @return this
+     * @return this instance.
      */
     public EntityBuilder gzipCompressed() {
         this.gzipCompressed = true;

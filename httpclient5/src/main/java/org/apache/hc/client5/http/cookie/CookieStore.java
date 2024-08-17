@@ -56,7 +56,7 @@ public interface CookieStore {
 
     /**
      * Removes all of {@link Cookie}s in this store that have expired by
-     * the specified {@link java.util.Date}.
+     * the specified {@link Date}.
      *
      * @return true if any cookies were purged.
      * @deprecated  Use {@link #clearExpired(Instant)}

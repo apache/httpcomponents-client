@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
+import java.io.Serializable;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -47,7 +48,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Default implementation of {@link AuthCache}. This implements
- * expects {@link org.apache.hc.client5.http.auth.AuthScheme} to be {@link java.io.Serializable}
+ * expects {@link AuthScheme} to be {@link Serializable}
  * in order to be cacheable.
  * <p>
  * Instances of this class are thread safe as of version 4.4.

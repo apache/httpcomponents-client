@@ -103,6 +103,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     /**
      * Assigns {@link HttpConnectionFactory} instance.
+     *
+     * @return this instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder setConnectionFactory(
             final HttpConnectionFactory<ManagedHttpClientConnection> connectionFactory) {
@@ -113,6 +115,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     /**
      * Assigns {@link org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory} instance.
      *
+     * @return this instance.
      * @deprecated Use {@link #setTlsSocketStrategy(TlsSocketStrategy)}
      */
     @Deprecated
@@ -125,6 +128,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     /**
      * Assigns {@link TlsSocketStrategy} instance.
+     *
+     * @return this instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder setTlsSocketStrategy(final TlsSocketStrategy tlsSocketStrategy) {
         this.tlsSocketStrategy = tlsSocketStrategy;
@@ -133,6 +138,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     /**
      * Assigns {@link DnsResolver} instance.
+     *
+     * @return this instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder setDnsResolver(final DnsResolver dnsResolver) {
         this.dnsResolver = dnsResolver;
@@ -141,6 +148,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     /**
      * Assigns {@link SchemePortResolver} instance.
+     *
+     * @return this instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder setSchemePortResolver(final SchemePortResolver schemePortResolver) {
         this.schemePortResolver = schemePortResolver;
@@ -149,6 +158,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     /**
      * Assigns {@link PoolConcurrencyPolicy} value.
+     *
+     * @return this instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder setPoolConcurrencyPolicy(final PoolConcurrencyPolicy poolConcurrencyPolicy) {
         this.poolConcurrencyPolicy = poolConcurrencyPolicy;
@@ -157,6 +168,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     /**
      * Assigns {@link PoolReusePolicy} value.
+     *
+     * @return this instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder setConnPoolPolicy(final PoolReusePolicy poolReusePolicy) {
         this.poolReusePolicy = poolReusePolicy;
@@ -165,6 +178,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     /**
      * Assigns maximum total connection value.
+     *
+     * @return this instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder setMaxConnTotal(final int maxConnTotal) {
         this.maxConnTotal = maxConnTotal;
@@ -173,6 +188,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     /**
      * Assigns maximum connection per route value.
+     *
+     * @return this instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder setMaxConnPerRoute(final int maxConnPerRoute) {
         this.maxConnPerRoute = maxConnPerRoute;
@@ -181,6 +198,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     /**
      * Assigns the same {@link SocketConfig} for all routes.
+     *
+     * @return this instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder setDefaultSocketConfig(final SocketConfig config) {
         this.socketConfigResolver = (route) -> config;
@@ -190,6 +209,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     /**
      * Assigns {@link Resolver} of {@link SocketConfig} on a per route basis.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final PoolingHttpClientConnectionManagerBuilder setSocketConfigResolver(
@@ -201,6 +221,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     /**
      * Assigns the same {@link ConnectionConfig} for all routes.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final PoolingHttpClientConnectionManagerBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
@@ -211,6 +232,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     /**
      * Assigns {@link Resolver} of {@link ConnectionConfig} on a per route basis.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final PoolingHttpClientConnectionManagerBuilder setConnectionConfigResolver(
@@ -222,6 +244,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     /**
      * Assigns the same {@link TlsConfig} for all hosts.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final PoolingHttpClientConnectionManagerBuilder setDefaultTlsConfig(final TlsConfig config) {
@@ -232,6 +255,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     /**
      * Assigns {@link Resolver} of {@link TlsConfig} on a per host basis.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final PoolingHttpClientConnectionManagerBuilder setTlsConfigResolver(
@@ -243,6 +267,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     /**
      * Sets maximum time to live for persistent connections
      *
+     * @return this instance.
      * @deprecated Use {@link #setDefaultConnectionConfig(ConnectionConfig)}.
      */
     @Deprecated
@@ -257,6 +282,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
      * Sets period after inactivity after which persistent
      * connections must be checked to ensure they are still valid.
      *
+     * @return this instance.
      * @deprecated Use {@link #setDefaultConnectionConfig(ConnectionConfig)}.
      */
     @Deprecated
@@ -270,6 +296,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
     /**
      * Use system properties when creating and configuring default
      * implementations.
+     *
+     * @return this instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder useSystemProperties() {
         this.systemProperties = true;

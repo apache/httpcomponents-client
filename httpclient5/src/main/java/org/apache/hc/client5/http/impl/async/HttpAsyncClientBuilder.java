@@ -270,6 +270,7 @@ public class HttpAsyncClientBuilder {
     /**
      * Sets HTTP protocol version policy.
      *
+     * @return this instance.
      * @deprecated Use {@link TlsConfig} and connection manager methods
      */
     @Deprecated
@@ -280,6 +281,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Sets {@link Http1Config} configuration.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setHttp1Config(final Http1Config h1Config) {
         this.h1Config = h1Config;
@@ -288,6 +291,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Sets {@link H2Config} configuration.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setH2Config(final H2Config h2Config) {
         this.h2Config = h2Config;
@@ -296,6 +301,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Assigns {@link AsyncClientConnectionManager} instance.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setConnectionManager(final AsyncClientConnectionManager connManager) {
         this.connManager = connManager;
@@ -309,9 +316,12 @@ public class HttpAsyncClientBuilder {
      * If the connection manager is shared its life-cycle is expected
      * to be managed by the caller and it will not be shut down
      * if the client is closed.
+     * </p>
      *
      * @param shared defines whether or not the connection manager can be shared
      *  by multiple clients.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setConnectionManagerShared(final boolean shared) {
         this.connManagerShared = shared;
@@ -320,6 +330,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Sets {@link IOReactorConfig} configuration.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setIOReactorConfig(final IOReactorConfig ioReactorConfig) {
         this.ioReactorConfig = ioReactorConfig;
@@ -329,6 +341,7 @@ public class HttpAsyncClientBuilder {
     /**
      * Sets {@link IOSessionListener} listener.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final HttpAsyncClientBuilder setIOSessionListener(final IOSessionListener ioSessionListener) {
@@ -339,6 +352,7 @@ public class HttpAsyncClientBuilder {
     /**
      * Sets the callback that will be invoked when the client's IOReactor encounters an uncaught exception.
      *
+     * @return this instance.
      * @since 5.1
      */
     public final HttpAsyncClientBuilder setIoReactorExceptionCallback(final Callback<Exception> ioReactorExceptionCallback) {
@@ -348,6 +362,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Sets {@link CharCodingConfig} configuration.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setCharCodingConfig(final CharCodingConfig charCodingConfig) {
         this.charCodingConfig = charCodingConfig;
@@ -358,6 +374,9 @@ public class HttpAsyncClientBuilder {
      * Assigns {@link ConnectionReuseStrategy} instance.
      * <p>
      * Please note this strategy applies to HTTP/1.0 and HTTP/1.1 connections only
+     * </p>
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setConnectionReuseStrategy(final ConnectionReuseStrategy reuseStrategy) {
         this.reuseStrategy = reuseStrategy;
@@ -366,6 +385,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Assigns {@link ConnectionKeepAliveStrategy} instance.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setKeepAliveStrategy(final ConnectionKeepAliveStrategy keepAliveStrategy) {
         this.keepAliveStrategy = keepAliveStrategy;
@@ -378,6 +399,8 @@ public class HttpAsyncClientBuilder {
      * Please note this value can be overridden by the {@link #disableConnectionState()}
      * method.
      * </p>
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setUserTokenHandler(final UserTokenHandler userTokenHandler) {
         this.userTokenHandler = userTokenHandler;
@@ -387,6 +410,8 @@ public class HttpAsyncClientBuilder {
     /**
      * Assigns {@link AuthenticationStrategy} instance for target
      * host authentication.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setTargetAuthenticationStrategy(
             final AuthenticationStrategy targetAuthStrategy) {
@@ -397,6 +422,8 @@ public class HttpAsyncClientBuilder {
     /**
      * Assigns {@link AuthenticationStrategy} instance for proxy
      * authentication.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setProxyAuthenticationStrategy(
             final AuthenticationStrategy proxyAuthStrategy) {
@@ -407,6 +434,7 @@ public class HttpAsyncClientBuilder {
     /**
      * Sets the {@link IOSession} {@link Decorator} that will be use with the client's IOReactor.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final HttpAsyncClientBuilder setIoSessionDecorator(final Decorator<IOSession> ioSessionDecorator) {
@@ -416,6 +444,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Adds this protocol interceptor to the head of the protocol processing list.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder addResponseInterceptorFirst(final HttpResponseInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
@@ -428,6 +458,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Adds this protocol interceptor to the tail of the protocol processing list.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder addResponseInterceptorLast(final HttpResponseInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
@@ -440,6 +472,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Adds this execution interceptor before an existing interceptor.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder addExecInterceptorBefore(final String existing, final String name, final AsyncExecChainHandler interceptor) {
         Args.notBlank(existing, "Existing");
@@ -454,6 +488,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Adds this execution interceptor after interceptor with the given name.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder addExecInterceptorAfter(final String existing, final String name, final AsyncExecChainHandler interceptor) {
         Args.notBlank(existing, "Existing");
@@ -468,6 +504,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Replace an existing interceptor with the given name with new interceptor.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder replaceExecInterceptor(final String existing, final AsyncExecChainHandler interceptor) {
         Args.notBlank(existing, "Existing");
@@ -481,6 +519,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Add an interceptor to the head of the processing list.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder addExecInterceptorFirst(final String name, final AsyncExecChainHandler interceptor) {
         Args.notNull(name, "Name");
@@ -494,6 +534,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Add an interceptor to the tail of the processing list.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder addExecInterceptorLast(final String name, final AsyncExecChainHandler interceptor) {
         Args.notNull(name, "Name");
@@ -507,6 +549,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Adds this protocol interceptor to the head of the protocol processing list.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder addRequestInterceptorFirst(final HttpRequestInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
@@ -519,6 +563,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Adds this protocol interceptor to the tail of the protocol processing list.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder addRequestInterceptorLast(final HttpRequestInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
@@ -534,6 +580,9 @@ public class HttpAsyncClientBuilder {
      * <p>
      * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
      * method.
+     * </p>
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setRetryStrategy(final HttpRequestRetryStrategy retryStrategy) {
         this.retryStrategy = retryStrategy;
@@ -546,6 +595,8 @@ public class HttpAsyncClientBuilder {
      * Please note this value can be overridden by the {@link #disableRedirectHandling()}
      * method.
      * </p>
+     *
+     * @return this instance.
      */
     public HttpAsyncClientBuilder setRedirectStrategy(final RedirectStrategy redirectStrategy) {
         this.redirectStrategy = redirectStrategy;
@@ -554,6 +605,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Assigns {@link SchemePortResolver} instance.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setSchemePortResolver(final SchemePortResolver schemePortResolver) {
         this.schemePortResolver = schemePortResolver;
@@ -562,6 +615,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Assigns {@link ThreadFactory} instance.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setThreadFactory(final ThreadFactory threadFactory) {
         this.threadFactory = threadFactory;
@@ -570,6 +625,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Assigns {@code User-Agent} value.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setUserAgent(final String userAgent) {
         this.userAgent = userAgent;
@@ -578,6 +635,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Assigns default request header values.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setDefaultHeaders(final Collection<? extends Header> defaultHeaders) {
         this.defaultHeaders = defaultHeaders;
@@ -585,13 +644,13 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Sets the {@link java.net.ProxySelector} that will be used to select the proxies
+     * Sets the {@link ProxySelector} that will be used to select the proxies
      * to be used for establishing HTTP connections. If a non-null proxy selector is set,
      * it will take precedence over the proxy settings configured in the client.
      *
-     * @param proxySelector the {@link java.net.ProxySelector} to be used, or null to use
+     * @param proxySelector the {@link ProxySelector} to be used, or null to use
      *                      the default system proxy selector.
-     * @return this {@link HttpAsyncClientBuilder} instance, to allow for method chaining.
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setProxySelector(final ProxySelector proxySelector) {
         this.proxySelector = proxySelector;
@@ -603,6 +662,8 @@ public class HttpAsyncClientBuilder {
      * <p>
      * Please note this value can be overridden by the {@link #setRoutePlanner(
      *   HttpRoutePlanner)} method.
+     * </p>
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setProxy(final HttpHost proxy) {
         this.proxy = proxy;
@@ -611,6 +672,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Assigns {@link HttpRoutePlanner} instance.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setRoutePlanner(final HttpRoutePlanner routePlanner) {
         this.routePlanner = routePlanner;
@@ -621,6 +684,8 @@ public class HttpAsyncClientBuilder {
      * Assigns default {@link CredentialsProvider} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setDefaultCredentialsProvider(final CredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
@@ -631,6 +696,8 @@ public class HttpAsyncClientBuilder {
      * Assigns default {@link org.apache.hc.client5.http.auth.AuthScheme} registry which will
      * be used for request execution if not explicitly set in the client execution
      * context.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setDefaultAuthSchemeRegistry(final Lookup<AuthSchemeFactory> authSchemeRegistry) {
         this.authSchemeRegistry = authSchemeRegistry;
@@ -641,6 +708,8 @@ public class HttpAsyncClientBuilder {
      * Assigns default {@link org.apache.hc.client5.http.cookie.CookieSpec} registry
      * which will be used for request execution if not explicitly set in the client
      * execution context.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setDefaultCookieSpecRegistry(final Lookup<CookieSpecFactory> cookieSpecRegistry) {
         this.cookieSpecRegistry = cookieSpecRegistry;
@@ -650,6 +719,8 @@ public class HttpAsyncClientBuilder {
     /**
      * Assigns default {@link CookieStore} instance which will be used for
      * request execution if not explicitly set in the client execution context.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setDefaultCookieStore(final CookieStore cookieStore) {
         this.cookieStore = cookieStore;
@@ -660,6 +731,8 @@ public class HttpAsyncClientBuilder {
      * Assigns default {@link RequestConfig} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder setDefaultRequestConfig(final RequestConfig config) {
         this.defaultRequestConfig = config;
@@ -669,6 +742,8 @@ public class HttpAsyncClientBuilder {
     /**
      * Use system properties when creating and configuring default
      * implementations.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder useSystemProperties() {
         this.systemProperties = true;
@@ -677,6 +752,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Disables connection state tracking.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder disableConnectionState() {
         connectionStateDisabled = true;
@@ -685,6 +762,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Disables automatic redirect handling.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder disableRedirectHandling() {
         redirectHandlingDisabled = true;
@@ -693,6 +772,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Disables automatic request recovery and re-execution.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder disableAutomaticRetries() {
         automaticRetriesDisabled = true;
@@ -701,6 +782,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Disables state (cookie) management.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder disableCookieManagement() {
         this.cookieManagementDisabled = true;
@@ -709,6 +792,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Disables authentication scheme caching.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder disableAuthCaching() {
         this.authCachingDisabled = true;
@@ -727,6 +812,8 @@ public class HttpAsyncClientBuilder {
      *
      * @see #setConnectionManagerShared(boolean)
      * @see ConnPoolControl#closeExpired()
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder evictExpiredConnections() {
         evictExpiredConnections = true;
@@ -749,6 +836,8 @@ public class HttpAsyncClientBuilder {
      * @param maxIdleTime maximum time persistent connections can stay idle while kept alive
      * in the connection pool. Connections whose inactivity period exceeds this value will
      * get closed and evicted from the pool.
+     *
+     * @return this instance.
      */
     public final HttpAsyncClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {
         this.evictIdleConnections = true;
@@ -760,6 +849,7 @@ public class HttpAsyncClientBuilder {
      * Request exec chain customization and extension.
      * <p>
      * For internal use.
+     * </p>
      */
     @Internal
     protected void customizeExecChain(final NamedElementChain<AsyncExecChainHandler> execChainDefinition) {
@@ -769,6 +859,7 @@ public class HttpAsyncClientBuilder {
      * Adds to the list of {@link Closeable} resources to be managed by the client.
      * <p>
      * For internal use.
+     * </p>
      */
     @Internal
     protected void addCloseable(final Closeable closeable) {
