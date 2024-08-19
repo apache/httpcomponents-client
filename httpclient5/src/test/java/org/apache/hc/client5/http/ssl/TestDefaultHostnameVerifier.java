@@ -55,7 +55,6 @@ class TestDefaultHostnameVerifier {
 
     private DefaultHostnameVerifier impl;
     private PublicSuffixMatcher publicSuffixMatcher;
-    private DefaultHostnameVerifier implWithPublicSuffixCheck;
 
     private static final String PUBLIC_SUFFIX_MATCHER_SOURCE_FILE = "suffixlistmatcher.txt";
 
@@ -70,8 +69,6 @@ class TestDefaultHostnameVerifier {
         final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(
                 new InputStreamReader(in, StandardCharsets.UTF_8));
         publicSuffixMatcher = new PublicSuffixMatcher(lists);
-
-        implWithPublicSuffixCheck = new DefaultHostnameVerifier(publicSuffixMatcher);
     }
 
     @Test
@@ -146,9 +143,6 @@ class TestDefaultHostnameVerifier {
         impl.verify("*.co.jp", x509);
         impl.verify("foo.co.jp", x509);
         impl.verify("\u82b1\u5b50.co.jp", x509);
-
-        exceptionPlease(implWithPublicSuffixCheck, "foo.co.jp", x509);
-        exceptionPlease(implWithPublicSuffixCheck, "\u82b1\u5b50.co.jp", x509);
 
         in = new ByteArrayInputStream(CertificatesToPlayWith.X509_WILD_FOO_BAR_HANAKO);
         x509 = (X509Certificate) cf.generateCertificate(in);
@@ -246,13 +240,13 @@ class TestDefaultHostnameVerifier {
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("s.a.b.c", "*.b.c"));
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.b.c", "*.b.c")); // subdomain not OK
 
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("a.gov.uk", "*.gov.uk", publicSuffixMatcher));
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("a.gov.uk", "*.gov.uk", publicSuffixMatcher));  // Bad 2TLD
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.gov.uk", "*.gov.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.gov.uk", "*.gov.uk", publicSuffixMatcher));  // Bad 2TLD
 
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("s.a.gov.uk", "*.a.gov.uk", publicSuffixMatcher));
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.uk", "*.a.gov.uk", publicSuffixMatcher));
 
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("s.a.gov.uk", "*.gov.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("s.a.gov.uk", "*.gov.uk", publicSuffixMatcher));
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.uk", "*.gov.uk", publicSuffixMatcher));  // BBad 2TLD/no subdomain allowed
 
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.gov.com", "*.gov.com", publicSuffixMatcher));
@@ -261,8 +255,8 @@ class TestDefaultHostnameVerifier {
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("s.a.gov.com", "*.gov.com", publicSuffixMatcher));
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.com", "*.gov.com", publicSuffixMatcher)); // no subdomain allowed
 
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("a.gov.uk", "a*.gov.uk", publicSuffixMatcher));
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("a.gov.uk", "a*.gov.uk", publicSuffixMatcher)); // Bad 2TLD
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.gov.uk", "a*.gov.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.gov.uk", "a*.gov.uk", publicSuffixMatcher)); // Bad 2TLD
 
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("s.a.gov.uk", "a*.gov.uk", publicSuffixMatcher)); // Bad 2TLD
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.uk", "a*.gov.uk", publicSuffixMatcher)); // Bad 2TLD/no subdomain allowed
@@ -276,8 +270,8 @@ class TestDefaultHostnameVerifier {
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.xxx.uk", "a.b.xxx.uk", publicSuffixMatcher));
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.b.xxx.uk", "a.b.xxx.uk", publicSuffixMatcher));
 
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("a.b.xxx.uk", "*.b.xxx.uk", publicSuffixMatcher));
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("a.b.xxx.uk", "*.b.xxx.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.xxx.uk", "*.b.xxx.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.b.xxx.uk", "*.b.xxx.uk", publicSuffixMatcher));
 
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
@@ -465,10 +459,11 @@ class TestDefaultHostnameVerifier {
                 "host.ec2.compute-1.amazonaws.com",
                 Collections.singletonList(SubjectName.DNS("*.ec2.compute-1.amazonaws.com")),
                 publicSuffixMatcher);
-        DefaultHostnameVerifier.matchDNSName(
-                "ec2.compute-1.amazonaws.com",
-                Collections.singletonList(SubjectName.DNS("ec2.compute-1.amazonaws.com")),
-                publicSuffixMatcher);
+        Assertions.assertThrows(SSLException.class, () ->
+            DefaultHostnameVerifier.matchDNSName(
+                    "ec2.compute-1.amazonaws.com",
+                    Collections.singletonList(SubjectName.DNS("ec2.compute-1.amazonaws.com")),
+                    publicSuffixMatcher));
         Assertions.assertThrows(SSLException.class, () ->
                 DefaultHostnameVerifier.matchDNSName(
                         "ec2.compute-1.amazonaws.com",
