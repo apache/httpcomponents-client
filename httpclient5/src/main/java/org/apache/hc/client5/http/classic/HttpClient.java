@@ -194,6 +194,7 @@ public interface HttpClient {
      * having to manage resource deallocation internally.
      * </p>
      *
+     * @param <T> the type of the value determined by the response.
      * @param request   the request to execute
      * @param responseHandler the response handler
      *
@@ -213,6 +214,7 @@ public interface HttpClient {
      * having to manage resource deallocation internally.
      * </p>
      *
+     * @param <T> the type of the value determined by the response.
      * @param request   the request to execute
      * @param context   the context to use for the execution, or
      *                  {@code null} to use the default context
@@ -237,6 +239,7 @@ public interface HttpClient {
      * having to manage resource deallocation internally.
      * </p>
      *
+     * @param <T> the type of the value determined by the response.
      * @param target    the target host for the request.
      *                  Implementations may accept {@code null}
      *                  if they can still determine a route, for example
@@ -263,6 +266,7 @@ public interface HttpClient {
      * having to manage resource deallocation internally.
      * </p>
      *
+     * @param <T> the type of the value determined by the response.
      * @param target    the target host for the request.
      *                  Implementations may accept {@code null}
      *                  if they can still determine a route, for example

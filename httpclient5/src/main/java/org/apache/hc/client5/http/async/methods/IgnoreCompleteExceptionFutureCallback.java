@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * @param <T> the future result type returned by this callback.
  * @since 5.2
  */
 public class IgnoreCompleteExceptionFutureCallback<T> implements FutureCallback<T> {
