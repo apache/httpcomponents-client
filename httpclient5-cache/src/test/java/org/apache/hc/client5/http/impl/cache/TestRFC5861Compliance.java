@@ -136,8 +136,7 @@ class TestRFC5861Compliance {
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
         final byte[] body101 = HttpTestUtils.makeRandomBytes(101);
-        final ByteArrayInputStream buf = new ByteArrayInputStream(body101);
-        final ConsumableInputStream cis = new ConsumableInputStream(buf);
+        final ByteArrayInputStream cis = Mockito.spy(new ByteArrayInputStream(body101));
         final HttpEntity entity = new InputStreamEntity(cis, 101, null);
         resp2.setEntity(entity);
 
@@ -149,7 +148,7 @@ class TestRFC5861Compliance {
 
         execute(req2);
 
-        assertTrue(cis.wasClosed());
+        Mockito.verify(cis).close();
     }
 
     @Test
