@@ -51,6 +51,8 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.SAFE)
 public final class PublicSuffixMatcherLoader {
 
+    private static final String PUBLIC_SUFFIX_LIST = "org/publicsuffix/list/effective_tld_names.dat";
+
     private static final Logger LOG = LoggerFactory.getLogger(PublicSuffixMatcherLoader.class);
 
     private static final ReentrantLock lock = new ReentrantLock();
@@ -81,9 +83,8 @@ public final class PublicSuffixMatcherLoader {
         if (DEFAULT_INSTANCE == null) {
             lock.lock();
             try {
-                if (DEFAULT_INSTANCE == null){
-                    final URL url = PublicSuffixMatcherLoader.class.getResource(
-                            "/mozilla/public-suffix-list.txt");
+                if (DEFAULT_INSTANCE == null) {
+                    final URL url = PublicSuffixMatcherLoader.class.getResource(PUBLIC_SUFFIX_LIST);
                     if (url != null) {
                         try {
                             DEFAULT_INSTANCE = load(url);

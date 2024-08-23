@@ -108,6 +108,12 @@
             <include>**/*.properties</include>
         </includes>
       </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+            <include>**/*.dat</include>
+        </includes>
+      </resource>
     </resources>
     <plugins>
       <plugin>
@@ -123,8 +129,7 @@
             </goals>
             <configuration>
               <url>https://publicsuffix.org/list/effective_tld_names.dat</url>
-              <outputDirectory>${project.build.outputDirectory}/mozilla</outputDirectory>
-              <outputFileName>public-suffix-list.txt</outputFileName>
+              <outputDirectory>${project.basedir}/src/main/resources/org/publicsuffix/list</outputDirectory>
             </configuration>
           </execution>
         </executions>

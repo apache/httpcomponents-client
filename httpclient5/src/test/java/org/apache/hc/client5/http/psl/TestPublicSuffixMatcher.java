@@ -40,11 +40,17 @@ import org.junit.jupiter.api.Test;
 class TestPublicSuffixMatcher {
 
     private static final String SOURCE_FILE = "suffixlistmatcher.txt";
-    private static final String PUBLIC_SUFFIX_LIST_FILE = "mozilla/public-suffix-list.txt";
+    private static final String PUBLIC_SUFFIX_LIST_FILE = "org/publicsuffix/list/effective_tld_names.dat";
 
     private PublicSuffixMatcher matcher;
     private PublicSuffixMatcher pslMatcher;
 
+    /**
+     * Create a matcher using the public suffix list file provided by publicsuffix.org (Mozilla).
+     *
+     * This test uses a copy of https://publicsuffix.org/list/effective_tld_names.dat in
+     * src/main/resources/org/publicsuffix/list/effective_tld_names.dat
+     */
     @BeforeEach
     void setUp() throws Exception {
         final ClassLoader classLoader = getClass().getClassLoader();
@@ -54,10 +60,8 @@ class TestPublicSuffixMatcher {
             final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(new InputStreamReader(in, StandardCharsets.UTF_8));
             matcher = new PublicSuffixMatcher(lists);
         }
-        // Create a matcher using the public suffix list file provided by Mozilla
-        // Note: the test requires `mvn generate-resources` to have been called to fetch the Mozilla file into
-        // target/classes so that it is on the classpath
         final URL publicSuffixListUrl = classLoader.getResource(PUBLIC_SUFFIX_LIST_FILE);
+        Assertions.assertNotNull(publicSuffixListUrl, PUBLIC_SUFFIX_LIST_FILE);
         pslMatcher = PublicSuffixMatcherLoader.load(publicSuffixListUrl);
     }
 
