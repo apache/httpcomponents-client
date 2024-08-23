@@ -26,26 +26,14 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import org.apache.hc.client5.http.impl.async.MinimalH2AsyncClient;
+import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http2.config.H2Config;
-import org.apache.hc.core5.testing.nio.H2TestServer;
 
-public abstract class TestH2ReactiveMinimal extends AbstractHttpReactiveFundamentalsTest<MinimalH2AsyncClient> {
+abstract  class TestH2ReactiveMinimal extends AbstractHttpReactiveFundamentalsTest {
 
     public TestH2ReactiveMinimal(final URIScheme scheme) {
-        super(scheme);
+        super(scheme, ClientProtocolLevel.MINIMAL_H2_ONLY, ServerProtocolLevel.H2_ONLY);
     }
-
-    @Override
-    protected H2TestServer startServer() throws Exception {
-        return startServer(H2Config.DEFAULT, null, null);
-    }
-
-    @Override
-    protected MinimalH2AsyncClient startClient() throws Exception {
-        return startMinimalH2Client(H2Config.DEFAULT);
-    }
-
 
 }

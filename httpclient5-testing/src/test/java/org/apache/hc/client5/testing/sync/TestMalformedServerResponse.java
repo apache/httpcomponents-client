@@ -43,10 +43,21 @@ import org.apache.hc.core5.http.impl.io.DefaultBHttpServerConnection;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.io.CloseMode;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestMalformedServerResponse {
+class TestMalformedServerResponse {
+
+    private HttpServer server;
+
+    @AfterEach
+    void shutDown() {
+        if (this.server != null) {
+            this.server.close(CloseMode.GRACEFUL);
+        }
+    }
 
     static class BrokenServerConnection extends DefaultBHttpServerConnection {
 
@@ -84,31 +95,32 @@ public class TestMalformedServerResponse {
     }
 
     @Test
-    public void testNoContentResponseWithGarbage() throws Exception {
-        try (final HttpServer server = ServerBootstrap.bootstrap()
+    void testNoContentResponseWithGarbage() throws Exception {
+        server = ServerBootstrap.bootstrap()
+                .setCanonicalHostName("localhost")
                 .setConnectionFactory(new BrokenServerConnectionFactory())
                 .register("/nostuff", (request, response, context) -> response.setCode(HttpStatus.SC_NO_CONTENT))
                 .register("/stuff", (request, response, context) -> {
                     response.setCode(HttpStatus.SC_OK);
                     response.setEntity(new StringEntity("Some important stuff"));
                 })
-                .create()) {
-            server.start();
-            final HttpHost target = new HttpHost("localhost", server.getLocalPort());
-            try (final CloseableHttpClient httpclient = HttpClientBuilder.create().build()) {
-                final HttpGet get1 = new HttpGet("/nostuff");
-                httpclient.execute(target, get1, response -> {
-                    Assertions.assertEquals(HttpStatus.SC_NO_CONTENT, response.getCode());
-                    EntityUtils.consume(response.getEntity());
-                    return null;
-                });
-                final HttpGet get2 = new HttpGet("/stuff");
-                httpclient.execute(target, get2, response -> {
-                    Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
-                    EntityUtils.consume(response.getEntity());
-                    return null;
-                });
-            }
+                .create();
+        server.start();
+
+        final HttpHost target = new HttpHost("localhost", server.getLocalPort());
+        try (final CloseableHttpClient httpclient = HttpClientBuilder.create().build()) {
+            final HttpGet get1 = new HttpGet("/nostuff");
+            httpclient.execute(target, get1, response -> {
+                Assertions.assertEquals(HttpStatus.SC_NO_CONTENT, response.getCode());
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
+            final HttpGet get2 = new HttpGet("/stuff");
+            httpclient.execute(target, get2, response -> {
+                Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
         }
     }
 

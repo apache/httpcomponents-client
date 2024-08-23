@@ -41,19 +41,19 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestMultipartMixed {
+class TestMultipartMixed {
 
     private File tmpfile;
 
     @AfterEach
-    public void cleanup() {
+    void cleanup() {
         if (tmpfile != null) {
             tmpfile.delete();
         }
     }
 
     @Test
-    public void testMultipartPartStringParts() throws Exception {
+    void testMultipartPartStringParts() throws Exception {
         final MultipartPart p1 = MultipartPartBuilder.create(
                 new StringBody("this stuff", ContentType.DEFAULT_TEXT)).build();
         final MultipartPart p2 = MultipartPartBuilder.create(
@@ -88,7 +88,7 @@ public class TestMultipartMixed {
     }
 
     @Test
-    public void testMultipartPartCustomContentType() throws Exception {
+    void testMultipartPartCustomContentType() throws Exception {
         final MultipartPart p1 = MultipartPartBuilder.create(
                 new StringBody("this stuff", ContentType.DEFAULT_TEXT)).build();
         final MultipartPart p2 = MultipartPartBuilder.create(
@@ -116,7 +116,7 @@ public class TestMultipartMixed {
     }
 
     @Test
-    public void testMultipartPartBinaryParts() throws Exception {
+    void testMultipartPartBinaryParts() throws Exception {
         tmpfile = File.createTempFile("tmp", ".bin");
         try (Writer writer = new FileWriter(tmpfile)) {
             writer.append("some random whatever");
@@ -150,7 +150,7 @@ public class TestMultipartMixed {
     }
 
     @Test
-    public void testMultipartPartStrict() throws Exception {
+    void testMultipartPartStrict() throws Exception {
         tmpfile = File.createTempFile("tmp", ".bin");
         try (Writer writer = new FileWriter(tmpfile)) {
             writer.append("some random whatever");
@@ -190,7 +190,7 @@ public class TestMultipartMixed {
     }
 
     @Test
-    public void testMultipartPartRFC6532() throws Exception {
+    void testMultipartPartRFC6532() throws Exception {
         tmpfile = File.createTempFile("tmp", ".bin");
         try (Writer writer = new FileWriter(tmpfile)) {
             writer.append("some random whatever");
@@ -249,7 +249,7 @@ public class TestMultipartMixed {
     }
 
     @Test
-    public void testMultipartPartBrowserCompatibleNonASCIIHeaders() throws Exception {
+    void testMultipartPartBrowserCompatibleNonASCIIHeaders() throws Exception {
         final String s1 = constructString(SWISS_GERMAN_HELLO);
         final String s2 = constructString(RUSSIAN_HELLO);
 
@@ -288,7 +288,7 @@ public class TestMultipartMixed {
     }
 
     @Test
-    public void testMultipartPartStringPartsMultiCharsets() throws Exception {
+    void testMultipartPartStringPartsMultiCharsets() throws Exception {
         final String s1 = constructString(SWISS_GERMAN_HELLO);
         final String s2 = constructString(RUSSIAN_HELLO);
 

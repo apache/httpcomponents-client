@@ -31,6 +31,7 @@ import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
@@ -161,7 +162,11 @@ public class MemcachedHttpAsyncCacheStorage extends AbstractBinaryAsyncCacheStor
                 callback.completed(operationFuture.get());
             } catch (final ExecutionException ex) {
                 if (ex.getCause() instanceof Exception) {
-                    callback.failed((Exception) ex.getCause());
+                    if (ex.getCause() instanceof CancellationException) {
+                        callback.failed(new MemcachedOperationCancellationException(ex.getCause()));
+                    } else {
+                        callback.failed((Exception) ex.getCause());
+                    }
                 } else {
                     callback.failed(ex);
                 }
@@ -183,7 +188,11 @@ public class MemcachedHttpAsyncCacheStorage extends AbstractBinaryAsyncCacheStor
                 callback.completed(castAsByteArray(getFuture.get()));
             } catch (final ExecutionException ex) {
                 if (ex.getCause() instanceof Exception) {
-                    callback.failed((Exception) ex.getCause());
+                    if (ex.getCause() instanceof CancellationException) {
+                        callback.failed(new MemcachedOperationCancellationException(ex.getCause()));
+                    } else {
+                        callback.failed((Exception) ex.getCause());
+                    }
                 } else {
                     callback.failed(ex);
                 }

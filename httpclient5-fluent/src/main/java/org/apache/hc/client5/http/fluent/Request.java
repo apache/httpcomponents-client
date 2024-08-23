@@ -217,6 +217,7 @@ public class Request {
     }
 
     /**
+     * @return this instance.
      * @since 4.3
      */
     public Request setHeader(final Header header) {
@@ -230,6 +231,7 @@ public class Request {
     }
 
     /**
+     * @return this instance.
      * @since 4.3
      */
     public Request setHeader(final String name, final String value) {
@@ -262,6 +264,7 @@ public class Request {
     }
 
     /**
+     * @return this instance.
      * @deprecated Use {@link #setDate(Instant)}
      */
     @Deprecated
@@ -271,6 +274,7 @@ public class Request {
     }
 
     /**
+     * @return this instance.
      * @deprecated Use {@link #setIfModifiedSince(Instant)}
      */
     @Deprecated
@@ -280,6 +284,7 @@ public class Request {
     }
 
     /**
+     * @return this instance.
      * @deprecated Use {@link #setIfUnmodifiedSince(Instant)}
      */
     @Deprecated
@@ -340,6 +345,7 @@ public class Request {
     }
 
     /**
+     * @return this instance.
      * @since 4.4
      */
     public Request viaProxy(final String proxy) {
@@ -392,6 +398,7 @@ public class Request {
     }
 
     /**
+     * @return this instance.
      * @since 4.4
      */
     public Request bodyByteArray(final byte[] b, final ContentType contentType) {
@@ -403,6 +410,7 @@ public class Request {
     }
 
     /**
+     * @return this instance.
      * @since 4.4
      */
     public Request bodyByteArray(final byte[] b, final int off, final int len, final ContentType contentType) {

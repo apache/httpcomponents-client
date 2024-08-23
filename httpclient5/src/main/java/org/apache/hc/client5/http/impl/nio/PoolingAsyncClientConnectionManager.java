@@ -164,7 +164,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
     }
 
     @Internal
-    protected PoolingAsyncClientConnectionManager(
+    public PoolingAsyncClientConnectionManager(
             final AsyncClientConnectionOperator connectionOperator,
             final PoolConcurrencyPolicy poolConcurrencyPolicy,
             final PoolReusePolicy poolReusePolicy,

@@ -50,7 +50,7 @@ public class BasicDomainHandler implements CommonCookieAttributeHandler {
 
 
     /**
-     * Singleton instance.
+     * Default instance of {@link BasicDomainHandler}.
      *
      * @since 5.2
      */
@@ -101,7 +101,7 @@ public class BasicDomainHandler implements CommonCookieAttributeHandler {
     }
 
     static boolean domainMatch(final String domain, final String host) {
-        if (InetAddressUtils.isIPv4Address(host) || InetAddressUtils.isIPv6Address(host)) {
+        if (InetAddressUtils.isIPv4(host) || InetAddressUtils.isIPv6(host)) {
             return false;
         }
         final String normalizedDomain = domain.startsWith(".") ? domain.substring(1) : domain;

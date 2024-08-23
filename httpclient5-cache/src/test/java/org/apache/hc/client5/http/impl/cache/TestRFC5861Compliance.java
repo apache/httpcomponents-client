@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -61,7 +62,7 @@ import org.mockito.MockitoAnnotations;
  * describes the stale-if-error and stale-while-revalidate
  * Cache-Control extensions.
  */
-public class TestRFC5861Compliance {
+class TestRFC5861Compliance {
 
     static final int MAX_BYTES = 1024;
     static final int MAX_ENTRIES = 100;
@@ -83,7 +84,7 @@ public class TestRFC5861Compliance {
     ScheduledExecutorService executorService;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
 
         host = new HttpHost("foo.example.com", 80);
@@ -113,7 +114,7 @@ public class TestRFC5861Compliance {
     }
 
     @AfterEach
-    public void cleanup() {
+    void cleanup() {
         executorService.shutdownNow();
     }
 
@@ -125,7 +126,7 @@ public class TestRFC5861Compliance {
     }
 
     @Test
-    public void testConsumesErrorResponseWhenServingStale()
+    void testConsumesErrorResponseWhenServingStale()
             throws Exception{
         final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
@@ -152,7 +153,7 @@ public class TestRFC5861Compliance {
     }
 
     @Test
-    public void testStaleIfErrorInResponseYieldsToMustRevalidate()
+    void testStaleIfErrorInResponseYieldsToMustRevalidate()
             throws Exception{
         final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
@@ -170,11 +171,11 @@ public class TestRFC5861Compliance {
 
         final ClassicHttpResponse result = execute(req2);
 
-        assertTrue(HttpStatus.SC_OK != result.getCode());
+        assertNotEquals(HttpStatus.SC_OK, result.getCode());
     }
 
     @Test
-    public void testStaleIfErrorInResponseYieldsToProxyRevalidateForSharedCache()
+    void testStaleIfErrorInResponseYieldsToProxyRevalidateForSharedCache()
             throws Exception{
         assertTrue(config.isSharedCache());
         final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
@@ -193,11 +194,11 @@ public class TestRFC5861Compliance {
 
         final ClassicHttpResponse result = execute(req2);
 
-        assertTrue(HttpStatus.SC_OK != result.getCode());
+        assertNotEquals(HttpStatus.SC_OK, result.getCode());
     }
 
     @Test
-    public void testStaleIfErrorInResponseYieldsToExplicitFreshnessRequest()
+    void testStaleIfErrorInResponseYieldsToExplicitFreshnessRequest()
             throws Exception{
         final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
@@ -216,11 +217,11 @@ public class TestRFC5861Compliance {
 
         final ClassicHttpResponse result = execute(req2);
 
-        assertTrue(HttpStatus.SC_OK != result.getCode());
+        assertNotEquals(HttpStatus.SC_OK, result.getCode());
     }
 
     @Test
-    public void testStaleIfErrorInResponseIsFalseReturnsError()
+    void testStaleIfErrorInResponseIsFalseReturnsError()
             throws Exception{
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
@@ -244,7 +245,7 @@ public class TestRFC5861Compliance {
     }
 
     @Test
-    public void testStaleIfErrorInRequestIsFalseReturnsError()
+    void testStaleIfErrorInRequestIsFalseReturnsError()
             throws Exception{
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);

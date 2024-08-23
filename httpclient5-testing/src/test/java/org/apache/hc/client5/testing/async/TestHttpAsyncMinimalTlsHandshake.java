@@ -29,45 +29,37 @@ package org.apache.hc.client5.testing.async;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import javax.net.ssl.SSLException;
 
 import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
-import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestHttpAsyncMinimalTlsHandshake extends AbstractIntegrationTestBase {
+class TestHttpAsyncMinimalTlsHandshake extends AbstractIntegrationTestBase {
 
     public TestHttpAsyncMinimalTlsHandshake() {
-        super(URIScheme.HTTPS);
-    }
-
-    protected MinimalHttpAsyncClient startMinimalClient(
-            final Consumer<PoolingAsyncClientConnectionManagerBuilder> connManagerCustomizer) throws Exception {
-        return startMinimalClient(
-                Http1Config.DEFAULT,
-                H2Config.DEFAULT,
-                connManagerCustomizer);
+        super(URIScheme.HTTPS, ClientProtocolLevel.MINIMAL, ServerProtocolLevel.STANDARD);
     }
 
     @Test
-    public void testSuccessfulTlsHandshake() throws Exception {
-        startServer(Http1Config.DEFAULT, null, null);
-        final HttpHost target = targetHost();
+    void testSuccessfulTlsHandshake() throws Exception {
+        final HttpHost target = startServer();
 
         final int maxConnNo = 2;
-        final MinimalHttpAsyncClient client = startMinimalClient(builder -> builder
-                        .setMaxConnPerRoute(maxConnNo)
-                        .setMaxConnTotal(maxConnNo));
+        final PoolingAsyncClientConnectionManager connectionManager = startClient().getConnectionManager();
+        connectionManager.setDefaultMaxPerRoute(maxConnNo);
+        connectionManager.setMaxTotal(maxConnNo);
+
+        final MinimalHttpAsyncClient client = startClient().getImplementation();
 
         for (int i = 0; i < maxConnNo + 1; i++) {
             final Future<AsyncClientEndpoint> endpointLease = client.lease(target, null);
@@ -77,15 +69,18 @@ public class TestHttpAsyncMinimalTlsHandshake extends AbstractIntegrationTestBas
     }
 
     @Test
-    public void testTlsHandshakeFailure() throws Exception {
-        startServer(Http1Config.DEFAULT, null, null);
-        final HttpHost target = targetHost();
+    void testTlsHandshakeFailure() throws Exception {
+        final HttpHost target = startServer();
+
+        configureClient(builder ->
+                builder.setTlsStrategy(new DefaultClientTlsStrategy(SSLContexts.createDefault())));
 
         final int maxConnNo = 2;
-        final MinimalHttpAsyncClient client = startMinimalClient(builder -> builder
-                .setTlsStrategy(new DefaultClientTlsStrategy(SSLContexts.createDefault()))
-                .setMaxConnPerRoute(maxConnNo)
-                .setMaxConnTotal(maxConnNo));
+        final PoolingAsyncClientConnectionManager connectionManager = startClient().getConnectionManager();
+        connectionManager.setDefaultMaxPerRoute(maxConnNo);
+        connectionManager.setMaxTotal(maxConnNo);
+
+        final MinimalHttpAsyncClient client = startClient().getImplementation();
 
         for (int i = 0; i < maxConnNo + 1; i++) {
             final Future<AsyncClientEndpoint> endpointLease = client.lease(target, null);

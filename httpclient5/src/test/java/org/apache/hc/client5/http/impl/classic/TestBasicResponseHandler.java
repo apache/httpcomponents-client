@@ -41,10 +41,10 @@ import org.mockito.Mockito;
  * Unit tests for {@link BasicHttpClientResponseHandler}.
  */
 @SuppressWarnings("boxing") // test code
-public class TestBasicResponseHandler {
+class TestBasicResponseHandler {
 
     @Test
-    public void testSuccessfulResponse() throws Exception {
+    void testSuccessfulResponse() throws Exception {
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
         final HttpEntity entity = new StringEntity("stuff");
         Mockito.when(response.getCode()).thenReturn(200);
@@ -56,7 +56,7 @@ public class TestBasicResponseHandler {
     }
 
     @Test
-    public void testUnsuccessfulResponse() throws Exception {
+    void testUnsuccessfulResponse() throws Exception {
         final InputStream inStream = Mockito.mock(InputStream.class);
         final HttpEntity entity = Mockito.mock(HttpEntity.class);
         Mockito.when(entity.isStreaming()).thenReturn(true);

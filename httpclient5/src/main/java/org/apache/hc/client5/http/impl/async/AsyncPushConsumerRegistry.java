@@ -34,25 +34,25 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
-import org.apache.hc.core5.http.protocol.UriPatternMatcher;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 
+@SuppressWarnings("deprecation")
 class AsyncPushConsumerRegistry {
 
-    private final UriPatternMatcher<Supplier<AsyncPushConsumer>> primary;
-    private final ConcurrentMap<String, UriPatternMatcher<Supplier<AsyncPushConsumer>>> hostMap;
+    private final org.apache.hc.core5.http.protocol.UriPatternMatcher<Supplier<AsyncPushConsumer>> primary;
+    private final ConcurrentMap<String, org.apache.hc.core5.http.protocol.UriPatternMatcher<Supplier<AsyncPushConsumer>>> hostMap;
 
     public AsyncPushConsumerRegistry() {
-        this.primary = new UriPatternMatcher<>();
+        this.primary = new org.apache.hc.core5.http.protocol.UriPatternMatcher<>();
         this.hostMap = new ConcurrentHashMap<>();
     }
 
-    private UriPatternMatcher<Supplier<AsyncPushConsumer>> getPatternMatcher(final String hostname) {
+    private org.apache.hc.core5.http.protocol.UriPatternMatcher<Supplier<AsyncPushConsumer>> getPatternMatcher(final String hostname) {
         if (hostname == null) {
             return primary;
         }
-        final UriPatternMatcher<Supplier<AsyncPushConsumer>> hostMatcher = hostMap.get(hostname);
+        final org.apache.hc.core5.http.protocol.UriPatternMatcher<Supplier<AsyncPushConsumer>> hostMatcher = hostMap.get(hostname);
         if (hostMatcher != null) {
             return hostMatcher;
         }
@@ -63,7 +63,7 @@ class AsyncPushConsumerRegistry {
         Args.notNull(request, "Request");
         final URIAuthority authority = request.getAuthority();
         final String key = authority != null ? authority.getHostName().toLowerCase(Locale.ROOT) : null;
-        final UriPatternMatcher<Supplier<AsyncPushConsumer>> patternMatcher = getPatternMatcher(key);
+        final org.apache.hc.core5.http.protocol.UriPatternMatcher<Supplier<AsyncPushConsumer>> patternMatcher = getPatternMatcher(key);
         if (patternMatcher == null) {
             return null;
         }
@@ -83,9 +83,9 @@ class AsyncPushConsumerRegistry {
             primary.register(uriPattern, supplier);
         } else {
             final String key = hostname.toLowerCase(Locale.ROOT);
-            UriPatternMatcher<Supplier<AsyncPushConsumer>> matcher = hostMap.get(key);
+            org.apache.hc.core5.http.protocol.UriPatternMatcher<Supplier<AsyncPushConsumer>> matcher = hostMap.get(key);
             if (matcher == null) {
-                final UriPatternMatcher<Supplier<AsyncPushConsumer>> newMatcher = new UriPatternMatcher<>();
+                final org.apache.hc.core5.http.protocol.UriPatternMatcher<Supplier<AsyncPushConsumer>> newMatcher = new org.apache.hc.core5.http.protocol.UriPatternMatcher<>();
                 matcher = hostMap.putIfAbsent(key, newMatcher);
                 if (matcher == null) {
                     matcher = newMatcher;

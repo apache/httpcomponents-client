@@ -37,15 +37,18 @@ import org.apache.hc.core5.util.Tokenizer;
 
 final class DistinguishedNameParser {
 
+    /**
+     * Default instance of {@link DistinguishedNameParser}.
+     */
     public final static DistinguishedNameParser INSTANCE = new DistinguishedNameParser();
 
     private static final Tokenizer.Delimiter EQUAL_OR_COMMA_OR_PLUS = Tokenizer.delimiters('=', ',', '+');
     private static final Tokenizer.Delimiter COMMA_OR_PLUS = Tokenizer.delimiters(',', '+');
 
-    private final Tokenizer tokenParser;
+    private final Tokenizer tokenParser = new InternalTokenParser();
 
-    DistinguishedNameParser() {
-        this.tokenParser = new InternalTokenParser();
+    private DistinguishedNameParser() {
+        // empty
     }
 
     private String parseToken(final CharArrayBuffer buf, final Tokenizer.Cursor cursor, final Tokenizer.Delimiter delimiters) {

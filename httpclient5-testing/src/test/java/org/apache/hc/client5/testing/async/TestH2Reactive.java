@@ -26,25 +26,14 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http2.config.H2Config;
-import org.apache.hc.core5.testing.nio.H2TestServer;
 
-public abstract class TestH2Reactive extends AbstractHttpReactiveFundamentalsTest<CloseableHttpAsyncClient> {
+abstract  class TestH2Reactive extends AbstractHttpReactiveFundamentalsTest {
 
     public TestH2Reactive(final URIScheme scheme) {
-        super(scheme);
-    }
-
-    @Override
-    protected H2TestServer startServer() throws Exception {
-        return startServer(H2Config.DEFAULT, null, null);
-    }
-
-    @Override
-    protected CloseableHttpAsyncClient startClient() throws Exception {
-        return startH2Client(b -> {});
+        super(scheme, ClientProtocolLevel.H2_ONLY, ServerProtocolLevel.H2_ONLY);
     }
 
 }

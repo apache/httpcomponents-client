@@ -225,6 +225,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Sets {@link H2Config} configuration.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setH2Config(final H2Config h2Config) {
         this.h2Config = h2Config;
@@ -233,6 +235,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Sets {@link IOReactorConfig} configuration.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setIOReactorConfig(final IOReactorConfig ioReactorConfig) {
         this.ioReactorConfig = ioReactorConfig;
@@ -242,6 +246,7 @@ public class H2AsyncClientBuilder {
     /**
      * Sets {@link IOSessionListener} listener.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final H2AsyncClientBuilder setIOSessionListener(final IOSessionListener ioSessionListener) {
@@ -251,6 +256,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Sets {@link CharCodingConfig} configuration.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setCharCodingConfig(final CharCodingConfig charCodingConfig) {
         this.charCodingConfig = charCodingConfig;
@@ -258,8 +265,10 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link AuthenticationStrategy} instance for target
+     * Sets {@link AuthenticationStrategy} instance for target
      * host authentication.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setTargetAuthenticationStrategy(
             final AuthenticationStrategy targetAuthStrategy) {
@@ -268,8 +277,10 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link AuthenticationStrategy} instance for proxy
+     * Sets {@link AuthenticationStrategy} instance for proxy
      * authentication.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setProxyAuthenticationStrategy(
             final AuthenticationStrategy proxyAuthStrategy) {
@@ -280,6 +291,7 @@ public class H2AsyncClientBuilder {
     /**
      * Sets the callback that will be invoked when the client's IOReactor encounters an uncaught exception.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final H2AsyncClientBuilder setIoReactorExceptionCallback(final Callback<Exception> ioReactorExceptionCallback) {
@@ -291,6 +303,7 @@ public class H2AsyncClientBuilder {
     /**
      * Sets the {@link IOSession} {@link Decorator} that will be use with the client's IOReactor.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final H2AsyncClientBuilder setIoSessionDecorator(final Decorator<IOSession> ioSessionDecorator) {
@@ -300,6 +313,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Adds this protocol interceptor to the head of the protocol processing list.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder addResponseInterceptorFirst(final HttpResponseInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
@@ -312,6 +327,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Adds this protocol interceptor to the tail of the protocol processing list.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder addResponseInterceptorLast(final HttpResponseInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
@@ -324,6 +341,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Adds this execution interceptor before an existing interceptor.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder addExecInterceptorBefore(final String existing, final String name, final AsyncExecChainHandler interceptor) {
         Args.notBlank(existing, "Existing");
@@ -338,6 +357,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Adds this execution interceptor after interceptor with the given name.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder addExecInterceptorAfter(final String existing, final String name, final AsyncExecChainHandler interceptor) {
         Args.notBlank(existing, "Existing");
@@ -352,6 +373,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Replace an existing interceptor with the given name with new interceptor.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder replaceExecInterceptor(final String existing, final AsyncExecChainHandler interceptor) {
         Args.notBlank(existing, "Existing");
@@ -365,6 +388,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Add an interceptor to the head of the processing list.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder addExecInterceptorFirst(final String name, final AsyncExecChainHandler interceptor) {
         Args.notNull(name, "Name");
@@ -378,6 +403,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Add an interceptor to the tail of the processing list.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder addExecInterceptorLast(final String name, final AsyncExecChainHandler interceptor) {
         Args.notNull(name, "Name");
@@ -391,6 +418,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Adds this protocol interceptor to the head of the protocol processing list.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder addRequestInterceptorFirst(final HttpRequestInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
@@ -403,6 +432,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Adds this protocol interceptor to the tail of the protocol processing list.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder addRequestInterceptorLast(final HttpRequestInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
@@ -414,10 +445,13 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link HttpRequestRetryStrategy} instance.
+     * Sets {@link HttpRequestRetryStrategy} instance.
      * <p>
      * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
      * method.
+     * </p>
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setRetryStrategy(final HttpRequestRetryStrategy retryStrategy) {
         this.retryStrategy = retryStrategy;
@@ -425,11 +459,13 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link RedirectStrategy} instance.
+     * Sets {@link RedirectStrategy} instance.
      * <p>
      * Please note this value can be overridden by the {@link #disableRedirectHandling()}
      * method.
      * </p>
+     *
+     * @return this instance.
      */
     public H2AsyncClientBuilder setRedirectStrategy(final RedirectStrategy redirectStrategy) {
         this.redirectStrategy = redirectStrategy;
@@ -437,7 +473,9 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link SchemePortResolver} instance.
+     * Sets {@link SchemePortResolver} instance.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setSchemePortResolver(final SchemePortResolver schemePortResolver) {
         this.schemePortResolver = schemePortResolver;
@@ -445,7 +483,9 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link DnsResolver} instance.
+     * Sets {@link DnsResolver} instance.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setDnsResolver(final DnsResolver dnsResolver) {
         this.dnsResolver = dnsResolver;
@@ -453,7 +493,9 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link TlsStrategy} instance.
+     * Sets {@link TlsStrategy} instance.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setTlsStrategy(final TlsStrategy tlsStrategy) {
         this.tlsStrategy = tlsStrategy;
@@ -461,7 +503,9 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link ThreadFactory} instance.
+     * Sets {@link ThreadFactory} instance.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setThreadFactory(final ThreadFactory threadFactory) {
         this.threadFactory = threadFactory;
@@ -469,7 +513,9 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@code User-Agent} value.
+     * Sets {@code User-Agent} value.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setUserAgent(final String userAgent) {
         this.userAgent = userAgent;
@@ -477,7 +523,9 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns default request header values.
+     * Sets default request header values.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setDefaultHeaders(final Collection<? extends Header> defaultHeaders) {
         this.defaultHeaders = defaultHeaders;
@@ -485,7 +533,9 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link HttpRoutePlanner} instance.
+     * Sets {@link HttpRoutePlanner} instance.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setRoutePlanner(final HttpRoutePlanner routePlanner) {
         this.routePlanner = routePlanner;
@@ -493,9 +543,11 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link CredentialsProvider} instance which will be used
+     * Sets default {@link CredentialsProvider} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setDefaultCredentialsProvider(final CredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
@@ -503,9 +555,11 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link org.apache.hc.client5.http.auth.AuthScheme} registry which will
+     * Sets default {@link org.apache.hc.client5.http.auth.AuthScheme} registry which will
      * be used for request execution if not explicitly set in the client execution
      * context.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setDefaultAuthSchemeRegistry(final Lookup<AuthSchemeFactory> authSchemeRegistry) {
         this.authSchemeRegistry = authSchemeRegistry;
@@ -513,9 +567,11 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link org.apache.hc.client5.http.cookie.CookieSpec} registry
+     * Sets default {@link org.apache.hc.client5.http.cookie.CookieSpec} registry
      * which will be used for request execution if not explicitly set in the client
      * execution context.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setDefaultCookieSpecRegistry(final Lookup<CookieSpecFactory> cookieSpecRegistry) {
         this.cookieSpecRegistry = cookieSpecRegistry;
@@ -523,8 +579,10 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link CookieStore} instance which will be used for
+     * Sets default {@link CookieStore} instance which will be used for
      * request execution if not explicitly set in the client execution context.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setDefaultCookieStore(final CookieStore cookieStore) {
         this.cookieStore = cookieStore;
@@ -532,9 +590,11 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns default {@link RequestConfig} instance which will be used
+     * Sets default {@link RequestConfig} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder setDefaultRequestConfig(final RequestConfig config) {
         this.defaultRequestConfig = config;
@@ -542,8 +602,9 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns {@link Resolver} for {@link ConnectionConfig} on a per host basis.
+     * Sets {@link Resolver} for {@link ConnectionConfig} on a per host basis.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final H2AsyncClientBuilder setConnectionConfigResolver(final Resolver<HttpHost, ConnectionConfig> connectionConfigResolver) {
@@ -552,8 +613,9 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Assigns the same {@link ConnectionConfig} for all hosts.
+     * Sets the same {@link ConnectionConfig} for all hosts.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final H2AsyncClientBuilder setDefaultConnectionConfig(final ConnectionConfig connectionConfig) {
@@ -564,6 +626,8 @@ public class H2AsyncClientBuilder {
     /**
      * Use system properties when creating and configuring default
      * implementations.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder useSystemProperties() {
         this.systemProperties = true;
@@ -572,6 +636,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Disables automatic redirect handling.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder disableRedirectHandling() {
         redirectHandlingDisabled = true;
@@ -580,6 +646,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Disables automatic request recovery and re-execution.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder disableAutomaticRetries() {
         automaticRetriesDisabled = true;
@@ -588,6 +656,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Disables state (cookie) management.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder disableCookieManagement() {
         this.cookieManagementDisabled = true;
@@ -596,6 +666,8 @@ public class H2AsyncClientBuilder {
 
     /**
      * Disables authentication scheme caching.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder disableAuthCaching() {
         this.authCachingDisabled = true;
@@ -608,13 +680,17 @@ public class H2AsyncClientBuilder {
      * <p>
      * One MUST explicitly close HttpClient with {@link CloseableHttpAsyncClient#close()}
      * in order to stop and release the background thread.
+     * </p>
      * <p>
      * Please note this method has no effect if the instance of HttpClient is configured to
      * use a shared connection manager.
+     * </p>
      *
      * @param maxIdleTime maximum time persistent connections can stay idle while kept alive
      * in the connection pool. Connections whose inactivity period exceeds this value will
      * get closed and evicted from the pool.
+     *
+     * @return this instance.
      */
     public final H2AsyncClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {
         this.evictIdleConnections = true;
@@ -626,6 +702,7 @@ public class H2AsyncClientBuilder {
      * Request exec chain customization and extension.
      * <p>
      * For internal use.
+     * </p>
      */
     @Internal
     protected void customizeExecChain(final NamedElementChain<AsyncExecChainHandler> execChainDefinition) {
@@ -635,6 +712,7 @@ public class H2AsyncClientBuilder {
      * Adds to the list of {@link Closeable} resources to be managed by the client.
      * <p>
      * For internal use.
+     * </p>
      */
     @Internal
     protected void addCloseable(final Closeable closeable) {

@@ -42,10 +42,10 @@ import org.junit.jupiter.api.Test;
 /**
  * Bearer authentication test cases.
  */
-public class TestBearerScheme {
+class TestBearerScheme {
 
     @Test
-    public void testBearerAuthenticationEmptyChallenge() throws Exception {
+    void testBearerAuthenticationEmptyChallenge() throws Exception {
         final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, "BEARER");
         final AuthScheme authscheme = new BearerScheme();
         authscheme.processChallenge(authChallenge, null);
@@ -53,7 +53,7 @@ public class TestBearerScheme {
     }
 
     @Test
-    public void testBearerAuthentication() throws Exception {
+    void testBearerAuthentication() throws Exception {
         final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, "Bearer",
                 new BasicNameValuePair("realm", "test"));
 
@@ -75,7 +75,7 @@ public class TestBearerScheme {
     }
 
     @Test
-    public void testStateStorage() throws Exception {
+    void testStateStorage() throws Exception {
         final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, "Bearer",
                 new BasicNameValuePair("realm", "test"),
                 new BasicNameValuePair("code", "read"));

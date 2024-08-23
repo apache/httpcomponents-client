@@ -45,7 +45,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 public final class PublicSuffixListParser {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link PublicSuffixListParser}.
      *
      * @since 5.2
      */

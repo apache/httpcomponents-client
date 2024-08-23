@@ -66,7 +66,7 @@ import org.mockito.MockitoAnnotations;
 /**
  * {@link PoolingHttpClientConnectionManager} tests.
  */
-public class TestPoolingHttpClientConnectionManager {
+class TestPoolingHttpClientConnectionManager {
 
     @Mock
     private ManagedHttpClientConnection conn;
@@ -92,7 +92,7 @@ public class TestPoolingHttpClientConnectionManager {
     private PoolingHttpClientConnectionManager mgr;
 
     @BeforeEach
-    public void setup() throws Exception {
+    void setup() {
         MockitoAnnotations.openMocks(this);
         mgr = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperator(
                 detachedSocketFactory, schemePortResolver, dnsResolver, tlsSocketStrategyLookup), pool,
@@ -100,7 +100,7 @@ public class TestPoolingHttpClientConnectionManager {
     }
 
     @Test
-    public void testLeaseRelease() throws Exception {
+    void testLeaseRelease() throws Exception {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -128,7 +128,7 @@ public class TestPoolingHttpClientConnectionManager {
     }
 
     @Test
-    public void testReleaseRouteIncomplete() throws Exception {
+    void testReleaseRouteIncomplete() throws Exception {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -153,7 +153,7 @@ public class TestPoolingHttpClientConnectionManager {
     }
 
     @Test
-    public void testLeaseFutureTimeout() throws Exception {
+    void testLeaseFutureTimeout() throws Exception {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -171,7 +171,7 @@ public class TestPoolingHttpClientConnectionManager {
     }
 
     @Test
-    public void testReleaseReusable() throws Exception {
+    void testReleaseReusable() throws Exception {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -200,7 +200,7 @@ public class TestPoolingHttpClientConnectionManager {
     }
 
     @Test
-    public void testReleaseNonReusable() throws Exception {
+    void testReleaseNonReusable() throws Exception {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -228,7 +228,7 @@ public class TestPoolingHttpClientConnectionManager {
     }
 
     @Test
-    public void testTargetConnect() throws Exception {
+    void testTargetConnect() throws Exception {
         final HttpHost target = new HttpHost("https", "somehost", 443);
         final InetAddress remote = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
         final InetAddress local = InetAddress.getByAddress(new byte[]{127, 0, 0, 1});
@@ -294,7 +294,7 @@ public class TestPoolingHttpClientConnectionManager {
     }
 
     @Test
-    public void testProxyConnectAndUpgrade() throws Exception {
+    void testProxyConnectAndUpgrade() throws Exception {
         final HttpHost target = new HttpHost("https", "somehost", 443);
         final HttpHost proxy = new HttpHost("someproxy", 8080);
         final InetAddress remote = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
@@ -354,12 +354,12 @@ public class TestPoolingHttpClientConnectionManager {
     }
 
     @Test
-    public void testIsShutdownInitially() {
+    void testIsShutdownInitially() {
         Assertions.assertFalse(mgr.isClosed(), "Connection manager should not be shutdown initially.");
     }
 
     @Test
-    public void testShutdownIdempotency() {
+    void testShutdownIdempotency() {
         mgr.close();
         Assertions.assertTrue(mgr.isClosed(), "Connection manager should remain shutdown after the first call to shutdown.");
         mgr.close(); // Second call to shutdown
@@ -367,7 +367,7 @@ public class TestPoolingHttpClientConnectionManager {
     }
 
     @Test
-    public void testLeaseAfterShutdown() {
+    void testLeaseAfterShutdown() {
         mgr.close();
         Assertions.assertThrows(IllegalArgumentException.class, () -> {
             // Attempt to lease a connection after shutdown
@@ -377,7 +377,7 @@ public class TestPoolingHttpClientConnectionManager {
 
 
     @Test
-    public void testIsShutdown() {
+    void testIsShutdown() {
         // Setup phase
         Mockito.when(pool.isShutdown()).thenReturn(false, true); // Simulate changing states
 
@@ -393,7 +393,7 @@ public class TestPoolingHttpClientConnectionManager {
 
 
     @Test
-    public void testConcurrentShutdown() throws InterruptedException {
+    void testConcurrentShutdown() throws InterruptedException {
         final ExecutorService executor = Executors.newFixedThreadPool(2);
         // Submit two shutdown tasks to be run in parallel, explicitly calling close() with no arguments
         executor.submit(() -> mgr.close());

@@ -192,6 +192,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final InetAddress address = remoteAddresses[i];
             final boolean last = i == remoteAddresses.length - 1;
             final InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
+            onBeforeSocketConnect(context, endpointHost);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} connecting {}->{} ({})", endpointHost, localAddress, remoteAddress, connectTimeout);
             }
@@ -221,6 +222,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 }
                 socket.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisecondsIntBound() : 0);
                 conn.bind(socket);
+                onAfterSocketConnect(context, endpointHost);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} {} connected {}->{}", ConnPoolSupport.getId(conn), endpointHost,
                             conn.getLocalAddress(), conn.getRemoteAddress());
@@ -229,11 +231,16 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(endpointHost.getSchemeName()) : null;
                 if (tlsSocketStrategy != null) {
                     final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
+                    onBeforeTlsHandshake(context, endpointHost);
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} {} upgrading to TLS", ConnPoolSupport.getId(conn), tlsName);
                     }
-                    final Socket upgradedSocket = tlsSocketStrategy.upgrade(socket, tlsName.getHostName(), tlsName.getPort(), attachment, context);
-                    conn.bind(upgradedSocket);
+                    final SSLSocket sslSocket = tlsSocketStrategy.upgrade(socket, tlsName.getHostName(), tlsName.getPort(), attachment, context);
+                    conn.bind(sslSocket, socket);
+                    onAfterTlsHandshake(context, endpointHost);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} {} upgraded to TLS", ConnPoolSupport.getId(conn), tlsName);
+                    }
                 }
                 return;
             } catch (final RuntimeException ex) {
@@ -278,14 +285,31 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(newProtocol) : null;
         if (tlsSocketStrategy != null) {
             final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
+            onBeforeTlsHandshake(context, endpointHost);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} upgrading to TLS {}:{}", ConnPoolSupport.getId(conn), tlsName.getHostName(), tlsName.getPort());
             }
             final SSLSocket upgradedSocket = tlsSocketStrategy.upgrade(socket, tlsName.getHostName(), tlsName.getPort(), attachment, context);
             conn.bind(upgradedSocket);
+            onAfterTlsHandshake(context, endpointHost);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} upgraded to TLS {}:{}", ConnPoolSupport.getId(conn), tlsName.getHostName(), tlsName.getPort());
+            }
         } else {
             throw new UnsupportedSchemeException(newProtocol + " protocol is not supported");
         }
+    }
+
+    protected void onBeforeSocketConnect(final HttpContext httpContext, final HttpHost endpointHost) {
+    }
+
+    protected void onAfterSocketConnect(final HttpContext httpContext, final HttpHost endpointHost) {
+    }
+
+    protected void onBeforeTlsHandshake(final HttpContext httpContext, final HttpHost endpointHost) {
+    }
+
+    protected void onAfterTlsHandshake(final HttpContext httpContext, final HttpHost endpointHost) {
     }
 
 }

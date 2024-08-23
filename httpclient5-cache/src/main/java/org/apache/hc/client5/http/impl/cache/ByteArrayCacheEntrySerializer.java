@@ -58,6 +58,9 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public final class ByteArrayCacheEntrySerializer implements HttpCacheEntrySerializer<byte[]> {
 
+    /**
+     * Default instance of {@link ByteArrayCacheEntrySerializer}.
+     */
     public static final ByteArrayCacheEntrySerializer INSTANCE = new ByteArrayCacheEntrySerializer();
 
     @Override

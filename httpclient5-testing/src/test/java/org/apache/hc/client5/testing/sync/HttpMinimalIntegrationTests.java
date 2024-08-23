@@ -30,13 +30,13 @@ import org.apache.hc.core5.http.URIScheme;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 
-public class HttpMinimalIntegrationTests {
+class HttpMinimalIntegrationTests {
 
     @Nested
     @DisplayName("Request execution (HTTP/1.1)")
-    public class RequestExecution extends TestMinimalClientRequestExecution {
+    class RequestExecution extends TestMinimalClientRequestExecution {
 
-        public RequestExecution() throws Exception {
+        public RequestExecution() {
             super(URIScheme.HTTP);
         }
 
@@ -44,9 +44,9 @@ public class HttpMinimalIntegrationTests {
 
     @Nested
     @DisplayName("Request execution (HTTP/1.1, TLS)")
-    public class RequestExecutionTls extends TestMinimalClientRequestExecution {
+    class RequestExecutionTls extends TestMinimalClientRequestExecution {
 
-        public RequestExecutionTls() throws Exception {
+        public RequestExecutionTls() {
             super(URIScheme.HTTPS);
         }
 

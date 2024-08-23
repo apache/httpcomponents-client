@@ -33,12 +33,12 @@ import org.apache.hc.client5.http.cache.RequestCacheControl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class CacheControlGeneratorTest {
+class CacheControlGeneratorTest {
 
     private final CacheControlHeaderGenerator generator = CacheControlHeaderGenerator.INSTANCE;
 
     @Test
-    public void testGenerateRequestCacheControlHeader() {
+    void testGenerateRequestCacheControlHeader() {
         assertThat(generator.generate(
                         RequestCacheControl.builder()
                                 .setMaxAge(12)
@@ -77,7 +77,7 @@ public class CacheControlGeneratorTest {
     }
 
     @Test
-    public void testGenerateRequestCacheControlHeaderNoDirectives() {
+    void testGenerateRequestCacheControlHeaderNoDirectives() {
         final RequestCacheControl cacheControl = RequestCacheControl.builder()
                 .build();
         Assertions.assertNull(generator.generate(cacheControl));

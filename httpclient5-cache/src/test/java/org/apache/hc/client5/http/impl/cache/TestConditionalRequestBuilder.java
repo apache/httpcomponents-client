@@ -51,19 +51,19 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestConditionalRequestBuilder {
+class TestConditionalRequestBuilder {
 
     private ConditionalRequestBuilder<HttpRequest> impl;
     private HttpRequest request;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() {
         impl = new ConditionalRequestBuilder<>(request -> BasicRequestBuilder.copy(request).build());
         request = new BasicHttpRequest("GET", "/");
     }
 
     @Test
-    public void testBuildConditionalRequestWithLastModified() {
+    void testBuildConditionalRequestWithLastModified() {
         final String theMethod = "GET";
         final String theUri = "/theuri";
         final String lastModified = "this is my last modified date";
@@ -91,8 +91,7 @@ public class TestConditionalRequestBuilder {
     }
 
     @Test
-    public void testConditionalRequestForEntryWithLastModifiedAndEtagIncludesBothAsValidators()
-            throws Exception {
+    void testConditionalRequestForEntryWithLastModifiedAndEtagIncludesBothAsValidators() {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
         final Instant twentySecondsAgo = now.plusSeconds(20);
@@ -114,7 +113,7 @@ public class TestConditionalRequestBuilder {
     }
 
     @Test
-    public void testBuildConditionalRequestWithETag() {
+    void testBuildConditionalRequestWithETag() {
         final String theMethod = "GET";
         final String theUri = "/theuri";
         final String theETag = "\"this is my eTag\"";
@@ -146,7 +145,7 @@ public class TestConditionalRequestBuilder {
     }
 
     @Test
-    public void testCacheEntryWithMustRevalidateDoesEndToEndRevalidation() throws Exception {
+    void testCacheEntryWithMustRevalidateDoesEndToEndRevalidation() {
         final HttpRequest basicRequest = new BasicHttpRequest("GET","/");
         final Instant now = Instant.now();
         final Instant elevenSecondsAgo = now.minusSeconds(11);
@@ -170,7 +169,7 @@ public class TestConditionalRequestBuilder {
     }
 
     @Test
-    public void testCacheEntryWithProxyRevalidateDoesEndToEndRevalidation() throws Exception {
+    void testCacheEntryWithProxyRevalidateDoesEndToEndRevalidation() {
         final HttpRequest basicRequest = new BasicHttpRequest("GET", "/");
         final Instant now = Instant.now();
         final Instant elevenSecondsAgo = now.minusSeconds(11);
@@ -194,15 +193,13 @@ public class TestConditionalRequestBuilder {
     }
 
     @Test
-    public void testBuildUnconditionalRequestUsesGETMethod()
-        throws Exception {
+    void testBuildUnconditionalRequestUsesGETMethod() {
         final HttpRequest result = impl.buildUnconditionalRequest(request);
         Assertions.assertEquals("GET", result.getMethod());
     }
 
     @Test
-    public void testBuildUnconditionalRequestUsesRequestUri()
-        throws Exception {
+    void testBuildUnconditionalRequestUsesRequestUri() {
         final String uri = "/theURI";
         request = new BasicHttpRequest("GET", uri);
         final HttpRequest result = impl.buildUnconditionalRequest(request);
@@ -210,56 +207,49 @@ public class TestConditionalRequestBuilder {
     }
 
     @Test
-    public void testBuildUnconditionalRequestAddsCacheControlNoCache()
-        throws Exception {
+    void testBuildUnconditionalRequestAddsCacheControlNoCache() {
         final HttpRequest result = impl.buildUnconditionalRequest(request);
         final RequestCacheControl requestCacheControl = CacheControlHeaderParser.INSTANCE.parse(result);
         Assertions.assertTrue(requestCacheControl.isNoCache());
     }
 
     @Test
-    public void testBuildUnconditionalRequestDoesNotUseIfRange()
-        throws Exception {
+    void testBuildUnconditionalRequestDoesNotUseIfRange() {
         request.addHeader("If-Range","\"etag\"");
         final HttpRequest result = impl.buildUnconditionalRequest(request);
         Assertions.assertNull(result.getFirstHeader("If-Range"));
     }
 
     @Test
-    public void testBuildUnconditionalRequestDoesNotUseIfMatch()
-        throws Exception {
+    void testBuildUnconditionalRequestDoesNotUseIfMatch() {
         request.addHeader("If-Match","\"etag\"");
         final HttpRequest result = impl.buildUnconditionalRequest(request);
         Assertions.assertNull(result.getFirstHeader("If-Match"));
     }
 
     @Test
-    public void testBuildUnconditionalRequestDoesNotUseIfNoneMatch()
-        throws Exception {
+    void testBuildUnconditionalRequestDoesNotUseIfNoneMatch() {
         request.addHeader("If-None-Match","\"etag\"");
         final HttpRequest result = impl.buildUnconditionalRequest(request);
         Assertions.assertNull(result.getFirstHeader("If-None-Match"));
     }
 
     @Test
-    public void testBuildUnconditionalRequestDoesNotUseIfUnmodifiedSince()
-        throws Exception {
+    void testBuildUnconditionalRequestDoesNotUseIfUnmodifiedSince() {
         request.addHeader("If-Unmodified-Since", DateUtils.formatStandardDate(Instant.now()));
         final HttpRequest result = impl.buildUnconditionalRequest(request);
         Assertions.assertNull(result.getFirstHeader("If-Unmodified-Since"));
     }
 
     @Test
-    public void testBuildUnconditionalRequestDoesNotUseIfModifiedSince()
-        throws Exception {
+    void testBuildUnconditionalRequestDoesNotUseIfModifiedSince() {
         request.addHeader("If-Modified-Since", DateUtils.formatStandardDate(Instant.now()));
         final HttpRequest result = impl.buildUnconditionalRequest(request);
         Assertions.assertNull(result.getFirstHeader("If-Modified-Since"));
     }
 
     @Test
-    public void testBuildUnconditionalRequestCarriesOtherRequestHeaders()
-        throws Exception {
+    void testBuildUnconditionalRequestCarriesOtherRequestHeaders() {
         request.addHeader("User-Agent","MyBrowser/1.0");
         final HttpRequest result = impl.buildUnconditionalRequest(request);
         Assertions.assertEquals("MyBrowser/1.0",
@@ -267,7 +257,7 @@ public class TestConditionalRequestBuilder {
     }
 
     @Test
-    public void testBuildConditionalRequestFromVariants() throws Exception {
+    void testBuildConditionalRequestFromVariants() {
         final ETag etag1 = new ETag("123");
         final ETag etag2 = new ETag("456");
         final ETag etag3 = new ETag("789");

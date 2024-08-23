@@ -36,10 +36,10 @@ import org.apache.hc.core5.http.ContentType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestMultipartPartBuilder {
+class TestMultipartPartBuilder {
 
     @Test
-    public void testBuildBodyPartBasics() throws Exception {
+    void testBuildBodyPartBasics() {
         final StringBody stringBody = new StringBody("stuff", ContentType.TEXT_PLAIN);
         final MultipartPart part = MultipartPartBuilder.create()
                 .setBody(stringBody)
@@ -54,7 +54,7 @@ public class TestMultipartPartBuilder {
     }
 
     @Test
-    public void testBuildBodyPartMultipleBuilds() throws Exception {
+    void testBuildBodyPartMultipleBuilds() {
         final StringBody stringBody = new StringBody("stuff", ContentType.TEXT_PLAIN);
         final MultipartPartBuilder builder = MultipartPartBuilder.create();
         final MultipartPart part1 = builder
@@ -82,7 +82,7 @@ public class TestMultipartPartBuilder {
     }
 
     @Test
-    public void testBuildBodyPartCustomHeaders() throws Exception {
+    void testBuildBodyPartCustomHeaders() {
         final StringBody stringBody = new StringBody("stuff", ContentType.TEXT_PLAIN);
         final MultipartPartBuilder builder = MultipartPartBuilder.create(stringBody);
         final MultipartPart part1 = builder

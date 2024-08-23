@@ -73,7 +73,9 @@ public class SSLConnectionSocketFactoryBuilder {
     private boolean systemProperties;
 
     /**
-     * Assigns {@link SSLContext} instance.
+     * Sets {@link SSLContext} instance.
+     *
+     * @return this instance.
      */
     public SSLConnectionSocketFactoryBuilder setSslContext(final SSLContext sslContext) {
         this.sslContext = sslContext;
@@ -81,7 +83,9 @@ public class SSLConnectionSocketFactoryBuilder {
     }
 
     /**
-     * Assigns enabled {@code TLS} versions.
+     * Sets enabled {@code TLS} versions.
+     *
+     * @return this instance.
      */
     public final SSLConnectionSocketFactoryBuilder setTlsVersions(final String... tlslVersions) {
         this.tlsVersions = tlslVersions;
@@ -89,7 +93,9 @@ public class SSLConnectionSocketFactoryBuilder {
     }
 
     /**
-     * Assigns enabled {@code TLS} versions.
+     * Sets enabled {@code TLS} versions.
+     *
+     * @return this instance.
      */
     public final SSLConnectionSocketFactoryBuilder setTlsVersions(final TLS... tlslVersions) {
         this.tlsVersions = new String[tlslVersions.length];
@@ -100,7 +106,9 @@ public class SSLConnectionSocketFactoryBuilder {
     }
 
     /**
-     * Assigns enabled ciphers.
+     * Sets enabled ciphers.
+     *
+     * @return this instance.
      */
     public final SSLConnectionSocketFactoryBuilder setCiphers(final String... ciphers) {
         this.ciphers = ciphers;
@@ -109,7 +117,9 @@ public class SSLConnectionSocketFactoryBuilder {
 
 
     /**
-     * Assigns {@link HostnameVerifier} instance.
+     * Sets {@link HostnameVerifier} instance.
+     *
+     * @return this instance.
      */
     public SSLConnectionSocketFactoryBuilder setHostnameVerifier(final HostnameVerifier hostnameVerifier) {
         this.hostnameVerifier = hostnameVerifier;
@@ -119,6 +129,8 @@ public class SSLConnectionSocketFactoryBuilder {
     /**
      * Use system properties when creating and configuring default
      * implementations.
+     *
+     * @return this instance.
      */
     public final SSLConnectionSocketFactoryBuilder useSystemProperties() {
         this.systemProperties = true;

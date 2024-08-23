@@ -35,10 +35,10 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for DnsUtils.
  */
-public class TestDnsUtils {
+class TestDnsUtils {
 
     @Test
-    public void testNormalize() {
+    void testNormalize() {
         assertThat(DnsUtils.normalize(null), CoreMatchers.equalTo(null));
         assertThat(DnsUtils.normalize(""), CoreMatchers.equalTo(""));
         assertThat(DnsUtils.normalize("blah"), CoreMatchers.equalTo("blah"));

@@ -50,7 +50,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Basic authentication test cases.
  */
-public class TestBasicScheme {
+class TestBasicScheme {
     private static final Base64.Encoder BASE64_ENC = Base64.getEncoder();
 
     private static AuthChallenge parse(final String s) throws ParseException {
@@ -63,7 +63,7 @@ public class TestBasicScheme {
     }
 
     @Test
-    public void testBasicAuthenticationEmptyChallenge() throws Exception {
+    void testBasicAuthenticationEmptyChallenge() throws Exception {
         final String challenge = StandardAuthScheme.BASIC;
         final AuthChallenge authChallenge = parse(challenge);
         final AuthScheme authscheme = new BasicScheme();
@@ -72,7 +72,7 @@ public class TestBasicScheme {
     }
 
     @Test
-    public void testBasicAuthentication() throws Exception {
+    void testBasicAuthentication() throws Exception {
         final AuthChallenge authChallenge = parse("Basic realm=\"test\"");
 
         final BasicScheme authscheme = new BasicScheme();
@@ -100,7 +100,7 @@ public class TestBasicScheme {
     static final String TEST_UTF8_PASSWORD = "123\u00A3";
 
     @Test
-    public void testBasicAuthenticationDefaultCharset() throws Exception {
+    void testBasicAuthenticationDefaultCharset() throws Exception {
         final HttpHost host  = new HttpHost("somehost", 80);
         final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("test", TEST_UTF8_PASSWORD.toCharArray());
         final BasicScheme authscheme = new BasicScheme();
@@ -111,7 +111,7 @@ public class TestBasicScheme {
     }
 
     @Test
-    public void testBasicAuthenticationDefaultCharsetUTF8() throws Exception {
+    void testBasicAuthenticationDefaultCharsetUTF8() throws Exception {
         final HttpHost host  = new HttpHost("somehost", 80);
         final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("test", TEST_UTF8_PASSWORD.toCharArray());
         final BasicScheme authscheme = new BasicScheme();
@@ -122,7 +122,7 @@ public class TestBasicScheme {
     }
 
     @Test
-    public void testBasicAuthenticationWithCharset() throws Exception {
+    void testBasicAuthenticationWithCharset() throws Exception {
         final AuthChallenge authChallenge = parse("Basic realm=\"test\", charset=\"utf-8\"");
 
         final BasicScheme authscheme = new BasicScheme();
@@ -143,7 +143,7 @@ public class TestBasicScheme {
     }
 
     @Test
-    public void testSerialization() throws Exception {
+    void testSerialization() throws Exception {
         final AuthChallenge authChallenge = parse("Basic realm=\"test\"");
 
         final BasicScheme basicScheme = new BasicScheme();
@@ -159,7 +159,7 @@ public class TestBasicScheme {
     }
 
     @Test
-    public void testBasicAuthenticationUserCredentialsMissing() throws Exception {
+    void testBasicAuthenticationUserCredentialsMissing() {
         final BasicScheme authscheme = new BasicScheme();
         final HttpHost host  = new HttpHost("somehost", 80);
         final HttpRequest request = new BasicHttpRequest("GET", "/");
@@ -167,7 +167,7 @@ public class TestBasicScheme {
     }
 
     @Test
-    public void testBasicAuthenticationUsernameWithBlank() throws Exception {
+    void testBasicAuthenticationUsernameWithBlank() throws Exception {
         final BasicScheme authscheme = new BasicScheme();
         final HttpHost host  = new HttpHost("somehost", 80);
         final HttpRequest request = new BasicHttpRequest("GET", "/");
@@ -176,7 +176,7 @@ public class TestBasicScheme {
     }
 
     @Test
-    public void testBasicAuthenticationUsernameWithTab() throws Exception {
+    void testBasicAuthenticationUsernameWithTab() {
         final BasicScheme authscheme = new BasicScheme();
         final HttpHost host  = new HttpHost("somehost", 80);
         final HttpRequest request = new BasicHttpRequest("GET", "/");
@@ -185,7 +185,7 @@ public class TestBasicScheme {
     }
 
     @Test
-    public void testBasicAuthenticationUsernameWithColon() throws Exception {
+    void testBasicAuthenticationUsernameWithColon() {
         final BasicScheme authscheme = new BasicScheme();
         final HttpHost host  = new HttpHost("somehost", 80);
         final HttpRequest request = new BasicHttpRequest("GET", "/");
@@ -194,7 +194,7 @@ public class TestBasicScheme {
     }
 
     @Test
-    public void testBasicAuthenticationPasswordWithControlCharacters() throws Exception {
+    void testBasicAuthenticationPasswordWithControlCharacters() {
         final BasicScheme authscheme = new BasicScheme();
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpRequest request = new BasicHttpRequest("GET", "/");

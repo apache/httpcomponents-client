@@ -32,10 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
@@ -52,192 +48,192 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("deprecation")
-public class TestByteArrayCacheEntrySerializer {
+class TestByteArrayCacheEntrySerializer {
 
     private ByteArrayCacheEntrySerializer impl;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         impl = new ByteArrayCacheEntrySerializer();
     }
 
     @Test
-    public void canSerializeEntriesWithVariantMapsDeprecatedConstructor() throws Exception {
+    void canSerializeEntriesWithVariantMapsDeprecatedConstructor() throws Exception {
         readWriteVerify(makeCacheEntryDeprecatedConstructorWithVariantMap("somekey"));
     }
 
     @Test
-    public void canSerializeEntriesWithVariantMapsAndInstant() throws Exception {
+    void canSerializeEntriesWithVariantMapsAndInstant() throws Exception {
         readWriteVerify(makeCacheEntryWithVariantMap("somekey"));
     }
 
     @Test
-    public void isAllowedClassNameStringTrue() {
+    void isAllowedClassNameStringTrue() {
         assertIsAllowedClassNameTrue(String.class.getName());
     }
 
     @Test
-    public void isAllowedClassNameStringArrayTrue() {
+    void isAllowedClassNameStringArrayTrue() {
         assertIsAllowedClassNameTrue("[L" + String.class.getName());
     }
 
     @Test
-    public void isAllowedClassNameStringArrayArrayTrue() {
+    void isAllowedClassNameStringArrayArrayTrue() {
         assertIsAllowedClassNameTrue("[[L" + String.class.getName());
     }
 
     @Test
-    public void isAllowedClassNameDataTrue() {
+    void isAllowedClassNameDataTrue() {
         assertIsAllowedClassNameTrue(Date.class.getName());
     }
 
     @Test
-    public void isAllowedClassNameInstantTrue() {
+    void isAllowedClassNameInstantTrue() {
         assertIsAllowedClassNameTrue(Instant.class.getName());
     }
 
     @Test
-    public void isAllowedClassNameStatusLineTrue() {
+    void isAllowedClassNameStatusLineTrue() {
         assertIsAllowedClassNameTrue(StatusLine.class.getName());
     }
 
     @Test
-    public void isAllowedClassNameResourceTrue() {
+    void isAllowedClassNameResourceTrue() {
         assertIsAllowedClassNameTrue(Resource.class.getName());
     }
 
     @Test
-    public void isAllowedClassNameByteArrayTrue() {
+    void isAllowedClassNameByteArrayTrue() {
         assertIsAllowedClassNameTrue("[B");
     }
 
     @Test
-    public void isAllowedClassNameByteArrayArrayTrue() {
+    void isAllowedClassNameByteArrayArrayTrue() {
         assertIsAllowedClassNameTrue("[[B");
     }
 
     @Test
-    public void isAllowedClassNameCharArrayTrue() {
+    void isAllowedClassNameCharArrayTrue() {
         assertIsAllowedClassNameTrue("[C");
     }
 
     @Test
-    public void isAllowedClassNameCharArrayArrayTrue() {
+    void isAllowedClassNameCharArrayArrayTrue() {
         assertIsAllowedClassNameTrue("[[C");
     }
 
     @Test
-    public void isAllowedClassNameDoubleArrayTrue() {
+    void isAllowedClassNameDoubleArrayTrue() {
         assertIsAllowedClassNameTrue("[D");
     }
 
     @Test
-    public void isAllowedClassNameDoubleArrayArrayTrue() {
+    void isAllowedClassNameDoubleArrayArrayTrue() {
         assertIsAllowedClassNameTrue("[[D");
     }
 
     @Test
-    public void isAllowedClassNameFloatArrayTrue() {
+    void isAllowedClassNameFloatArrayTrue() {
         assertIsAllowedClassNameTrue("[F");
     }
 
     @Test
-    public void isAllowedClassNameFloatArrayArrayTrue() {
+    void isAllowedClassNameFloatArrayArrayTrue() {
         assertIsAllowedClassNameTrue("[[F");
     }
 
     @Test
-    public void isAllowedClassNameIntArrayTrue() {
+    void isAllowedClassNameIntArrayTrue() {
         assertIsAllowedClassNameTrue("[I");
     }
 
     @Test
-    public void isAllowedClassNameIntArrayArrayTrue() {
+    void isAllowedClassNameIntArrayArrayTrue() {
         assertIsAllowedClassNameTrue("[[I");
     }
 
     @Test
-    public void isAllowedClassNameLongArrayTrue() {
+    void isAllowedClassNameLongArrayTrue() {
         assertIsAllowedClassNameTrue("[J");
     }
 
     @Test
-    public void isAllowedClassNameLongArrayArrayTrue() {
+    void isAllowedClassNameLongArrayArrayTrue() {
         assertIsAllowedClassNameTrue("[[J");
     }
 
     @Test
-    public void isAllowedClassNameShortArrayTrue() {
+    void isAllowedClassNameShortArrayTrue() {
         assertIsAllowedClassNameTrue("[S");
     }
 
     @Test
-    public void isAllowedClassNameShortArrayArrayTrue() {
+    void isAllowedClassNameShortArrayArrayTrue() {
         assertIsAllowedClassNameTrue("[[S");
     }
 
     @Test
-    public void isAllowedClassNameCollectionsInvokerTransformerFalse() {
+    void isAllowedClassNameCollectionsInvokerTransformerFalse() {
         assertIsAllowedClassNameFalse("org.apache.commons.collections.functors.InvokerTransformer");
     }
 
     @Test
-    public void isAllowedClassNameCollections4InvokerTransformerFalse() {
+    void isAllowedClassNameCollections4InvokerTransformerFalse() {
         assertIsAllowedClassNameFalse("org.apache.commons.collections4.functors.InvokerTransformer");
     }
 
     @Test
-    public void isAllowedClassNameCollectionsInstantiateTransformerFalse() {
+    void isAllowedClassNameCollectionsInstantiateTransformerFalse() {
         assertIsAllowedClassNameFalse("org.apache.commons.collections.functors.InstantiateTransformer");
     }
 
     @Test
-    public void isAllowedClassNameCollections4InstantiateTransformerFalse() {
+    void isAllowedClassNameCollections4InstantiateTransformerFalse() {
         assertIsAllowedClassNameFalse("org.apache.commons.collections4.functors.InstantiateTransformer");
     }
 
     @Test
-    public void isAllowedClassNameGroovyConvertedClosureFalse() {
+    void isAllowedClassNameGroovyConvertedClosureFalse() {
         assertIsAllowedClassNameFalse("org.codehaus.groovy.runtime.ConvertedClosure");
     }
 
     @Test
-    public void isAllowedClassNameGroovyMethodClosureFalse() {
+    void isAllowedClassNameGroovyMethodClosureFalse() {
         assertIsAllowedClassNameFalse("org.codehaus.groovy.runtime.MethodClosure");
     }
 
     @Test
-    public void isAllowedClassNameSpringObjectFactoryFalse() {
+    void isAllowedClassNameSpringObjectFactoryFalse() {
         assertIsAllowedClassNameFalse("org.springframework.beans.factory.ObjectFactory");
     }
 
     @Test
-    public void isAllowedClassNameCalanTemplatesImplFalse() {
+    void isAllowedClassNameCalanTemplatesImplFalse() {
         assertIsAllowedClassNameFalse("com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl");
     }
 
     @Test
-    public void isAllowedClassNameCalanTemplatesImplArrayFalse() {
+    void isAllowedClassNameCalanTemplatesImplArrayFalse() {
         assertIsAllowedClassNameFalse("[Lcom.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl");
     }
 
     @Test
-    public void isAllowedClassNameJavaRmiRegistryFalse() {
+    void isAllowedClassNameJavaRmiRegistryFalse() {
         assertIsAllowedClassNameFalse("java.rmi.registry.Registry");
     }
 
     @Test
-    public void isAllowedClassNameJavaRmiServerRemoteObjectInvocationHandlerFalse() {
+    void isAllowedClassNameJavaRmiServerRemoteObjectInvocationHandlerFalse() {
         assertIsAllowedClassNameFalse("java.rmi.server.RemoteObjectInvocationHandler");
     }
 
     @Test
-    public void isAllowedClassNameJavaxXmlTransformTemplatesFalse() {
+    void isAllowedClassNameJavaxXmlTransformTemplatesFalse() {
         assertIsAllowedClassNameFalse("javax.xml.transform.Templates");
     }
 
     @Test
-    public void isAllowedClassNameJavaxManagementMBeanServerInvocationHandlerFalse() {
+    void isAllowedClassNameJavaxManagementMBeanServerInvocationHandlerFalse() {
         assertIsAllowedClassNameFalse("javax.management.MBeanServerInvocationHandler");
     }
 
@@ -247,15 +243,6 @@ public class TestByteArrayCacheEntrySerializer {
 
     private static void assertIsAllowedClassNameFalse(final String className) {
         assertFalse(ByteArrayCacheEntrySerializer.RestrictedObjectInputStream.isAllowedClassName(className));
-    }
-
-    private byte[] serializeProhibitedObject() throws IOException {
-        final BigDecimal bigDecimal = new BigDecimal("1000.00");
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-            oos.writeObject(bigDecimal);
-        }
-        return baos.toByteArray();
     }
 
     public void readWriteVerify(final HttpCacheStorageEntry writeEntry) throws Exception {

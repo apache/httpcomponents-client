@@ -54,7 +54,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 
-public class TestAbstractSerializingAsyncCacheStorage {
+class TestAbstractSerializingAsyncCacheStorage {
 
     @Mock
     private Cancellable cancellable;
@@ -80,7 +80,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
     }
 
     @Test
-    public void testCachePut() throws Exception {
+    void testCachePut() throws Exception {
         final String key = "foo";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
 
@@ -103,7 +103,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
     }
 
     @Test
-    public void testCacheGetNullEntry() throws Exception {
+    void testCacheGetNullEntry() {
         final String key = "foo";
 
         Mockito.when(impl.digestToStorageKey(key)).thenReturn("bar");
@@ -121,7 +121,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
     }
 
     @Test
-    public void testCacheGet() throws Exception {
+    void testCacheGet() {
         final String key = "foo";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
 
@@ -141,7 +141,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
     }
 
     @Test
-    public void testCacheGetKeyMismatch() throws Exception {
+    void testCacheGetKeyMismatch() {
         final String key = "foo";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
         Mockito.when(impl.digestToStorageKey(key)).thenReturn("bar");
@@ -159,7 +159,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
     }
 
     @Test
-    public void testCacheRemove()  throws Exception{
+    void testCacheRemove() {
         final String key = "foo";
 
         Mockito.when(impl.digestToStorageKey(key)).thenReturn("bar");
@@ -177,7 +177,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
     }
 
     @Test
-    public void testCacheUpdateNullEntry() throws Exception {
+    void testCacheUpdateNullEntry() {
         final String key = "foo";
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
@@ -207,7 +207,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
     }
 
     @Test
-    public void testCacheCASUpdate() throws Exception {
+    void testCacheCASUpdate() throws Exception {
         final String key = "foo";
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
@@ -238,7 +238,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
     }
 
     @Test
-    public void testCacheCASUpdateKeyMismatch() throws Exception {
+    void testCacheCASUpdateKeyMismatch() throws Exception {
         final String key = "foo";
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
@@ -274,7 +274,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
     }
 
     @Test
-    public void testSingleCacheUpdateRetry() throws Exception {
+    void testSingleCacheUpdateRetry() throws Exception {
         final String key = "foo";
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
@@ -312,7 +312,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
     }
 
     @Test
-    public void testCacheUpdateFail() throws Exception {
+    void testCacheUpdateFail() throws Exception {
         final String key = "foo";
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
@@ -351,7 +351,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testBulkGet() throws Exception {
+    void testBulkGet() {
         final String key1 = "foo this";
         final String key2 = "foo that";
         final String storageKey1 = "bar this";
@@ -396,7 +396,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testBulkGetKeyMismatch() throws Exception {
+    void testBulkGetKeyMismatch() {
         final String key1 = "foo this";
         final String key2 = "foo that";
         final String storageKey1 = "bar this";

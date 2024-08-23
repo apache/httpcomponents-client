@@ -46,7 +46,7 @@ import org.mockito.Mockito;
  *  Simple tests for {@link CloseableHttpClient}.
  */
 @SuppressWarnings({"boxing","static-access"}) // test code
-public class TestCloseableHttpClient {
+class TestCloseableHttpClient {
 
     static abstract class NoopCloseableHttpClient extends CloseableHttpClient {
 
@@ -54,7 +54,7 @@ public class TestCloseableHttpClient {
         protected CloseableHttpResponse doExecute(
                 final HttpHost target,
                 final ClassicHttpRequest request,
-                final HttpContext context) throws IOException {
+                final HttpContext context) {
             return null;
         }
 
@@ -67,7 +67,7 @@ public class TestCloseableHttpClient {
     private CloseableHttpResponse response;
 
     @BeforeEach
-    public void setup() throws Exception {
+    void setup() throws Exception {
         content = Mockito.mock(InputStream.class);
         entity = Mockito.mock(HttpEntity.class);
         originResponse = Mockito.mock(ClassicHttpResponse.class);
@@ -79,7 +79,7 @@ public class TestCloseableHttpClient {
     }
 
     @Test
-    public void testExecuteRequestAbsoluteURI() throws Exception {
+    void testExecuteRequestAbsoluteURI() throws Exception {
         final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
         Mockito.when(client.doExecute(
                 Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(response);
@@ -92,7 +92,7 @@ public class TestCloseableHttpClient {
     }
 
     @Test
-    public void testExecuteRequestRelativeURI() throws Exception {
+    void testExecuteRequestRelativeURI() throws Exception {
         final HttpGet httpget = new HttpGet("/stuff");
         Mockito.when(client.doExecute(
                 Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(response);
@@ -105,7 +105,7 @@ public class TestCloseableHttpClient {
     }
 
     @Test
-    public void testExecuteRequestHandleResponse() throws Exception {
+    void testExecuteRequestHandleResponse() throws Exception {
         final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
 
         Mockito.when(client.doExecute(
@@ -124,7 +124,7 @@ public class TestCloseableHttpClient {
     }
 
     @Test
-    public void testExecuteRequestHandleResponseIOException() throws Exception {
+    void testExecuteRequestHandleResponseIOException() throws Exception {
         final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
 
         Mockito.when(client.doExecute(
@@ -144,7 +144,7 @@ public class TestCloseableHttpClient {
     }
 
     @Test
-    public void testExecuteRequestHandleResponseHttpException() throws Exception {
+    void testExecuteRequestHandleResponseHttpException() throws Exception {
         final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
 
         Mockito.when(client.doExecute(

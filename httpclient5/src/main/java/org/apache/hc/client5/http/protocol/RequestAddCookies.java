@@ -45,6 +45,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.Method;
@@ -67,7 +68,7 @@ import org.slf4j.LoggerFactory;
 public class RequestAddCookies implements HttpRequestInterceptor {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link RequestAddCookies}.
      *
      * @since 5.2
      */
@@ -89,6 +90,17 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         if (Method.CONNECT.isSame(method) || Method.TRACE.isSame(method)) {
             return;
         }
+
+        final Header cookieHeader = request.getHeader(HttpHeaders.COOKIE);
+        // Check if a Cookie header is already present
+        if (cookieHeader != null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Skipping cookie addition, Cookie header already present in the request");
+            }
+            // Skip adding cookies if the Cookie header is already present
+            return;
+        }
+
 
         final HttpClientContext clientContext = HttpClientContext.cast(context);
         final String exchangeId = clientContext.getExchangeId();

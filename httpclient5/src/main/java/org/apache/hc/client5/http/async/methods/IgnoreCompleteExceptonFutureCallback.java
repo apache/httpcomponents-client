@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.async.methods;
 import org.apache.hc.core5.concurrent.FutureCallback;
 
 /**
+ * @param <T> the future result type returned by this callback.
  * @deprecated Use {@link IgnoreCompleteExceptionFutureCallback}
  * @since 5.2
  */

@@ -40,7 +40,6 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.TunnelRefusedException;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.impl.routing.BasicRouteDirector;
@@ -52,6 +51,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -60,6 +60,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.StatusLine;
@@ -149,11 +150,15 @@ public final class ConnectExec implements ExecChainHandler {
                             tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
                             break;
                         case HttpRouteDirector.TUNNEL_TARGET: {
-                            final boolean secure = createTunnelToTarget(exchangeId, route, request, execRuntime, context);
+                            final ClassicHttpResponse finalResponse = createTunnelToTarget(
+                                    exchangeId, route, request, execRuntime, context);
+                            if (finalResponse != null) {
+                                return finalResponse;
+                            }
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("{} tunnel to target created.", exchangeId);
                             }
-                            tracker.tunnelTarget(secure);
+                            tracker.tunnelTarget(false);
                         }   break;
 
                         case HttpRouteDirector.TUNNEL_PROXY: {
@@ -207,7 +212,7 @@ public final class ConnectExec implements ExecChainHandler {
      * This method does <i>not</i> processChallenge the connection with
      * information about the tunnel, that is left to the caller.
      */
-    private boolean createTunnelToTarget(
+    private ClassicHttpResponse createTunnelToTarget(
             final String exchangeId,
             final HttpRoute route,
             final HttpRequest request,
@@ -282,19 +287,16 @@ public final class ConnectExec implements ExecChainHandler {
 
         final int status = response.getCode();
         if (status != HttpStatus.SC_OK) {
-
-            // Buffer response content
             final HttpEntity entity = response.getEntity();
-            final String responseMessage = entity != null ? EntityUtils.toString(entity) : null;
-            execRuntime.disconnectEndpoint();
-            throw new TunnelRefusedException("CONNECT refused by proxy: " + new StatusLine(response), responseMessage);
+            if (entity != null) {
+                response.setEntity(new ByteArrayEntity(
+                        EntityUtils.toByteArray(entity, 4096),
+                        ContentType.parseLenient(entity.getContentType())));
+                execRuntime.disconnectEndpoint();
+            }
+            return response;
         }
-
-        // How to decide on security of the tunnelled connection?
-        // The socket factory knows only about the segment to the proxy.
-        // Even if that is secure, the hop to the target may be insecure.
-        // Leave it to derived classes, consider insecure by default here.
-        return false;
+        return null;
     }
 
     /**

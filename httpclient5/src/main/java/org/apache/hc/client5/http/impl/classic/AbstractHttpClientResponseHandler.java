@@ -49,6 +49,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
  * HttpClient may handle redirects (3xx responses) internally.
  * </p>
  *
+ * @param <T> the type of the value determined by the response.
  * @since 4.4
  */
 @Contract(threading = ThreadingBehavior.STATELESS)

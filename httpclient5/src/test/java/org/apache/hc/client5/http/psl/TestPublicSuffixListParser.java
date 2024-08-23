@@ -37,19 +37,19 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestPublicSuffixListParser {
+class TestPublicSuffixListParser {
+
+    private static final String SUFFIXLIST_TXT = "suffixlist.txt";
+    private static final String SUFFIXLIST2_TXT = "suffixlist2.txt";
 
     @Test
-    public void testParse() throws Exception {
+    void testParse() throws Exception {
         final ClassLoader classLoader = getClass().getClassLoader();
-        final InputStream in = classLoader.getResourceAsStream("suffixlist.txt");
-        Assertions.assertNotNull(in);
         final PublicSuffixList suffixList;
-        try {
+        try (InputStream in = classLoader.getResourceAsStream(SUFFIXLIST_TXT)) {
+            Assertions.assertNotNull(in, SUFFIXLIST_TXT);
             final PublicSuffixListParser parser = PublicSuffixListParser.INSTANCE;
             suffixList = parser.parse(new InputStreamReader(in, StandardCharsets.UTF_8));
-        } finally {
-            in.close();
         }
         Assertions.assertNotNull(suffixList);
         Assertions.assertEquals(Arrays.asList("xx", "jp", "ac.jp", "*.tokyo.jp", "no", "h\u00E5.no"), suffixList.getRules());
@@ -57,16 +57,13 @@ public class TestPublicSuffixListParser {
     }
 
     @Test
-    public void testParseByType() throws Exception {
+    void testParseByType() throws Exception {
         final ClassLoader classLoader = getClass().getClassLoader();
-        final InputStream in = classLoader.getResourceAsStream("suffixlist2.txt");
-        Assertions.assertNotNull(in);
         final List<PublicSuffixList> suffixLists;
-        try {
+        try (InputStream in = classLoader.getResourceAsStream(SUFFIXLIST2_TXT)) {
+            Assertions.assertNotNull(in, SUFFIXLIST2_TXT);
             final PublicSuffixListParser parser = PublicSuffixListParser.INSTANCE;
             suffixLists = parser.parseByType(new InputStreamReader(in, StandardCharsets.UTF_8));
-        } finally {
-            in.close();
         }
         Assertions.assertNotNull(suffixLists);
         Assertions.assertEquals(2, suffixLists.size());

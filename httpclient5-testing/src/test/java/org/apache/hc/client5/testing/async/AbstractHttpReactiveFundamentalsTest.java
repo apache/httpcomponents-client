@@ -51,8 +51,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.TestAsyncClient;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHost;
@@ -64,7 +66,6 @@ import org.apache.hc.core5.http.nio.support.AsyncRequestBuilder;
 import org.apache.hc.core5.reactive.ReactiveEntityProducer;
 import org.apache.hc.core5.reactive.ReactiveResponseConsumer;
 import org.apache.hc.core5.reactive.ReactiveServerExchangeHandler;
-import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.apache.hc.core5.testing.reactive.Reactive3TestUtils;
 import org.apache.hc.core5.testing.reactive.Reactive3TestUtils.StreamDescription;
 import org.apache.hc.core5.testing.reactive.ReactiveEchoProcessor;
@@ -76,24 +77,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.reactivestreams.Publisher;
 
-public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase {
+abstract  class AbstractHttpReactiveFundamentalsTest extends AbstractIntegrationTestBase {
 
-    public AbstractHttpReactiveFundamentalsTest(final URIScheme scheme) {
-        super(scheme);
+    public AbstractHttpReactiveFundamentalsTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
+        super(scheme, clientProtocolLevel, serverProtocolLevel);
     }
-
-    abstract protected H2TestServer startServer() throws Exception;
-
-    abstract protected T startClient() throws Exception;
 
     @Test
     @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testSequentialGetRequests() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/random/*", () ->
-                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor()));
-        final HttpHost target = targetHost();
-        final T client = startClient();
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", () -> new ReactiveServerExchangeHandler(new ReactiveRandomProcessor())));
+        final HttpHost target = startServer();
+
+        final TestAsyncClient client = startClient();
         for (int i = 0; i < 3; i++) {
             final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer();
 
@@ -112,11 +109,11 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
     @Test
     @Timeout(value = 2000, unit = MILLISECONDS)
     public void testSequentialHeadRequests() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/random/*", () ->
-                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor()));
-        final HttpHost target = targetHost();
-        final T client = startClient();
+        configureServer(bootstrap -> bootstrap.register("/random/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor())));
+        final HttpHost target = startServer();
+
+        final TestAsyncClient client = startClient();
         for (int i = 0; i < 3; i++) {
             final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer();
 
@@ -134,11 +131,11 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
     @Test
     @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testSequentialPostRequests() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/echo/*", () ->
-                new ReactiveServerExchangeHandler(new ReactiveEchoProcessor()));
-        final HttpHost target = targetHost();
-        final T client = startClient();
+        configureServer(bootstrap -> bootstrap.register("/echo/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveEchoProcessor())));
+        final HttpHost target = startServer();
+
+        final TestAsyncClient client = startClient();
         for (int i = 0; i < 3; i++) {
             final byte[] b1 = new byte[1024];
             final Random rnd = new Random(System.currentTimeMillis());
@@ -164,11 +161,11 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
     @Test
     @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testConcurrentPostRequests() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/echo/*", () ->
-                new ReactiveServerExchangeHandler(new ReactiveEchoProcessor()));
-        final HttpHost target = targetHost();
-        final T client = startClient();
+        configureServer(bootstrap -> bootstrap.register("/echo/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveEchoProcessor())));
+        final HttpHost target = startServer();
+
+        final TestAsyncClient client = startClient();
 
         final int reqCount = 500;
         final int maxSize = 128 * 1024;
@@ -213,11 +210,11 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
     @Test
     @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testRequestExecutionFromCallback() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/random/*", () ->
-                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor()));
-        final HttpHost target = targetHost();
-        final T client = startClient();
+        configureServer(bootstrap -> bootstrap.register("/random/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor())));
+        final HttpHost target = startServer();
+
+        final TestAsyncClient client = startClient();
         final int requestNum = 50;
         final AtomicInteger count = new AtomicInteger(requestNum);
         final Queue<Message<HttpResponse, Publisher<ByteBuffer>>> resultQueue = new ConcurrentLinkedQueue<>();
@@ -274,12 +271,12 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
     }
 
     @Test
-    public void testBadRequest() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/random/*", () ->
-                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor()));
-        final HttpHost target = targetHost();
-        final T client = startClient();
+    void testBadRequest() throws Exception {
+        configureServer(bootstrap -> bootstrap.register("/random/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor())));
+        final HttpHost target = startServer();
+
+        final TestAsyncClient client = startClient();
         final AsyncRequestProducer request = AsyncRequestBuilder.get(target + "/random/boom").build();
         final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer();
 

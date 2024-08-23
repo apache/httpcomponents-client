@@ -43,6 +43,9 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class CookiePriorityComparator implements Comparator<Cookie> {
 
+    /**
+     * Default instance of {@link CookiePriorityComparator}.
+     */
     public static final CookiePriorityComparator INSTANCE = new CookiePriorityComparator();
 
     private int getPathLength(final Cookie cookie) {

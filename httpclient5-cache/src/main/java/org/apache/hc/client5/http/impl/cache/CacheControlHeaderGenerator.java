@@ -47,6 +47,9 @@ import org.apache.hc.core5.util.CharArrayBuffer;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CacheControlHeaderGenerator {
 
+    /**
+     * Default instance of {@link CacheControlHeaderGenerator}.
+     */
     public static final CacheControlHeaderGenerator INSTANCE = new CacheControlHeaderGenerator();
 
     public List<NameValuePair> convert(final RequestCacheControl cacheControl) {

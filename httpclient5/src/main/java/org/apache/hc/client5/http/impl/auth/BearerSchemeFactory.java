@@ -42,6 +42,9 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class BearerSchemeFactory implements AuthSchemeFactory {
 
+    /**
+     * Default instance of {@link BearerSchemeFactory}.
+     */
     public static final BearerSchemeFactory INSTANCE = new BearerSchemeFactory();
 
     public BearerSchemeFactory() {

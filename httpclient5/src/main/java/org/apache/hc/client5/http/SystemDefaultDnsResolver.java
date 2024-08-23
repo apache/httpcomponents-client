@@ -36,6 +36,9 @@ import java.net.UnknownHostException;
  */
 public class SystemDefaultDnsResolver implements DnsResolver {
 
+    /**
+     * Default instance of {@link SystemDefaultDnsResolver}.
+     */
     public static final SystemDefaultDnsResolver INSTANCE = new SystemDefaultDnsResolver();
 
     @Override

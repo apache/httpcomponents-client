@@ -36,18 +36,19 @@ import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
+import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.TestAsyncClient;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Message;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.support.AsyncRequestBuilder;
 import org.apache.hc.core5.reactive.ReactiveResponseConsumer;
 import org.apache.hc.core5.reactive.ReactiveServerExchangeHandler;
-import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.apache.hc.core5.testing.reactive.ReactiveRandomProcessor;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
@@ -56,33 +57,23 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Publisher;
 
-public abstract class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<CloseableHttpAsyncClient> {
+abstract  class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest {
 
     public TestHttp1Reactive(final URIScheme scheme) {
-        super(scheme);
-    }
-
-    @Override
-    protected H2TestServer startServer() throws Exception {
-        return startServer(Http1Config.DEFAULT, null, null);
-    }
-
-    @Override
-    protected CloseableHttpAsyncClient startClient() throws Exception {
-        return startClient(b -> {});
+        super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);
     }
 
     @ParameterizedTest(name = "{displayName}; concurrent connections: {0}")
     @ValueSource(ints = {5, 1, 20})
     @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testSequentialGetRequestsCloseConnection(final int concurrentConns) throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/random/*", () ->
-                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor()));
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap.register("/random/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor())));
+        final HttpHost target = startServer();
 
-        final CloseableHttpAsyncClient client = startClient();
-        final PoolingAsyncClientConnectionManager connManager = connManager();
+        final TestAsyncClient client = startClient();
+
+        final PoolingAsyncClientConnectionManager connManager = client.getConnectionManager();
         connManager.setDefaultMaxPerRoute(concurrentConns);
         connManager.setMaxTotal(100);
 
@@ -109,13 +100,13 @@ public abstract class TestHttp1Reactive extends AbstractHttpReactiveFundamentals
     @Test
     @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testSharedPool() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("/random/*", () ->
-                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor()));
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap.register("/random/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor())));
+        final HttpHost target = startServer();
 
-        final CloseableHttpAsyncClient client = startClient();
-        final PoolingAsyncClientConnectionManager connManager = connManager();
+        final TestAsyncClient client = startClient();
+
+        final PoolingAsyncClientConnectionManager connManager = client.getConnectionManager();
 
         final AsyncRequestProducer request1 = AsyncRequestBuilder.get(target + "/random/2048").build();
         final ReactiveResponseConsumer consumer1 = new ReactiveResponseConsumer();

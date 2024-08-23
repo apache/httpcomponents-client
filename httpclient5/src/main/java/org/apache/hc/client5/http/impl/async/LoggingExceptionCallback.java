@@ -33,6 +33,9 @@ import org.slf4j.LoggerFactory;
 
 class LoggingExceptionCallback implements Callback<Exception> {
 
+    /**
+     * Singleton instance of LoggingExceptionCallback.
+     */
     static final LoggingExceptionCallback INSTANCE = new LoggingExceptionCallback();
 
     private static final Logger LOG = LoggerFactory.getLogger("org.apache.hc.client5.http.impl.async");

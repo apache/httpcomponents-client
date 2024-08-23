@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
@@ -38,6 +39,7 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.BrotliDecompressingEntity;
 import org.apache.hc.client5.http.entity.BrotliInputStreamFactory;
 import org.apache.hc.client5.http.entity.DecompressingEntity;
+import org.apache.hc.client5.http.entity.DeflateInputStream;
 import org.apache.hc.client5.http.entity.DeflateInputStreamFactory;
 import org.apache.hc.client5.http.entity.GZIPInputStreamFactory;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
@@ -58,6 +60,7 @@ import org.apache.hc.core5.http.message.BasicHeaderValueParser;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
+import org.brotli.dec.BrotliInputStream;
 
 /**
  * Request execution handler in the classic request execution chain
@@ -118,9 +121,9 @@ public final class ContentCompressionExec implements ExecChainHandler {
      * Handles {@code gzip} and {@code deflate} compressed entities by using the following
      * decoders:
      * <ul>
-     * <li>gzip - see {@link java.util.zip.GZIPInputStream}</li>
-     * <li>deflate - see {@link org.apache.hc.client5.http.entity.DeflateInputStream}</li>
-     * <li>brotli - see {@link org.brotli.dec.BrotliInputStream}</li>
+     * <li>gzip - see {@link GZIPInputStream}</li>
+     * <li>deflate - see {@link DeflateInputStream}</li>
+     * <li>brotli - see {@link BrotliInputStream}</li>
      * </ul>
      */
     public ContentCompressionExec() {

@@ -30,13 +30,13 @@ import org.apache.hc.core5.http.URIScheme;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 
-public class HttpMinimalIntegrationTests {
+class HttpMinimalIntegrationTests {
 
     @Nested
     @DisplayName("Fundamentals (HTTP/1.1)")
-    public class Http1 extends TestHttp1AsyncMinimal {
+    class Http1 extends TestHttp1AsyncMinimal {
 
-        public Http1() throws Exception {
+        public Http1() {
             super(URIScheme.HTTP);
         }
 
@@ -44,9 +44,9 @@ public class HttpMinimalIntegrationTests {
 
     @Nested
     @DisplayName("Fundamentals (HTTP/1.1, TLS)")
-    public class Http1Tls extends TestHttp1AsyncMinimal {
+    class Http1Tls extends TestHttp1AsyncMinimal {
 
-        public Http1Tls() throws Exception {
+        public Http1Tls() {
             super(URIScheme.HTTPS);
         }
 
@@ -54,9 +54,9 @@ public class HttpMinimalIntegrationTests {
 
     @Nested
     @DisplayName("Fundamentals (HTTP/2)")
-    public class H2 extends TestH2AsyncMinimal {
+    class H2 extends TestH2AsyncMinimal {
 
-        public H2() throws Exception {
+        public H2() {
             super(URIScheme.HTTP);
         }
 
@@ -64,9 +64,9 @@ public class HttpMinimalIntegrationTests {
 
     @Nested
     @DisplayName("Fundamentals (HTTP/2, TLS)")
-    public class H2Tls extends TestH2AsyncMinimal {
+    class H2Tls extends TestH2AsyncMinimal {
 
-        public H2Tls() throws Exception {
+        public H2Tls() {
             super(URIScheme.HTTPS);
         }
 

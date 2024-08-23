@@ -69,7 +69,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-public class TestRedirectExec {
+class TestRedirectExec {
 
     @Mock
     private HttpRoutePlanner httpRoutePlanner;
@@ -83,7 +83,7 @@ public class TestRedirectExec {
     private HttpHost target;
 
     @BeforeEach
-    public void setup() throws Exception {
+    void setup() {
         MockitoAnnotations.openMocks(this);
         target = new HttpHost("localhost", 80);
         redirectStrategy = Mockito.spy(new DefaultRedirectStrategy());
@@ -91,7 +91,7 @@ public class TestRedirectExec {
     }
 
     @Test
-    public void testFundamentals() throws Exception {
+    void testFundamentals() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -122,7 +122,7 @@ public class TestRedirectExec {
         redirectExec.execute(request, scope, chain);
 
         final ArgumentCaptor<ClassicHttpRequest> reqCaptor = ArgumentCaptor.forClass(ClassicHttpRequest.class);
-        Mockito.verify(chain, Mockito.times(2)).proceed(reqCaptor.capture(), ArgumentMatchers.same(scope));
+        Mockito.verify(chain, Mockito.times(2)).proceed(reqCaptor.capture(), ArgumentMatchers.any());
 
         final List<ClassicHttpRequest> allValues = reqCaptor.getAllValues();
         Assertions.assertNotNull(allValues);
@@ -136,7 +136,7 @@ public class TestRedirectExec {
     }
 
     @Test
-    public void testMaxRedirect() throws Exception {
+    void testMaxRedirect() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -158,7 +158,7 @@ public class TestRedirectExec {
     }
 
     @Test
-    public void testRelativeRedirect() throws Exception {
+    void testRelativeRedirect() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -176,7 +176,7 @@ public class TestRedirectExec {
     }
 
     @Test
-    public void testCrossSiteRedirect() throws Exception {
+    void testCrossSiteRedirect() throws Exception {
 
         final HttpHost proxy = new HttpHost("proxy");
         final HttpRoute route = new HttpRoute(target, proxy);
@@ -228,7 +228,7 @@ public class TestRedirectExec {
     }
 
     @Test
-    public void testAllowCircularRedirects() throws Exception {
+    void testAllowCircularRedirects() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig(RequestConfig.custom()
@@ -270,7 +270,7 @@ public class TestRedirectExec {
     }
 
     @Test
-    public void testGetLocationUriDisallowCircularRedirects() throws Exception {
+    void testGetLocationUriDisallowCircularRedirects() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig(RequestConfig.custom()
@@ -308,7 +308,7 @@ public class TestRedirectExec {
     }
 
     @Test
-    public void testRedirectRuntimeException() throws Exception {
+    void testRedirectRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -331,7 +331,7 @@ public class TestRedirectExec {
     }
 
     @Test
-    public void testRedirectProtocolException() throws Exception {
+    void testRedirectProtocolException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -360,7 +360,7 @@ public class TestRedirectExec {
     }
 
     @Test
-    public void testPutSeeOtherRedirect() throws Exception {
+    void testPutSeeOtherRedirect() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final URI targetUri = new URI("http://localhost:80/stuff");
         final ClassicHttpRequest request = ClassicRequestBuilder.put()
@@ -395,7 +395,7 @@ public class TestRedirectExec {
         Assertions.assertEquals(200, finalResponse.getCode());
 
         final ArgumentCaptor<ClassicHttpRequest> reqCaptor = ArgumentCaptor.forClass(ClassicHttpRequest.class);
-        Mockito.verify(chain, Mockito.times(3)).proceed(reqCaptor.capture(), ArgumentMatchers.same(scope));
+        Mockito.verify(chain, Mockito.times(3)).proceed(reqCaptor.capture(), ArgumentMatchers.any());
 
         final List<ClassicHttpRequest> allValues = reqCaptor.getAllValues();
         Assertions.assertNotNull(allValues);
@@ -404,9 +404,9 @@ public class TestRedirectExec {
         final ClassicHttpRequest request2 = allValues.get(1);
         final ClassicHttpRequest request3 = allValues.get(2);
         Assertions.assertSame(request, request1);
-        Assertions.assertEquals(request1.getMethod(), "PUT");
-        Assertions.assertEquals(request2.getMethod(), "GET");
-        Assertions.assertEquals(request3.getMethod(), "GET");
+        Assertions.assertEquals("PUT", request1.getMethod());
+        Assertions.assertEquals("GET", request2.getMethod());
+        Assertions.assertEquals("GET", request3.getMethod());
     }
 
     private static class HttpRequestMatcher implements ArgumentMatcher<ClassicHttpRequest> {

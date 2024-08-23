@@ -45,6 +45,9 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 class ResponseViaCache implements HttpResponseInterceptor {
 
+    /**
+     * Default instance of {@link ResponseViaCache}.
+     */
     public static final ResponseViaCache INSTANCE = new ResponseViaCache();
 
     @Override

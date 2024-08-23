@@ -29,7 +29,6 @@ package org.apache.hc.client5.testing.sync;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -58,29 +57,26 @@ import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.BasicTestAuthenticator;
 import org.apache.hc.client5.testing.auth.Authenticator;
 import org.apache.hc.client5.testing.auth.BearerAuthenticationHandler;
 import org.apache.hc.client5.testing.classic.AuthenticatingDecorator;
 import org.apache.hc.client5.testing.classic.EchoHandler;
-import org.apache.hc.client5.testing.sync.extension.TestClientResources;
+import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.sync.TestClient;
+import org.apache.hc.client5.testing.extension.sync.TestServerBootstrap;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.impl.HttpProcessors;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
@@ -88,62 +84,42 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.support.BasicResponseBuilder;
 import org.apache.hc.core5.net.URIAuthority;
-import org.apache.hc.core5.testing.classic.ClassicTestServer;
-import org.apache.hc.core5.util.Timeout;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 
 /**
  * Unit tests for automatic client authentication.
  */
-public abstract class TestClientAuthentication {
-
-    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
-
-    @RegisterExtension
-    private TestClientResources testResources;
+abstract  class TestClientAuthentication extends AbstractIntegrationTestBase {
 
     protected TestClientAuthentication(final URIScheme scheme) {
-        this.testResources = new TestClientResources(scheme, TIMEOUT);
+        super(scheme, ClientProtocolLevel.STANDARD);
     }
 
-    public URIScheme scheme() {
-        return testResources.scheme();
+    public void configureServerWithBasicAuth(final Authenticator authenticator,
+                                             final Consumer<TestServerBootstrap> serverCustomizer) {
+        configureServer(bootstrap -> {
+            bootstrap.setExchangeHandlerDecorator(requestHandler ->
+                    new AuthenticatingDecorator(requestHandler, authenticator));
+            serverCustomizer.accept(bootstrap);
+        });
     }
 
-    public ClassicTestServer startServer(final Authenticator authenticator) throws IOException {
-        return testResources.startServer(
-                null,
-                null,
-                requestHandler -> new AuthenticatingDecorator(requestHandler, authenticator));
-    }
-
-    public ClassicTestServer startServer() throws IOException {
-        return startServer(new BasicTestAuthenticator("test:test", "test realm"));
-    }
-
-    public CloseableHttpClient startClient(final Consumer<HttpClientBuilder> clientCustomizer) throws Exception {
-        return testResources.startClient(clientCustomizer);
-    }
-
-    public CloseableHttpClient startClient() throws Exception {
-        return testResources.startClient(builder -> {});
-    }
-
-    public HttpHost targetHost() {
-        return testResources.targetHost();
+    public void configureServerWithBasicAuth(final Consumer<TestServerBootstrap> serverCustomizer) {
+        configureServerWithBasicAuth(
+                new BasicTestAuthenticator("test:test", "test realm"),
+                serverCustomizer);
     }
 
     @Test
-    public void testBasicAuthenticationNoCreds() throws Exception {
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationNoCreds() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap
+                .register("*", new EchoHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final HttpClientContext context = HttpClientContext.create();
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
@@ -162,12 +138,12 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testBasicAuthenticationFailure() throws Exception {
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationFailure() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap
+                .register("*", new EchoHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final HttpClientContext context = HttpClientContext.create();
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
@@ -188,12 +164,12 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testBasicAuthenticationSuccess() throws Exception {
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationSuccess() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap
+                .register("*", new EchoHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
         final HttpGet httpget = new HttpGet("/");
         final HttpClientContext context = HttpClientContext.create();
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
@@ -213,12 +189,12 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testBasicAuthenticationSuccessOnNonRepeatablePutExpectContinue() throws Exception {
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationSuccessOnNonRepeatablePutExpectContinue() throws Exception {
+        configureServer(bootstrap -> bootstrap
+                .register("*", new EchoHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final RequestConfig config = RequestConfig.custom()
                 .setExpectContinueEnabled(true)
@@ -227,8 +203,8 @@ public abstract class TestClientAuthentication {
         httpput.setConfig(config);
         httpput.setEntity(new InputStreamEntity(
                 new ByteArrayInputStream(
-                        new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
-                        -1, null));
+                        new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9}),
+                -1, null));
         final HttpClientContext context = HttpClientContext.create();
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
@@ -244,20 +220,20 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testBasicAuthenticationFailureOnNonRepeatablePutDontExpectContinue() throws Exception {
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationFailureOnNonRepeatablePutDontExpectContinue() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap
+                .register("*", new EchoHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(false).build();
         final HttpPut httpput = new HttpPut("/");
         httpput.setConfig(config);
         httpput.setEntity(new InputStreamEntity(
                 new ByteArrayInputStream(
-                        new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
-                        -1, null));
+                        new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9}),
+                -1, null));
 
         final HttpClientContext context = HttpClientContext.create();
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
@@ -275,12 +251,12 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testBasicAuthenticationSuccessOnRepeatablePost() throws Exception {
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationSuccessOnRepeatablePost() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap
+                .register("*", new EchoHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final HttpPost httppost = new HttpPost("/");
         httppost.setEntity(new StringEntity("some important stuff", StandardCharsets.US_ASCII));
@@ -303,17 +279,17 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testBasicAuthenticationFailureOnNonRepeatablePost() throws Exception {
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationFailureOnNonRepeatablePost() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap
+                .register("*", new EchoHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final HttpPost httppost = new HttpPost("/");
         httppost.setEntity(new InputStreamEntity(
                 new ByteArrayInputStream(
-                        new byte[] { 0,1,2,3,4,5,6,7,8,9 }), -1, null));
+                        new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}), -1, null));
 
         final HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig(RequestConfig.custom()
@@ -334,18 +310,19 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testBasicAuthenticationCredentialsCaching() throws Exception {
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationCredentialsCaching() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap
+                .register("*", new EchoHandler()));
+        final HttpHost target = startServer();
 
         final DefaultAuthenticationStrategy authStrategy = Mockito.spy(new DefaultAuthenticationStrategy());
         final Queue<HttpResponse> responseQueue = new ConcurrentLinkedQueue<>();
 
-        final CloseableHttpClient client = startClient(builder -> builder
+        configureClient(builder -> builder
                 .setTargetAuthenticationStrategy(authStrategy)
                 .addResponseInterceptorLast((response, entity, context)
                         -> responseQueue.add(BasicResponseBuilder.copy(response).build())));
+        final TestClient client = client();
 
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(CredentialsProviderBuilder.create()
@@ -371,18 +348,19 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testBasicAuthenticationCredentialsCachingByPathPrefix() throws Exception {
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationCredentialsCachingByPathPrefix() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap
+                .register("*", new EchoHandler()));
+        final HttpHost target = startServer();
 
         final DefaultAuthenticationStrategy authStrategy = Mockito.spy(new DefaultAuthenticationStrategy());
         final Queue<HttpResponse> responseQueue = new ConcurrentLinkedQueue<>();
 
-        final CloseableHttpClient client = startClient(builder -> builder
+        configureClient(builder -> builder
                 .setTargetAuthenticationStrategy(authStrategy)
                 .addResponseInterceptorLast((response, entity, context)
                         -> responseQueue.add(BasicResponseBuilder.copy(response).build())));
+        final TestClient client = client();
 
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
                 .add(target, "test", "test".toCharArray())
@@ -393,7 +371,7 @@ public abstract class TestClientAuthentication {
         context.setAuthCache(authCache);
         context.setCredentialsProvider(credentialsProvider);
 
-        for (final String requestPath: new String[] {"/blah/a", "/blah/b?huh", "/blah/c", "/bl%61h/%61"}) {
+        for (final String requestPath : new String[]{"/blah/a", "/blah/b?huh", "/blah/c", "/bl%61h/%61"}) {
             final HttpGet httpget = new HttpGet(requestPath);
             client.execute(target, httpget, context, response -> {
                 final HttpEntity entity1 = response.getEntity();
@@ -415,7 +393,7 @@ public abstract class TestClientAuthentication {
         authCache.clear();
         Mockito.reset(authStrategy);
 
-        for (final String requestPath: new String[] {"/blah/a", "/yada/a", "/blah/blah/", "/buh/a"}) {
+        for (final String requestPath : new String[]{"/blah/a", "/yada/a", "/blah/blah/", "/buh/a"}) {
             final HttpGet httpget = new HttpGet(requestPath);
             client.execute(target, httpget, context, response -> {
                 final HttpEntity entity1 = response.getEntity();
@@ -435,8 +413,8 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testAuthenticationCredentialsCachingReAuthenticationOnDifferentRealm() throws Exception {
-        final ClassicTestServer server = startServer(new Authenticator() {
+    void testAuthenticationCredentialsCachingReAuthenticationOnDifferentRealm() throws Exception {
+        configureServerWithBasicAuth(new Authenticator() {
 
             @Override
             public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
@@ -460,15 +438,15 @@ public abstract class TestClientAuthentication {
                 }
             }
 
-        });
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+        }, bootstrap -> bootstrap.register("*", new EchoHandler()));
+        final HttpHost target = startServer();
 
         final DefaultAuthenticationStrategy authStrategy = Mockito.spy(new DefaultAuthenticationStrategy());
 
-        final CloseableHttpClient client = startClient(builder -> builder
+        configureClient(builder -> builder
                 .setTargetAuthenticationStrategy(authStrategy)
         );
+        final TestClient client = client();
 
         final CredentialsProvider credsProvider = CredentialsProviderBuilder.create()
                 .add(new AuthScope(target, "this realm", null), "test", "this".toCharArray())
@@ -512,26 +490,27 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testAuthenticationUserinfoInRequest() throws Exception {
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+    void testAuthenticationUserinfoInRequest() throws Exception {
+        configureServer(bootstrap -> bootstrap
+                .register("*", new EchoHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
-        final HttpGet httpget = new HttpGet("http://test:test@" +  target.toHostString() + "/");
+        final TestClient client = client();
+        final HttpGet httpget = new HttpGet("http://test:test@" + target.toHostString() + "/");
 
         final HttpClientContext context = HttpClientContext.create();
         Assertions.assertThrows(ClientProtocolException.class, () -> client.execute(target, httpget, context, response -> null));
     }
 
     @Test
-    public void testPreemptiveAuthentication() throws Exception {
+    void testPreemptiveAuthentication() throws Exception {
         final Authenticator authenticator = Mockito.spy(new BasicTestAuthenticator("test:test", "test realm"));
-        final ClassicTestServer server = startServer(authenticator);
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+        configureServerWithBasicAuth(authenticator,
+                bootstrap -> bootstrap
+                        .register("*", new EchoHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final BasicScheme basicScheme = new BasicScheme();
         basicScheme.initPreemptive(new UsernamePasswordCredentials("test", "test".toCharArray()));
@@ -553,13 +532,14 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testPreemptiveAuthenticationFailure() throws Exception {
+    void testPreemptiveAuthenticationFailure() throws Exception {
         final Authenticator authenticator = Mockito.spy(new BasicTestAuthenticator("test:test", "test realm"));
-        final ClassicTestServer server = startServer(authenticator);
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+        configureServerWithBasicAuth(authenticator,
+                bootstrap -> bootstrap
+                        .register("*", new EchoHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final HttpClientContext context = HttpClientContext.create();
         final AuthCache authCache = new BasicAuthCache();
@@ -587,7 +567,7 @@ public abstract class TestClientAuthentication {
         public void handle(
                 final ClassicHttpRequest request,
                 final ClassicHttpResponse response,
-                final HttpContext context) throws HttpException, IOException {
+                final HttpContext context) {
             final String creds = (String) context.getAttribute("creds");
             if (creds == null || !creds.equals("test:test")) {
                 response.setCode(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED);
@@ -601,12 +581,12 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testAuthenticationTargetAsProxy() throws Exception {
-        final ClassicTestServer server = testResources.startServer(null, null, null);
-        server.registerHandler("*", new ProxyAuthHandler());
-        final HttpHost target = testResources.targetHost();
+    void testAuthenticationTargetAsProxy() throws Exception {
+        configureServer(bootstrap -> bootstrap
+                .register("*", new ProxyAuthHandler()));
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = testResources.startClient(builder -> {});
+        final TestClient client = client();
 
         final HttpClientContext context = HttpClientContext.create();
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
@@ -622,23 +602,23 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testConnectionCloseAfterAuthenticationSuccess() throws Exception {
-        final ClassicTestServer server = testResources.startServer(
-                Http1Config.DEFAULT,
-                HttpProcessors.server(),
-                requestHandler -> new AuthenticatingDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm")) {
+    void testConnectionCloseAfterAuthenticationSuccess() throws Exception {
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler ->
+                        new AuthenticatingDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm")) {
 
-                    @Override
-                    protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
-                        unauthorized.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
-                    }
+                            @Override
+                            protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
+                                unauthorized.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
+                            }
 
-                }
-        );
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+                        }
+                )
+                .register("*", new EchoHandler()));
 
-        final CloseableHttpClient client = startClient();
+        final HttpHost target = startServer();
+
+        final TestClient client = client();
 
         final HttpClientContext context = HttpClientContext.create();
         final CredentialsProvider credsProvider = CredentialsProviderBuilder.create()
@@ -658,7 +638,7 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testReauthentication() throws Exception {
+    void testReauthentication() throws Exception {
         final BasicSchemeFactory myBasicAuthSchemeFactory = new BasicSchemeFactory() {
 
             @Override
@@ -701,28 +681,29 @@ public abstract class TestClientAuthentication {
             }
         };
 
-        final ClassicTestServer server = testResources.startServer(
-                Http1Config.DEFAULT,
-                HttpProcessors.server(),
-                requestHandler -> new AuthenticatingDecorator(requestHandler, authenticator) {
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler ->
+                        new AuthenticatingDecorator(requestHandler, authenticator) {
 
-                    @Override
-                    protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
-                        unauthorized.removeHeaders(HttpHeaders.WWW_AUTHENTICATE);
-                        unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, "MyBasic realm=\"test realm\"");
-                    }
+                            @Override
+                            protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
+                                unauthorized.removeHeaders(HttpHeaders.WWW_AUTHENTICATE);
+                                unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, "MyBasic realm=\"test realm\"");
+                            }
 
-                }
-        );
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+                        }
+                )
+                .register("*", new EchoHandler()));
 
-        final CloseableHttpClient client = startClient(builder -> builder
+        final HttpHost target = startServer();
+
+        configureClient(builder -> builder
                 .setDefaultAuthSchemeRegistry(authSchemeRegistry)
-                .setDefaultCredentialsProvider(credsProvider)
         );
+        final TestClient client = client();
 
         final HttpClientContext context = HttpClientContext.create();
+        context.setCredentialsProvider(credsProvider);
         for (int i = 0; i < 10; i++) {
             final HttpGet httpget = new HttpGet("/");
             httpget.setConfig(config);
@@ -737,23 +718,23 @@ public abstract class TestClientAuthentication {
     }
 
     @Test
-    public void testAuthenticationFallback() throws Exception {
-        final ClassicTestServer server = testResources.startServer(
-                Http1Config.DEFAULT,
-                HttpProcessors.server(),
-                requestHandler -> new AuthenticatingDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm")) {
+    void testAuthenticationFallback() throws Exception {
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler ->
+                        new AuthenticatingDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm")) {
 
-                    @Override
-                    protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
-                        unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.DIGEST + " realm=\"test realm\" invalid");
-                    }
+                            @Override
+                            protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
+                                unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.DIGEST + " realm=\"test realm\" invalid");
+                            }
 
-                }
-        );
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+                        }
+                )
+                .register("*", new EchoHandler()));
 
-        final CloseableHttpClient client = startClient();
+        final HttpHost target = startServer();
+
+        final TestClient client = client();
 
         final HttpClientContext context = HttpClientContext.create();
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
@@ -776,7 +757,7 @@ public abstract class TestClientAuthentication {
     private final static String CHARS = "0123456789abcdef";
 
     @Test
-    public void testBearerTokenAuthentication() throws Exception {
+    void testBearerTokenAuthentication() throws Exception {
         final SecureRandom secureRandom = SecureRandom.getInstanceStrong();
         secureRandom.setSeed(System.currentTimeMillis());
         final StringBuilder buf = new StringBuilder();
@@ -784,17 +765,18 @@ public abstract class TestClientAuthentication {
             buf.append(CHARS.charAt(secureRandom.nextInt(CHARS.length() - 1)));
         }
         final String token = buf.toString();
-        final ClassicTestServer server = testResources.startServer(
-                Http1Config.DEFAULT,
-                HttpProcessors.server(),
-                requestHandler -> new AuthenticatingDecorator(
-                        requestHandler,
-                        new BearerAuthenticationHandler(),
-                        new BasicTestAuthenticator(token, "test realm")));
-        server.registerHandler("*", new EchoHandler());
-        final HttpHost target = targetHost();
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler ->
+                        new AuthenticatingDecorator(
+                                requestHandler,
+                                new BearerAuthenticationHandler(),
+                                new BasicTestAuthenticator(token, "test realm"))
+                )
+                .register("*", new EchoHandler()));
 
-        final CloseableHttpClient client = startClient();
+        final HttpHost target = startServer();
+
+        final TestClient client = client();
 
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
 

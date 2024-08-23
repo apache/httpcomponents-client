@@ -51,6 +51,9 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class CookiePathComparator implements Serializable, Comparator<Cookie> {
 
+    /**
+     * Default instance of {@link CookiePathComparator}.
+     */
     public static final CookiePathComparator INSTANCE = new CookiePathComparator();
 
     private static final long serialVersionUID = 7523645369616405818L;

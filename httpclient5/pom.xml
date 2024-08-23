@@ -28,7 +28,7 @@
   <parent>
     <groupId>org.apache.httpcomponents.client5</groupId>
     <artifactId>httpclient5-parent</artifactId>
-    <version>5.4-alpha3-SNAPSHOT</version>
+    <version>5.4-beta2-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient5</artifactId>
   <name>Apache HttpClient</name>
@@ -113,7 +113,7 @@
       <plugin>
         <groupId>com.googlecode.maven-download-plugin</groupId>
         <artifactId>download-maven-plugin</artifactId>
-        <version>1.8.1</version>
+        <version>1.9.0</version>
         <executions>
           <execution>
             <id>download-public-suffix-list</id>

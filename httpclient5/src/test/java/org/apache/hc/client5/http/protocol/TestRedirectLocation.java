@@ -35,10 +35,10 @@ import org.junit.jupiter.api.Test;
 /**
  *  Simple tests for {@link RedirectLocations}.
  */
-public class TestRedirectLocation {
+class TestRedirectLocation {
 
     @Test
-    public void testBasics() throws Exception {
+    void testBasics() throws Exception {
         final RedirectLocations locations = new RedirectLocations();
 
         final URI uri1 = new URI("/this");

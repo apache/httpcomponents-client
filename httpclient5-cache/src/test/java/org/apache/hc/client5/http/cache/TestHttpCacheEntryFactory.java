@@ -52,7 +52,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestHttpCacheEntryFactory {
+class TestHttpCacheEntryFactory {
 
     private Instant requestDate;
     private Instant responseDate;
@@ -69,7 +69,7 @@ public class TestHttpCacheEntryFactory {
     private HttpCacheEntryFactory impl;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() {
         requestDate = Instant.now().minusSeconds(1);
         responseDate = Instant.now();
 
@@ -87,7 +87,7 @@ public class TestHttpCacheEntryFactory {
     }
 
     @Test
-    public void testFilterHopByHopAndConnectionSpecificHeaders() {
+    void testFilterHopByHopAndConnectionSpecificHeaders() {
         response.setHeaders(
                 new BasicHeader(HttpHeaders.CONNECTION, "blah, blah, this, that"),
                 new BasicHeader("Blah", "huh?"),
@@ -106,7 +106,7 @@ public class TestHttpCacheEntryFactory {
     }
 
     @Test
-    public void testHeadersAreMergedCorrectly() {
+    void testHeadersAreMergedCorrectly() {
         entry = HttpTestUtils.makeCacheEntry(
                 new BasicHeader("Date", DateUtils.formatStandardDate(responseDate)),
                 new BasicHeader("ETag", "\"etag\""));
@@ -118,7 +118,7 @@ public class TestHttpCacheEntryFactory {
     }
 
     @Test
-    public void testNewerHeadersReplaceExistingHeaders() {
+    void testNewerHeadersReplaceExistingHeaders() {
         entry = HttpTestUtils.makeCacheEntry(
                 new BasicHeader("Date", DateUtils.formatStandardDate(requestDate)),
                 new BasicHeader("Cache-Control", "private"),
@@ -139,7 +139,7 @@ public class TestHttpCacheEntryFactory {
     }
 
     @Test
-    public void testNewHeadersAreAddedByMerge() {
+    void testNewHeadersAreAddedByMerge() {
         entry = HttpTestUtils.makeCacheEntry(
                 new BasicHeader("Date", DateUtils.formatStandardDate(requestDate)),
                 new BasicHeader("ETag", "\"etag\""));
@@ -156,7 +156,7 @@ public class TestHttpCacheEntryFactory {
     }
 
     @Test
-    public void entryWithMalformedDateIsStillUpdated() throws Exception {
+    void entryWithMalformedDateIsStillUpdated() {
         entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo,
                 new BasicHeader("ETag", "\"old\""),
                 new BasicHeader("Date", "bad-date"));
@@ -169,7 +169,7 @@ public class TestHttpCacheEntryFactory {
     }
 
     @Test
-    public void entryIsStillUpdatedByResponseWithMalformedDate() throws Exception {
+    void entryIsStillUpdatedByResponseWithMalformedDate() {
         entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo,
                 new BasicHeader("ETag", "\"old\""),
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
@@ -182,14 +182,14 @@ public class TestHttpCacheEntryFactory {
     }
 
     @Test
-    public void testUpdateCacheEntryReturnsDifferentEntryInstance() {
+    void testUpdateCacheEntryReturnsDifferentEntryInstance() {
         entry = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry newEntry = impl.createUpdated(requestDate, responseDate, host, request, response, entry);
         Assertions.assertNotSame(newEntry, entry);
     }
 
     @Test
-    public void testCreateRootVariantEntry() {
+    void testCreateRootVariantEntry() {
         request.setHeaders(
                 new BasicHeader("Keep-Alive", "timeout, max=20"),
                 new BasicHeader("X-custom", "my stuff"),
@@ -241,7 +241,7 @@ public class TestHttpCacheEntryFactory {
     }
 
     @Test
-    public void testCreateResourceEntry() {
+    void testCreateResourceEntry() {
         request.setHeaders(
                 new BasicHeader("Keep-Alive", "timeout, max=20"),
                 new BasicHeader("X-custom", "my stuff"),
@@ -285,7 +285,7 @@ public class TestHttpCacheEntryFactory {
     }
 
     @Test
-    public void testCreateUpdatedResourceEntry() {
+    void testCreateUpdatedResourceEntry() {
         final Resource resource = HttpTestUtils.makeRandomResource(128);
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(
                 tenSecondsAgo,
@@ -347,7 +347,7 @@ public class TestHttpCacheEntryFactory {
     }
 
     @Test
-    public void testUpdateNotModifiedIfResponseOlder() {
+    void testUpdateNotModifiedIfResponseOlder() {
         entry = HttpTestUtils.makeCacheEntry(twoSecondsAgo, now,
                 new BasicHeader("Date", DateUtils.formatStandardDate(oneSecondAgo)),
                 new BasicHeader("ETag", "\"new-etag\""));
@@ -360,7 +360,7 @@ public class TestHttpCacheEntryFactory {
     }
 
     @Test
-    public void testUpdateHasLatestRequestAndResponseDates() {
+    void testUpdateHasLatestRequestAndResponseDates() {
         entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo);
         final HttpCacheEntry updated = impl.createUpdated(twoSecondsAgo, oneSecondAgo, host, request, response, entry);
 
@@ -369,7 +369,7 @@ public class TestHttpCacheEntryFactory {
     }
 
     @Test
-    public void cannotUpdateFromANon304OriginResponse() throws Exception {
+    void cannotUpdateFromANon304OriginResponse() {
         entry = HttpTestUtils.makeCacheEntry();
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         Assertions.assertThrows(IllegalArgumentException.class, () ->

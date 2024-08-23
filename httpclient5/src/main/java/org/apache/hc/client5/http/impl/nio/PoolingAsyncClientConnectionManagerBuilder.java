@@ -32,8 +32,10 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.ssl.ConscryptClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
@@ -90,12 +92,15 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         return new PoolingAsyncClientConnectionManagerBuilder();
     }
 
-    PoolingAsyncClientConnectionManagerBuilder() {
+    @Internal
+    protected PoolingAsyncClientConnectionManagerBuilder() {
         super();
     }
 
     /**
-     * Assigns {@link TlsStrategy} instance for TLS connections.
+     * Sets {@link TlsStrategy} instance for TLS connections.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder setTlsStrategy(
             final TlsStrategy tlsStrategy) {
@@ -104,7 +109,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link DnsResolver} instance.
+     * Sets {@link DnsResolver} instance.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder setDnsResolver(final DnsResolver dnsResolver) {
         this.dnsResolver = dnsResolver;
@@ -112,7 +119,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link SchemePortResolver} instance.
+     * Sets {@link SchemePortResolver} instance.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder setSchemePortResolver(final SchemePortResolver schemePortResolver) {
         this.schemePortResolver = schemePortResolver;
@@ -120,7 +129,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link PoolConcurrencyPolicy} value.
+     * Sets {@link PoolConcurrencyPolicy} value.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder setPoolConcurrencyPolicy(final PoolConcurrencyPolicy poolConcurrencyPolicy) {
         this.poolConcurrencyPolicy = poolConcurrencyPolicy;
@@ -128,7 +139,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link PoolReusePolicy} value.
+     * Sets {@link PoolReusePolicy} value.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder setConnPoolPolicy(final PoolReusePolicy poolReusePolicy) {
         this.poolReusePolicy = poolReusePolicy;
@@ -136,7 +149,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns maximum total connection value.
+     * Sets maximum total connection value.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder setMaxConnTotal(final int maxConnTotal) {
         this.maxConnTotal = maxConnTotal;
@@ -144,7 +159,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns maximum connection per route value.
+     * Sets maximum connection per route value.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder setMaxConnPerRoute(final int maxConnPerRoute) {
         this.maxConnPerRoute = maxConnPerRoute;
@@ -152,8 +169,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns the same {@link ConnectionConfig} for all routes.
+     * Sets the same {@link ConnectionConfig} for all routes.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final PoolingAsyncClientConnectionManagerBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
@@ -162,8 +180,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link Resolver} of {@link ConnectionConfig} on a per route basis.
+     * Sets {@link Resolver} of {@link ConnectionConfig} on a per route basis.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final PoolingAsyncClientConnectionManagerBuilder setConnectionConfigResolver(
@@ -173,8 +192,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns the same {@link TlsConfig} for all hosts.
+     * Sets the same {@link TlsConfig} for all hosts.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final PoolingAsyncClientConnectionManagerBuilder setDefaultTlsConfig(final TlsConfig config) {
@@ -183,8 +203,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link Resolver} of {@link TlsConfig} on a per host basis.
+     * Sets {@link Resolver} of {@link TlsConfig} on a per host basis.
      *
+     * @return this instance.
      * @since 5.2
      */
     public final PoolingAsyncClientConnectionManagerBuilder setTlsConfigResolver(
@@ -196,6 +217,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     /**
      * Sets maximum time to live for persistent connections
      *
+     * @return this instance.
      * @deprecated Use {@link #setDefaultConnectionConfig(ConnectionConfig)}
      */
     @Deprecated
@@ -210,6 +232,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
      * Sets period after inactivity after which persistent
      * connections must be checked to ensure they are still valid.
      *
+     * @return this instance.
      * @deprecated Use {@link #setConnectionConfigResolver(Resolver)}.
      */
     @Deprecated
@@ -223,10 +246,25 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     /**
      * Use system properties when creating and configuring default
      * implementations.
+     *
+     * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder useSystemProperties() {
         this.systemProperties = true;
         return this;
+    }
+
+    @Internal
+    protected AsyncClientConnectionOperator createConnectionOperator(
+            final TlsStrategy tlsStrategy,
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver) {
+        return new DefaultAsyncClientConnectionOperator(
+                RegistryBuilder.<TlsStrategy>create()
+                        .register(URIScheme.HTTPS.getId(), tlsStrategy)
+                        .build(),
+                schemePortResolver,
+                dnsResolver);
     }
 
     public PoolingAsyncClientConnectionManager build() {
@@ -249,14 +287,10 @@ public class PoolingAsyncClientConnectionManagerBuilder {
             }
         }
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
-                RegistryBuilder.<TlsStrategy>create()
-                        .register(URIScheme.HTTPS.getId(), tlsStrategyCopy)
-                        .build(),
+                createConnectionOperator(tlsStrategyCopy, schemePortResolver, dnsResolver),
                 poolConcurrencyPolicy,
                 poolReusePolicy,
-                null,
-                schemePortResolver,
-                dnsResolver);
+                null);
         poolingmgr.setConnectionConfigResolver(connectionConfigResolver);
         poolingmgr.setTlsConfigResolver(tlsConfigResolver);
         if (maxConnTotal > 0) {

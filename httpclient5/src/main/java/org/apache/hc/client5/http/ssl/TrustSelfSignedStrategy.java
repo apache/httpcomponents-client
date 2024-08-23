@@ -52,6 +52,9 @@ import org.apache.hc.core5.ssl.TrustStrategy;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class TrustSelfSignedStrategy implements TrustStrategy {
 
+    /**
+     * Default instance of {@link TrustSelfSignedStrategy}
+     */
     public static final TrustSelfSignedStrategy INSTANCE = new TrustSelfSignedStrategy();
 
     @Override

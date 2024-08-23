@@ -44,6 +44,9 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultClientConnectionReuseStrategy extends DefaultConnectionReuseStrategy {
 
+    /**
+     * Default instance of {@link DefaultClientConnectionReuseStrategy}.
+     */
     public static final DefaultClientConnectionReuseStrategy INSTANCE = new DefaultClientConnectionReuseStrategy();
 
     @Override

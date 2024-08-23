@@ -34,10 +34,10 @@ import org.junit.jupiter.api.Test;
 /**
  * Simple tests for {@link CookieIdentityComparator}.
  */
-public class TestCookieIdentityComparator {
+class TestCookieIdentityComparator {
 
     @Test
-    public void testCookieIdentityComparasionByName() {
+    void testCookieIdentityComparasionByName() {
         final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
@@ -49,7 +49,7 @@ public class TestCookieIdentityComparator {
     }
 
     @Test
-    public void testCookieIdentityComparasionByNameAndDomain() {
+    void testCookieIdentityComparasionByNameAndDomain() {
         final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         c1.setDomain("www.domain.com");
@@ -65,7 +65,7 @@ public class TestCookieIdentityComparator {
     }
 
     @Test
-    public void testCookieIdentityComparasionByNameAndNullDomain() {
+    void testCookieIdentityComparasionByNameAndNullDomain() {
         final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         c1.setDomain(null);
@@ -81,7 +81,7 @@ public class TestCookieIdentityComparator {
     }
 
     @Test
-    public void testCookieIdentityComparasionByNameDomainAndPath() {
+    void testCookieIdentityComparasionByNameDomainAndPath() {
         final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         c1.setDomain("www.domain.com");
@@ -101,7 +101,7 @@ public class TestCookieIdentityComparator {
     }
 
     @Test
-    public void testCookieIdentityComparasionByNameDomainAndNullPath() {
+    void testCookieIdentityComparasionByNameDomainAndNullPath() {
         final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         c1.setDomain("www.domain.com");

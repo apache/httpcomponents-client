@@ -119,6 +119,7 @@ import org.apache.hc.core5.util.Args;
     }
 
     /**
+     * @return this instance.
      * @since 4.5
      */
     public MultipartEntityBuilder setContentType(final ContentType contentType) {
@@ -130,7 +131,7 @@ import org.apache.hc.core5.util.Args;
      *  Add parameter to the current {@link ContentType}.
      *
      * @param parameter The name-value pair parameter to add to the {@link ContentType}.
-     * @return the {@link MultipartEntityBuilder} instance.
+     * @return this instance.
      * @since 5.2
      */
     public MultipartEntityBuilder addParameter(final BasicNameValuePair parameter) {
@@ -208,7 +209,7 @@ import org.apache.hc.core5.util.Args;
      * boundary delimiter. The preamble is optional and may be null.
      *
      * @param preamble The preamble text to add to the multipart entity
-     * @return This MultipartEntityBuilder instance, to allow for method chaining
+     * @return this instance.
      *
      * @since 5.3
      */
@@ -222,7 +223,7 @@ import org.apache.hc.core5.util.Args;
      * boundary delimiter. The epilogue is optional and may be null.
      *
      * @param epilogue The epilogue text to add to the multipart entity
-     * @return This MultipartEntityBuilder instance, to allow for method chaining
+     * @return this instance.
      * @since 5.3
      */
     public MultipartEntityBuilder addEpilogue(final String epilogue) {
@@ -253,12 +254,7 @@ import org.apache.hc.core5.util.Args;
         if (charsetCopy == null && contentType != null) {
             charsetCopy = contentType.getCharset();
         }
-        final List<NameValuePair> paramsList = new ArrayList<>(2);
-        paramsList.add(new BasicNameValuePair("boundary", boundaryCopy));
-        if (charsetCopy != null) {
-            paramsList.add(new BasicNameValuePair("charset", charsetCopy.name()));
-        }
-        final NameValuePair[] params = paramsList.toArray(EMPTY_NAME_VALUE_ARRAY);
+        final NameValuePair[] params = new NameValuePair[]{new BasicNameValuePair("boundary", boundaryCopy)};
 
         final ContentType contentTypeCopy;
         if (contentType != null) {

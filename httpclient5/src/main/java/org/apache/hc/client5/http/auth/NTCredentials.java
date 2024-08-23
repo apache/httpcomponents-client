@@ -116,7 +116,7 @@ public class NTCredentials implements Credentials, Serializable {
      *                      <p>
      *                      This constructor creates a new instance of NTCredentials, determining the workstation name at runtime
      *                      using the {@link #getWorkstationName()} method. The workstation name will be converted to uppercase
-     *                      using the {@link java.util.Locale#ROOT} locale.
+     *                      using the {@link Locale#ROOT} locale.
      */
     public NTCredentials(
             final char[] password,

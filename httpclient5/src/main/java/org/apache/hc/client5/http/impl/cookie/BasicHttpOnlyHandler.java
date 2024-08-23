@@ -44,7 +44,7 @@ import org.apache.hc.core5.util.Args;
 public class BasicHttpOnlyHandler implements CommonCookieAttributeHandler {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link BasicHttpOnlyHandler}.
      *
      * @since 5.2
      */

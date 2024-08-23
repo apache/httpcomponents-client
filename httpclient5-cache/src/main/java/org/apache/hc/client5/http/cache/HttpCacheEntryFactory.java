@@ -58,6 +58,9 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class HttpCacheEntryFactory {
 
+    /**
+     * Default instance of {@link HttpCacheEntryFactory}.
+     */
     public static final HttpCacheEntryFactory INSTANCE = new HttpCacheEntryFactory();
 
     private static HeaderGroup headers(final Iterator<Header> it) {

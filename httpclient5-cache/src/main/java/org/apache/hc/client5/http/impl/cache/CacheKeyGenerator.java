@@ -70,6 +70,9 @@ import org.apache.hc.core5.util.TextUtils;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class CacheKeyGenerator implements Resolver<URI, String> {
 
+    /**
+     * Default instance of {@link CacheKeyGenerator}.
+     */
     public static final CacheKeyGenerator INSTANCE = new CacheKeyGenerator();
 
     @Override

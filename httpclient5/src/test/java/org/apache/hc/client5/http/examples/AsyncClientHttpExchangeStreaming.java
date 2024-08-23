@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.examples;
 
-import java.io.IOException;
 import java.nio.CharBuffer;
 import java.util.concurrent.Future;
 
@@ -34,7 +33,6 @@ import org.apache.hc.client5.http.async.methods.AbstractCharResponseConsumer;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
@@ -80,7 +78,7 @@ public class AsyncClientHttpExchangeStreaming {
                         @Override
                         protected void start(
                                 final HttpResponse response,
-                                final ContentType contentType) throws HttpException, IOException {
+                                final ContentType contentType) {
                             System.out.println(request + "->" + new StatusLine(response));
                         }
 
@@ -90,7 +88,7 @@ public class AsyncClientHttpExchangeStreaming {
                         }
 
                         @Override
-                        protected void data(final CharBuffer data, final boolean endOfStream) throws IOException {
+                        protected void data(final CharBuffer data, final boolean endOfStream) {
                             while (data.hasRemaining()) {
                                 System.out.print(data.get());
                             }
@@ -100,7 +98,7 @@ public class AsyncClientHttpExchangeStreaming {
                         }
 
                         @Override
-                        protected Void buildResult() throws IOException {
+                        protected Void buildResult() {
                             return null;
                         }
 

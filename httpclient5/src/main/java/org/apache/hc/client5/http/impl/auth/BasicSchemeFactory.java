@@ -46,7 +46,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 public class BasicSchemeFactory implements AuthSchemeFactory {
 
     /**
-     * Singleton instance with a null Charset.
+     * Default instance of {@link BasicSchemeFactory with a null Charset}.
      */
     public static final BasicSchemeFactory INSTANCE = new BasicSchemeFactory();
 

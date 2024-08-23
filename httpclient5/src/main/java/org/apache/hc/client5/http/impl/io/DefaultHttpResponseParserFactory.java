@@ -46,6 +46,9 @@ import org.apache.hc.core5.http.message.LineParser;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultHttpResponseParserFactory implements HttpMessageParserFactory<ClassicHttpResponse> {
 
+    /**
+     * Default instance DefaultHttpResponseParserFactory.
+     */
     public static final DefaultHttpResponseParserFactory INSTANCE = new DefaultHttpResponseParserFactory();
 
     private final Http1Config h1Config;

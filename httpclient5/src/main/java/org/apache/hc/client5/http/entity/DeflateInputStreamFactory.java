@@ -42,7 +42,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 public class DeflateInputStreamFactory implements InputStreamFactory {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link DeflateInputStreamFactory}.
      */
     private static final DeflateInputStreamFactory INSTANCE = new DeflateInputStreamFactory();
 

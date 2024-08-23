@@ -41,14 +41,14 @@ import org.mockito.Mockito;
 /**
  * Tests for {@link DefaultProxyRoutePlanner}.
  */
-public class TestDefaultProxyRoutePlanner {
+class TestDefaultProxyRoutePlanner {
 
     private HttpHost defaultProxy;
     private SchemePortResolver schemePortResolver;
     private DefaultProxyRoutePlanner routePlanner;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         defaultProxy = new HttpHost("default.proxy.host", 8888);
         schemePortResolver = Mockito.mock(SchemePortResolver.class);
         routePlanner = new DefaultProxyRoutePlanner(defaultProxy,
@@ -56,7 +56,7 @@ public class TestDefaultProxyRoutePlanner {
     }
 
     @Test
-    public void testDefaultProxyDirect() throws Exception {
+    void testDefaultProxyDirect() throws Exception {
         final HttpHost target = new HttpHost("http", "somehost", 80);
 
         final HttpContext context = HttpClientContext.create();
@@ -70,7 +70,7 @@ public class TestDefaultProxyRoutePlanner {
 
     @Test
     @SuppressWarnings("deprecation")
-    public void testViaProxy() throws Exception {
+    void testViaProxy() throws Exception {
         final HttpHost target = new HttpHost("http", "somehost", 80);
         final HttpHost proxy = new HttpHost("custom.proxy.host", 8080);
 

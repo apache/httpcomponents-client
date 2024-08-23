@@ -34,6 +34,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -50,16 +51,15 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for {@link org.apache.hc.client5.http.ssl.DefaultHostnameVerifier}.
  */
-public class TestDefaultHostnameVerifier {
+class TestDefaultHostnameVerifier {
 
     private DefaultHostnameVerifier impl;
     private PublicSuffixMatcher publicSuffixMatcher;
-    private DefaultHostnameVerifier implWithPublicSuffixCheck;
 
     private static final String PUBLIC_SUFFIX_MATCHER_SOURCE_FILE = "suffixlistmatcher.txt";
 
     @BeforeEach
-    public void setup() throws IOException {
+    void setup() throws IOException {
         impl = new DefaultHostnameVerifier();
 
         // Load the test PublicSuffixMatcher
@@ -69,12 +69,10 @@ public class TestDefaultHostnameVerifier {
         final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(
                 new InputStreamReader(in, StandardCharsets.UTF_8));
         publicSuffixMatcher = new PublicSuffixMatcher(lists);
-
-        implWithPublicSuffixCheck = new DefaultHostnameVerifier(publicSuffixMatcher);
     }
 
     @Test
-    public void testVerify() throws Exception {
+    void testVerify() throws Exception {
         final CertificateFactory cf = CertificateFactory.getInstance("X.509");
         InputStream in;
         X509Certificate x509;
@@ -146,9 +144,6 @@ public class TestDefaultHostnameVerifier {
         impl.verify("foo.co.jp", x509);
         impl.verify("\u82b1\u5b50.co.jp", x509);
 
-        exceptionPlease(implWithPublicSuffixCheck, "foo.co.jp", x509);
-        exceptionPlease(implWithPublicSuffixCheck, "\u82b1\u5b50.co.jp", x509);
-
         in = new ByteArrayInputStream(CertificatesToPlayWith.X509_WILD_FOO_BAR_HANAKO);
         x509 = (X509Certificate) cf.generateCertificate(in);
         // try the foo.com variations
@@ -188,7 +183,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testSubjectAlt() throws Exception {
+    void testSubjectAlt() throws Exception {
         final CertificateFactory cf = CertificateFactory.getInstance("X.509");
         final InputStream in = new ByteArrayInputStream(CertificatesToPlayWith.X509_MULTIPLE_SUBJECT_ALT);
         final X509Certificate x509 = (X509Certificate) cf.generateCertificate(in);
@@ -210,8 +205,25 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testDomainRootMatching() {
+    void testParseFQDN() {
+        Assertions.assertEquals(Arrays.asList("blah"),
+                DefaultHostnameVerifier.parseFQDN("blah"));
+        Assertions.assertEquals(Arrays.asList("blah", "blah"),
+                DefaultHostnameVerifier.parseFQDN("blah.blah"));
+        Assertions.assertEquals(Arrays.asList("blah", "blah", "blah"),
+                DefaultHostnameVerifier.parseFQDN("blah.blah.blah"));
+        Assertions.assertEquals(Arrays.asList("", "", "blah", ""),
+                DefaultHostnameVerifier.parseFQDN(".blah.."));
+        Assertions.assertEquals(Arrays.asList(""),
+                DefaultHostnameVerifier.parseFQDN(""));
+        Assertions.assertEquals(Arrays.asList("", ""),
+                DefaultHostnameVerifier.parseFQDN("."));
+        Assertions.assertEquals(Arrays.asList("com", "domain", "host"),
+                DefaultHostnameVerifier.parseFQDN("host.domain.com"));
+    }
 
+    @Test
+    void testDomainRootMatching() {
         Assertions.assertFalse(DefaultHostnameVerifier.matchDomainRoot("a.b.c", null));
         Assertions.assertTrue(DefaultHostnameVerifier.matchDomainRoot("a.b.c", "a.b.c"));
         Assertions.assertFalse(DefaultHostnameVerifier.matchDomainRoot("aa.b.c", "a.b.c"));
@@ -220,7 +232,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testIdentityMatching() {
+    void testIdentityMatching() {
 
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.c", "*.b.c"));
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.b.c", "*.b.c"));
@@ -228,13 +240,13 @@ public class TestDefaultHostnameVerifier {
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("s.a.b.c", "*.b.c"));
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.b.c", "*.b.c")); // subdomain not OK
 
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("a.gov.uk", "*.gov.uk", publicSuffixMatcher));
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("a.gov.uk", "*.gov.uk", publicSuffixMatcher));  // Bad 2TLD
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.gov.uk", "*.gov.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.gov.uk", "*.gov.uk", publicSuffixMatcher));  // Bad 2TLD
 
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("s.a.gov.uk", "*.a.gov.uk", publicSuffixMatcher));
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.uk", "*.a.gov.uk", publicSuffixMatcher));
 
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("s.a.gov.uk", "*.gov.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("s.a.gov.uk", "*.gov.uk", publicSuffixMatcher));
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.uk", "*.gov.uk", publicSuffixMatcher));  // BBad 2TLD/no subdomain allowed
 
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.gov.com", "*.gov.com", publicSuffixMatcher));
@@ -243,8 +255,8 @@ public class TestDefaultHostnameVerifier {
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("s.a.gov.com", "*.gov.com", publicSuffixMatcher));
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.com", "*.gov.com", publicSuffixMatcher)); // no subdomain allowed
 
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("a.gov.uk", "a*.gov.uk", publicSuffixMatcher));
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("a.gov.uk", "a*.gov.uk", publicSuffixMatcher)); // Bad 2TLD
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.gov.uk", "a*.gov.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.gov.uk", "a*.gov.uk", publicSuffixMatcher)); // Bad 2TLD
 
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("s.a.gov.uk", "a*.gov.uk", publicSuffixMatcher)); // Bad 2TLD
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.uk", "a*.gov.uk", publicSuffixMatcher)); // Bad 2TLD/no subdomain allowed
@@ -261,15 +273,15 @@ public class TestDefaultHostnameVerifier {
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.xxx.uk", "*.b.xxx.uk", publicSuffixMatcher));
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.b.xxx.uk", "*.b.xxx.uk", publicSuffixMatcher));
 
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
+        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
+        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
 
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("b.xxx.uk", "*.xxx.uk", publicSuffixMatcher));
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("b.xxx.uk", "*.xxx.uk", publicSuffixMatcher));
     }
 
     @Test
-    public void testHTTPCLIENT_1097() {
+    void testHTTPCLIENT_1097() {
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.c", "a*.b.c"));
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.b.c", "a*.b.c"));
 
@@ -278,13 +290,13 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testHTTPCLIENT_1255() {
+    void testHTTPCLIENT_1255() {
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("mail.a.b.c.com", "m*.a.b.c.com"));
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("mail.a.b.c.com", "m*.a.b.c.com"));
     }
 
     @Test
-    public void testHTTPCLIENT_1997_ANY() { // Only True on all domains
+    void testHTTPCLIENT_1997_ANY() { // Only True on all domains
         String domain;
         // Unknown
         domain = "dev.b.cloud.a";
@@ -309,7 +321,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testHTTPCLIENT_1997_ICANN() { // Only True on ICANN domains
+    void testHTTPCLIENT_1997_ICANN() { // Only True on ICANN domains
         String domain;
         // Unknown
         domain = "dev.b.cloud.a";
@@ -328,7 +340,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testHTTPCLIENT_1997_PRIVATE() { // Only True on PRIVATE domains
+    void testHTTPCLIENT_1997_PRIVATE() { // Only True on PRIVATE domains
         String domain;
         // Unknown
         domain = "dev.b.cloud.a";
@@ -347,7 +359,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testHTTPCLIENT_1997_UNKNOWN() { // Only True on all domains (same as ANY)
+    void testHTTPCLIENT_1997_UNKNOWN() { // Only True on all domains (same as ANY)
         String domain;
         // Unknown
         domain = "dev.b.cloud.a";
@@ -366,7 +378,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test // Check compressed IPv6 hostname matching
-    public void testHTTPCLIENT_1316() throws Exception{
+    void testHTTPCLIENT_1316() throws Exception{
         final String host1 = "2001:0db8:aaaa:bbbb:cccc:0:0:0001";
         DefaultHostnameVerifier.matchIPv6Address(host1, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc:0:0:0001")));
         DefaultHostnameVerifier.matchIPv6Address(host1, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::1")));
@@ -380,7 +392,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testHTTPCLIENT_2149() throws Exception {
+    void testHTTPCLIENT_2149() throws Exception {
         final CertificateFactory cf = CertificateFactory.getInstance("X.509");
         final InputStream in = new ByteArrayInputStream(CertificatesToPlayWith.SUBJECT_ALT_IP_ONLY);
         final X509Certificate x509 = (X509Certificate) cf.generateCertificate(in);
@@ -395,7 +407,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testExtractCN() throws Exception {
+    void testExtractCN() throws Exception {
         Assertions.assertEquals("blah", DefaultHostnameVerifier.extractCN("cn=blah, ou=blah, o=blah"));
         Assertions.assertEquals("blah", DefaultHostnameVerifier.extractCN("cn=blah, cn=yada, cn=booh"));
         Assertions.assertEquals("blah", DefaultHostnameVerifier.extractCN("c = pampa ,  cn  =    blah    , ou = blah , o = blah"));
@@ -411,7 +423,7 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
-    public void testMatchDNSName() throws Exception {
+    void testMatchDNSName() throws Exception {
         DefaultHostnameVerifier.matchDNSName(
                 "host.domain.com",
                 Collections.singletonList(SubjectName.DNS("*.domain.com")),
@@ -447,10 +459,11 @@ public class TestDefaultHostnameVerifier {
                 "host.ec2.compute-1.amazonaws.com",
                 Collections.singletonList(SubjectName.DNS("*.ec2.compute-1.amazonaws.com")),
                 publicSuffixMatcher);
-        DefaultHostnameVerifier.matchDNSName(
-                "ec2.compute-1.amazonaws.com",
-                Collections.singletonList(SubjectName.DNS("ec2.compute-1.amazonaws.com")),
-                publicSuffixMatcher);
+        Assertions.assertThrows(SSLException.class, () ->
+            DefaultHostnameVerifier.matchDNSName(
+                    "ec2.compute-1.amazonaws.com",
+                    Collections.singletonList(SubjectName.DNS("ec2.compute-1.amazonaws.com")),
+                    publicSuffixMatcher));
         Assertions.assertThrows(SSLException.class, () ->
                 DefaultHostnameVerifier.matchDNSName(
                         "ec2.compute-1.amazonaws.com",

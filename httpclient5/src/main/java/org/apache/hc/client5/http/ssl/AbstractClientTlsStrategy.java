@@ -62,6 +62,7 @@ import org.apache.hc.core5.http.ssl.TlsCiphers;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.ssl.ApplicationProtocol;
 import org.apache.hc.core5.http2.ssl.H2TlsSupport;
+import org.apache.hc.core5.io.Closer;
 import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
@@ -160,7 +161,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Enabled protocols: {}", Arrays.asList(sslEngine.getEnabledProtocols()));
-                LOG.debug("Enabled cipher suites:{}", Arrays.asList(sslEngine.getEnabledCipherSuites()));
+                LOG.debug("Enabled cipher suites: {}", Arrays.asList(sslEngine.getEnabledCipherSuites()));
                 LOG.debug("Starting handshake ({})", handshakeTimeout);
             }
         }, (e, sslEngine) -> {
@@ -204,9 +205,14 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
                 socket,
                 target,
                 port,
-                true);
-        executeHandshake(upgradedSocket, target, attachment);
-        return upgradedSocket;
+                false);
+        try {
+            executeHandshake(upgradedSocket, target, attachment);
+            return upgradedSocket;
+        } catch (IOException | RuntimeException ex) {
+            Closer.closeQuietly(upgradedSocket);
+            throw ex;
+        }
     }
 
     private void executeHandshake(

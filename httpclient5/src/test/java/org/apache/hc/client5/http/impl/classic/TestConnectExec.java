@@ -41,7 +41,6 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.entity.EntityBuilder;
-import org.apache.hc.client5.http.impl.TunnelRefusedException;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -66,7 +65,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
-public class TestConnectExec {
+class TestConnectExec {
 
     @Mock
     private ConnectionReuseStrategy reuseStrategy;
@@ -84,7 +83,7 @@ public class TestConnectExec {
     private HttpHost proxy;
 
     @BeforeEach
-    public void setup() throws Exception {
+    void setup() {
         MockitoAnnotations.openMocks(this);
         exec = new ConnectExec(reuseStrategy, proxyHttpProcessor, proxyAuthStrategy, null, true);
         target = new HttpHost("foo", 80);
@@ -92,7 +91,7 @@ public class TestConnectExec {
     }
 
     @Test
-    public void testExecAcquireConnection() throws Exception {
+    void testExecAcquireConnection() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -111,7 +110,7 @@ public class TestConnectExec {
     }
 
     @Test
-    public void testEstablishDirectRoute() throws Exception {
+    void testEstablishDirectRoute() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -131,7 +130,7 @@ public class TestConnectExec {
     }
 
     @Test
-    public void testEstablishRouteDirectProxy() throws Exception {
+    void testEstablishRouteDirectProxy() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, false);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -151,7 +150,7 @@ public class TestConnectExec {
     }
 
     @Test
-    public void testEstablishRouteViaProxyTunnel() throws Exception {
+    void testEstablishRouteViaProxyTunnel() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -182,7 +181,7 @@ public class TestConnectExec {
     }
 
     @Test
-    public void testEstablishRouteViaProxyTunnelUnexpectedResponse() throws Exception {
+    void testEstablishRouteViaProxyTunnelUnexpectedResponse() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -202,7 +201,7 @@ public class TestConnectExec {
     }
 
     @Test
-    public void testEstablishRouteViaProxyTunnelFailure() throws Exception {
+    void testEstablishRouteViaProxyTunnelFailure() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -218,15 +217,12 @@ public class TestConnectExec {
                 Mockito.any())).thenReturn(response);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        final TunnelRefusedException exception = Assertions.assertThrows(TunnelRefusedException.class, () ->
-                exec.execute(request, scope, execChain));
-        Assertions.assertEquals("Ka-boom", exception.getResponseMessage());
+        exec.execute(request, scope, execChain);
         Mockito.verify(execRuntime, Mockito.atLeastOnce()).disconnectEndpoint();
-        Mockito.verify(execRuntime).discardEndpoint();
     }
 
     @Test
-    public void testEstablishRouteViaProxyTunnelRetryOnAuthChallengePersistentConnection() throws Exception {
+    void testEstablishRouteViaProxyTunnelRetryOnAuthChallengePersistentConnection() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -267,7 +263,7 @@ public class TestConnectExec {
     }
 
     @Test
-    public void testEstablishRouteViaProxyTunnelRetryOnAuthChallengeNonPersistentConnection() throws Exception {
+    void testEstablishRouteViaProxyTunnelRetryOnAuthChallengeNonPersistentConnection() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
@@ -306,7 +302,7 @@ public class TestConnectExec {
     }
 
     @Test
-    public void testEstablishRouteViaProxyTunnelMultipleHops() throws Exception {
+    void testEstablishRouteViaProxyTunnelMultipleHops() throws Exception {
         final HttpHost proxy1 = new HttpHost("this", 8888);
         final HttpHost proxy2 = new HttpHost("that", 8888);
         final HttpRoute route = new HttpRoute(target, null, new HttpHost[] {proxy1, proxy2},

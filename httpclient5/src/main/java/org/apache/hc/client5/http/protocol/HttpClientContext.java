@@ -159,8 +159,7 @@ public class HttpClientContext extends HttpCoreContext {
     }
 
     /**
-     * Casts the given generic {@link HttpContext} as {@link HttpClientContext} or
-     * throws an {@link IllegalStateException} if the given context is not suitable.
+     * Casts the given generic {@link HttpContext} as {@link HttpClientContext}.
      *
      * @since 5.4
      */
@@ -177,7 +176,7 @@ public class HttpClientContext extends HttpCoreContext {
 
     /**
      * Casts the given generic {@link HttpContext} as {@link HttpClientContext} or
-     * creates new {@link HttpClientContext} if the given context is null..
+     * creates new {@link HttpClientContext} if the given context is null.
      *
      * @since 5.4
      */

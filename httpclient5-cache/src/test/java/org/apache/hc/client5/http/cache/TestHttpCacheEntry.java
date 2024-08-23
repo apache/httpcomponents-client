@@ -56,7 +56,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestHttpCacheEntry {
+class TestHttpCacheEntry {
 
     private Instant now;
     private Instant elevenSecondsAgo;
@@ -65,7 +65,7 @@ public class TestHttpCacheEntry {
     private HttpCacheEntry entry;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         now = Instant.now();
         elevenSecondsAgo = now.minusSeconds(11);
         nineSecondsAgo = now.minusSeconds(9);
@@ -99,7 +99,7 @@ public class TestHttpCacheEntry {
     }
 
     @Test
-    public void testGetHeadersReturnsCorrectHeaders() {
+    void testGetHeadersReturnsCorrectHeaders() {
         entry = makeEntry(
                 new BasicHeader("bar", "barValue1"),
                 new BasicHeader("bar", "barValue2"));
@@ -107,7 +107,7 @@ public class TestHttpCacheEntry {
     }
 
     @Test
-    public void testGetFirstHeaderReturnsCorrectHeader() {
+    void testGetFirstHeaderReturnsCorrectHeader() {
         entry = makeEntry(
                 new BasicHeader("bar", "barValue1"),
                 new BasicHeader("bar", "barValue2"));
@@ -115,7 +115,7 @@ public class TestHttpCacheEntry {
     }
 
     @Test
-    public void testGetHeadersReturnsEmptyArrayIfNoneMatch() {
+    void testGetHeadersReturnsEmptyArrayIfNoneMatch() {
         entry = makeEntry(
                 new BasicHeader("foo", "fooValue"),
                 new BasicHeader("bar", "barValue1"),
@@ -124,7 +124,7 @@ public class TestHttpCacheEntry {
     }
 
     @Test
-    public void testGetFirstHeaderReturnsNullIfNoneMatch() {
+    void testGetFirstHeaderReturnsNullIfNoneMatch() {
         entry = makeEntry(
                 new BasicHeader("foo", "fooValue"),
                 new BasicHeader("bar", "barValue1"),
@@ -133,7 +133,7 @@ public class TestHttpCacheEntry {
     }
 
     @Test
-    public void testGetMethodReturnsCorrectRequestMethod() {
+    void testGetMethodReturnsCorrectRequestMethod() {
         entry = makeEntry(
                 new BasicHeader("foo", "fooValue"),
                 new BasicHeader("bar", "barValue1"),
@@ -142,33 +142,33 @@ public class TestHttpCacheEntry {
     }
 
     @Test
-    public void statusCodeComesFromOriginalStatusLine() {
+    void statusCodeComesFromOriginalStatusLine() {
         entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK);
         assertEquals(HttpStatus.SC_OK, entry.getStatus());
     }
 
     @Test
-    public void canGetOriginalRequestDate() {
+    void canGetOriginalRequestDate() {
         final Instant requestDate = Instant.now();
         entry = makeEntry(requestDate, Instant.now(), HttpStatus.SC_OK);
         assertEquals(requestDate, entry.getRequestInstant());
     }
 
     @Test
-    public void canGetOriginalResponseDate() {
+    void canGetOriginalResponseDate() {
         final Instant responseDate = Instant.now();
         entry = makeEntry(Instant.now(), responseDate, HttpStatus.SC_OK);
         assertEquals(responseDate, entry.getResponseInstant());
     }
 
     @Test
-    public void canGetOriginalResource() {
+    void canGetOriginalResource() {
         entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK);
         assertSame(mockResource, entry.getResource());
     }
 
     @Test
-    public void canGetOriginalHeaders() {
+    void canGetOriginalHeaders() {
         final Header[] headers = {
                 new BasicHeader("Server", "MockServer/1.0"),
                 new BasicHeader("Date", DateUtils.formatStandardDate(now))
@@ -182,7 +182,7 @@ public class TestHttpCacheEntry {
     }
 
     @Test
-    public void canRetrieveOriginalVariantMap() {
+    void canRetrieveOriginalVariantMap() {
         final Set<String> variants = new HashSet<>();
         variants.add("A");
         variants.add("B");
@@ -199,7 +199,7 @@ public class TestHttpCacheEntry {
     }
 
     @Test
-    public void retrievedVariantMapIsNotModifiable() {
+    void retrievedVariantMapIsNotModifiable() {
         final Set<String> variants = new HashSet<>();
         variants.add("A");
         variants.add("B");
@@ -213,27 +213,27 @@ public class TestHttpCacheEntry {
     }
 
     @Test
-    public void canConvertToString() {
+    void canConvertToString() {
         entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK);
         assertNotNull(entry.toString());
         assertNotEquals("", entry.toString());
     }
 
     @Test
-    public void testMissingDateHeaderIsIgnored() {
+    void testMissingDateHeaderIsIgnored() {
         entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK);
         assertNull(entry.getInstant());
     }
 
     @Test
-    public void testMalformedDateHeaderIsIgnored() {
+    void testMalformedDateHeaderIsIgnored() {
         entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK,
                 new BasicHeader("Date", "asdf"));
         assertNull(entry.getInstant());
     }
 
     @Test
-    public void testValidDateHeaderIsParsed() {
+    void testValidDateHeaderIsParsed() {
         final Instant date = Instant.now().with(ChronoField.MILLI_OF_SECOND, 0);
         entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK,
                 new BasicHeader("Date", DateUtils.formatStandardDate(date)));
@@ -243,7 +243,7 @@ public class TestHttpCacheEntry {
     }
 
     @Test
-    public void testEpochDateHeaderIsParsed() {
+    void testEpochDateHeaderIsParsed() {
         entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK,
                 new BasicHeader("Date", DateUtils.formatStandardDate(Instant.EPOCH)));
         final Instant dateHeaderValue = entry.getInstant();
@@ -252,7 +252,7 @@ public class TestHttpCacheEntry {
     }
 
     @Test
-    public void testDateParsedOnce() {
+    void testDateParsedOnce() {
         final Instant date = Instant.now().with(ChronoField.MILLI_OF_SECOND, 0);
         entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK,
                 new BasicHeader("Date", DateUtils.formatStandardDate(date)));
@@ -263,7 +263,7 @@ public class TestHttpCacheEntry {
     }
 
     @Test
-    public void testExpiresParsedOnce() {
+    void testExpiresParsedOnce() {
         final Instant date = Instant.now().with(ChronoField.MILLI_OF_SECOND, 0);
         entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK,
                 new BasicHeader("Last-Modified", DateUtils.formatStandardDate(date)));
@@ -278,7 +278,7 @@ public class TestHttpCacheEntry {
     }
 
     @Test
-    public void testIsCacheEntryNewer() throws Exception {
+    void testIsCacheEntryNewer() {
         assertFalse(HttpCacheEntry.isNewer(null, null));
         entry = makeEntry();
         final HeaderGroup message = new HeaderGroup();

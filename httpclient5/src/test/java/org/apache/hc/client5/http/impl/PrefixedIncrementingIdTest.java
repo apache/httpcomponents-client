@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class PrefixedIncrementingIdTest {
+class PrefixedIncrementingIdTest {
 
     @Test
     void testGetNextId() {
@@ -39,7 +39,7 @@ public class PrefixedIncrementingIdTest {
     }
 
     @Test
-    public void testCreateId() {
+    void testCreateId() {
         final PrefixedIncrementingId exchangeId = new PrefixedIncrementingId("ex-");
         Assertions.assertEquals(String.format("ex-%010d", 0), exchangeId.createId(0));
         for (long i = 1; i <= 100_000_000L; i *= 10) {

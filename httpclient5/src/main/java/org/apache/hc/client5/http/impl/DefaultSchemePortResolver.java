@@ -42,6 +42,9 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultSchemePortResolver implements SchemePortResolver {
 
+    /**
+     * Default instance of {@link DefaultSchemePortResolver}.
+     */
     public static final DefaultSchemePortResolver INSTANCE = new DefaultSchemePortResolver();
 
     @Override

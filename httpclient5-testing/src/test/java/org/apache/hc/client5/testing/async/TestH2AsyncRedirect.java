@@ -26,28 +26,14 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.core5.function.Decorator;
-import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
-import org.apache.hc.core5.http2.config.H2Config;
-import org.apache.hc.core5.testing.nio.H2TestServer;
 
-public abstract class TestH2AsyncRedirect extends AbstractHttpAsyncRedirectsTest<CloseableHttpAsyncClient> {
+abstract  class TestH2AsyncRedirect extends AbstractHttpAsyncRedirectsTest {
 
     public TestH2AsyncRedirect(final URIScheme scheme) {
-        super(scheme, HttpVersion.HTTP_2);
-    }
-
-    @Override
-    protected H2TestServer startServer(final Decorator<AsyncServerExchangeHandler> exchangeHandlerDecorator) throws Exception {
-        return startServer(H2Config.DEFAULT, null, exchangeHandlerDecorator);
-    }
-
-    @Override
-    protected CloseableHttpAsyncClient startClient() throws Exception {
-        return startH2Client(b -> {});
+        super(scheme, ClientProtocolLevel.H2_ONLY, ServerProtocolLevel.H2_ONLY);
     }
 
 }

@@ -33,8 +33,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.async.AsyncExecCallback;
-import org.apache.hc.client5.http.impl.Operations;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
+import org.apache.hc.core5.concurrent.CompletedFuture;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
@@ -70,7 +70,7 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
         public Future<?> schedule(final Runnable command, final TimeValue timeValue) throws RejectedExecutionException {
             if (timeValue.toMilliseconds() <= 0) {
                 command.run();
-                return new Operations.CompletedFuture<Void>(null);
+                return new CompletedFuture<>(null);
             }
             return executor.schedule(command, timeValue);
         }

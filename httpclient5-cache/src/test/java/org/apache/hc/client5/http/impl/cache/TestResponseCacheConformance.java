@@ -37,12 +37,12 @@ import org.apache.hc.core5.http.support.BasicResponseBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestResponseCacheConformance {
+class TestResponseCacheConformance {
 
     private ResponseCacheConformance impl;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         impl = ResponseCacheConformance.INSTANCE;
     }
 
@@ -58,31 +58,31 @@ public class TestResponseCacheConformance {
     }
 
     @Test
-    public void shouldStripContentEncodingFromOrigin304ResponseToStrongValidation() throws Exception {
+    void shouldStripContentEncodingFromOrigin304ResponseToStrongValidation() throws Exception {
         shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
                 "Content-Encoding", "gzip");
     }
 
     @Test
-    public void shouldStripContentLanguageFromOrigin304ResponseToStrongValidation() throws Exception {
+    void shouldStripContentLanguageFromOrigin304ResponseToStrongValidation() throws Exception {
         shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
                 "Content-Language", "en");
     }
 
     @Test
-    public void shouldStripContentLengthFromOrigin304ResponseToStrongValidation() throws Exception {
+    void shouldStripContentLengthFromOrigin304ResponseToStrongValidation() throws Exception {
         shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
                 "Content-Length", "128");
     }
 
     @Test
-    public void shouldStripContentMD5FromOrigin304ResponseToStrongValidation() throws Exception {
+    void shouldStripContentMD5FromOrigin304ResponseToStrongValidation() throws Exception {
         shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
                 "Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
     }
 
     @Test
-    public void shouldStripContentTypeFromOrigin304ResponseToStrongValidation() throws Exception {
+    void shouldStripContentTypeFromOrigin304ResponseToStrongValidation() throws Exception {
         shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
                 "Content-Type", "text/html;charset=utf-8");
     }

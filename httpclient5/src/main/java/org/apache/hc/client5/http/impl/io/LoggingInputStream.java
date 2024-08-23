@@ -27,19 +27,21 @@
 
 package org.apache.hc.client5.http.impl.io;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.hc.client5.http.impl.Wire;
 
-class LoggingInputStream extends InputStream {
+/**
+ * Delegates {@link InputStream} calls and logs to a {@link Wire}.
+ */
+class LoggingInputStream extends FilterInputStream {
 
-    private final InputStream in;
     private final Wire wire;
 
-    public LoggingInputStream(final InputStream in, final Wire wire) {
-        super();
-        this.in = in;
+    LoggingInputStream(final InputStream in, final Wire wire) {
+        super(in);
         this.wire = wire;
     }
 
@@ -94,7 +96,7 @@ class LoggingInputStream extends InputStream {
     @Override
     public long skip(final long n) throws IOException {
         try {
-            return super.skip(n);
+            return in.skip(n);
         } catch (final IOException ex) {
             wire.input("[skip] I/O error: " + ex.getMessage());
             throw ex;
@@ -106,24 +108,9 @@ class LoggingInputStream extends InputStream {
         try {
             return in.available();
         } catch (final IOException ex) {
-            wire.input("[available] I/O error : " + ex.getMessage());
+            wire.input("[available] I/O error: " + ex.getMessage());
             throw ex;
         }
-    }
-
-    @Override
-    public void mark(final int readlimit) {
-        super.mark(readlimit);
-    }
-
-    @Override
-    public void reset() throws IOException {
-        super.reset();
-    }
-
-    @Override
-    public boolean markSupported() {
-        return false;
     }
 
     @Override

@@ -33,17 +33,17 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestFileResourceFactory {
+class TestFileResourceFactory {
 
     CacheKeyGenerator keyGenerator;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         keyGenerator = new CacheKeyGenerator();
     }
 
     @Test
-    public void testViaValueLookup() throws Exception {
+    void testViaValueLookup() throws Exception {
         final String requestId = keyGenerator.generateKey(new URI("http://localhost/stuff"));
 
         Assertions.assertEquals(

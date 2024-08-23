@@ -36,10 +36,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
@@ -52,7 +50,6 @@ import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
-import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
@@ -60,65 +57,37 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.BasicTestAuthenticator;
 import org.apache.hc.client5.testing.auth.Authenticator;
 import org.apache.hc.client5.testing.auth.BearerAuthenticationHandler;
-import org.apache.hc.core5.function.Decorator;
+import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.TestAsyncClient;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.support.BasicResponseBuilder;
 import org.apache.hc.core5.net.URIAuthority;
-import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase {
+abstract  class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegrationTestBase {
 
-    public AbstractHttpAsyncClientAuthenticationTest(final URIScheme scheme) {
-        super(scheme);
-    }
-
-    abstract protected H2TestServer startServer(final Decorator<AsyncServerExchangeHandler> exchangeHandlerDecorator) throws Exception;
-
-    protected H2TestServer startServer() throws Exception {
-        return startServer(requestHandler -> new AuthenticatingAsyncDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm")));
-    }
-
-    interface TestClientBuilder {
-
-        TestClientBuilder setDefaultAuthSchemeRegistry(Lookup<AuthSchemeFactory> authSchemeRegistry);
-
-        TestClientBuilder setTargetAuthenticationStrategy(AuthenticationStrategy targetAuthStrategy);
-
-        TestClientBuilder addResponseInterceptor(HttpResponseInterceptor responseInterceptor);
-
-        TestClientBuilder addRequestInterceptor(HttpRequestInterceptor requestInterceptor);
-
-    }
-
-    abstract protected T startClientCustom(final Consumer<TestClientBuilder> clientCustomizer) throws Exception;
-
-    T startClient() throws Exception {
-        return startClientCustom(c -> {});
+    public AbstractHttpAsyncClientAuthenticationTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
+        super(scheme, clientProtocolLevel, serverProtocolLevel);
     }
 
     @Test
-    public void testBasicAuthenticationNoCreds() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationNoCreds() throws Exception {
+        final HttpHost target = startServer();
+        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         final HttpClientContext context = HttpClientContext.create();
@@ -137,12 +106,11 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
     }
 
     @Test
-    public void testBasicAuthenticationFailure() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationFailure() throws Exception {
+        final HttpHost target = startServer();
+        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
@@ -163,12 +131,11 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
     }
 
     @Test
-    public void testBasicAuthenticationSuccess() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationSuccess() throws Exception {
+        final HttpHost target = startServer();
+        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
@@ -190,12 +157,11 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
     }
 
     @Test
-    public void testBasicAuthenticationWithEntitySuccess() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationWithEntitySuccess() throws Exception {
+        final HttpHost target = startServer();
+        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
@@ -217,12 +183,11 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
     }
 
     @Test
-    public void testBasicAuthenticationExpectationFailure() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationExpectationFailure() throws Exception {
+        final HttpHost target = startServer();
+        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
@@ -243,12 +208,11 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
     }
 
     @Test
-    public void testBasicAuthenticationExpectationSuccess() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationExpectationSuccess() throws Exception {
+        final HttpHost target = startServer();
+        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
@@ -271,13 +235,13 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
     }
 
     @Test
-    public void testBasicAuthenticationCredentialsCaching() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationCredentialsCaching() throws Exception {
+        final HttpHost target = startServer();
+        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
         final DefaultAuthenticationStrategy authStrategy = Mockito.spy(new DefaultAuthenticationStrategy());
-        final T client = startClientCustom(builder ->  builder.setTargetAuthenticationStrategy(authStrategy));
+        configureClient(builder ->  builder.setTargetAuthenticationStrategy(authStrategy));
+        final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(CredentialsProviderBuilder.create()
@@ -298,18 +262,18 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
     }
 
     @Test
-    public void testBasicAuthenticationCredentialsCachingByPathPrefix() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
+    void testBasicAuthenticationCredentialsCachingByPathPrefix() throws Exception {
+        final HttpHost target = startServer();
+        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
         final DefaultAuthenticationStrategy authStrategy = Mockito.spy(new DefaultAuthenticationStrategy());
         final Queue<HttpResponse> responseQueue = new ConcurrentLinkedQueue<>();
 
-        final T client = startClientCustom(builder -> builder
+        configureClient(builder -> builder
                 .setTargetAuthenticationStrategy(authStrategy)
-                .addResponseInterceptor((response, entity, context)
+                .addResponseInterceptorFirst((response, entity, context)
                         -> responseQueue.add(BasicResponseBuilder.copy(response).build())));
+        final TestAsyncClient client = startClient();
 
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
                 .add(target, "test", "test".toCharArray())
@@ -363,12 +327,11 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
     }
 
     @Test
-    public void testAuthenticationUserinfoInRequestFailure() throws Exception {
-        final H2TestServer server = startServer();
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
+    void testAuthenticationUserinfoInRequestFailure() throws Exception {
+        final HttpHost target = startServer();
+        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = client.execute(SimpleRequestBuilder.get()
@@ -381,7 +344,7 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
     }
 
     @Test
-    public void testReauthentication() throws Exception {
+    void testReauthentication() throws Exception {
         final Authenticator authenticator = new BasicTestAuthenticator("test:test", "test realm") {
 
             private final AtomicLong count = new AtomicLong(0);
@@ -396,17 +359,18 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
             }
         };
 
-        final H2TestServer server = startServer(exchangeHandler -> new AuthenticatingAsyncDecorator(exchangeHandler, authenticator) {
+        final HttpHost target = startServer();
+        configureServer(bootstrap -> bootstrap
+                .register("*", AsyncEchoHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new AuthenticatingAsyncDecorator(exchangeHandler, authenticator) {
 
-            @Override
-            protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
-                unauthorized.removeHeaders(HttpHeaders.WWW_AUTHENTICATE);
-                unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, "MyBasic realm=\"test realm\"");
-            }
+                    @Override
+                    protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
+                        unauthorized.removeHeaders(HttpHeaders.WWW_AUTHENTICATE);
+                        unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, "MyBasic realm=\"test realm\"");
+                    }
 
-        });
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
+                }));
 
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
@@ -425,7 +389,9 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
                 })
                 .build();
 
-        final T client = startClientCustom(builder -> builder.setDefaultAuthSchemeRegistry(authSchemeRegistry));
+        configureClient(builder -> builder.setDefaultAuthSchemeRegistry(authSchemeRegistry));
+        final TestAsyncClient client = startClient();
+
 
         final RequestConfig config = RequestConfig.custom()
                 .setTargetPreferredAuthSchemes(Collections.singletonList("MyBasic"))
@@ -447,19 +413,20 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
     }
 
     @Test
-    public void testAuthenticationFallback() throws Exception {
-        final H2TestServer server = startServer(exchangeHandler -> new AuthenticatingAsyncDecorator(exchangeHandler, new BasicTestAuthenticator("test:test", "test realm")) {
+    void testAuthenticationFallback() throws Exception {
+        final HttpHost target = startServer();
+        configureServer(bootstrap -> bootstrap
+                .register("*", AsyncEchoHandler::new)
+                .setExchangeHandlerDecorator(exchangeHandler -> new AuthenticatingAsyncDecorator(exchangeHandler, new BasicTestAuthenticator("test:test", "test realm")) {
 
-            @Override
-            protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
-                unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.DIGEST + " realm=\"test realm\" invalid");
-            }
+                    @Override
+                    protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
+                        unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.DIGEST + " realm=\"test realm\" invalid");
+                    }
 
-        });
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
+                }));
 
-        final T client = startClient();
+        final TestAsyncClient client = startClient();
 
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
@@ -481,7 +448,7 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
     private final static String CHARS = "0123456789abcdef";
 
     @Test
-    public void testBearerTokenAuthentication() throws Exception {
+    void testBearerTokenAuthentication() throws Exception {
         final SecureRandom secureRandom = SecureRandom.getInstanceStrong();
         secureRandom.setSeed(System.currentTimeMillis());
         final StringBuilder buf = new StringBuilder();
@@ -489,15 +456,17 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
             buf.append(CHARS.charAt(secureRandom.nextInt(CHARS.length() - 1)));
         }
         final String token = buf.toString();
-        final H2TestServer server = startServer(requestHandler ->
-                new AuthenticatingAsyncDecorator(
-                        requestHandler,
-                        new BearerAuthenticationHandler(),
-                        new BasicTestAuthenticator(token, "test realm")));
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = targetHost();
 
-        final T client = startClient();
+        final HttpHost target = startServer();
+        configureServer(bootstrap -> bootstrap
+                .register("*", AsyncEchoHandler::new)
+                .setExchangeHandlerDecorator(requestHandler ->
+                        new AuthenticatingAsyncDecorator(
+                                requestHandler,
+                                new BearerAuthenticationHandler(),
+                                new BasicTestAuthenticator(token, "test realm"))));
+
+        final TestAsyncClient client = startClient();
 
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         final HttpClientContext context1 = HttpClientContext.create();

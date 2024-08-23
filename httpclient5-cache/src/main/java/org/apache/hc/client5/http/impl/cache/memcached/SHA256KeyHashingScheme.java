@@ -44,6 +44,9 @@ import org.slf4j.LoggerFactory;
  */
 public final class SHA256KeyHashingScheme implements KeyHashingScheme {
 
+    /**
+     * Default instance of {@link SHA256KeyHashingScheme}.
+     */
     public static final SHA256KeyHashingScheme INSTANCE = new SHA256KeyHashingScheme();
 
     private static final Logger LOG = LoggerFactory.getLogger(SHA256KeyHashingScheme.class);

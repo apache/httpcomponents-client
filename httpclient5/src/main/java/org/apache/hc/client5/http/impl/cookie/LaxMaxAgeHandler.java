@@ -49,7 +49,7 @@ import org.apache.hc.core5.util.TextUtils;
 public class LaxMaxAgeHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link LaxMaxAgeHandler}.
      *
      * @since 5.2
      */

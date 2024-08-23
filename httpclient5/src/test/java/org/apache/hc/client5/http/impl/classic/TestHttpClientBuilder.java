@@ -35,10 +35,10 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.junit.jupiter.api.Test;
 
-public class TestHttpClientBuilder {
+class TestHttpClientBuilder {
 
     @Test
-    public void testAddInterceptorFirstDoesNotThrow() throws IOException {
+    void testAddInterceptorFirstDoesNotThrow() throws IOException {
         // HTTPCLIENT-2083
         HttpClients.custom()
                 .addExecInterceptorFirst("first", NopExecChainHandler.INSTANCE)
@@ -47,7 +47,7 @@ public class TestHttpClientBuilder {
     }
 
     @Test
-    public void testAddInterceptorLastDoesNotThrow() throws IOException {
+    void testAddInterceptorLastDoesNotThrow() throws IOException {
         // HTTPCLIENT-2083
         HttpClients.custom()
                 .addExecInterceptorLast("last", NopExecChainHandler.INSTANCE)

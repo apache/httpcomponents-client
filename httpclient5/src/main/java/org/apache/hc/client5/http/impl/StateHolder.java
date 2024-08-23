@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl;
 import org.apache.hc.core5.annotation.Internal;
 
 /**
+ * @param <T> The type of object to store and restore.
  * @since 5.4
  */
 @Internal

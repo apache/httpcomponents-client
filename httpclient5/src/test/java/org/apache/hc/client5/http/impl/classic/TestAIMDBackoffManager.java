@@ -44,7 +44,7 @@ import org.apache.hc.core5.util.TimeValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestAIMDBackoffManager {
+class TestAIMDBackoffManager {
 
     private AIMDBackoffManager impl;
     private MockConnPoolControl connPerRoute;
@@ -53,7 +53,7 @@ public class TestAIMDBackoffManager {
 
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         connPerRoute = new MockConnPoolControl();
         route = new HttpRoute(new HttpHost("localhost", 80));
         impl = new AIMDBackoffManager(connPerRoute);
@@ -63,33 +63,33 @@ public class TestAIMDBackoffManager {
     }
 
     @Test
-    public void isABackoffManager() {
+    void isABackoffManager() {
         assertTrue(impl instanceof BackoffManager);
     }
 
     @Test
-    public void halvesConnectionsOnBackoff() {
+    void halvesConnectionsOnBackoff() {
         connPerRoute.setMaxPerRoute(route, 4);
         impl.backOff(route);
         assertEquals(2, connPerRoute.getMaxPerRoute(route));
     }
 
     @Test
-    public void doesNotBackoffBelowOneConnection() {
+    void doesNotBackoffBelowOneConnection() {
         connPerRoute.setMaxPerRoute(route, 1);
         impl.backOff(route);
         assertEquals(1, connPerRoute.getMaxPerRoute(route));
     }
 
     @Test
-    public void increasesByOneOnProbe() {
+    void increasesByOneOnProbe() {
         connPerRoute.setMaxPerRoute(route, 2);
         impl.probe(route);
         assertEquals(3, connPerRoute.getMaxPerRoute(route));
     }
 
     @Test
-    public void doesNotIncreaseBeyondPerHostMaxOnProbe() {
+    void doesNotIncreaseBeyondPerHostMaxOnProbe() {
         connPerRoute.setDefaultMaxPerRoute(5);
         connPerRoute.setMaxPerRoute(route, 5);
         impl.setPerHostConnectionCap(5);
@@ -98,7 +98,7 @@ public class TestAIMDBackoffManager {
     }
 
     @Test
-    public void backoffDoesNotAdjustDuringCoolDownPeriod() {
+    void backoffDoesNotAdjustDuringCoolDownPeriod() {
         // Arrange
         connPerRoute.setMaxPerRoute(route, 4);
 
@@ -120,7 +120,7 @@ public class TestAIMDBackoffManager {
 
 
     @Test
-    public void backoffStillAdjustsAfterCoolDownPeriod() {
+    void backoffStillAdjustsAfterCoolDownPeriod() {
         // Arrange: Initialize the maximum number of connections for a route to 8
         connPerRoute.setMaxPerRoute(route, 8);
 
@@ -146,7 +146,7 @@ public class TestAIMDBackoffManager {
 
 
     @Test
-    public void probeDoesNotAdjustDuringCooldownPeriod() {
+    void probeDoesNotAdjustDuringCooldownPeriod() {
         // Arrange
         connPerRoute.setMaxPerRoute(route, 4);
 
@@ -168,7 +168,7 @@ public class TestAIMDBackoffManager {
 
 
     @Test
-    public void probeStillAdjustsAfterCoolDownPeriod() {
+    void probeStillAdjustsAfterCoolDownPeriod() {
         connPerRoute.setMaxPerRoute(route, 8);
 
         // First probe
@@ -188,7 +188,7 @@ public class TestAIMDBackoffManager {
 
 
     @Test
-    public void willBackoffImmediatelyEvenAfterAProbe() {
+    void willBackoffImmediatelyEvenAfterAProbe() {
         connPerRoute.setMaxPerRoute(route, 8);
         impl.probe(route);
         final long max = connPerRoute.getMaxPerRoute(route);
@@ -197,7 +197,7 @@ public class TestAIMDBackoffManager {
     }
 
     @Test
-    public void backOffFactorIsConfigurable() {
+    void backOffFactorIsConfigurable() {
         connPerRoute.setMaxPerRoute(route, 10);
         impl.setBackoffFactor(0.9);
         impl.backOff(route);
@@ -205,7 +205,7 @@ public class TestAIMDBackoffManager {
     }
 
     @Test
-    public void coolDownPeriodIsConfigurable() {
+    void coolDownPeriodIsConfigurable() {
         final long cd = new Random().nextInt(500) + 500; // Random cooldown period between 500 and 1000 milliseconds
         impl.setCoolDown(TimeValue.ofMilliseconds(cd));
 
@@ -230,7 +230,7 @@ public class TestAIMDBackoffManager {
     }
 
     @Test
-    public void testConcurrency() throws InterruptedException {
+    void testConcurrency() throws InterruptedException {
         final int initialMaxPerRoute = 10;
         final int numberOfThreads = 20;
         final int numberOfOperationsPerThread = 100;  // reduced operations

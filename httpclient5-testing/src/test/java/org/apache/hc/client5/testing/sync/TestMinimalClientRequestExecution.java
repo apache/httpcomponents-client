@@ -26,19 +26,17 @@
  */
 package org.apache.hc.client5.testing.sync;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.MinimalHttpClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.testing.sync.extension.TestClientResources;
+import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.sync.TestClient;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
@@ -47,29 +45,18 @@ import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.testing.classic.ClassicTestServer;
-import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Client protocol handling tests.
  */
-public abstract class TestMinimalClientRequestExecution {
-
-    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
-
-    @RegisterExtension
-    private TestClientResources testResources;
+abstract  class TestMinimalClientRequestExecution extends AbstractIntegrationTestBase {
 
     protected TestMinimalClientRequestExecution(final URIScheme scheme) {
-        this.testResources = new TestClientResources(scheme, TIMEOUT);
+        super(scheme, ClientProtocolLevel.MINIMAL);
     }
 
-    public URIScheme scheme() {
-        return testResources.scheme();
-    }
     private static class SimpleService implements HttpRequestHandler {
 
         public SimpleService() {
@@ -80,7 +67,7 @@ public abstract class TestMinimalClientRequestExecution {
         public void handle(
                 final ClassicHttpRequest request,
                 final ClassicHttpResponse response,
-                final HttpContext context) throws HttpException, IOException {
+                final HttpContext context) {
             response.setCode(HttpStatus.SC_OK);
             final StringEntity entity = new StringEntity("Whatever");
             response.setEntity(entity);
@@ -88,12 +75,11 @@ public abstract class TestMinimalClientRequestExecution {
     }
 
     @Test
-    public void testNonCompliantURIWithContext() throws Exception {
-        final ClassicTestServer server = testResources.startServer(null, null, null);
-        server.registerHandler("*", new SimpleService());
-        final HttpHost target = testResources.targetHost();
+    void testNonCompliantURIWithContext() throws Exception {
+        configureServer(bootstrap -> bootstrap.register("*", new SimpleService()));
+        final HttpHost target = startServer();
 
-        final MinimalHttpClient client = testResources.startMinimalClient();
+        final TestClient client = client();
 
         final HttpClientContext context = HttpClientContext.create();
         for (int i = 0; i < 10; i++) {
@@ -120,12 +106,11 @@ public abstract class TestMinimalClientRequestExecution {
     }
 
     @Test
-    public void testNonCompliantURIWithoutContext() throws Exception {
-        final ClassicTestServer server = testResources.startServer(null, null, null);
-        server.registerHandler("*", new SimpleService());
-        final HttpHost target = testResources.targetHost();
+    void testNonCompliantURIWithoutContext() throws Exception {
+        configureServer(bootstrap -> bootstrap.register("*", new SimpleService()));
+        final HttpHost target = startServer();
 
-        final MinimalHttpClient client = testResources.startMinimalClient();
+        final TestClient client = client();
 
         for (int i = 0; i < 10; i++) {
             final HttpGet request = new HttpGet("/");

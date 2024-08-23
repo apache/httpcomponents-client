@@ -27,96 +27,62 @@
 
 package org.apache.hc.client5.testing.async;
 
+import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
-import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.async.H2AsyncClientBuilder;
-import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
-import org.apache.hc.client5.http.impl.async.MinimalH2AsyncClient;
-import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
-import org.apache.hc.client5.testing.async.extension.TestAsyncResources;
-import org.apache.hc.core5.function.Decorator;
+import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.TestAsyncClient;
+import org.apache.hc.client5.testing.extension.async.TestAsyncClientBuilder;
+import org.apache.hc.client5.testing.extension.async.TestAsyncResources;
+import org.apache.hc.client5.testing.extension.async.TestAsyncServer;
+import org.apache.hc.client5.testing.extension.async.TestAsyncServerBootstrap;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.Http1Config;
-import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
-import org.apache.hc.core5.http.protocol.HttpProcessor;
-import org.apache.hc.core5.http2.config.H2Config;
-import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-public abstract class AbstractIntegrationTestBase {
+abstract  class AbstractIntegrationTestBase {
 
     public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
 
     @RegisterExtension
     private final TestAsyncResources testResources;
 
-    protected AbstractIntegrationTestBase(final URIScheme scheme) {
-        this.testResources = new TestAsyncResources(scheme, TIMEOUT);
+    protected AbstractIntegrationTestBase(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
+        this.testResources = new TestAsyncResources(scheme, clientProtocolLevel, serverProtocolLevel, TIMEOUT);
     }
 
     public URIScheme scheme() {
         return testResources.scheme();
     }
 
-    public H2TestServer startServer(
-            final H2Config h2Config,
-            final HttpProcessor httpProcessor,
-            final Decorator<AsyncServerExchangeHandler> exchangeHandlerDecorator) throws Exception {
-        return testResources.startServer(h2Config, httpProcessor, exchangeHandlerDecorator);
+    public ServerProtocolLevel getServerProtocolLevel() {
+        return testResources.getServerProtocolLevel();
     }
 
-    public H2TestServer startServer(
-            final Http1Config http1Config,
-            final HttpProcessor httpProcessor,
-            final Decorator<AsyncServerExchangeHandler> exchangeHandlerDecorator) throws Exception {
-        return testResources.startServer(http1Config, httpProcessor, exchangeHandlerDecorator);
+    public ClientProtocolLevel getClientProtocolLevel() {
+        return testResources.getClientProtocolLevel();
     }
 
-    public HttpHost targetHost() {
-        return testResources.targetHost();
+    public void configureServer(final Consumer<TestAsyncServerBootstrap> serverCustomizer) {
+        testResources.configureServer(serverCustomizer);
     }
 
-    public CloseableHttpAsyncClient startClient(
-            final Consumer<PoolingAsyncClientConnectionManagerBuilder> connManagerCustomizer,
-            final Consumer<HttpAsyncClientBuilder> clientCustomizer) throws Exception {
-        return testResources.startClient(connManagerCustomizer, clientCustomizer);
+    public HttpHost startServer() throws Exception {
+        final TestAsyncServer server = testResources.server();
+        final InetSocketAddress inetSocketAddress = server.start();
+        return new HttpHost(testResources.scheme().id, "localhost", inetSocketAddress.getPort());
     }
 
-    public CloseableHttpAsyncClient startClient(
-            final Consumer<HttpAsyncClientBuilder> clientCustomizer) throws Exception {
-        return testResources.startClient(clientCustomizer);
+    public void configureClient(final Consumer<TestAsyncClientBuilder> clientCustomizer) {
+        testResources.configureClient(clientCustomizer);
     }
 
-    public PoolingAsyncClientConnectionManager connManager() {
-        return testResources.connManager();
-    }
-
-    public CloseableHttpAsyncClient startH2Client(
-            final Consumer<H2AsyncClientBuilder> clientCustomizer) throws Exception {
-        return testResources.startH2Client(clientCustomizer);
-    }
-
-    public MinimalHttpAsyncClient startMinimalClient(
-            final Http1Config http1Config,
-            final H2Config h2Config,
-            final Consumer<PoolingAsyncClientConnectionManagerBuilder> connManagerCustomizer) throws Exception {
-        return testResources.startMinimalClient(http1Config, h2Config, connManagerCustomizer);
-    }
-
-    public MinimalHttpAsyncClient startMinimalH2Client(
-            final Http1Config http1Config,
-            final H2Config h2Config,
-            final Consumer<PoolingAsyncClientConnectionManagerBuilder> connManagerCustomizer) throws Exception {
-        return testResources.startMinimalClient(http1Config, h2Config, connManagerCustomizer);
-    }
-
-    public MinimalH2AsyncClient startMinimalH2Client(final H2Config h2Config) throws Exception {
-        return testResources.startMinimalH2Client(h2Config);
+    public TestAsyncClient startClient() throws Exception {
+        final TestAsyncClient client = testResources.client();
+        client.start();
+        return client;
     }
 
 }

@@ -26,15 +26,18 @@
  */
 package org.apache.hc.client5.http.entity;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
+
+import org.apache.hc.core5.io.Closer;
 
 /**
- * Lazy init InputStream wrapper.
+ * Lazy initializes from an {@link InputStream} wrapper.
  */
-class LazyDecompressingInputStream extends InputStream {
+class LazyDecompressingInputStream extends FilterInputStream {
 
-    private final InputStream wrappedStream;
     private final InputStreamFactory inputStreamFactory;
 
     private InputStream wrapperStream;
@@ -42,38 +45,35 @@ class LazyDecompressingInputStream extends InputStream {
     public LazyDecompressingInputStream(
             final InputStream wrappedStream,
             final InputStreamFactory inputStreamFactory) {
-        this.wrappedStream = wrappedStream;
+        super(wrappedStream);
         this.inputStreamFactory = inputStreamFactory;
     }
 
-    private void initWrapper() throws IOException {
+    private InputStream initWrapper() throws IOException {
         if (wrapperStream == null) {
-            wrapperStream = inputStreamFactory.create(wrappedStream);
+            wrapperStream = inputStreamFactory.create(in);
         }
+        return wrapperStream;
     }
 
     @Override
     public int read() throws IOException {
-        initWrapper();
-        return wrapperStream.read();
+        return initWrapper().read();
     }
 
     @Override
     public int read(final byte[] b) throws IOException {
-        initWrapper();
-        return wrapperStream.read(b);
+        return initWrapper().read(b);
     }
 
     @Override
     public int read(final byte[] b, final int off, final int len) throws IOException {
-        initWrapper();
-        return wrapperStream.read(b, off, len);
+        return initWrapper().read(b, off, len);
     }
 
     @Override
     public long skip(final long n) throws IOException {
-        initWrapper();
-        return wrapperStream.skip(n);
+        return initWrapper().skip(n);
     }
 
     @Override
@@ -83,19 +83,29 @@ class LazyDecompressingInputStream extends InputStream {
 
     @Override
     public int available() throws IOException {
-        initWrapper();
-        return wrapperStream.available();
+        return initWrapper().available();
     }
 
     @Override
     public void close() throws IOException {
         try {
-            if (wrapperStream != null) {
-                wrapperStream.close();
-            }
+            Closer.close(wrapperStream);
         } finally {
-            wrappedStream.close();
+            super.close();
         }
     }
 
+    @Override
+    public void mark(final int readlimit) {
+        try {
+            initWrapper().mark(readlimit);
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    public void reset() throws IOException {
+        initWrapper().reset();
+    }
 }

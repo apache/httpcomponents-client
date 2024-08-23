@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.examples;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -38,7 +37,6 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpStatus;
@@ -67,7 +65,7 @@ public class ClientInterceptors {
                     public void process(
                             final HttpRequest request,
                             final EntityDetails entity,
-                            final HttpContext context) throws HttpException, IOException {
+                            final HttpContext context) {
                         request.setHeader("request-id", Long.toString(count.incrementAndGet()));
                     }
                 })

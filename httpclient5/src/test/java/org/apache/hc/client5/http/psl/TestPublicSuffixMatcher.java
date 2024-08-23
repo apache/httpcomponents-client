@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.psl;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -36,53 +37,78 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestPublicSuffixMatcher {
+class TestPublicSuffixMatcher {
 
     private static final String SOURCE_FILE = "suffixlistmatcher.txt";
+    private static final String PUBLIC_SUFFIX_LIST_FILE = "mozilla/public-suffix-list.txt";
 
     private PublicSuffixMatcher matcher;
+    private PublicSuffixMatcher pslMatcher;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         final ClassLoader classLoader = getClass().getClassLoader();
-        final InputStream in = classLoader.getResourceAsStream(SOURCE_FILE);
-        Assertions.assertNotNull(in);
-        final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(
-                new InputStreamReader(in, StandardCharsets.UTF_8));
-        matcher = new PublicSuffixMatcher(lists);
+        // Create a matcher using a custom crafted public suffix list file
+        try (InputStream in = classLoader.getResourceAsStream(SOURCE_FILE)) {
+            Assertions.assertNotNull(in, SOURCE_FILE);
+            final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(new InputStreamReader(in, StandardCharsets.UTF_8));
+            matcher = new PublicSuffixMatcher(lists);
+        }
+        // Create a matcher using the public suffix list file provided by Mozilla
+        // Note: the test requires `mvn generate-resources` to have been called to fetch the Mozilla file into
+        // target/classes so that it is on the classpath
+        final URL publicSuffixListUrl = classLoader.getResource(PUBLIC_SUFFIX_LIST_FILE);
+        pslMatcher = PublicSuffixMatcherLoader.load(publicSuffixListUrl);
     }
 
     @Test
-    public void testGetDomainRootAnyType() {
+    void testGetDomainRootAnyType() {
+        // ICANN
+        Assertions.assertEquals(null, matcher.getDomainRoot("com"));
+        Assertions.assertEquals("blah.com", matcher.getDomainRoot("blah.com"));
+        Assertions.assertEquals("foo.com", matcher.getDomainRoot("foo.com"));
+        Assertions.assertEquals(null, matcher.getDomainRoot("blah.foo.com"));
+        Assertions.assertEquals(null, matcher.getDomainRoot("booh.foo.com"));
+        Assertions.assertEquals("blah.blah.foo.com", matcher.getDomainRoot("blah.blah.foo.com"));
+
+        Assertions.assertEquals(null, matcher.getDomainRoot("kioto.jp"));
+        Assertions.assertEquals(null, matcher.getDomainRoot("tokyo.jp"));
+        Assertions.assertEquals(null, matcher.getDomainRoot("blah.tokyo.jp"));
+        Assertions.assertEquals(null, matcher.getDomainRoot("booh.tokyo.jp"));
+        Assertions.assertEquals("blah.blah.tokyo.jp", matcher.getDomainRoot("blah.blah.tokyo.jp"));
+        Assertions.assertEquals("metro.tokyo.jp", matcher.getDomainRoot("metro.tokyo.jp"));
+        Assertions.assertEquals("blah.ac.jp", matcher.getDomainRoot("blah.ac.jp"));
+        Assertions.assertEquals("blah.ac.jp", matcher.getDomainRoot("blah.blah.ac.jp"));
+        Assertions.assertEquals("metro.tokyo.jp", matcher.getDomainRoot("metro.tokyo.jp"));
+
         // Private
-        Assertions.assertEquals("xx", matcher.getDomainRoot("example.XX"));
-        Assertions.assertEquals("xx", matcher.getDomainRoot("www.example.XX"));
-        Assertions.assertEquals("xx", matcher.getDomainRoot("www.blah.blah.example.XX"));
-        Assertions.assertEquals("appspot.com", matcher.getDomainRoot("example.appspot.com"));
+        Assertions.assertEquals("example.xx", matcher.getDomainRoot("example.XX"));
+        Assertions.assertEquals("example.xx", matcher.getDomainRoot("www.example.XX"));
+        Assertions.assertEquals("example.xx", matcher.getDomainRoot("www.blah.blah.example.XX"));
+        Assertions.assertEquals(null, matcher.getDomainRoot("appspot.com"));
+        Assertions.assertEquals("example.appspot.com", matcher.getDomainRoot("example.appspot.com"));
         // Too short
         Assertions.assertNull(matcher.getDomainRoot("jp"));
         Assertions.assertNull(matcher.getDomainRoot("ac.jp"));
         Assertions.assertNull(matcher.getDomainRoot("any.tokyo.jp"));
-        // ICANN
-        Assertions.assertEquals("metro.tokyo.jp", matcher.getDomainRoot("metro.tokyo.jp"));
-        Assertions.assertEquals("blah.blah.tokyo.jp", matcher.getDomainRoot("blah.blah.tokyo.jp"));
-        Assertions.assertEquals("blah.ac.jp", matcher.getDomainRoot("blah.blah.ac.jp"));
         // Unknown
-        Assertions.assertEquals("garbage", matcher.getDomainRoot("garbage"));
-        Assertions.assertEquals("garbage", matcher.getDomainRoot("garbage.garbage"));
-        Assertions.assertEquals("garbage", matcher.getDomainRoot("*.garbage.garbage"));
-        Assertions.assertEquals("garbage", matcher.getDomainRoot("*.garbage.garbage.garbage"));
+        Assertions.assertEquals(null, matcher.getDomainRoot("garbage"));
+        Assertions.assertEquals("garbage.garbage", matcher.getDomainRoot("garbage.garbage"));
+        Assertions.assertEquals("garbage.garbage", matcher.getDomainRoot("*.garbage.garbage"));
+        Assertions.assertEquals("garbage.garbage", matcher.getDomainRoot("*.garbage.garbage.garbage"));
 
-        Assertions.assertEquals("*.compute-1.amazonaws.com", matcher.getDomainRoot("*.compute-1.amazonaws.com"));
+        Assertions.assertEquals(null, matcher.getDomainRoot("*.compute-1.amazonaws.com"));
+        Assertions.assertEquals(null, matcher.getDomainRoot("blah.compute-1.amazonaws.com"));
+        Assertions.assertEquals("blah.blah.compute-1.amazonaws.com", matcher.getDomainRoot("blah.blah.compute-1.amazonaws.com"));
     }
 
     @Test
-    public void testGetDomainRootOnlyPRIVATE() {
+    void testGetDomainRootOnlyPRIVATE() {
         // Private
-        Assertions.assertEquals("xx", matcher.getDomainRoot("example.XX", DomainType.PRIVATE));
-        Assertions.assertEquals("xx", matcher.getDomainRoot("www.example.XX", DomainType.PRIVATE));
-        Assertions.assertEquals("xx", matcher.getDomainRoot("www.blah.blah.example.XX", DomainType.PRIVATE));
-        Assertions.assertEquals("appspot.com", matcher.getDomainRoot("example.appspot.com"));
+        Assertions.assertEquals("example.xx", matcher.getDomainRoot("example.XX", DomainType.PRIVATE));
+        Assertions.assertEquals("example.xx", matcher.getDomainRoot("www.example.XX", DomainType.PRIVATE));
+        Assertions.assertEquals("example.xx", matcher.getDomainRoot("www.blah.blah.example.XX", DomainType.PRIVATE));
+        Assertions.assertEquals("example.appspot.com", matcher.getDomainRoot("example.appspot.com"));
         // Too short
         Assertions.assertNull(matcher.getDomainRoot("jp", DomainType.PRIVATE));
         Assertions.assertNull(matcher.getDomainRoot("ac.jp", DomainType.PRIVATE));
@@ -99,7 +125,7 @@ public class TestPublicSuffixMatcher {
     }
 
     @Test
-    public void testGetDomainRootOnlyICANN() {
+    void testGetDomainRootOnlyICANN() {
         // Private
         Assertions.assertNull(matcher.getDomainRoot("example.XX", DomainType.ICANN));
         Assertions.assertNull(matcher.getDomainRoot("www.example.XX", DomainType.ICANN));
@@ -120,24 +146,127 @@ public class TestPublicSuffixMatcher {
         Assertions.assertNull(matcher.getDomainRoot("*.garbage.garbage.garbage", DomainType.ICANN));
     }
 
-
     @Test
-    public void testMatch() {
+    void testMatch() {
         Assertions.assertTrue(matcher.matches(".jp"));
         Assertions.assertTrue(matcher.matches(".ac.jp"));
         Assertions.assertTrue(matcher.matches(".any.tokyo.jp"));
+        Assertions.assertTrue(matcher.matches(".xx"));
+        Assertions.assertTrue(matcher.matches(".appspot.com"));
         // exception
         Assertions.assertFalse(matcher.matches(".metro.tokyo.jp"));
-        Assertions.assertFalse(matcher.matches(".xx"));
-        Assertions.assertFalse(matcher.matches(".appspot.com"));
     }
 
     @Test
-    public void testMatchUnicode() {
+    void testMatchUnicode() {
         Assertions.assertTrue(matcher.matches(".h\u00E5.no")); // \u00E5 is <aring>
         Assertions.assertTrue(matcher.matches(".xn--h-2fa.no"));
         Assertions.assertTrue(matcher.matches(".h\u00E5.no"));
         Assertions.assertTrue(matcher.matches(".xn--h-2fa.no"));
+    }
+
+    private void checkPublicSuffix(final String input, final String expected) {
+        Assertions.assertEquals(expected, pslMatcher.getDomainRoot(input));
+    }
+
+    //see https://github.com/publicsuffix/list/blob/master/tests/test_psl.txt
+    @Test
+    void testGetDomainRootPublicSuffixList() {
+         // null input.
+        checkPublicSuffix(null, null);
+        // Mixed case.
+        checkPublicSuffix("COM", null);
+        checkPublicSuffix("example.COM", "example.com");
+        checkPublicSuffix("WwW.example.COM", "example.com");
+        // Leading dot.
+        checkPublicSuffix(".com", null);
+        checkPublicSuffix(".example", null);
+        checkPublicSuffix(".example.com", null);
+        checkPublicSuffix(".example.example", null);
+        // Unlisted TLD.
+        checkPublicSuffix("example", null);
+        checkPublicSuffix("example.example", "example.example");
+        checkPublicSuffix("b.example.example", "example.example");
+        checkPublicSuffix("a.b.example.example", "example.example");
+        // Listed, but non-Internet, TLD.
+        //checkPublicSuffix("local", null);
+        //checkPublicSuffix("example.local", null);
+        //checkPublicSuffix("b.example.local", null);
+        //checkPublicSuffix("a.b.example.local", null);
+        // TLD with only 1 rule.
+        checkPublicSuffix("biz", null);
+        checkPublicSuffix("domain.biz", "domain.biz");
+        checkPublicSuffix("b.domain.biz", "domain.biz");
+        checkPublicSuffix("a.b.domain.biz", "domain.biz");
+        // TLD with some 2-level rules.
+        checkPublicSuffix("com", null);
+        checkPublicSuffix("example.com", "example.com");
+        checkPublicSuffix("b.example.com", "example.com");
+        checkPublicSuffix("a.b.example.com", "example.com");
+        checkPublicSuffix("uk.com", null);
+        checkPublicSuffix("example.uk.com", "example.uk.com");
+        checkPublicSuffix("b.example.uk.com", "example.uk.com");
+        checkPublicSuffix("a.b.example.uk.com", "example.uk.com");
+        checkPublicSuffix("test.ac", "test.ac");
+        // TLD with only 1 (wildcard) rule.
+        checkPublicSuffix("mm", null);
+        checkPublicSuffix("c.mm", null);
+        checkPublicSuffix("b.c.mm", "b.c.mm");
+        checkPublicSuffix("a.b.c.mm", "b.c.mm");
+        // More complex TLD.
+        checkPublicSuffix("jp", null);
+        checkPublicSuffix("test.jp", "test.jp");
+        checkPublicSuffix("www.test.jp", "test.jp");
+        checkPublicSuffix("ac.jp", null);
+        checkPublicSuffix("test.ac.jp", "test.ac.jp");
+        checkPublicSuffix("www.test.ac.jp", "test.ac.jp");
+        checkPublicSuffix("kyoto.jp", null);
+        checkPublicSuffix("test.kyoto.jp", "test.kyoto.jp");
+        checkPublicSuffix("ide.kyoto.jp", null);
+        checkPublicSuffix("b.ide.kyoto.jp", "b.ide.kyoto.jp");
+        checkPublicSuffix("a.b.ide.kyoto.jp", "b.ide.kyoto.jp");
+        checkPublicSuffix("c.kobe.jp", null);
+        checkPublicSuffix("b.c.kobe.jp", "b.c.kobe.jp");
+        checkPublicSuffix("a.b.c.kobe.jp", "b.c.kobe.jp");
+        checkPublicSuffix("city.kobe.jp", "city.kobe.jp");
+        checkPublicSuffix("www.city.kobe.jp", "city.kobe.jp");
+        // TLD with a wildcard rule and exceptions.
+        checkPublicSuffix("ck", null);
+        checkPublicSuffix("test.ck", null);
+        checkPublicSuffix("b.test.ck", "b.test.ck");
+        checkPublicSuffix("a.b.test.ck", "b.test.ck");
+        checkPublicSuffix("www.ck", "www.ck");
+        checkPublicSuffix("www.www.ck", "www.ck");
+        // US K12.
+        checkPublicSuffix("us", null);
+        checkPublicSuffix("test.us", "test.us");
+        checkPublicSuffix("www.test.us", "test.us");
+        checkPublicSuffix("ak.us", null);
+        checkPublicSuffix("test.ak.us", "test.ak.us");
+        checkPublicSuffix("www.test.ak.us", "test.ak.us");
+        checkPublicSuffix("k12.ak.us", null);
+        checkPublicSuffix("test.k12.ak.us", "test.k12.ak.us");
+        checkPublicSuffix("www.test.k12.ak.us", "test.k12.ak.us");
+        // IDN labels.
+        checkPublicSuffix("食狮.com.cn", "食狮.com.cn");
+        checkPublicSuffix("食狮.公司.cn", "食狮.公司.cn");
+        checkPublicSuffix("www.食狮.公司.cn", "食狮.公司.cn");
+        checkPublicSuffix("shishi.公司.cn", "shishi.公司.cn");
+        checkPublicSuffix("公司.cn", null);
+        checkPublicSuffix("食狮.中国", "食狮.中国");
+        checkPublicSuffix("www.食狮.中国", "食狮.中国");
+        checkPublicSuffix("shishi.中国", "shishi.中国");
+        checkPublicSuffix("中国", null);
+        // Same as above, but punycoded.
+        checkPublicSuffix("xn--85x722f.com.cn", "xn--85x722f.com.cn");
+        checkPublicSuffix("xn--85x722f.xn--55qx5d.cn", "xn--85x722f.xn--55qx5d.cn");
+        checkPublicSuffix("www.xn--85x722f.xn--55qx5d.cn", "xn--85x722f.xn--55qx5d.cn");
+        checkPublicSuffix("shishi.xn--55qx5d.cn", "shishi.xn--55qx5d.cn");
+        checkPublicSuffix("xn--55qx5d.cn", null);
+        checkPublicSuffix("xn--85x722f.xn--fiqs8s", "xn--85x722f.xn--fiqs8s");
+        checkPublicSuffix("www.xn--85x722f.xn--fiqs8s", "xn--85x722f.xn--fiqs8s");
+        checkPublicSuffix("shishi.xn--fiqs8s", "shishi.xn--fiqs8s");
+        checkPublicSuffix("xn--fiqs8s", null);
     }
 
 }

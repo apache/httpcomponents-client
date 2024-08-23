@@ -50,7 +50,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 public class NTLMSchemeFactory implements AuthSchemeFactory {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link NTLMSchemeFactory}.
      */
     public static final NTLMSchemeFactory INSTANCE = new NTLMSchemeFactory();
 

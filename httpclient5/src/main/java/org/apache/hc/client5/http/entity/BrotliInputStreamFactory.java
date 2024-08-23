@@ -41,6 +41,9 @@ import org.brotli.dec.BrotliInputStream;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class BrotliInputStreamFactory implements InputStreamFactory {
 
+    /**
+     * Default instance of {@link BrotliInputStreamFactory}.
+     */
     private static final BrotliInputStreamFactory INSTANCE = new BrotliInputStreamFactory();
 
     public static BrotliInputStreamFactory getInstance() {

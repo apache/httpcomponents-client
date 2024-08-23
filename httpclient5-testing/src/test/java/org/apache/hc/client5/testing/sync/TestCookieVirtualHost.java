@@ -34,108 +34,116 @@ import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.testing.sync.extension.TestClientResources;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.URIScheme;
+import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
+import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.testing.classic.ClassicTestServer;
-import org.apache.hc.core5.util.Timeout;
+import org.apache.hc.core5.io.CloseMode;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * This class tests cookie matching when using Virtual Host.
  */
-public class TestCookieVirtualHost {
+class TestCookieVirtualHost {
 
-    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
+    private HttpServer server;
 
-    @RegisterExtension
-    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
+    @AfterEach
+    void shutDown() {
+        if (this.server != null) {
+            this.server.close(CloseMode.GRACEFUL);
+        }
+    }
 
     @Test
-    public void testCookieMatchingWithVirtualHosts() throws Exception {
-        final ClassicTestServer server = testResources.startServer(null, null, null);
-        server.registerHandlerVirtual("app.mydomain.fr", "*", (request, response, context) -> {
+    void testCookieMatchingWithVirtualHosts() throws Exception {
+        server = ServerBootstrap.bootstrap()
+                .register("app.mydomain.fr", "*", (request, response, context) -> {
 
-            final int n = Integer.parseInt(request.getFirstHeader("X-Request").getValue());
-            switch (n) {
-            case 1:
-                // Assert Host is forwarded from URI
-                Assertions.assertEquals("app.mydomain.fr", request
-                        .getFirstHeader("Host").getValue());
+                    final int n = Integer.parseInt(request.getFirstHeader("X-Request").getValue());
+                    switch (n) {
+                        case 1:
+                            // Assert Host is forwarded from URI
+                            Assertions.assertEquals("app.mydomain.fr", request
+                                    .getFirstHeader("Host").getValue());
 
-                response.setCode(HttpStatus.SC_OK);
-                // Respond with Set-Cookie on virtual host domain. This
-                // should be valid.
-                response.addHeader(new BasicHeader("Set-Cookie",
-                        "name1=value1; domain=mydomain.fr; path=/"));
-                break;
+                            response.setCode(HttpStatus.SC_OK);
+                            // Respond with Set-Cookie on virtual host domain. This
+                            // should be valid.
+                            response.addHeader(new BasicHeader("Set-Cookie",
+                                    "name1=value1; domain=mydomain.fr; path=/"));
+                            break;
 
-            case 2:
-                // Assert Host is still forwarded from URI
-                Assertions.assertEquals("app.mydomain.fr", request
-                        .getFirstHeader("Host").getValue());
+                        case 2:
+                            // Assert Host is still forwarded from URI
+                            Assertions.assertEquals("app.mydomain.fr", request
+                                    .getFirstHeader("Host").getValue());
 
-                // We should get our cookie back.
-                Assertions.assertNotNull(request.getFirstHeader("Cookie"), "We must get a cookie header");
-                response.setCode(HttpStatus.SC_OK);
-                break;
+                            // We should get our cookie back.
+                            Assertions.assertNotNull(request.getFirstHeader("Cookie"), "We must get a cookie header");
+                            response.setCode(HttpStatus.SC_OK);
+                            break;
 
-            case 3:
-                // Assert Host is forwarded from URI
-                Assertions.assertEquals("app.mydomain.fr", request
-                        .getFirstHeader("Host").getValue());
+                        case 3:
+                            // Assert Host is forwarded from URI
+                            Assertions.assertEquals("app.mydomain.fr", request
+                                    .getFirstHeader("Host").getValue());
 
-                response.setCode(HttpStatus.SC_OK);
-                break;
-            default:
-                Assertions.fail("Unexpected value: " + n);
-                break;
-            }
-        });
+                            response.setCode(HttpStatus.SC_OK);
+                            break;
+                        default:
+                            Assertions.fail("Unexpected value: " + n);
+                            break;
+                    }
+                })
+                .create();
+        server.start();
 
-        final HttpHost target = testResources.targetHost();
+        final HttpHost target = new HttpHost("localhost", server.getLocalPort());
+        try (final CloseableHttpClient client = HttpClientBuilder.create().build()) {
+            final CookieStore cookieStore = new BasicCookieStore();
+            final HttpClientContext context = HttpClientContext.create();
+            context.setCookieStore(cookieStore);
 
-        final CloseableHttpClient client = testResources.startClient(b -> {});
+            // First request : retrieve a domain cookie from remote server.
+            final HttpGet request1 = new HttpGet(new URI("http://app.mydomain.fr"));
+            request1.addHeader("X-Request", "1");
+            client.execute(target, request1, context, response -> {
+                Assertions.assertEquals(200, response.getCode());
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
 
-        final CookieStore cookieStore = new BasicCookieStore();
-        final HttpClientContext context = HttpClientContext.create();
-        context.setCookieStore(cookieStore);
+            // We should have one cookie set on domain.
+            final List<Cookie> cookies = cookieStore.getCookies();
+            Assertions.assertNotNull(cookies);
+            Assertions.assertEquals(1, cookies.size());
+            Assertions.assertEquals("name1", cookies.get(0).getName());
 
-        // First request : retrieve a domain cookie from remote server.
-        final HttpGet request1 = new HttpGet(new URI("http://app.mydomain.fr"));
-        request1.addHeader("X-Request", "1");
-        client.execute(target, request1, context, response -> {
-            EntityUtils.consume(response.getEntity());
-            return null;
-        });
+            // Second request : send the cookie back.
+            final HttpGet request2 = new HttpGet(new URI("http://app.mydomain.fr"));
+            request2.addHeader("X-Request", "2");
+            client.execute(target, request2, context, response -> {
+                Assertions.assertEquals(200, response.getCode());
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
 
-        // We should have one cookie set on domain.
-        final List<Cookie> cookies = cookieStore.getCookies();
-        Assertions.assertNotNull(cookies);
-        Assertions.assertEquals(1, cookies.size());
-        Assertions.assertEquals("name1", cookies.get(0).getName());
-
-        // Second request : send the cookie back.
-        final HttpGet request2 = new HttpGet(new URI("http://app.mydomain.fr"));
-        request2.addHeader("X-Request", "2");
-        client.execute(target, request2, context, response -> {
-            EntityUtils.consume(response.getEntity());
-            return null;
-        });
-
-        // Third request : Host header
-        final HttpGet request3 = new HttpGet(new URI("http://app.mydomain.fr"));
-        request3.addHeader("X-Request", "3");
-        client.execute(target, request3, context, response -> {
-            EntityUtils.consume(response.getEntity());
-            return null;
-        });
+            // Third request : Host header
+            final HttpGet request3 = new HttpGet(new URI("http://app.mydomain.fr"));
+            request3.addHeader("X-Request", "3");
+            client.execute(target, request3, context, response -> {
+                Assertions.assertEquals(200, response.getCode());
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
+        }
     }
 
 }

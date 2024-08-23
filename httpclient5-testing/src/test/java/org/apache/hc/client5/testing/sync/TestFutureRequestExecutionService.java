@@ -24,11 +24,10 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.classic;
+package org.apache.hc.client5.testing.sync;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CancellationException;
@@ -43,6 +42,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.FutureRequestExecutionService;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -58,7 +60,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("boxing") // test code
-public class TestFutureRequestExecutionService {
+class TestFutureRequestExecutionService {
 
     private HttpServer localServer;
     private String uri;
@@ -67,8 +69,9 @@ public class TestFutureRequestExecutionService {
     private final AtomicBoolean blocked = new AtomicBoolean(false);
 
     @BeforeEach
-    public void before() throws Exception {
+    void before() throws Exception {
         this.localServer = ServerBootstrap.bootstrap()
+                .setCanonicalHostName("localhost")
                 .register("/wait", (request, response, context) -> {
                     try {
                         while(blocked.get()) {
@@ -93,21 +96,21 @@ public class TestFutureRequestExecutionService {
     }
 
     @AfterEach
-    public void after() throws Exception {
+    void after() throws Exception {
         blocked.set(false); // any remaining requests should unblock
         this.localServer.stop();
         httpAsyncClientWithFuture.close();
     }
 
     @Test
-    public void shouldExecuteSingleCall() throws InterruptedException, ExecutionException {
+    void shouldExecuteSingleCall() throws InterruptedException, ExecutionException {
         final FutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
             new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
         Assertions.assertTrue(task.get(), "request should have returned OK");
     }
 
     @Test
-    public void shouldCancel() throws InterruptedException, ExecutionException {
+    void shouldCancel() {
         final FutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
             new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
         task.cancel(true);
@@ -118,7 +121,7 @@ public class TestFutureRequestExecutionService {
     }
 
     @Test
-    public void shouldTimeout() throws InterruptedException, ExecutionException, TimeoutException {
+    void shouldTimeout() {
         blocked.set(true);
         final FutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
             new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
@@ -127,7 +130,7 @@ public class TestFutureRequestExecutionService {
     }
 
     @Test
-    public void shouldExecuteMultipleCalls() throws Exception {
+    void shouldExecuteMultipleCalls() throws Exception {
         final int reqNo = 100;
         final Queue<Future<Boolean>> tasks = new LinkedList<>();
         for(int i = 0; i < reqNo; i++) {
@@ -143,7 +146,7 @@ public class TestFutureRequestExecutionService {
     }
 
     @Test
-    public void shouldExecuteMultipleCallsAndCallback() throws Exception {
+    void shouldExecuteMultipleCallsAndCallback() throws Exception {
         final int reqNo = 100;
         final Queue<Future<Boolean>> tasks = new LinkedList<>();
         final CountDownLatch latch = new CountDownLatch(reqNo);
@@ -190,7 +193,7 @@ public class TestFutureRequestExecutionService {
     private final class OkidokiHandler implements HttpClientResponseHandler<Boolean> {
         @Override
         public Boolean handleResponse(
-                final ClassicHttpResponse response) throws IOException {
+                final ClassicHttpResponse response) {
             return response.getCode() == 200;
         }
     }

@@ -206,7 +206,7 @@ public class PoolingHttpClientConnectionManager
     }
 
     @Internal
-    protected PoolingHttpClientConnectionManager(
+    public PoolingHttpClientConnectionManager(
             final HttpClientConnectionOperator httpClientConnectionOperator,
             final PoolConcurrencyPolicy poolConcurrencyPolicy,
             final PoolReusePolicy poolReusePolicy,

@@ -34,48 +34,39 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.config.TlsConfig;
-import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
+import org.apache.hc.client5.testing.extension.async.TestAsyncClient;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
-import org.apache.hc.core5.http2.config.H2Config;
-import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 
-public abstract class TestHttpAsyncProtocolPolicy extends AbstractIntegrationTestBase {
+abstract  class TestHttpAsyncProtocolPolicy extends AbstractIntegrationTestBase {
 
     private final HttpVersion version;
 
     public TestHttpAsyncProtocolPolicy(final URIScheme scheme, final HttpVersion version) {
-        super(scheme);
+        super(scheme, ClientProtocolLevel.STANDARD, version == HttpVersion.HTTP_2 ? ServerProtocolLevel.H2_ONLY : ServerProtocolLevel.STANDARD);
         this.version = version;
     }
 
     @Test
-    public void testRequestContext() throws Exception {
-        final H2TestServer server;
-        if (version.greaterEquals(HttpVersion.HTTP_2)) {
-            server = startServer(H2Config.DEFAULT, null, null);
-        } else {
-            server = startServer(Http1Config.DEFAULT, null, null);
-        }
-        server.register("/random/*", AsyncRandomHandler::new);
-        final HttpHost target = targetHost();
+    void testRequestContext() throws Exception {
+        configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
+        final HttpHost target = startServer();
 
         final AtomicReference<ProtocolVersion> versionRef = new AtomicReference<>();
-        final CloseableHttpAsyncClient client = startClient(
-                builder -> builder
-                        .setDefaultTlsConfig(TlsConfig.custom()
-                                .setVersionPolicy(version.greaterEquals(HttpVersion.HTTP_2) ? HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1)
-                                .build()),
-                builder -> builder
-                        .addRequestInterceptorFirst((request, entity, context) ->
-                                versionRef.set(context.getProtocolVersion())
-                        ));
+        configureClient(builder -> builder
+                .setDefaultTlsConfig(TlsConfig.custom()
+                        .setVersionPolicy(version.greaterEquals(HttpVersion.HTTP_2) ? HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1)
+                        .build())
+                .addRequestInterceptorFirst((request, entity, context) ->
+                        versionRef.set(context.getProtocolVersion())));
+        final TestAsyncClient client = startClient();
 
         final Future<SimpleHttpResponse> future = client.execute(
                 SimpleRequestBuilder.get()

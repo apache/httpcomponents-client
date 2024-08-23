@@ -38,10 +38,10 @@ import org.mockito.Mockito;
 /**
  * Unit tests for {@link IdleConnectionEvictor}.
  */
-public class TestIdleConnectionEvictor {
+class TestIdleConnectionEvictor {
 
     @Test
-    public void testEvictExpiredAndIdle() throws Exception {
+    void testEvictExpiredAndIdle() throws Exception {
         final ConnPoolControl<?> cm = Mockito.mock(ConnPoolControl.class);
         final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(cm,
                 TimeValue.ofMilliseconds(500), TimeValue.ofSeconds(3));
@@ -60,7 +60,7 @@ public class TestIdleConnectionEvictor {
     }
 
     @Test
-    public void testEvictExpiredOnly() throws Exception {
+    void testEvictExpiredOnly() throws Exception {
         final ConnPoolControl<?> cm = Mockito.mock(ConnPoolControl.class);
         final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(cm,
                 TimeValue.ofMilliseconds(500), null);

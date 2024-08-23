@@ -45,7 +45,6 @@ import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.TunnelRefusedException;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.impl.routing.BasicRouteDirector;
@@ -121,6 +120,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         final RouteTracker tracker;
 
         volatile boolean challenged;
+        volatile HttpResponse response;
         volatile boolean tunnelRefused;
 
     }
@@ -294,7 +294,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                                         if (LOG.isDebugEnabled()) {
                                             LOG.debug("{} tunnel refused", exchangeId);
                                         }
-                                        asyncExecCallback.failed(new TunnelRefusedException("Tunnel refused", null));
+                                        asyncExecCallback.completed();
                                     } else {
                                         if (LOG.isDebugEnabled()) {
                                             LOG.debug("{} tunnel to target created", exchangeId);

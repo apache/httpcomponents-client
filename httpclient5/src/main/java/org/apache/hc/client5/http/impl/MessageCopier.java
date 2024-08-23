@@ -32,6 +32,7 @@ import org.apache.hc.core5.http.HttpMessage;
 /**
  * Abstract HTTP message copier.
  *
+ * @param <T> The type of {@link HttpMessage}.
  * @since 5.0
  *
  * @deprecated Use message builders.

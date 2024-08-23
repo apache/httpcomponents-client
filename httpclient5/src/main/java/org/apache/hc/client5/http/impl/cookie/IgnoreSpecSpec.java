@@ -46,7 +46,7 @@ import org.apache.hc.core5.http.Header;
 public class IgnoreSpecSpec extends CookieSpecBase {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link IgnoreSpecSpec}.
      *
      * @since 5.2
      */

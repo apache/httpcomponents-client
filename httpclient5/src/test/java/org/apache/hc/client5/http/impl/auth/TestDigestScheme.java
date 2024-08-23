@@ -64,7 +64,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Test Methods for DigestScheme Authentication.
  */
-public class TestDigestScheme {
+class TestDigestScheme {
 
     private static AuthChallenge parse(final String s) throws ParseException {
         final CharArrayBuffer buffer = new CharArrayBuffer(s.length());
@@ -76,7 +76,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationEmptyChallenge1() throws Exception {
+    void testDigestAuthenticationEmptyChallenge1() throws Exception {
         final AuthChallenge authChallenge = parse(StandardAuthScheme.DIGEST);
         final AuthScheme authscheme = new DigestScheme();
         Assertions.assertThrows(MalformedChallengeException.class, () ->
@@ -84,7 +84,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationEmptyChallenge2() throws Exception {
+    void testDigestAuthenticationEmptyChallenge2() throws Exception {
         final AuthChallenge authChallenge = parse(StandardAuthScheme.DIGEST + " ");
         final AuthScheme authscheme = new DigestScheme();
         Assertions.assertThrows(MalformedChallengeException.class, () ->
@@ -92,7 +92,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationWithDefaultCreds() throws Exception {
+    void testDigestAuthenticationWithDefaultCreds() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -118,7 +118,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthentication() throws Exception {
+    void testDigestAuthentication() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -142,7 +142,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationInvalidInput() throws Exception {
+    void testDigestAuthenticationInvalidInput() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
                 .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
@@ -162,7 +162,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationWithSHA() throws Exception {
+    void testDigestAuthenticationWithSHA() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -188,7 +188,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationWithQueryStringInDigestURI() throws Exception {
+    void testDigestAuthenticationWithQueryStringInDigestURI() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/?param=value");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -212,7 +212,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationNoRealm() throws Exception {
+    void testDigestAuthenticationNoRealm() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -230,7 +230,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationNoNonce() throws Exception {
+    void testDigestAuthenticationNoNonce() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -248,7 +248,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationNoAlgorithm() throws Exception {
+    void testDigestAuthenticationNoAlgorithm() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -268,7 +268,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationMD5Algorithm() throws Exception {
+    void testDigestAuthenticationMD5Algorithm() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -293,7 +293,7 @@ public class TestDigestScheme {
      * Test digest authentication using the MD5-sess algorithm.
      */
     @Test
-    public void testDigestAuthenticationMD5Sess() throws Exception {
+    void testDigestAuthenticationMD5Sess() throws Exception {
         // Example using Digest auth with MD5-sess
 
         final String realm="realm";
@@ -343,7 +343,7 @@ public class TestDigestScheme {
      * Test digest authentication using the MD5-sess algorithm.
      */
     @Test
-    public void testDigestAuthenticationMD5SessNoQop() throws Exception {
+    void testDigestAuthenticationMD5SessNoQop() throws Exception {
         // Example using Digest auth with MD5-sess
 
         final String realm="realm";
@@ -387,7 +387,7 @@ public class TestDigestScheme {
      * Test digest authentication with unknown qop value
      */
     @Test
-    public void testDigestAuthenticationMD5SessUnknownQop() throws Exception {
+    void testDigestAuthenticationMD5SessUnknownQop() throws Exception {
         // Example using Digest auth with MD5-sess
 
         final String realm="realm";
@@ -422,7 +422,7 @@ public class TestDigestScheme {
      * Test digest authentication with unknown qop value
      */
     @Test
-    public void testDigestAuthenticationUnknownAlgo() throws Exception {
+    void testDigestAuthenticationUnknownAlgo() throws Exception {
         // Example using Digest auth with MD5-sess
 
         final String realm="realm";
@@ -454,7 +454,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationWithStaleNonce() throws Exception {
+    void testDigestAuthenticationWithStaleNonce() throws Exception {
         final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", " +
                 "nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", stale=\"true\"";
         final AuthChallenge authChallenge = parse(challenge);
@@ -479,7 +479,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestNouceCount() throws Exception {
+    void testDigestNouceCount() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -523,7 +523,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestMD5SessA1AndCnonceConsistency() throws Exception {
+    void testDigestMD5SessA1AndCnonceConsistency() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -585,7 +585,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testHttpEntityDigest() throws Exception {
+    void testHttpEntityDigest() throws Exception {
         final HttpEntityDigester digester = new HttpEntityDigester(MessageDigest.getInstance("MD5"));
         Assertions.assertNull(digester.getDigest());
         digester.write('a');
@@ -603,7 +603,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationQopAuthInt() throws Exception {
+    void testDigestAuthenticationQopAuthInt() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("Post", "/");
         request.setEntity(new StringEntity("abc\u00e4\u00f6\u00fcabc", StandardCharsets.ISO_8859_1));
         final HttpHost host = new HttpHost("somehost", 80);
@@ -630,7 +630,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationQopAuthIntNullEntity() throws Exception {
+    void testDigestAuthenticationQopAuthIntNullEntity() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Post", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -656,7 +656,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationQopAuthOrAuthIntNonRepeatableEntity() throws Exception {
+    void testDigestAuthenticationQopAuthOrAuthIntNonRepeatableEntity() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("Post", "/");
         request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1, ContentType.DEFAULT_TEXT));
         final HttpHost host = new HttpHost("somehost", 80);
@@ -683,7 +683,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testParameterCaseSensitivity() throws Exception {
+    void testParameterCaseSensitivity() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -703,7 +703,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationQopIntOnlyNonRepeatableEntity() throws Exception {
+    void testDigestAuthenticationQopIntOnlyNonRepeatableEntity() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("Post", "/");
         request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1, ContentType.DEFAULT_TEXT));
         final HttpHost host = new HttpHost("somehost", 80);
@@ -723,7 +723,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testSerialization() throws Exception {
+    void testSerialization() throws Exception {
         final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "qop=\"auth,auth-int\"";
         final AuthChallenge authChallenge = parse(challenge);
@@ -748,7 +748,7 @@ public class TestDigestScheme {
 
 
     @Test
-    public void testDigestAuthenticationWithUserHash() throws Exception {
+    void testDigestAuthenticationWithUserHash() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -791,7 +791,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationWithQuotedStringsAndWhitespace() throws Exception {
+    void testDigestAuthenticationWithQuotedStringsAndWhitespace() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -820,7 +820,7 @@ public class TestDigestScheme {
         Assertions.assertNotNull(response);
     }
     @Test
-    public void testDigestAuthenticationWithInvalidUsernameAndValidUsernameStar() throws Exception {
+    void testDigestAuthenticationWithInvalidUsernameAndValidUsernameStar() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -841,7 +841,7 @@ public class TestDigestScheme {
     }
 
     @Test
-    public void testDigestAuthenticationWithHighAsciiCharInUsername() throws Exception {
+    void testDigestAuthenticationWithHighAsciiCharInUsername() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         // Using a username with a high ASCII character
@@ -863,7 +863,7 @@ public class TestDigestScheme {
 
 
     @Test
-    public void testDigestAuthenticationWithExtendedAsciiCharInUsername() throws Exception {
+    void testDigestAuthenticationWithExtendedAsciiCharInUsername() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         // Using an extended ASCII character (e.g., 0x80) in the username
@@ -885,7 +885,7 @@ public class TestDigestScheme {
 
 
     @Test
-    public void testDigestAuthenticationWithNonAsciiUsername() throws Exception {
+    void testDigestAuthenticationWithNonAsciiUsername() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         // Using a username with non-ASCII characters

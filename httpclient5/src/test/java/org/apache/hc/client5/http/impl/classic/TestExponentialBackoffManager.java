@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.Instant;
 import java.util.Map;
 
-public class TestExponentialBackoffManager {
+class TestExponentialBackoffManager {
 
     private ExponentialBackoffManager impl;
     private MockConnPoolControl connPerRoute;
@@ -47,7 +47,7 @@ public class TestExponentialBackoffManager {
     private static final long DEFAULT_COOL_DOWN_MS = 5000; // Adjust this value to match the default cooldown period in ExponentialBackoffManager
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         connPerRoute = new MockConnPoolControl();
         route = new HttpRoute(new HttpHost("localhost", 80));
         impl = new ExponentialBackoffManager(connPerRoute);
@@ -57,7 +57,7 @@ public class TestExponentialBackoffManager {
     }
 
     @Test
-    public void exponentialBackoffApplied() {
+    void exponentialBackoffApplied() {
         connPerRoute.setMaxPerRoute(route, 4);
         impl.setBackoffFactor(2); // Sets the growth rate to 2 for this test
         impl.backOff(route);
@@ -65,7 +65,7 @@ public class TestExponentialBackoffManager {
     }
 
     @Test
-    public void exponentialGrowthRateIsConfigurable() {
+    void exponentialGrowthRateIsConfigurable() {
         final int customCoolDownMs = 500;
         connPerRoute.setMaxPerRoute(route, 4);
         impl.setBackoffFactor(0.5);
@@ -82,7 +82,7 @@ public class TestExponentialBackoffManager {
     }
 
     @Test
-    public void doesNotIncreaseBeyondPerHostMaxOnProbe() {
+    void doesNotIncreaseBeyondPerHostMaxOnProbe() {
         connPerRoute.setDefaultMaxPerRoute(5);
         connPerRoute.setMaxPerRoute(route, 5);
         impl.setPerHostConnectionCap(5);
@@ -91,7 +91,7 @@ public class TestExponentialBackoffManager {
     }
 
     @Test
-    public void backoffDoesNotAdjustDuringCoolDownPeriod() {
+    void backoffDoesNotAdjustDuringCoolDownPeriod() {
         connPerRoute.setMaxPerRoute(route, 4);
         impl.backOff(route);
         final long max = connPerRoute.getMaxPerRoute(route);
@@ -106,7 +106,7 @@ public class TestExponentialBackoffManager {
     }
 
     @Test
-    public void backoffStillAdjustsAfterCoolDownPeriod() {
+    void backoffStillAdjustsAfterCoolDownPeriod() {
         connPerRoute.setMaxPerRoute(route, 8);
         impl.backOff(route);
         final long max = connPerRoute.getMaxPerRoute(route);
@@ -124,7 +124,7 @@ public class TestExponentialBackoffManager {
 
 
     @Test
-    public void probeDoesNotAdjustDuringCooldownPeriod() {
+    void probeDoesNotAdjustDuringCooldownPeriod() {
         connPerRoute.setMaxPerRoute(route, 4);
         impl.probe(route);
         final long max = connPerRoute.getMaxPerRoute(route);
@@ -138,7 +138,7 @@ public class TestExponentialBackoffManager {
     }
 
     @Test
-    public void probeStillAdjustsAfterCoolDownPeriod() {
+    void probeStillAdjustsAfterCoolDownPeriod() {
         connPerRoute.setMaxPerRoute(route, 8);
         impl.probe(route);
         final long max = connPerRoute.getMaxPerRoute(route);
@@ -152,7 +152,7 @@ public class TestExponentialBackoffManager {
     }
 
     @Test
-    public void willBackoffImmediatelyEvenAfterAProbe() {
+    void willBackoffImmediatelyEvenAfterAProbe() {
         connPerRoute.setMaxPerRoute(route, 8);
         impl.probe(route);
         final long max = connPerRoute.getMaxPerRoute(route);
@@ -161,7 +161,7 @@ public class TestExponentialBackoffManager {
     }
 
     @Test
-    public void coolDownPeriodIsConfigurable() {
+    void coolDownPeriodIsConfigurable() {
         final long cd = 500; // Fixed cooldown period of 500 milliseconds
         impl.setCoolDown(TimeValue.ofMilliseconds(cd));
         connPerRoute.setMaxPerRoute(route, 4);

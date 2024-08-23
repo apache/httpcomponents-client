@@ -43,10 +43,10 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestDecompressingEntity {
+class TestDecompressingEntity {
 
     @Test
-    public void testNonStreaming() throws Exception {
+    void testNonStreaming() throws Exception {
         final CRC32 crc32 = new CRC32();
         final StringEntity wrapped = new StringEntity("1234567890", StandardCharsets.US_ASCII);
         final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
@@ -60,7 +60,7 @@ public class TestDecompressingEntity {
     }
 
     @Test
-    public void testStreaming() throws Exception {
+    void testStreaming() throws Exception {
         final CRC32 crc32 = new CRC32();
         final ByteArrayInputStream in = new ByteArrayInputStream("1234567890".getBytes(StandardCharsets.US_ASCII));
         final InputStreamEntity wrapped = new InputStreamEntity(in, -1, ContentType.DEFAULT_TEXT);
@@ -77,7 +77,23 @@ public class TestDecompressingEntity {
     }
 
     @Test
-    public void testWriteToStream() throws Exception {
+    void testStreamingMarking() throws Exception {
+        final CRC32 crc32 = new CRC32();
+        final ByteArrayInputStream in = new ByteArrayInputStream("1234567890".getBytes(StandardCharsets.US_ASCII));
+        final InputStreamEntity wrapped = new InputStreamEntity(in, -1, ContentType.DEFAULT_TEXT);
+        final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
+        final InputStream in1 = entity.getContent();
+        Assertions.assertEquals('1', in1.read());
+        Assertions.assertEquals('2', in1.read());
+        in1.mark(1);
+        Assertions.assertEquals('3', in1.read());
+        in1.reset();
+        Assertions.assertEquals('3', in1.read());
+        EntityUtils.consume(entity);
+    }
+
+    @Test
+    void testWriteToStream() throws Exception {
         final CRC32 crc32 = new CRC32();
         final StringEntity wrapped = new StringEntity("1234567890", StandardCharsets.US_ASCII);
         try (final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32)) {
@@ -101,3 +117,4 @@ public class TestDecompressingEntity {
     }
 
 }
+

@@ -32,10 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 
-public class TestSHA256HashingScheme {
+class TestSHA256HashingScheme {
 
     @Test
-    public void canHash() {
+    void canHash() {
         final SHA256KeyHashingScheme impl = new SHA256KeyHashingScheme();
         final String result = impl.hash("hello, hashing world");
         assertTrue(result != null && !result.isEmpty());

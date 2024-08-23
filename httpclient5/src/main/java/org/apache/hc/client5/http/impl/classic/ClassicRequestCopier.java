@@ -42,6 +42,9 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 @Deprecated
 public final class ClassicRequestCopier implements org.apache.hc.client5.http.impl.MessageCopier<ClassicHttpRequest> {
 
+    /**
+     * Default instance of {@link ClassicRequestCopier}.
+     */
     public static final ClassicRequestCopier INSTANCE = new ClassicRequestCopier();
 
     @Override

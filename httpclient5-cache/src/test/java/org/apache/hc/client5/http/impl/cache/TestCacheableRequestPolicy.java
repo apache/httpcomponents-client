@@ -32,17 +32,17 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestCacheableRequestPolicy {
+class TestCacheableRequestPolicy {
 
     private CacheableRequestPolicy policy;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() {
         policy = new CacheableRequestPolicy();
     }
 
     @Test
-    public void testIsGetServableFromCache() {
+    void testIsGetServableFromCache() {
         final BasicHttpRequest request = new BasicHttpRequest("GET", "someUri");
         final RequestCacheControl cacheControl = RequestCacheControl.builder().build();
 
@@ -50,7 +50,7 @@ public class TestCacheableRequestPolicy {
     }
 
     @Test
-    public void testIsGetWithCacheControlServableFromCache() {
+    void testIsGetWithCacheControlServableFromCache() {
         final BasicHttpRequest request = new BasicHttpRequest("GET", "someUri");
         final RequestCacheControl cacheControl = RequestCacheControl.builder()
                 .setNoCache(true)
@@ -67,7 +67,7 @@ public class TestCacheableRequestPolicy {
     }
 
     @Test
-    public void testIsHeadServableFromCache() {
+    void testIsHeadServableFromCache() {
         final BasicHttpRequest request = new BasicHttpRequest("HEAD", "someUri");
         final RequestCacheControl cacheControl = RequestCacheControl.builder().build();
 
@@ -81,7 +81,7 @@ public class TestCacheableRequestPolicy {
     }
 
     @Test
-    public void testIsHeadWithCacheControlServableFromCache() {
+    void testIsHeadWithCacheControlServableFromCache() {
         final BasicHttpRequest request = new BasicHttpRequest("HEAD", "someUri");
         final RequestCacheControl cacheControl = RequestCacheControl.builder()
                 .setNoCache(true)
@@ -100,7 +100,7 @@ public class TestCacheableRequestPolicy {
     }
 
     @Test
-    public void testIsArbitraryMethodServableFromCache() {
+    void testIsArbitraryMethodServableFromCache() {
         final BasicHttpRequest request = new BasicHttpRequest("TRACE", "someUri");
         final RequestCacheControl cacheControl = RequestCacheControl.builder()
                 .build();

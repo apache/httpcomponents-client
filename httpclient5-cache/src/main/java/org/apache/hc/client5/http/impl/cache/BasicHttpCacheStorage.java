@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -41,7 +42,7 @@ import org.apache.hc.core5.util.Args;
 
 /**
  * Basic {@link HttpCacheStorage} implementation backed by an instance of
- * {@link java.util.LinkedHashMap}. In other words, cache entries and
+ * {@link LinkedHashMap}. In other words, cache entries and
  * the cached response bodies are held in-memory. This cache does NOT
  * deallocate resources associated with the cache entries; it is intended
  * for use with {@link HeapResource} and similar. This is the default cache

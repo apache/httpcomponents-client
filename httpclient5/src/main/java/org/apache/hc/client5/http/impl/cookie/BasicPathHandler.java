@@ -45,7 +45,7 @@ import org.apache.hc.core5.util.TextUtils;
 public class BasicPathHandler implements CommonCookieAttributeHandler {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link BasicPathHandler}.
      *
      * @since 5.2
      */

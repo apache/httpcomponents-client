@@ -45,7 +45,7 @@ import org.apache.hc.core5.util.Args;
 public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link BasicMaxAgeHandler}.
      *
      * @since 5.2
      */

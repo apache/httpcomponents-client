@@ -33,7 +33,6 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.message.BasicHeader;
@@ -44,19 +43,14 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for {@link DateUtils}.
  */
-public class TestDateUtils {
+class TestDateUtils {
 
     private static Instant createInstant(final int year, final Month month, final int day) {
         return LocalDate.of(year, month, day).atStartOfDay(ZoneId.of("GMT")).toInstant();
     }
 
-    private static Date createDate(final int year, final Month month, final int day) {
-        final Instant instant = createInstant(year, month, day);
-        return new Date(instant.toEpochMilli());
-    }
-
     @Test
-    public void testBasicDateParse() throws Exception {
+    void testBasicDateParse() {
         final Instant instant = createInstant(2005, Month.OCTOBER, 14);
         Assertions.assertEquals(instant, DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.FORMATTER_RFC1123));
         Assertions.assertEquals(instant, DateUtils.parseDate("Friday, 14 Oct 2005 00:00:00 GMT", DateUtils.FORMATTER_RFC1123));
@@ -70,7 +64,7 @@ public class TestDateUtils {
     }
 
     @Test
-    public void testDateParseMessage() throws Exception {
+    void testDateParseMessage() {
         final HeaderGroup message1 = new HeaderGroup();
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, "Fri, 14 Oct 2005 00:00:00 GMT"));
         Assertions.assertEquals(createInstant(2005, Month.OCTOBER, 14), DateUtils.parseStandardDate(message1, HttpHeaders.DATE));
@@ -82,31 +76,31 @@ public class TestDateUtils {
     }
 
     @Test
-    public void testMalformedDate() {
+    void testMalformedDate() {
         Assertions.assertNull(DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", new DateTimeFormatter[] {}));
         Assertions.assertNull(DateUtils.parseDate("Thu Feb 22 17:20:18 2024", new DateTimeFormatter[] {}));
     }
 
     @Test
-    public void testInvalidInput() throws Exception {
+    void testInvalidInput() {
         Assertions.assertThrows(NullPointerException.class, () -> DateUtils.parseStandardDate(null));
         Assertions.assertThrows(NullPointerException.class, () -> DateUtils.formatStandardDate(null));
     }
 
     @Test
-    public void testTwoDigitYearDateParse() throws Exception {
+    void testTwoDigitYearDateParse() {
         Assertions.assertEquals(createInstant(2005, Month.OCTOBER, 14),
                 DateUtils.parseDate("Friday, 14-Oct-05 00:00:00 GMT", DateUtils.FORMATTER_RFC1036));
     }
 
     @Test
-    public void testParseQuotedDate() throws Exception {
+    void testParseQuotedDate() {
         Assertions.assertEquals(createInstant(2005, Month.OCTOBER, 14),
                 DateUtils.parseDate("'Fri, 14 Oct 2005 00:00:00 GMT'", DateUtils.FORMATTER_RFC1123));
     }
 
     @Test
-    public void testBasicDateFormat() throws Exception {
+    void testBasicDateFormat() {
         final Instant instant = createInstant(2005, Month.OCTOBER, 14);
         Assertions.assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatStandardDate(instant));
         Assertions.assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatDate(instant, DateUtils.FORMATTER_RFC1123));

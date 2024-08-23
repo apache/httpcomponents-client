@@ -39,6 +39,9 @@ import org.apache.hc.core5.util.TimeValue;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class ImmediateSchedulingStrategy implements SchedulingStrategy {
 
+    /**
+     * Default instance of {@link ImmediateSchedulingStrategy}.
+     */
     public final static ImmediateSchedulingStrategy INSTANCE = new ImmediateSchedulingStrategy();
 
     @Override

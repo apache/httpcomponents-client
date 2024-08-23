@@ -38,20 +38,18 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Consumer;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.testing.sync.extension.TestClientResources;
+import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
+import org.apache.hc.client5.testing.extension.sync.TestClient;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HeaderElement;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.URIScheme;
@@ -61,46 +59,18 @@ import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.testing.classic.ClassicTestServer;
-import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Test case for how Content Codings are processed. By default, we want to do the right thing and
  * require no intervention from the user of HttpClient, but we still want to let clients do their
  * own thing if they so wish.
  */
-public abstract class TestContentCodings {
-
-    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
-
-    @RegisterExtension
-    private TestClientResources testResources;
+abstract  class TestContentCodings extends AbstractIntegrationTestBase {
 
     protected TestContentCodings(final URIScheme scheme) {
-        this.testResources = new TestClientResources(scheme, TIMEOUT);
-    }
-
-    public URIScheme scheme() {
-        return testResources.scheme();
-    }
-
-    public ClassicTestServer startServer() throws IOException {
-        return testResources.startServer(null, null, null);
-    }
-
-    public CloseableHttpClient startClient(final Consumer<HttpClientBuilder> clientCustomizer) throws Exception {
-        return testResources.startClient(clientCustomizer);
-    }
-
-    public CloseableHttpClient startClient() throws Exception {
-        return testResources.startClient(builder -> {});
-    }
-
-    public HttpHost targetHost() {
-        return testResources.targetHost();
+        super(scheme, ClientProtocolLevel.STANDARD);
     }
 
     /**
@@ -111,25 +81,25 @@ public abstract class TestContentCodings {
      *             if there was a problem
      */
     @Test
-    public void testResponseWithNoContent() throws Exception {
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", new HttpRequestHandler() {
+    void testResponseWithNoContent() throws Exception {
+        configureServer(bootstrap -> bootstrap
+                .register("*", new HttpRequestHandler() {
 
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public void handle(
-                    final ClassicHttpRequest request,
-                    final ClassicHttpResponse response,
-                    final HttpContext context) throws HttpException, IOException {
-                response.setCode(HttpStatus.SC_NO_CONTENT);
-            }
-        });
+                    /**
+                     * {@inheritDoc}
+                     */
+                    @Override
+                    public void handle(
+                            final ClassicHttpRequest request,
+                            final ClassicHttpResponse response,
+                            final HttpContext context) {
+                        response.setCode(HttpStatus.SC_NO_CONTENT);
+                    }
+                }));
 
-        final HttpHost target = targetHost();
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final HttpGet request = new HttpGet("/some-resource");
         client.execute(target, request, response -> {
@@ -146,15 +116,15 @@ public abstract class TestContentCodings {
      * @throws Exception
      */
     @Test
-    public void testDeflateSupportForServerReturningRfc1950Stream() throws Exception {
+    void testDeflateSupportForServerReturningRfc1950Stream() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", createDeflateEncodingRequestHandler(entityText, false));
+        configureServer(bootstrap -> bootstrap
+                .register("*", createDeflateEncodingRequestHandler(entityText, false)));
 
-        final HttpHost target = targetHost();
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final HttpGet request = new HttpGet("/some-resource");
         client.execute(target, request, response -> {
@@ -171,15 +141,15 @@ public abstract class TestContentCodings {
      * @throws Exception
      */
     @Test
-    public void testDeflateSupportForServerReturningRfc1951Stream() throws Exception {
+    void testDeflateSupportForServerReturningRfc1951Stream() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", createDeflateEncodingRequestHandler(entityText, true));
+        configureServer(bootstrap -> bootstrap
+                .register("*", createDeflateEncodingRequestHandler(entityText, true)));
 
-        final HttpHost target = targetHost();
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final HttpGet request = new HttpGet("/some-resource");
         client.execute(target, request, response -> {
@@ -195,15 +165,15 @@ public abstract class TestContentCodings {
      * @throws Exception
      */
     @Test
-    public void testGzipSupport() throws Exception {
+    void testGzipSupport() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", createGzipEncodingRequestHandler(entityText));
+        configureServer(bootstrap -> bootstrap
+                .register("*", createGzipEncodingRequestHandler(entityText)));
 
-        final HttpHost target = targetHost();
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final HttpGet request = new HttpGet("/some-resource");
         client.execute(target, request, response -> {
@@ -220,16 +190,16 @@ public abstract class TestContentCodings {
      *             if there was a problem
      */
     @Test
-    public void testThreadSafetyOfContentCodings() throws Exception {
+    void testThreadSafetyOfContentCodings() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", createGzipEncodingRequestHandler(entityText));
+        configureServer(bootstrap -> bootstrap
+                .register("*", createGzipEncodingRequestHandler(entityText)));
 
-        final HttpHost target = targetHost();
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
-        final PoolingHttpClientConnectionManager connManager = testResources.connManager();
+        final TestClient client = client();
+        final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
 
         /*
          * Create a load of workers which will access the resource. Half will use the default
@@ -270,15 +240,15 @@ public abstract class TestContentCodings {
     }
 
     @Test
-    public void testHttpEntityWriteToForGzip() throws Exception {
+    void testHttpEntityWriteToForGzip() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", createGzipEncodingRequestHandler(entityText));
+        configureServer(bootstrap -> bootstrap
+                .register("*", createGzipEncodingRequestHandler(entityText)));
 
-        final HttpHost target = targetHost();
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final HttpGet request = new HttpGet("/some-resource");
         client.execute(target, request, response -> {
@@ -291,15 +261,15 @@ public abstract class TestContentCodings {
     }
 
     @Test
-    public void testHttpEntityWriteToForDeflate() throws Exception {
+    void testHttpEntityWriteToForDeflate() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", createDeflateEncodingRequestHandler(entityText, true));
+        configureServer(bootstrap -> bootstrap
+                .register("*", createDeflateEncodingRequestHandler(entityText, true)));
 
-        final HttpHost target = targetHost();
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final HttpGet request = new HttpGet("/some-resource");
         client.execute(target, request, response -> {
@@ -311,15 +281,15 @@ public abstract class TestContentCodings {
     }
 
     @Test
-    public void gzipResponsesWorkWithBasicResponseHandler() throws Exception {
+    void gzipResponsesWorkWithBasicResponseHandler() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", createGzipEncodingRequestHandler(entityText));
+        configureServer(bootstrap -> bootstrap
+                .register("*", createGzipEncodingRequestHandler(entityText)));
 
-        final HttpHost target = targetHost();
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final HttpGet request = new HttpGet("/some-resource");
         final String response = client.execute(target, request, new BasicHttpClientResponseHandler());
@@ -327,15 +297,15 @@ public abstract class TestContentCodings {
     }
 
     @Test
-    public void deflateResponsesWorkWithBasicResponseHandler() throws Exception {
+    void deflateResponsesWorkWithBasicResponseHandler() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        final ClassicTestServer server = startServer();
-        server.registerHandler("*", createDeflateEncodingRequestHandler(entityText, false));
+        configureServer(bootstrap -> bootstrap
+                .register("*", createDeflateEncodingRequestHandler(entityText, false)));
 
-        final HttpHost target = targetHost();
+        final HttpHost target = startServer();
 
-        final CloseableHttpClient client = startClient();
+        final TestClient client = client();
 
         final HttpGet request = new HttpGet("/some-resource");
         final String response = client.execute(target, request, new BasicHttpClientResponseHandler());
@@ -365,7 +335,7 @@ public abstract class TestContentCodings {
             public void handle(
                     final ClassicHttpRequest request,
                     final ClassicHttpResponse response,
-                    final HttpContext context) throws HttpException, IOException {
+                    final HttpContext context) {
                 response.setEntity(new StringEntity(entityText));
                 response.addHeader("Content-Type", "text/plain");
                 final Iterator<HeaderElement> it = MessageSupport.iterate(request, "Accept-Encoding");
@@ -413,7 +383,7 @@ public abstract class TestContentCodings {
             public void handle(
                     final ClassicHttpRequest request,
                     final ClassicHttpResponse response,
-                    final HttpContext context) throws HttpException, IOException {
+                    final HttpContext context) throws IOException {
                 response.setEntity(new StringEntity(entityText));
                 response.addHeader("Content-Type", "text/plain");
                 response.addHeader("Content-Type", "text/plain");

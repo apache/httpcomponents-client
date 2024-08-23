@@ -54,6 +54,9 @@ import org.apache.hc.core5.util.TimeValue;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveStrategy {
 
+    /**
+     * Default instance of {@link DefaultConnectionKeepAliveStrategy}.
+     */
     public static final DefaultConnectionKeepAliveStrategy INSTANCE = new DefaultConnectionKeepAliveStrategy();
 
     @Override

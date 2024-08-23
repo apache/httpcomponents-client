@@ -42,6 +42,9 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class NoopHostnameVerifier implements HostnameVerifier {
 
+    /**
+     * Default instance of {@link NoopHostnameVerifier}.
+     */
     public static final NoopHostnameVerifier INSTANCE = new NoopHostnameVerifier();
 
     @Override

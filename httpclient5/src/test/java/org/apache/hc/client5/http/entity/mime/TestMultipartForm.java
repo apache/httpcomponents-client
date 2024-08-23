@@ -41,19 +41,19 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestMultipartForm {
+class TestMultipartForm {
 
     private File tmpfile;
 
     @AfterEach
-    public void cleanup() {
+    void cleanup() {
         if (tmpfile != null) {
             tmpfile.delete();
         }
     }
 
     @Test
-    public void testMultipartFormStringParts() throws Exception {
+    void testMultipartFormStringParts() throws Exception {
         final FormBodyPart p1 = FormBodyPartBuilder.create(
                 "field1",
                 new StringBody("this stuff", ContentType.DEFAULT_TEXT)).build();
@@ -94,7 +94,7 @@ public class TestMultipartForm {
     }
 
     @Test
-    public void testMultipartFormCustomContentType() throws Exception {
+    void testMultipartFormCustomContentType() throws Exception {
         final FormBodyPart p1 = FormBodyPartBuilder.create(
                 "field1",
                 new StringBody("this stuff", ContentType.DEFAULT_TEXT)).build();
@@ -126,7 +126,7 @@ public class TestMultipartForm {
     }
 
     @Test
-    public void testMultipartFormBinaryParts() throws Exception {
+    void testMultipartFormBinaryParts() throws Exception {
         tmpfile = File.createTempFile("tmp", ".bin");
         try (Writer writer = new FileWriter(tmpfile)) {
             writer.append("some random whatever");
@@ -166,7 +166,7 @@ public class TestMultipartForm {
     }
 
     @Test
-    public void testMultipartFormStrict() throws Exception {
+    void testMultipartFormStrict() throws Exception {
         tmpfile = File.createTempFile("tmp", ".bin");
         try (Writer writer = new FileWriter(tmpfile)) {
             writer.append("some random whatever");
@@ -215,7 +215,7 @@ public class TestMultipartForm {
     }
 
     @Test
-    public void testMultipartFormRFC6532() throws Exception {
+    void testMultipartFormRFC6532() throws Exception {
         tmpfile = File.createTempFile("tmp", ".bin");
         try (Writer writer = new FileWriter(tmpfile)) {
             writer.append("some random whatever");
@@ -283,7 +283,7 @@ public class TestMultipartForm {
     }
 
     @Test
-    public void testMultipartFormBrowserCompatibleNonASCIIHeaders() throws Exception {
+    void testMultipartFormBrowserCompatibleNonASCIIHeaders() throws Exception {
         final String s1 = constructString(SWISS_GERMAN_HELLO);
         final String s2 = constructString(RUSSIAN_HELLO);
 
@@ -328,7 +328,7 @@ public class TestMultipartForm {
     }
 
     @Test
-    public void testMultipartFormStringPartsMultiCharsets() throws Exception {
+    void testMultipartFormStringPartsMultiCharsets() throws Exception {
         final String s1 = constructString(SWISS_GERMAN_HELLO);
         final String s2 = constructString(RUSSIAN_HELLO);
 
@@ -374,7 +374,7 @@ public class TestMultipartForm {
     }
 
     @Test
-    public void testMultipartFormBinaryPartsPreamblEpilogue() throws Exception {
+    void testMultipartFormBinaryPartsPreamblEpilogue() throws Exception {
         tmpfile = File.createTempFile("tmp", ".bin");
         try (Writer writer = new FileWriter(tmpfile)) {
             writer.append("some random whatever");

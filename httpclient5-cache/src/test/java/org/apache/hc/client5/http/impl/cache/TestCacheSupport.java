@@ -33,10 +33,10 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for {@link CacheSupport}.
  */
-public class TestCacheSupport {
+class TestCacheSupport {
 
     @Test
-    public void testParseDeltaSeconds() throws Exception {
+    void testParseDeltaSeconds() {
         Assertions.assertEquals(1234L, CacheSupport.deltaSeconds("1234"));
         Assertions.assertEquals(0L, CacheSupport.deltaSeconds("0"));
         Assertions.assertEquals(-1L, CacheSupport.deltaSeconds("-1"));

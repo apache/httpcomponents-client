@@ -39,13 +39,14 @@ us-east-1.amazonaws.com
 // ===BEGIN ICANN DOMAINS===
 
 jp
-ac.jp
+*.jp
 *.tokyo.jp
 !metro.tokyo.jp
 
 com
 co.jp
 gov.uk
+*.foo.com
 
 // unicode
 no

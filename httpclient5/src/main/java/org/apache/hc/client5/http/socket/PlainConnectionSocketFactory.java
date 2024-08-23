@@ -56,6 +56,9 @@ import org.apache.hc.core5.util.TimeValue;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
 
+    /**
+     * Default instance of {@link PlainConnectionSocketFactory}.
+     */
     public static final PlainConnectionSocketFactory INSTANCE = new PlainConnectionSocketFactory();
 
     public static PlainConnectionSocketFactory getSocketFactory() {

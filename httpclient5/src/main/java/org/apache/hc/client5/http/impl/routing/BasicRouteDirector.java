@@ -42,7 +42,7 @@ import org.apache.hc.core5.util.Args;
 public class BasicRouteDirector implements HttpRouteDirector {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link BasicRouteDirector}.
      *
      * @since 5.2
      */

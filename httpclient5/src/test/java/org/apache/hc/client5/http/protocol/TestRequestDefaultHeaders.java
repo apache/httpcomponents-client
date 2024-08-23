@@ -38,10 +38,10 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestRequestDefaultHeaders {
+class TestRequestDefaultHeaders {
 
     @Test
-    public void testRequestParameterCheck() throws Exception {
+    void testRequestParameterCheck() {
         final HttpContext context = HttpClientContext.create();
         final HttpRequestInterceptor interceptor = RequestDefaultHeaders.INSTANCE;
         Assertions.assertThrows(NullPointerException.class, () ->
@@ -49,7 +49,7 @@ public class TestRequestDefaultHeaders {
     }
 
     @Test
-    public void testNoDefaultHeadersForConnectRequest() throws Exception {
+    void testNoDefaultHeadersForConnectRequest() throws Exception {
         final HttpRequest request = new BasicHttpRequest("CONNECT", "www.somedomain.com");
         final List<Header> defheaders = new ArrayList<>();
         defheaders.add(new BasicHeader("custom", "stuff"));
@@ -62,7 +62,7 @@ public class TestRequestDefaultHeaders {
     }
 
     @Test
-    public void testDefaultHeaders() throws Exception {
+    void testDefaultHeaders() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         request.addHeader("custom", "stuff");
         final List<Header> defheaders = new ArrayList<>();

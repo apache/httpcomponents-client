@@ -63,7 +63,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"static-access"}) // test code
-public class TestProtocolExec {
+class TestProtocolExec {
 
     @Mock
     private AuthenticationStrategy targetAuthStrategy;
@@ -79,7 +79,7 @@ public class TestProtocolExec {
     private HttpHost proxy;
 
     @BeforeEach
-    public void setup() throws Exception {
+    void setup() {
         MockitoAnnotations.openMocks(this);
         protocolExec = new ProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, true);
         target = new HttpHost("foo", 80);
@@ -87,7 +87,7 @@ public class TestProtocolExec {
     }
 
     @Test
-    public void testUserInfoInRequestURI() throws Exception {
+    void testUserInfoInRequestURI() {
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 8080));
         final ClassicHttpRequest request = new HttpGet("http://somefella:secret@bar/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -97,7 +97,7 @@ public class TestProtocolExec {
     }
 
     @Test
-    public void testPostProcessHttpException() throws Exception {
+    void testPostProcessHttpException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final ClassicHttpRequest request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -115,7 +115,7 @@ public class TestProtocolExec {
     }
 
     @Test
-    public void testPostProcessIOException() throws Exception {
+    void testPostProcessIOException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final ClassicHttpRequest request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -132,7 +132,7 @@ public class TestProtocolExec {
     }
 
     @Test
-    public void testPostProcessRuntimeException() throws Exception {
+    void testPostProcessRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final ClassicHttpRequest request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -149,7 +149,7 @@ public class TestProtocolExec {
     }
 
     @Test
-    public void testExecRequestRetryOnAuthChallenge() throws Exception {
+    void testExecRequestRetryOnAuthChallenge() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new HttpGet("http://foo/test");
@@ -189,7 +189,7 @@ public class TestProtocolExec {
     }
 
     @Test
-    public void testExecEntityEnclosingRequestRetryOnAuthChallenge() throws Exception {
+    void testExecEntityEnclosingRequestRetryOnAuthChallenge() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final ClassicHttpRequest request = new HttpGet("http://foo/test");
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(401, "Huh?");
@@ -243,7 +243,7 @@ public class TestProtocolExec {
     }
 
     @Test
-    public void testExecEntityEnclosingRequest() throws Exception {
+    void testExecEntityEnclosingRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
         final HttpPost request = new HttpPost("http://foo/test");

@@ -142,6 +142,8 @@ public class TlsConfig implements Cloneable {
          * <p>
          * Default: {@code null} (undefined)
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setHandshakeTimeout(final Timeout handshakeTimeout) {
             this.handshakeTimeout = handshakeTimeout;
@@ -149,6 +151,7 @@ public class TlsConfig implements Cloneable {
         }
 
         /**
+         * @return this instance.
          * @see #setHandshakeTimeout(Timeout)
          */
         public Builder setHandshakeTimeout(final long handshakeTimeout, final TimeUnit timeUnit) {
@@ -161,6 +164,8 @@ public class TlsConfig implements Cloneable {
          * <p>
          * Default: {@code null} (undefined)
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setSupportedProtocols(final String... supportedProtocols) {
             this.supportedProtocols = supportedProtocols;
@@ -172,6 +177,8 @@ public class TlsConfig implements Cloneable {
          * <p>
          * Default: {@code null} (undefined)
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setSupportedProtocols(final TLS... supportedProtocols) {
             this.supportedProtocols = new String[supportedProtocols.length];
@@ -189,6 +196,8 @@ public class TlsConfig implements Cloneable {
          * <p>
          * Default: {@code null} (undefined)
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setSupportedCipherSuites(final String... supportedCipherSuites) {
             this.supportedCipherSuites = supportedCipherSuites;
@@ -201,6 +210,8 @@ public class TlsConfig implements Cloneable {
          * <p>
          * Default: {@link HttpVersionPolicy#NEGOTIATE}
          * </p>
+         *
+         * @return this instance.
          */
         public Builder setVersionPolicy(final HttpVersionPolicy versionPolicy) {
             this.versionPolicy = versionPolicy;

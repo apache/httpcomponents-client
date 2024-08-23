@@ -46,10 +46,9 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 public class DigestSchemeFactory implements AuthSchemeFactory {
 
     /**
-     * Singleton instance.
+     * Default instance of {@link DigestSchemeFactory}.
      */
     public static final DigestSchemeFactory INSTANCE = new DigestSchemeFactory();
-
 
     /**
      * @param charset the {@link Charset} set to be used for encoding credentials. This parameter is ignored as UTF-8 is always used.

@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Simple tests for {@link DefaultAuthenticationStrategy}.
  */
-public class TestProtocolSwitchStrategy {
+class TestProtocolSwitchStrategy {
 
     ProtocolSwitchStrategy switchStrategy;
 
@@ -49,7 +49,7 @@ public class TestProtocolSwitchStrategy {
     }
 
     @Test
-    public void testSwitchToTLS() throws Exception {
+    void testSwitchToTLS() throws Exception {
         final HttpResponse response1 = new BasicHttpResponse(HttpStatus.SC_SWITCHING_PROTOCOLS);
         response1.addHeader(HttpHeaders.UPGRADE, "TLS");
         Assertions.assertEquals(TLS.V_1_2.getVersion(), switchStrategy.switchProtocol(response1));
@@ -60,7 +60,7 @@ public class TestProtocolSwitchStrategy {
     }
 
     @Test
-    public void testSwitchToHTTP11AndTLS() throws Exception {
+    void testSwitchToHTTP11AndTLS() throws Exception {
         final HttpResponse response1 = new BasicHttpResponse(HttpStatus.SC_SWITCHING_PROTOCOLS);
         response1.addHeader(HttpHeaders.UPGRADE, "TLS, HTTP/1.1");
         Assertions.assertEquals(TLS.V_1_2.getVersion(), switchStrategy.switchProtocol(response1));
@@ -81,7 +81,7 @@ public class TestProtocolSwitchStrategy {
     }
 
     @Test
-    public void testSwitchInvalid() throws Exception {
+    void testSwitchInvalid() {
         final HttpResponse response1 = new BasicHttpResponse(HttpStatus.SC_SWITCHING_PROTOCOLS);
         response1.addHeader(HttpHeaders.UPGRADE, "Crap");
         Assertions.assertThrows(ProtocolException.class, () -> switchStrategy.switchProtocol(response1));

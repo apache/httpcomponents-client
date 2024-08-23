@@ -51,7 +51,7 @@ import org.mockito.MockitoAnnotations;
  * This class tests behavior that is allowed (MAY) by the HTTP/1.1 protocol
  * specification and for which we have implemented the behavior in HTTP cache.
  */
-public class TestProtocolAllowedBehavior {
+class TestProtocolAllowedBehavior {
 
     static final int MAX_BYTES = 1024;
     static final int MAX_ENTRIES = 100;
@@ -73,7 +73,7 @@ public class TestProtocolAllowedBehavior {
     HttpCache cache;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
         host = new HttpHost("foo.example.com", 80);
 
@@ -105,7 +105,7 @@ public class TestProtocolAllowedBehavior {
     }
 
     @Test
-    public void testNonSharedCacheMayCacheResponsesWithCacheControlPrivate() throws Exception {
+    void testNonSharedCacheMayCacheResponsesWithCacheControlPrivate() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET","/");
         originResponse.setHeader("Cache-Control","private,max-age=3600");
 

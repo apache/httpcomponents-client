@@ -35,6 +35,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.net.ssl.SSLException;
@@ -182,12 +183,41 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
         }
     }
 
+    static List<CharSequence> parseFQDN(final CharSequence s) {
+        if (s == null) {
+            return null;
+        }
+        final LinkedList<CharSequence> elements = new LinkedList<>();
+        int pos = 0;
+        for (int i = 0; i < s.length(); i++) {
+            final char ch = s.charAt(i);
+            if (ch == '.') {
+                elements.addFirst(s.subSequence(pos, i));
+                pos = i + 1;
+            }
+        }
+        elements.addFirst(s.subSequence(pos, s.length()));
+        return elements;
+    }
+
     static boolean matchDomainRoot(final String host, final String domainRoot) {
         if (domainRoot == null) {
             return false;
         }
-        return host.endsWith(domainRoot) && (host.length() == domainRoot.length()
-                || host.charAt(host.length() - domainRoot.length() - 1) == '.');
+        final List<CharSequence> hostElements = parseFQDN(host);
+        final List<CharSequence> rootElements = parseFQDN(domainRoot);
+        if (hostElements.size() >= rootElements.size()) {
+            for (int i = 0; i < rootElements.size(); i++) {
+                final CharSequence s1 = rootElements.get(i);
+                final CharSequence s2 = hostElements.get(i);
+                if (!s1.equals(s2)) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private static boolean matchIdentity(final String host, final String identity,
@@ -195,7 +225,7 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
                                          final DomainType domainType,
                                          final boolean strict) {
         if (publicSuffixMatcher != null && host.contains(".")) {
-            if (!matchDomainRoot(host, publicSuffixMatcher.getDomainRoot(identity, domainType))) {
+            if (publicSuffixMatcher.getDomainRoot(identity, domainType) == null) {
                 return false;
             }
         }
@@ -273,14 +303,14 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
     }
 
     static HostNameType determineHostFormat(final String host) {
-        if (InetAddressUtils.isIPv4Address(host)) {
+        if (InetAddressUtils.isIPv4(host)) {
             return HostNameType.IPv4;
         }
         String s = host;
         if (s.startsWith("[") && s.endsWith("]")) {
             s = host.substring(1, host.length() - 1);
         }
-        if (InetAddressUtils.isIPv6Address(s)) {
+        if (InetAddressUtils.isIPv6(s)) {
             return HostNameType.IPv6;
         }
         return HostNameType.DNS;

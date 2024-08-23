@@ -38,10 +38,10 @@ import org.junit.jupiter.api.Test;
  * Unit tests for {@link NTLMScheme}.
  */
 @SuppressWarnings("deprecation")
-public class TestNTLMScheme {
+class TestNTLMScheme {
 
     @Test
-    public void testNTLMAuthenticationEmptyProxyChallenge() throws Exception {
+    void testNTLMAuthenticationEmptyProxyChallenge() throws Exception {
         final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.PROXY, StandardAuthScheme.NTLM);
         final AuthScheme authScheme = new NTLMScheme();
         authScheme.processChallenge(authChallenge, null);

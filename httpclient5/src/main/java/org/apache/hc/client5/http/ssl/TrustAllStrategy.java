@@ -50,6 +50,9 @@ import org.apache.hc.core5.ssl.TrustStrategy;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class TrustAllStrategy implements TrustStrategy {
 
+    /**
+     * Default instance of {@link TrustAllStrategy}.
+     */
     public static final TrustAllStrategy INSTANCE = new TrustAllStrategy();
 
     @Override

@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.hc.core5.function.Supplier;
@@ -83,7 +84,7 @@ class MultipartFormEntity implements HttpEntity {
 
     @Override
     public String getContentType() {
-        return this.contentType != null ? this.contentType.toString() : null;
+        return Objects.toString(contentType, null);
     }
 
     @Override

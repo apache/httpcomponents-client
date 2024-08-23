@@ -54,7 +54,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
-public class TestHttpRequestRetryExec {
+class TestHttpRequestRetryExec {
 
     @Mock
     private HttpRequestRetryStrategy retryStrategy;
@@ -69,7 +69,7 @@ public class TestHttpRequestRetryExec {
     private HttpHost target;
 
     @BeforeEach
-    public void setup() throws Exception {
+    void setup() {
         MockitoAnnotations.openMocks(this);
         retryExec = new HttpRequestRetryExec(retryStrategy);
         target = new HttpHost("localhost", 80);
@@ -77,7 +77,7 @@ public class TestHttpRequestRetryExec {
 
 
     @Test
-    public void testFundamentals1() throws Exception {
+    void testFundamentals1() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -106,12 +106,12 @@ public class TestHttpRequestRetryExec {
     }
 
     @Test
-    public void testRetrySleepOnIOException() throws Exception {
+    void testRetrySleepOnIOException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
-        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
+        Mockito.mock(ClassicHttpResponse.class);
 
         Mockito.when(chain.proceed(
                 Mockito.same(request),
@@ -139,7 +139,7 @@ public class TestHttpRequestRetryExec {
     }
 
     @Test
-    public void testRetryIntervalGreaterResponseTimeout() throws Exception {
+    void testRetryIntervalGreaterResponseTimeout() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -171,7 +171,7 @@ public class TestHttpRequestRetryExec {
     }
 
     @Test
-    public void testRetryIntervalResponseTimeoutNull() throws Exception {
+    void testRetryIntervalResponseTimeoutNull() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -203,7 +203,7 @@ public class TestHttpRequestRetryExec {
     }
 
     @Test
-    public void testStrategyRuntimeException() throws Exception {
+    void testStrategyRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final ClassicHttpRequest request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -223,7 +223,7 @@ public class TestHttpRequestRetryExec {
     }
 
     @Test
-    public void testNonRepeatableEntityResponseReturnedImmediately() throws Exception {
+    void testNonRepeatableEntityResponseReturnedImmediately() throws Exception {
         final HttpRoute route = new HttpRoute(target);
 
         final HttpPost request = new HttpPost("/test");
@@ -245,7 +245,7 @@ public class TestHttpRequestRetryExec {
     }
 
     @Test
-    public void testFundamentals2() throws Exception {
+    void testFundamentals2() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet originalRequest = new HttpGet("/test");
         originalRequest.addHeader("header", "this");
@@ -280,7 +280,7 @@ public class TestHttpRequestRetryExec {
 
 
     @Test
-    public void testAbortedRequest() throws Exception {
+    void testAbortedRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet originalRequest = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
@@ -305,7 +305,7 @@ public class TestHttpRequestRetryExec {
     }
 
     @Test
-    public void testNonRepeatableRequest() throws Exception {
+    void testNonRepeatableRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpPost originalRequest = new HttpPost("/test");
         originalRequest.setEntity(EntityBuilder.create()

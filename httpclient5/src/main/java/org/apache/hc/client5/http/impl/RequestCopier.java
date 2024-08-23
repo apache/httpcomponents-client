@@ -42,6 +42,9 @@ import org.apache.hc.core5.http.message.BasicHttpRequest;
 @Deprecated
 public final class RequestCopier implements MessageCopier<HttpRequest> {
 
+    /**
+     * Default instance of {@link RequestCopier}.
+     */
     public static final RequestCopier INSTANCE = new RequestCopier();
 
     @Override

@@ -55,14 +55,14 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
-public class TestRequestAddCookies {
+class TestRequestAddCookies {
 
     private HttpHost target;
     private CookieStore cookieStore;
     private Lookup<CookieSpecFactory> cookieSpecRegistry;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         this.target = new HttpHost("localhost.local", 80);
         this.cookieStore = new BasicCookieStore();
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value1");
@@ -84,7 +84,7 @@ public class TestRequestAddCookies {
     }
 
     @Test
-    public void testRequestParameterCheck() throws Exception {
+    void testRequestParameterCheck() {
         final HttpClientContext context = HttpClientContext.create();
         final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         Assertions.assertThrows(NullPointerException.class, () ->
@@ -92,7 +92,7 @@ public class TestRequestAddCookies {
     }
 
     @Test
-    public void testContextParameterCheck() throws Exception {
+    void testContextParameterCheck() {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         Assertions.assertThrows(NullPointerException.class, () ->
@@ -100,7 +100,7 @@ public class TestRequestAddCookies {
     }
 
     @Test
-    public void testAddCookies() throws Exception {
+    void testAddCookies() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpRoute route = new HttpRoute(this.target, null, false);
@@ -127,7 +127,7 @@ public class TestRequestAddCookies {
     }
 
     @Test
-    public void testCookiesForConnectRequest() throws Exception {
+    void testCookiesForConnectRequest() throws Exception {
         final HttpRequest request = new BasicHttpRequest("CONNECT", "www.somedomain.com");
 
         final HttpRoute route = new HttpRoute(this.target, null, false);
@@ -146,7 +146,7 @@ public class TestRequestAddCookies {
     }
 
     @Test
-    public void testNoCookieStore() throws Exception {
+    void testNoCookieStore() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpRoute route = new HttpRoute(this.target, null, false);
@@ -165,7 +165,7 @@ public class TestRequestAddCookies {
     }
 
     @Test
-    public void testNoCookieSpecRegistry() throws Exception {
+    void testNoCookieSpecRegistry() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpRoute route = new HttpRoute(this.target, null, false);
@@ -184,7 +184,7 @@ public class TestRequestAddCookies {
     }
 
     @Test
-    public void testNoHttpConnection() throws Exception {
+    void testNoHttpConnection() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpClientContext context = HttpClientContext.create();
@@ -201,7 +201,7 @@ public class TestRequestAddCookies {
     }
 
     @Test
-    public void testAddCookiesUsingExplicitCookieSpec() throws Exception {
+    void testAddCookiesUsingExplicitCookieSpec() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final RequestConfig config = RequestConfig.custom()
                 .setCookieSpec(StandardCookieSpec.STRICT)
@@ -227,7 +227,7 @@ public class TestRequestAddCookies {
     }
 
     @Test
-    public void testAuthScopeInvalidRequestURI() throws Exception {
+    void testAuthScopeInvalidRequestURI() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "crap:");
 
         final HttpRoute route = new HttpRoute(this.target, null, false);
@@ -242,7 +242,7 @@ public class TestRequestAddCookies {
     }
 
     @Test
-    public void testAuthScopeRemotePortWhenDirect() throws Exception {
+    void testAuthScopeRemotePortWhenDirect() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/stuff");
 
         this.target = new HttpHost("localhost.local");
@@ -265,7 +265,7 @@ public class TestRequestAddCookies {
     }
 
     @Test
-    public void testAuthDefaultHttpPortWhenProxy() throws Exception {
+    void testAuthDefaultHttpPortWhenProxy() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/stuff");
 
         this.target = new HttpHost("localhost.local");
@@ -289,7 +289,7 @@ public class TestRequestAddCookies {
     }
 
     @Test
-    public void testAuthDefaultHttpsPortWhenProxy() throws Exception {
+    void testAuthDefaultHttpsPortWhenProxy() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/stuff");
 
         this.target = new HttpHost("https", "localhost", -1);
@@ -314,7 +314,7 @@ public class TestRequestAddCookies {
     }
 
     @Test
-    public void testExcludeExpiredCookies() throws Exception {
+    void testExcludeExpiredCookies() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final BasicClientCookie cookie3 = new BasicClientCookie("name3", "value3");
@@ -349,7 +349,7 @@ public class TestRequestAddCookies {
     }
 
     @Test
-    public void testNoMatchingCookies() throws Exception {
+    void testNoMatchingCookies() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         this.cookieStore.clear();
@@ -383,7 +383,7 @@ public class TestRequestAddCookies {
 
     @Test
     // Test for ordering adapted from test in Commons HC 3.1
-    public void testCookieOrder() throws Exception {
+    void testCookieOrder() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/foobar/yada/yada");
 
         this.cookieStore.clear();
@@ -408,6 +408,29 @@ public class TestRequestAddCookies {
         Assertions.assertEquals(1, headers1.length);
 
         Assertions.assertEquals("name1=value; name2=value; name3=value", headers1[0].getValue());
+    }
+
+    @Test
+    void testSkipAddingCookiesWhenCookieHeaderPresent() throws Exception {
+        // Prepare a request with an existing Cookie header
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        request.addHeader("Cookie", "existingCookie=existingValue");
+
+        final HttpRoute route = new HttpRoute(this.target, null, false);
+
+        final HttpClientContext context = HttpClientContext.create();
+        context.setRoute(route);
+        context.setCookieStore(this.cookieStore);
+        context.setCookieSpecRegistry(this.cookieSpecRegistry);
+
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
+        interceptor.process(request, null, context);
+
+        // Check that no additional cookies were added
+        final Header[] headers = request.getHeaders("Cookie");
+        Assertions.assertNotNull(headers);
+        Assertions.assertEquals(1, headers.length);
+        Assertions.assertEquals("existingCookie=existingValue", headers[0].getValue());
     }
 
 }

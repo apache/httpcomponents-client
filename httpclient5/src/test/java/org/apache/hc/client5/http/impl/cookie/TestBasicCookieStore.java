@@ -43,10 +43,10 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for {@link BasicCookieStore}.
  */
-public class TestBasicCookieStore {
+class TestBasicCookieStore {
 
     @Test
-    public void testBasics() throws Exception {
+    void testBasics() {
         final BasicCookieStore store = new BasicCookieStore();
         store.addCookie(new BasicClientCookie("name1", "value1"));
         store.addCookies(new BasicClientCookie[] {new BasicClientCookie("name2", "value2")});
@@ -62,7 +62,7 @@ public class TestBasicCookieStore {
     }
 
     @Test
-    public void testExpiredCookie() throws Exception {
+    void testExpiredCookie() {
         final BasicCookieStore store = new BasicCookieStore();
         final BasicClientCookie cookie = new BasicClientCookie("name1", "value1");
 
@@ -75,7 +75,7 @@ public class TestBasicCookieStore {
     }
 
     @Test
-    public void testSerialization() throws Exception {
+    void testSerialization() throws Exception {
         final BasicCookieStore orig = new BasicCookieStore();
         orig.addCookie(new BasicClientCookie("name1", "value1"));
         orig.addCookie(new BasicClientCookie("name2", "value2"));

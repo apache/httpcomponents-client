@@ -34,6 +34,9 @@ import org.slf4j.LoggerFactory;
 
 final class LoggingIOSessionDecorator implements Decorator<IOSession> {
 
+    /**
+     * Singleton instance of LoggingIOSessionDecorator.
+     */
     public final static LoggingIOSessionDecorator INSTANCE = new LoggingIOSessionDecorator();
 
     private static final Logger WIRE_LOG = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");
