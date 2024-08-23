@@ -49,14 +49,11 @@ class TestPublicSuffixListParser {
     @BeforeEach
     void setUp() throws Exception {
         final ClassLoader classLoader = getClass().getClassLoader();
-        final InputStream in = classLoader.getResourceAsStream(SOURCE_FILE);
-        Assertions.assertNotNull(in);
         final PublicSuffixList suffixList;
-        try {
+        try (InputStream in = classLoader.getResourceAsStream(SOURCE_FILE)) {
+            Assertions.assertNotNull(in, SOURCE_FILE);
             final PublicSuffixListParser parser = PublicSuffixListParser.INSTANCE;
             suffixList = parser.parse(new InputStreamReader(in, StandardCharsets.UTF_8));
-        } finally {
-            in.close();
         }
         final PublicSuffixMatcher matcher = new PublicSuffixMatcher(suffixList.getRules(), suffixList.getExceptions());
         this.filter = new PublicSuffixDomainFilter(BasicDomainHandler.INSTANCE, matcher);

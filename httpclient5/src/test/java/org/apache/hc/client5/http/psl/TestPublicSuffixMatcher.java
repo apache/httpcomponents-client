@@ -48,14 +48,12 @@ class TestPublicSuffixMatcher {
     @BeforeEach
     void setUp() throws Exception {
         final ClassLoader classLoader = getClass().getClassLoader();
-
         // Create a matcher using a custom crafted public suffix list file
-        final InputStream in = classLoader.getResourceAsStream(SOURCE_FILE);
-        Assertions.assertNotNull(in);
-        final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(
-                new InputStreamReader(in, StandardCharsets.UTF_8));
-        matcher = new PublicSuffixMatcher(lists);
-
+        try (InputStream in = classLoader.getResourceAsStream(SOURCE_FILE)) {
+            Assertions.assertNotNull(in, SOURCE_FILE);
+            final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(new InputStreamReader(in, StandardCharsets.UTF_8));
+            matcher = new PublicSuffixMatcher(lists);
+        }
         // Create a matcher using the public suffix list file provided by Mozilla
         // Note: the test requires `mvn generate-resources` to have been called to fetch the Mozilla file into
         // target/classes so that it is on the classpath
