@@ -27,11 +27,8 @@
 
 package org.apache.hc.client5.http.psl;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -42,7 +39,7 @@ import org.junit.jupiter.api.Test;
 class TestPublicSuffixMatcher {
 
     private static final String SOURCE_FILE = "suffixlistmatcher.txt";
-    private static final String PUBLIC_SUFFIX_LIST_FILE = String.join(File.separator,  "mozilla", "public-suffix-list.txt");
+    private static final String PUBLIC_SUFFIX_LIST_FILE = "effective_tld_names.dat";
     private PublicSuffixMatcher matcher;
     private PublicSuffixMatcher pslMatcher;
 
@@ -51,21 +48,19 @@ class TestPublicSuffixMatcher {
         final ClassLoader classLoader = getClass().getClassLoader();
 
         // Create a matcher using a custom crafted public suffix list file
-        final InputStream in = classLoader.getResourceAsStream(SOURCE_FILE);
-        Assertions.assertNotNull(in);
-        final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(
-                new InputStreamReader(in, StandardCharsets.UTF_8));
-        matcher = new PublicSuffixMatcher(lists);
-
-        // Create a matcher using the public suffix list file provided by Mozilla
-        // Note: the test requires `mvn generate-resources` to have been called to fetch the Mozilla file into
-        // target/classes so that it is on the classpath
-        final URL publicSuffixListUrl = classLoader.getResource(PUBLIC_SUFFIX_LIST_FILE);
-        if (publicSuffixListUrl == null) {
-            throw new FileNotFoundException("Unable to find '" + PUBLIC_SUFFIX_LIST_FILE + "' on the classpath, you " +
-                    "may need to run `mvn generate-resources` first");
+        try (InputStream in = classLoader.getResourceAsStream(SOURCE_FILE)) {
+            Assertions.assertNotNull(in);
+            final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(new InputStreamReader(in, StandardCharsets.UTF_8));
+            matcher = new PublicSuffixMatcher(lists);
         }
-        pslMatcher = PublicSuffixMatcherLoader.load(publicSuffixListUrl);
+
+        // Create a matcher using the contents of the Mozilla public suffix list file from
+        // https://publicsuffix.org/list/effective_tld_names.dat
+        try (InputStream in = classLoader.getResourceAsStream(PUBLIC_SUFFIX_LIST_FILE)) {
+            Assertions.assertNotNull(in);
+            final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(new InputStreamReader(in, StandardCharsets.UTF_8));
+            pslMatcher = new PublicSuffixMatcher(lists);
+        }
     }
 
     @Test

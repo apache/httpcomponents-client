@@ -111,25 +111,6 @@
     </resources>
     <plugins>
       <plugin>
-        <groupId>com.googlecode.maven-download-plugin</groupId>
-        <artifactId>download-maven-plugin</artifactId>
-        <version>1.8.1</version>
-        <executions>
-          <execution>
-            <id>download-public-suffix-list</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>wget</goal>
-            </goals>
-            <configuration>
-              <url>https://publicsuffix.org/list/effective_tld_names.dat</url>
-              <outputDirectory>${project.build.outputDirectory}/mozilla</outputDirectory>
-              <outputFileName>public-suffix-list.txt</outputFileName>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
