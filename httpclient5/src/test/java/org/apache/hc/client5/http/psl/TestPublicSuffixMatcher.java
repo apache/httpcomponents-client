@@ -27,6 +27,8 @@
 
 package org.apache.hc.client5.http.psl;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -40,8 +42,7 @@ import org.junit.jupiter.api.Test;
 class TestPublicSuffixMatcher {
 
     private static final String SOURCE_FILE = "suffixlistmatcher.txt";
-    private static final String PUBLIC_SUFFIX_LIST_FILE = "mozilla/public-suffix-list.txt";
-
+    private static final String PUBLIC_SUFFIX_LIST_FILE = String.join(File.separator,  "mozilla", "public-suffix-list.txt");
     private PublicSuffixMatcher matcher;
     private PublicSuffixMatcher pslMatcher;
 
@@ -60,6 +61,10 @@ class TestPublicSuffixMatcher {
         // Note: the test requires `mvn generate-resources` to have been called to fetch the Mozilla file into
         // target/classes so that it is on the classpath
         final URL publicSuffixListUrl = classLoader.getResource(PUBLIC_SUFFIX_LIST_FILE);
+        if (publicSuffixListUrl == null) {
+            throw new FileNotFoundException("Unable to find '" + PUBLIC_SUFFIX_LIST_FILE + "' on the classpath, you " +
+                    "may need to run `mvn generate-resources` first");
+        }
         pslMatcher = PublicSuffixMatcherLoader.load(publicSuffixListUrl);
     }
 
