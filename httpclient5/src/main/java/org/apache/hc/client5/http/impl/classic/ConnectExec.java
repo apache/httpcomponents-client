@@ -250,8 +250,9 @@ public final class ConnectExec implements ExecChainHandler {
                 }
 
                 if (proxyAuthRequested) {
+                    //FIXME handle mutualAuth stuff
                     final boolean updated = authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
-                            proxyAuthStrategy, proxyAuthExchange, context);
+                            proxyAuthStrategy, proxyAuthExchange, context, false);
 
                     if (authCacheKeeper != null) {
                         authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);

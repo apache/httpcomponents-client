@@ -34,6 +34,7 @@ import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.auth.AuthExchange;
+import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
@@ -176,6 +177,10 @@ public final class ProtocolExec implements ExecChainHandler {
 
             for (;;) {
 
+                // Add Headers for authentication process in subsequent iterations
+                // In the first call, addAuthResponse does nothing
+                // This is where we could check the received response
+
                 if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} target auth state: {}", exchangeId, targetAuthExchange.getState());
@@ -189,6 +194,7 @@ public final class ProtocolExec implements ExecChainHandler {
                     authenticator.addAuthResponse(proxy, ChallengeType.PROXY, request, proxyAuthExchange, context);
                 }
 
+                //The is where the actual network communications happens (eventually)
                 final ClassicHttpResponse response = chain.proceed(request, scope);
 
                 if (Method.TRACE.isSame(request.getMethod())) {
@@ -204,6 +210,7 @@ public final class ProtocolExec implements ExecChainHandler {
                     ResponseEntityProxy.enhance(response, execRuntime);
                     return response;
                 }
+                // FIXME we need to pull forward the token processing to this phase
                 if (needAuthentication(
                         targetAuthExchange,
                         proxyAuthExchange,
@@ -218,6 +225,8 @@ public final class ProtocolExec implements ExecChainHandler {
                         EntityUtils.consume(responseEntity);
                     } else {
                         execRuntime.disconnectEndpoint();
+                        // This would break mutual auth, but since SPNEGO/Kerberos is not
+                        // connection based, we're good.
                         if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
                                 && proxyAuthExchange.isConnectionBased()) {
                             if (LOG.isDebugEnabled()) {
@@ -239,6 +248,7 @@ public final class ProtocolExec implements ExecChainHandler {
                     for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
                         request.addHeader(it.next());
                     }
+                    // Loop back for next authentication step
                 } else {
                     ResponseEntityProxy.enhance(response, execRuntime);
                     return response;
@@ -265,11 +275,16 @@ public final class ProtocolExec implements ExecChainHandler {
             final HttpHost target,
             final String pathPrefix,
             final HttpResponse response,
-            final HttpClientContext context) {
+            final HttpClientContext context) throws AuthenticationException {
         final RequestConfig config = context.getRequestConfig();
         if (config.isAuthenticationEnabled()) {
+
+            //auth requested by HTTP server by setting the HTTP code
             final boolean targetAuthRequested = authenticator.isChallenged(
                     target, ChallengeType.TARGET, response, targetAuthExchange, context);
+
+            //i.e. we (client) require another challenge to finish the authentication process
+            final boolean targetAuthRequired = authenticator.isChallengeExpected(targetAuthExchange);
 
             if (authCacheKeeper != null) {
                 if (targetAuthRequested) {
@@ -282,6 +297,8 @@ public final class ProtocolExec implements ExecChainHandler {
             final boolean proxyAuthRequested = authenticator.isChallenged(
                     proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
 
+            final boolean proxyAuthRequired = authenticator.isChallengeExpected(proxyAuthExchange);
+
             if (authCacheKeeper != null) {
                 if (proxyAuthRequested) {
                     authCacheKeeper.updateOnChallenge(proxy, null, proxyAuthExchange, context);
@@ -290,9 +307,9 @@ public final class ProtocolExec implements ExecChainHandler {
                 }
             }
 
-            if (targetAuthRequested) {
+            if (targetAuthRequested || targetAuthRequired) {
                 final boolean updated = authenticator.updateAuthState(target, ChallengeType.TARGET, response,
-                        targetAuthStrategy, targetAuthExchange, context);
+                        targetAuthStrategy, targetAuthExchange, context, !targetAuthRequested);
 
                 if (authCacheKeeper != null) {
                     authCacheKeeper.updateOnResponse(target, pathPrefix, targetAuthExchange, context);
@@ -300,9 +317,9 @@ public final class ProtocolExec implements ExecChainHandler {
 
                 return updated;
             }
-            if (proxyAuthRequested) {
+            if (proxyAuthRequested || proxyAuthRequired) {
                 final boolean updated = authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
-                        proxyAuthStrategy, proxyAuthExchange, context);
+                        proxyAuthStrategy, proxyAuthExchange, context, !proxyAuthRequested);
 
                 if (authCacheKeeper != null) {
                     authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);

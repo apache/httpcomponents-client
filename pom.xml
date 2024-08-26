@@ -33,7 +33,7 @@
   <groupId>org.apache.httpcomponents.client5</groupId>
   <artifactId>httpclient5-parent</artifactId>
   <name>Apache HttpComponents Client Parent</name>
-  <version>5.2.3</version>
+  <version>5.2.4-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
   <url>https://hc.apache.org/httpcomponents-client-5.0.x/${project.version}/</url>
   <inceptionYear>1999</inceptionYear>
@@ -222,6 +222,19 @@
             </manifestEntries>
           </archive>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>

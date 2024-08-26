@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +39,7 @@ import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthSchemeV2;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -134,38 +136,23 @@ public final class HttpAuthenticator {
         return false;
     }
 
-    /**
-     * Updates the {@link AuthExchange} state based on the challenge presented in the response message
-     * using the given {@link AuthenticationStrategy}.
-     *
-     * @param host the hostname of the opposite endpoint.
-     * @param challengeType the challenge type (target or proxy).
-     * @param response the response message head.
-     * @param authStrategy the authentication strategy.
-     * @param authExchange the current authentication exchange state.
-     * @param context the current execution context.
-     * @return {@code true} if the authentication state has been updated,
-     *   {@code false} if unchanged.
-     */
-    public boolean updateAuthState(
-            final HttpHost host,
-            final ChallengeType challengeType,
-            final HttpResponse response,
-            final AuthenticationStrategy authStrategy,
-            final AuthExchange authExchange,
-            final HttpContext context) {
-
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
-        final String exchangeId = clientContext.getExchangeId();
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("{} {} requested authentication", exchangeId, host.toHostString());
+    public boolean isChallengeExpected(final AuthExchange authExchange) {
+        final AuthScheme authScheme = authExchange.getAuthScheme();
+        if (authScheme != null && authScheme instanceof AuthSchemeV2) {
+            return ((AuthSchemeV2)authScheme).isChallengeExpected();
         }
+        return false;
+    }
 
-        final Header[] headers = response.getHeaders(
-                challengeType == ChallengeType.PROXY ? HttpHeaders.PROXY_AUTHENTICATE : HttpHeaders.WWW_AUTHENTICATE);
+    // Externalized to avoid having to re-parse the challenges
+    public Map<String, AuthChallenge> extractChallengeMap(final ChallengeType challengeType,
+            final HttpResponse response, final HttpClientContext context) {
+        final Header[] headers =
+                response.getHeaders(
+                    challengeType == ChallengeType.PROXY ? HttpHeaders.PROXY_AUTHENTICATE
+                            : HttpHeaders.WWW_AUTHENTICATE);
         final Map<String, AuthChallenge> challengeMap = new HashMap<>();
-        for (final Header header: headers) {
+        for (final Header header : headers) {
             final CharArrayBuffer buffer;
             final int pos;
             if (header instanceof FormattedHeader) {
@@ -186,17 +173,56 @@ public final class HttpAuthenticator {
                 authChallenges = parser.parse(challengeType, buffer, cursor);
             } catch (final ParseException ex) {
                 if (LOG.isWarnEnabled()) {
+                    final HttpClientContext clientContext = HttpClientContext.adapt(context);
+                    final String exchangeId = clientContext.getExchangeId();
                     LOG.warn("{} Malformed challenge: {}", exchangeId, header.getValue());
                 }
                 continue;
             }
-            for (final AuthChallenge authChallenge: authChallenges) {
+            for (final AuthChallenge authChallenge : authChallenges) {
                 final String schemeName = authChallenge.getSchemeName().toLowerCase(Locale.ROOT);
                 if (!challengeMap.containsKey(schemeName)) {
                     challengeMap.put(schemeName, authChallenge);
                 }
             }
         }
+        return challengeMap;
+    }
+
+    /**
+     * Updates the {@link AuthExchange} state based on the challenge presented in the response message
+     * using the given {@link AuthenticationStrategy}.
+     *
+     * @param host the hostname of the opposite endpoint.
+     * @param challengeType the challenge type (target or proxy).
+     * @param response the response message head.
+     * @param authStrategy the authentication strategy.
+     * @param authExchange the current authentication exchange state.
+     * @param context the current execution context.
+     * @return {@code true} if the request needs-to be re-sent ,
+     *   {@code false} if the authentication is complete (successful or not).
+     *   
+     * @throws AuthenticationException if the server has accepted our authorisation, but we could
+     * not authenticate the server
+     */
+    public boolean updateAuthState(
+            final HttpHost host,
+            final ChallengeType challengeType,
+            final HttpResponse response,
+            final AuthenticationStrategy authStrategy,
+            final AuthExchange authExchange,
+            final HttpContext context,
+            final boolean authenticated) throws AuthenticationException {
+
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final String exchangeId = clientContext.getExchangeId();
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} {} requested authentication", exchangeId, host.toHostString());
+        }
+
+        final Map<String, AuthChallenge> challengeMap = extractChallengeMap(challengeType, response, clientContext);
+
         if (challengeMap.isEmpty()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} Response contains no valid authentication challenges", exchangeId);
@@ -209,13 +235,18 @@ public final class HttpAuthenticator {
             case FAILURE:
                 return false;
             case SUCCESS:
-                authExchange.reset();
-                break;
+                if (!authenticated) {
+                    authExchange.reset();
+                    break;
+                }
             case CHALLENGED:
+                // fall through
             case HANDSHAKE:
                 Asserts.notNull(authExchange.getAuthScheme(), "AuthScheme");
+                // fall through
             case UNCHALLENGED:
                 final AuthScheme authScheme = authExchange.getAuthScheme();
+                // This is skipped for the first challenge, because the auth scheme hasn't been set yet
                 if (authScheme != null) {
                     final String schemeName = authScheme.getName();
                     final AuthChallenge challenge = challengeMap.get(schemeName.toLowerCase(Locale.ROOT));
@@ -224,15 +255,33 @@ public final class HttpAuthenticator {
                             LOG.debug("{} Authorization challenge processed", exchangeId);
                         }
                         try {
-                            authScheme.processChallenge(challenge, context);
-                        } catch (final MalformedChallengeException ex) {
-                            if (LOG.isWarnEnabled()) {
-                                LOG.warn("{} {}", exchangeId, ex.getMessage());
+                            if (authScheme instanceof AuthSchemeV2) {
+                                ((AuthSchemeV2)authScheme).processChallenge(host, challenge, context, authenticated);
+                            } else {
+                                authScheme.processChallenge(challenge, context);
                             }
+                        } catch (final AuthenticationException | MalformedChallengeException ex) {
+                            if (LOG.isWarnEnabled()) {
+                                LOG.warn("Exception processing Challange{}", exchangeId, ex);
+                            }
+//                            LOG.error("Exception processing Challange{}", exchangeId, ex);
+
                             authExchange.reset();
                             authExchange.setState(AuthExchange.State.FAILURE);
-                            return false;
+                            if (authenticated) {
+                                // This is the mutual authentication error case
+                                if (ex instanceof AuthenticationException) {
+                                    throw (AuthenticationException)ex;
+                                } else {
+                                    // Shouldn't MalformedChallengeException be a child of AuthenticationException ?
+                                    //FIXME Make sure to reset the response in the caller
+                                    throw new AuthenticationException("MalformedChallengeException while processing challenge", ex);
+                                }
+                            }
                         }
+                        // At this point the Scheme has not yet replied to the challenge, so complete
+                        // means either that is has already failed. This is not true for AuthSchemeV2,
+                        // so care must be taken 
                         if (authScheme.isChallengeComplete()) {
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("{} Authentication failed", exchangeId);
@@ -241,7 +290,16 @@ public final class HttpAuthenticator {
                             authExchange.setState(AuthExchange.State.FAILURE);
                             return false;
                         }
-                        authExchange.setState(AuthExchange.State.HANDSHAKE);
+                        if (authenticated) {
+                            // There are no more challanges sent after the 200 message, 
+                            // and if we get here, then the mutual auth phase has succeeded.
+                            authExchange.setState(AuthExchange.State.SUCCESS);
+                            return false;
+                        } else {
+                            authExchange.setState(AuthExchange.State.HANDSHAKE);
+                        }
+                        // In case of multiple challenges, we only reply to the first one
+                        // in the preference list for . All other challenges are ignored.
                         return true;
                     }
                     authExchange.reset();
@@ -249,6 +307,7 @@ public final class HttpAuthenticator {
                 }
         }
 
+        // This runs if we haven't returned above because of unset autScheme
         final List<AuthScheme> preferredSchemes = authStrategy.select(challengeType, challengeMap, context);
         final CredentialsProvider credsProvider = clientContext.getCredentialsProvider();
         if (credsProvider == null) {
@@ -258,6 +317,8 @@ public final class HttpAuthenticator {
             return false;
         }
 
+        // This is active during the first call, and is used to set up authContext for the
+        // next passes
         final Queue<AuthScheme> authOptions = new LinkedList<>();
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} Selecting authentication options", exchangeId);
@@ -266,13 +327,17 @@ public final class HttpAuthenticator {
             try {
                 final String schemeName = authScheme.getName();
                 final AuthChallenge challenge = challengeMap.get(schemeName.toLowerCase(Locale.ROOT));
-                authScheme.processChallenge(challenge, context);
+                if (authScheme instanceof AuthSchemeV2) {
+                    ((AuthSchemeV2)authScheme).processChallenge(host, challenge, context, authenticated);
+                } else {
+                    authScheme.processChallenge(challenge, context);
+                }
                 if (authScheme.isResponseReady(host, credsProvider, context)) {
                     authOptions.add(authScheme);
                 }
             } catch (final AuthenticationException | MalformedChallengeException ex) {
                 if (LOG.isWarnEnabled()) {
-                    LOG.warn(ex.getMessage());
+                    LOG.warn("Exception while processing Challange", ex);
                 }
             }
         }
@@ -322,8 +387,17 @@ public final class HttpAuthenticator {
         case CHALLENGED:
             final Queue<AuthScheme> authOptions = authExchange.getAuthOptions();
             if (authOptions != null) {
-                while (!authOptions.isEmpty()) {
-                    authScheme = authOptions.remove();
+                //FIXME This is the first pass generating the initial auth response
+                Iterator<AuthScheme> it = authOptions.iterator();
+                while (it.hasNext()) {
+                    authScheme = it.next();
+                    // Why even bother removing if we break anyway ?
+//                    if (!(authScheme instanceof AuthSchemeV2)) {
+                        // Non V2 AuthSchemes are basically stateless. 
+                        // To avoid possible problems with state handling, remove
+                        // them, just like it was done originally
+//                        it.remove();
+//                    }
                     authExchange.select(authScheme);
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} Generating response to an authentication challenge using {} scheme",
@@ -331,12 +405,16 @@ public final class HttpAuthenticator {
                     }
                     try {
                         final String authResponse = authScheme.generateAuthResponse(host, request, context);
-                        final Header header = new BasicHeader(
-                                challengeType == ChallengeType.TARGET ? HttpHeaders.AUTHORIZATION : HttpHeaders.PROXY_AUTHORIZATION,
-                                authResponse);
-                        request.addHeader(header);
+                        if (authResponse != null) {
+                            final Header header = new BasicHeader(
+                                    challengeType == ChallengeType.TARGET ? HttpHeaders.AUTHORIZATION : HttpHeaders.PROXY_AUTHORIZATION,
+                                    authResponse);
+                            request.addHeader(header);
+                        }
                         break;
                     } catch (final AuthenticationException ex) {
+                        // FIXME This is where should return an exception if the request cannot be processed
+                        // FIXME What to do if there are multiple schemes, and only some fail ?
                         if (LOG.isWarnEnabled()) {
                             LOG.warn("{} {} authentication error: {}", exchangeId, authScheme, ex.getMessage());
                         }
@@ -347,6 +425,8 @@ public final class HttpAuthenticator {
             Asserts.notNull(authScheme, "AuthScheme");
         default:
         }
+        // This is for the SUCCESS and HANDSHAKE state, Which AFAICT never did happen, as
+        // the authSchemes were removed on the first response anyway
         if (authScheme != null) {
             try {
                 final String authResponse = authScheme.generateAuthResponse(host, request, context);

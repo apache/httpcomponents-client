@@ -38,6 +38,7 @@ import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.auth.AuthExchange;
+import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
@@ -215,6 +216,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                     // Do not perform authentication for TRACE request
                     return asyncExecCallback.handleResponse(response, entityDetails);
                 }
+                //FIXME add mutual auth stuff
                 if (needAuthentication(
                         targetAuthExchange,
                         proxyAuthExchange,
@@ -305,7 +307,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
             final HttpHost target,
             final String pathPrefix,
             final HttpResponse response,
-            final HttpClientContext context) {
+            final HttpClientContext context) throws AuthenticationException {
         final RequestConfig config = context.getRequestConfig();
         if (config.isAuthenticationEnabled()) {
             final boolean targetAuthRequested = authenticator.isChallenged(
@@ -331,8 +333,9 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
             }
 
             if (targetAuthRequested) {
+                //FIXME handle mutualAuth stuff
                 final boolean updated = authenticator.updateAuthState(target, ChallengeType.TARGET, response,
-                        targetAuthStrategy, targetAuthExchange, context);
+                        targetAuthStrategy, targetAuthExchange, context, false);
 
                 if (authCacheKeeper != null) {
                     authCacheKeeper.updateOnResponse(target, pathPrefix, targetAuthExchange, context);
@@ -341,8 +344,9 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                 return updated;
             }
             if (proxyAuthRequested) {
+                //FIXME handle mutualAuth stuff
                 final boolean updated = authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
-                        proxyAuthStrategy, proxyAuthExchange, context);
+                        proxyAuthStrategy, proxyAuthExchange, context, false);
 
                 if (authCacheKeeper != null) {
                     authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);

@@ -188,8 +188,9 @@ public class ProxyClient {
                 throw new HttpException("Unexpected response to CONNECT request: " + response);
             }
             if (this.authenticator.isChallenged(proxy, ChallengeType.PROXY, response, this.proxyAuthExchange, context)) {
+                //FIXME handle mutualAuth stuff
                 if (this.authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
-                        this.proxyAuthStrategy, this.proxyAuthExchange, context)) {
+                        this.proxyAuthStrategy, this.proxyAuthExchange, context, false)) {
                     // Retry request
                     if (this.reuseStrategy.keepAlive(connect, response, context)) {
                         // Consume response content
