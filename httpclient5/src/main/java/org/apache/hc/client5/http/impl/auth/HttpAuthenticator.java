@@ -27,126 +27,34 @@
 
 package org.apache.hc.client5.http.impl.auth;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Queue;
-
 import org.apache.hc.client5.http.AuthenticationStrategy;
-import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthExchange;
-import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
-import org.apache.hc.client5.http.auth.CredentialsProvider;
-import org.apache.hc.client5.http.auth.MalformedChallengeException;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.http.FormattedHeader;
-import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.ParseException;
-import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.message.ParserCursor;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.util.Asserts;
-import org.apache.hc.core5.util.CharArrayBuffer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * Utility class that implements commons aspects of the client side HTTP authentication.
- * <p>
- * Please note that since version 5.2 this class no longer updated the authentication cache
- * bound to the execution context.
- *
- * @since 4.3
+ * @deprecated Do not use.
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
-public final class HttpAuthenticator {
+public final class HttpAuthenticator extends AuthenticationHandler {
 
-    private static final Logger LOG = LoggerFactory.getLogger(HttpAuthenticator.class);
-
-    private final AuthChallengeParser parser;
-
-    public HttpAuthenticator() {
-        this.parser = new AuthChallengeParser();
-    }
-
-    /**
-     * Determines whether the given response represents an authentication challenge.
-     *
-     * @param host the hostname of the opposite endpoint.
-     * @param challengeType the challenge type (target or proxy).
-     * @param response the response message head.
-     * @param authExchange the current authentication exchange state.
-     * @param context the current execution context.
-     * @return {@code true} if the response message represents an authentication challenge,
-     *   {@code false} otherwise.
-     */
+    @Override
     public boolean isChallenged(
             final HttpHost host,
             final ChallengeType challengeType,
             final HttpResponse response,
             final AuthExchange authExchange,
             final HttpContext context) {
-        final int challengeCode;
-        switch (challengeType) {
-            case TARGET:
-                challengeCode = HttpStatus.SC_UNAUTHORIZED;
-                break;
-            case PROXY:
-                challengeCode = HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED;
-                break;
-            default:
-                throw new IllegalStateException("Unexpected challenge type: " + challengeType);
-        }
-
-        final HttpClientContext clientContext = HttpClientContext.cast(context);
-        final String exchangeId = clientContext.getExchangeId();
-
-        if (response.getCode() == challengeCode) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} Authentication required", exchangeId);
-            }
-            return true;
-        }
-        switch (authExchange.getState()) {
-        case CHALLENGED:
-        case HANDSHAKE:
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} Authentication succeeded", exchangeId);
-            }
-            authExchange.setState(AuthExchange.State.SUCCESS);
-            break;
-        case SUCCESS:
-            break;
-        default:
-            authExchange.setState(AuthExchange.State.UNCHALLENGED);
-        }
-        return false;
+        return super.isChallenged(host, challengeType, response, authExchange, context);
     }
 
-    /**
-     * Updates the {@link AuthExchange} state based on the challenge presented in the response message
-     * using the given {@link AuthenticationStrategy}.
-     *
-     * @param host the hostname of the opposite endpoint.
-     * @param challengeType the challenge type (target or proxy).
-     * @param response the response message head.
-     * @param authStrategy the authentication strategy.
-     * @param authExchange the current authentication exchange state.
-     * @param context the current execution context.
-     * @return {@code true} if the authentication state has been updated,
-     *   {@code false} if unchanged.
-     */
     public boolean updateAuthState(
             final HttpHost host,
             final ChallengeType challengeType,
@@ -154,212 +62,21 @@ public final class HttpAuthenticator {
             final AuthenticationStrategy authStrategy,
             final AuthExchange authExchange,
             final HttpContext context) {
-
-        final HttpClientContext clientContext = HttpClientContext.cast(context);
-        final String exchangeId = clientContext.getExchangeId();
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("{} {} requested authentication", exchangeId, host.toHostString());
-        }
-
-        final Header[] headers = response.getHeaders(
-                challengeType == ChallengeType.PROXY ? HttpHeaders.PROXY_AUTHENTICATE : HttpHeaders.WWW_AUTHENTICATE);
-        final Map<String, AuthChallenge> challengeMap = new HashMap<>();
-        for (final Header header: headers) {
-            final CharArrayBuffer buffer;
-            final int pos;
-            if (header instanceof FormattedHeader) {
-                buffer = ((FormattedHeader) header).getBuffer();
-                pos = ((FormattedHeader) header).getValuePos();
-            } else {
-                final String s = header.getValue();
-                if (s == null) {
-                    continue;
-                }
-                buffer = new CharArrayBuffer(s.length());
-                buffer.append(s);
-                pos = 0;
-            }
-            final ParserCursor cursor = new ParserCursor(pos, buffer.length());
-            final List<AuthChallenge> authChallenges;
-            try {
-                authChallenges = parser.parse(challengeType, buffer, cursor);
-            } catch (final ParseException ex) {
-                if (LOG.isWarnEnabled()) {
-                    LOG.warn("{} Malformed challenge: {}", exchangeId, header.getValue());
-                }
-                continue;
-            }
-            for (final AuthChallenge authChallenge: authChallenges) {
-                final String schemeName = authChallenge.getSchemeName().toLowerCase(Locale.ROOT);
-                if (!challengeMap.containsKey(schemeName)) {
-                    challengeMap.put(schemeName, authChallenge);
-                }
-            }
-        }
-        if (challengeMap.isEmpty()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} Response contains no valid authentication challenges", exchangeId);
-            }
-            authExchange.reset();
+        try {
+            return handleResponse(host, challengeType, response, authStrategy, authExchange, context);
+        } catch (final ProtocolException ex) {
             return false;
         }
-
-        switch (authExchange.getState()) {
-            case FAILURE:
-                return false;
-            case SUCCESS:
-                authExchange.reset();
-                break;
-            case CHALLENGED:
-            case HANDSHAKE:
-                Asserts.notNull(authExchange.getAuthScheme(), "AuthScheme");
-            case UNCHALLENGED:
-                final AuthScheme authScheme = authExchange.getAuthScheme();
-                if (authScheme != null) {
-                    final String schemeName = authScheme.getName();
-                    final AuthChallenge challenge = challengeMap.get(schemeName.toLowerCase(Locale.ROOT));
-                    if (challenge != null) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("{} Authorization challenge processed", exchangeId);
-                        }
-                        try {
-                            authScheme.processChallenge(challenge, context);
-                        } catch (final MalformedChallengeException ex) {
-                            if (LOG.isWarnEnabled()) {
-                                LOG.warn("{} {}", exchangeId, ex.getMessage());
-                            }
-                            authExchange.reset();
-                            authExchange.setState(AuthExchange.State.FAILURE);
-                            return false;
-                        }
-                        if (authScheme.isChallengeComplete()) {
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("{} Authentication failed", exchangeId);
-                            }
-                            authExchange.reset();
-                            authExchange.setState(AuthExchange.State.FAILURE);
-                            return false;
-                        }
-                        authExchange.setState(AuthExchange.State.HANDSHAKE);
-                        return true;
-                    }
-                    authExchange.reset();
-                    // Retry authentication with a different scheme
-                }
-        }
-
-        final List<AuthScheme> preferredSchemes = authStrategy.select(challengeType, challengeMap, context);
-        final CredentialsProvider credsProvider = clientContext.getCredentialsProvider();
-        if (credsProvider == null) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} Credentials provider not set in the context", exchangeId);
-            }
-            return false;
-        }
-
-        final Queue<AuthScheme> authOptions = new LinkedList<>();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("{} Selecting authentication options", exchangeId);
-        }
-        for (final AuthScheme authScheme: preferredSchemes) {
-            try {
-                final String schemeName = authScheme.getName();
-                final AuthChallenge challenge = challengeMap.get(schemeName.toLowerCase(Locale.ROOT));
-                authScheme.processChallenge(challenge, context);
-                if (authScheme.isResponseReady(host, credsProvider, context)) {
-                    authOptions.add(authScheme);
-                }
-            } catch (final AuthenticationException | MalformedChallengeException ex) {
-                if (LOG.isWarnEnabled()) {
-                    LOG.warn(ex.getMessage());
-                }
-            }
-        }
-        if (!authOptions.isEmpty()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} Selected authentication options: {}", exchangeId, authOptions);
-            }
-            authExchange.reset();
-            authExchange.setState(AuthExchange.State.CHALLENGED);
-            authExchange.setOptions(authOptions);
-            return true;
-        }
-        return false;
     }
 
-    /**
-     * Generates a response to the authentication challenge based on the actual {@link AuthExchange} state
-     * and adds it to the given {@link HttpRequest} message .
-     *
-     * @param host the hostname of the opposite endpoint.
-     * @param challengeType the challenge type (target or proxy).
-     * @param request the request message head.
-     * @param authExchange the current authentication exchange state.
-     * @param context the current execution context.
-     */
+    @Override
     public void addAuthResponse(
             final HttpHost host,
             final ChallengeType challengeType,
             final HttpRequest request,
             final AuthExchange authExchange,
             final HttpContext context) {
-        final HttpClientContext clientContext = HttpClientContext.cast(context);
-        final String exchangeId = clientContext.getExchangeId();
-        AuthScheme authScheme = authExchange.getAuthScheme();
-        switch (authExchange.getState()) {
-        case FAILURE:
-            return;
-        case SUCCESS:
-            Asserts.notNull(authScheme, "AuthScheme");
-            if (authScheme.isConnectionBased()) {
-                return;
-            }
-            break;
-        case HANDSHAKE:
-            Asserts.notNull(authScheme, "AuthScheme");
-            break;
-        case CHALLENGED:
-            final Queue<AuthScheme> authOptions = authExchange.getAuthOptions();
-            if (authOptions != null) {
-                while (!authOptions.isEmpty()) {
-                    authScheme = authOptions.remove();
-                    authExchange.select(authScheme);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("{} Generating response to an authentication challenge using {} scheme",
-                                exchangeId, authScheme.getName());
-                    }
-                    try {
-                        final String authResponse = authScheme.generateAuthResponse(host, request, context);
-                        final Header header = new BasicHeader(
-                                challengeType == ChallengeType.TARGET ? HttpHeaders.AUTHORIZATION : HttpHeaders.PROXY_AUTHORIZATION,
-                                authResponse);
-                        request.addHeader(header);
-                        break;
-                    } catch (final AuthenticationException ex) {
-                        if (LOG.isWarnEnabled()) {
-                            LOG.warn("{} {} authentication error: {}", exchangeId, authScheme, ex.getMessage());
-                        }
-                    }
-                }
-                return;
-            }
-            Asserts.notNull(authScheme, "AuthScheme");
-        default:
-        }
-        if (authScheme != null) {
-            try {
-                final String authResponse = authScheme.generateAuthResponse(host, request, context);
-                final Header header = new BasicHeader(
-                        challengeType == ChallengeType.TARGET ? HttpHeaders.AUTHORIZATION : HttpHeaders.PROXY_AUTHORIZATION,
-                        authResponse);
-                request.addHeader(header);
-            } catch (final AuthenticationException ex) {
-                if (LOG.isErrorEnabled()) {
-                    LOG.error("{} {} authentication error: {}", exchangeId, authScheme, ex.getMessage());
-                }
-            }
-        }
+        super.addAuthResponse(host, challengeType, request, authExchange, context);
     }
 
 }

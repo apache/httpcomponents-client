@@ -43,10 +43,10 @@ import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
+import org.apache.hc.client5.http.impl.auth.AuthenticationHandler;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.impl.io.ManagedHttpClientConnectionFactory;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -84,7 +84,7 @@ public class ProxyClient {
     private final HttpProcessor httpProcessor;
     private final HttpRequestExecutor requestExec;
     private final AuthenticationStrategy proxyAuthStrategy;
-    private final HttpAuthenticator authenticator;
+    private final AuthenticationHandler authenticator;
     private final AuthExchange proxyAuthExchange;
     private final Lookup<AuthSchemeFactory> authSchemeRegistry;
     private final ConnectionReuseStrategy reuseStrategy;
@@ -109,7 +109,7 @@ public class ProxyClient {
                 new RequestTargetHost(), new RequestClientConnControl(), new RequestUserAgent());
         this.requestExec = new HttpRequestExecutor();
         this.proxyAuthStrategy = new DefaultAuthenticationStrategy();
-        this.authenticator = new HttpAuthenticator();
+        this.authenticator = new AuthenticationHandler();
         this.proxyAuthExchange = new AuthExchange();
         this.authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
                 .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
@@ -175,8 +175,9 @@ public class ProxyClient {
             if (status < 200) {
                 throw new HttpException("Unexpected response to CONNECT request: " + response);
             }
-            if (this.authenticator.isChallenged(proxy, ChallengeType.PROXY, response, this.proxyAuthExchange, context)) {
-                if (this.authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
+            if (this.authenticator.isChallenged(proxy, ChallengeType.PROXY, response, this.proxyAuthExchange, context)
+                    || authenticator.isChallengeExpected(proxyAuthExchange)) {
+                if (this.authenticator.handleResponse(proxy, ChallengeType.PROXY, response,
                         this.proxyAuthStrategy, this.proxyAuthExchange, context)) {
                     // Retry request
                     if (this.reuseStrategy.keepAlive(connect, response, context)) {

@@ -38,6 +38,7 @@ import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
@@ -59,8 +60,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import org.mockito.Mockito;
 
-@SuppressWarnings({"boxing","static-access"})
-class TestHttpAuthenticator {
+class TestAuthenticationHandler {
 
     @AuthStateCacheable
     abstract class CacheableAuthState implements AuthScheme {
@@ -78,7 +78,7 @@ class TestHttpAuthenticator {
     private HttpHost defaultHost;
     private CredentialsProvider credentialsProvider;
     private Lookup<AuthSchemeFactory> authSchemeRegistry;
-    private HttpAuthenticator httpAuthenticator;
+    private AuthenticationHandler httpAuthenticator;
 
     @BeforeEach
     void setUp() {
@@ -95,7 +95,7 @@ class TestHttpAuthenticator {
             .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
             .build();
         this.context.setAuthSchemeRegistry(this.authSchemeRegistry);
-        this.httpAuthenticator = new HttpAuthenticator();
+        this.httpAuthenticator = new AuthenticationHandler();
     }
 
     @Test
@@ -150,7 +150,7 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthentication() {
+    void testAuthentication() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -163,7 +163,7 @@ class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assertions.assertTrue(this.httpAuthenticator.updateAuthState(host, ChallengeType.TARGET, response, authStrategy,
+        Assertions.assertTrue(this.httpAuthenticator.handleResponse(host, ChallengeType.TARGET, response, authStrategy,
                                                                      this.authExchange, this.context));
         Assertions.assertEquals(AuthExchange.State.CHALLENGED, this.authExchange.getState());
 
@@ -179,7 +179,7 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthenticationCredentialsForBasic() {
+    void testAuthenticationCredentialsForBasic() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response =
             new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
@@ -192,7 +192,7 @@ class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assertions.assertTrue(this.httpAuthenticator.updateAuthState(host, ChallengeType.TARGET, response, authStrategy,
+        Assertions.assertTrue(this.httpAuthenticator.handleResponse(host, ChallengeType.TARGET, response, authStrategy,
                                                                      this.authExchange, this.context));
         Assertions.assertEquals(AuthExchange.State.CHALLENGED, this.authExchange.getState());
 
@@ -205,18 +205,18 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthenticationNoChallenges() {
+    void testAuthenticationNoChallenges() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assertions.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assertions.assertFalse(this.httpAuthenticator.handleResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
     }
 
     @Test
-    void testAuthenticationNoSupportedChallenges() {
+    void testAuthenticationNoSupportedChallenges() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "This realm=\"test\""));
@@ -224,12 +224,12 @@ class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assertions.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assertions.assertFalse(this.httpAuthenticator.handleResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
     }
 
     @Test
-    void testAuthenticationNoCredentials() {
+    void testAuthenticationNoCredentials() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -237,12 +237,12 @@ class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assertions.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assertions.assertFalse(this.httpAuthenticator.handleResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
     }
 
     @Test
-    void testAuthenticationFailed() {
+    void testAuthenticationFailed() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -253,14 +253,14 @@ class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assertions.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assertions.assertFalse(this.httpAuthenticator.handleResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
 
         Assertions.assertEquals(AuthExchange.State.FAILURE, this.authExchange.getState());
     }
 
     @Test
-    void testAuthenticationFailedPreviously() {
+    void testAuthenticationFailedPreviously() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -270,14 +270,14 @@ class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assertions.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assertions.assertFalse(this.httpAuthenticator.handleResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
 
         Assertions.assertEquals(AuthExchange.State.FAILURE, this.authExchange.getState());
     }
 
     @Test
-    void testAuthenticationFailure() {
+    void testAuthenticationFailure() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -289,13 +289,13 @@ class TestHttpAuthenticator {
         this.authExchange.setState(AuthExchange.State.CHALLENGED);
         this.authExchange.select(new BasicScheme());
 
-        Assertions.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assertions.assertFalse(this.httpAuthenticator.handleResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
         Assertions.assertEquals(AuthExchange.State.FAILURE, this.authExchange.getState());
     }
 
     @Test
-    void testAuthenticationHandshaking() {
+    void testAuthenticationHandshaking() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -307,14 +307,14 @@ class TestHttpAuthenticator {
         this.authExchange.setState(AuthExchange.State.CHALLENGED);
         this.authExchange.select(new DigestScheme());
 
-        Assertions.assertTrue(this.httpAuthenticator.updateAuthState(
+        Assertions.assertTrue(this.httpAuthenticator.handleResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
 
         Assertions.assertEquals(AuthExchange.State.HANDSHAKE, this.authExchange.getState());
     }
 
     @Test
-    void testAuthenticationNoMatchingChallenge() {
+    void testAuthenticationNoMatchingChallenge() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"1234\""));
@@ -329,7 +329,7 @@ class TestHttpAuthenticator {
         this.authExchange.setState(AuthExchange.State.CHALLENGED);
         this.authExchange.select(new BasicScheme());
 
-        Assertions.assertTrue(this.httpAuthenticator.updateAuthState(
+        Assertions.assertTrue(this.httpAuthenticator.handleResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
         Assertions.assertEquals(AuthExchange.State.CHALLENGED, this.authExchange.getState());
 
@@ -342,7 +342,7 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthenticationException() {
+    void testAuthenticationException() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "blah blah blah"));
@@ -351,7 +351,7 @@ class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assertions.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assertions.assertFalse(this.httpAuthenticator.handleResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
 
         Assertions.assertEquals(AuthExchange.State.UNCHALLENGED, this.authExchange.getState());

@@ -111,11 +111,18 @@ public interface AuthScheme {
      * Processes the given auth challenge. Some authentication schemes may involve multiple
      * challenge-response exchanges. Such schemes must be able to maintain internal state
      * when dealing with sequential challenges
+     * <p>
+     * Please note auth schemes that perform mutual authentication must implement
+     * {@link #processChallenge(HttpHost, AuthChallenge, HttpContext, boolean)} and
+     * {@link #isChallengeExpected()} instead.
      *
      * @param authChallenge the auth challenge
      * @param context HTTP context
      * @throws MalformedChallengeException in case the auth challenge is incomplete,
      * malformed or otherwise invalid.
+     *
+     * @see #processChallenge(HttpHost, AuthChallenge, HttpContext, boolean)
+     *
      * @since 5.0
      */
     void processChallenge(
@@ -123,10 +130,52 @@ public interface AuthScheme {
             HttpContext context) throws MalformedChallengeException;
 
     /**
+     * Indicates that the even authorized (i.e. not 401 or 407) responses must be processed
+     * by this scheme.
+     *
+     * @return true if responses with non 401/407 response codes must be processed by the scheme.
+     *
+     * @since 5.5
+     */
+    default boolean isChallengeExpected() {
+        return false;
+    }
+
+    /**
+     * Processes the given auth challenge. Some authentication schemes may involve multiple
+     * challenge-response exchanges. Such schemes must be able to maintain internal state
+     * when dealing with sequential challenges.
+     * <p>
+     * When {@link #isChallengeExpected()} returns true, but no challenge was sent, this method
+     * must be called with a null {@link AuthChallenge} so that the scheme can handle this situation.
+     *
+     * @param host HTTP host
+     * @param authChallenge the auth challenge or null if no challenge was received
+     * @param context HTTP context
+     * @param challenged true if the response was unauthorised (401/407)
+     *
+     * @throws MalformedChallengeException in case the auth challenge is incomplete,
+     * @throws AuthenticationException in case the authentication process is unsuccessful.
+     *
+     * @since 5.5
+     */
+    default void processChallenge(
+            HttpHost host,
+            AuthChallenge authChallenge,
+            HttpContext context,
+            boolean challenged) throws MalformedChallengeException, AuthenticationException {
+        processChallenge(authChallenge, context);
+    }
+
+    /**
      * Authentication process may involve a series of challenge-response exchanges.
      * This method tests if the authorization process has been fully completed (either
      * successfully or unsuccessfully), that is, all the required authorization
      * challenges have been processed in their entirety.
+     * <p>
+     * Please note if the scheme returns {@code true} from this method in response
+     * to a challenge, it effectively implies a failure to respond to this challenge
+     * and termination of the authentication process.
      *
      * @return {@code true} if the authentication process has been completed,
      * {@code false} otherwise.
