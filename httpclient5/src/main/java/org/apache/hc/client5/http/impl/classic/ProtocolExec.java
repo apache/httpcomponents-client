@@ -34,7 +34,9 @@ import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.auth.AuthExchange;
+import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
+import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
@@ -189,6 +191,7 @@ public final class ProtocolExec implements ExecChainHandler {
                     authenticator.addAuthResponse(proxy, ChallengeType.PROXY, request, proxyAuthExchange, context);
                 }
 
+                //The is where the actual network communications happens (eventually)
                 final ClassicHttpResponse response = chain.proceed(request, scope);
 
                 if (Method.TRACE.isSame(request.getMethod())) {
@@ -218,6 +221,8 @@ public final class ProtocolExec implements ExecChainHandler {
                         EntityUtils.consume(responseEntity);
                     } else {
                         execRuntime.disconnectEndpoint();
+                        // We don't have any connection based AuthSchemeV2 implementations.
+                        // If one existed, we'd have think about how to handle it
                         if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
                                 && proxyAuthExchange.isConnectionBased()) {
                             if (LOG.isDebugEnabled()) {
@@ -265,11 +270,12 @@ public final class ProtocolExec implements ExecChainHandler {
             final HttpHost target,
             final String pathPrefix,
             final HttpResponse response,
-            final HttpClientContext context) {
-        final RequestConfig config = context.getRequestConfigOrDefault();
+            final HttpClientContext context) throws  AuthenticationException, MalformedChallengeException {
+                final RequestConfig config = context.getRequestConfigOrDefault();
         if (config.isAuthenticationEnabled()) {
             final boolean targetAuthRequested = authenticator.isChallenged(
                     target, ChallengeType.TARGET, response, targetAuthExchange, context);
+            final boolean targetMutualAuthRequired = authenticator.isChallengeExpected(targetAuthExchange);
 
             if (authCacheKeeper != null) {
                 if (targetAuthRequested) {
@@ -281,6 +287,7 @@ public final class ProtocolExec implements ExecChainHandler {
 
             final boolean proxyAuthRequested = authenticator.isChallenged(
                     proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
+            final boolean proxyMutualAuthRequired = authenticator.isChallengeExpected(proxyAuthExchange);
 
             if (authCacheKeeper != null) {
                 if (proxyAuthRequested) {
@@ -290,7 +297,7 @@ public final class ProtocolExec implements ExecChainHandler {
                 }
             }
 
-            if (targetAuthRequested) {
+            if (targetAuthRequested || targetMutualAuthRequired) {
                 final boolean updated = authenticator.updateAuthState(target, ChallengeType.TARGET, response,
                         targetAuthStrategy, targetAuthExchange, context);
 
@@ -300,7 +307,7 @@ public final class ProtocolExec implements ExecChainHandler {
 
                 return updated;
             }
-            if (proxyAuthRequested) {
+            if (proxyAuthRequested || proxyMutualAuthRequired) {
                 final boolean updated = authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                         proxyAuthStrategy, proxyAuthExchange, context);
 
