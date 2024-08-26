@@ -237,29 +237,28 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
                 .map(e -> {
                     if (e.getValue() == null && e.getParameterCount() == 0) {
                         return e.getName().toLowerCase(Locale.ROOT);
-                    } else {
-                        final CharArrayBuffer buf = new CharArrayBuffer(1024);
-                        BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(
-                                buf,
-                                new BasicNameValuePair(
-                                    e.getName().toLowerCase(Locale.ROOT),
-                                    !TextUtils.isBlank(e.getValue()) ? e.getValue() : null),
-                                false);
-                        if (e.getParameterCount() > 0) {
-                            for (final NameValuePair nvp : e.getParameters()) {
-                                if (!TextUtils.isBlank(nvp.getName())) {
-                                    buf.append(';');
-                                    BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(
-                                            buf,
-                                            new BasicNameValuePair(
-                                                    nvp.getName().toLowerCase(Locale.ROOT),
-                                                    !TextUtils.isBlank(nvp.getValue()) ? nvp.getValue() : null),
-                                            false);
-                                }
+                    }
+                    final CharArrayBuffer buf = new CharArrayBuffer(1024);
+                    BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(
+                            buf,
+                            new BasicNameValuePair(
+                                e.getName().toLowerCase(Locale.ROOT),
+                                !TextUtils.isBlank(e.getValue()) ? e.getValue() : null),
+                            false);
+                    if (e.getParameterCount() > 0) {
+                        for (final NameValuePair nvp : e.getParameters()) {
+                            if (!TextUtils.isBlank(nvp.getName())) {
+                                buf.append(';');
+                                BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(
+                                        buf,
+                                        new BasicNameValuePair(
+                                                nvp.getName().toLowerCase(Locale.ROOT),
+                                                !TextUtils.isBlank(nvp.getValue()) ? nvp.getValue() : null),
+                                        false);
                             }
                         }
-                        return buf.toString();
                     }
+                    return buf.toString();
                 })
                 .sorted()
                 .distinct()
@@ -311,9 +310,8 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
         if (entry.containsHeader(HttpHeaders.VARY)) {
             final List<String> variantNames = variantNames(entry);
             return generateVariantKey(request, variantNames);
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -334,9 +332,8 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
         final List<String> variantNames = variantNames(entry);
         if (variantNames.isEmpty()) {
             return rootKey;
-        } else {
-            return generateVariantKey(request, variantNames) + rootKey;
         }
+        return generateVariantKey(request, variantNames) + rootKey;
     }
 
 }

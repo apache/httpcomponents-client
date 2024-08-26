@@ -60,14 +60,13 @@ public class ClientConnectionConfig {
                                 .setValidateAfterInactivity(TimeValue.ofMinutes(1))
                                 .setTimeToLive(TimeValue.ofHours(1))
                                 .build();
-                    } else {
-                        return ConnectionConfig.custom()
-                                .setConnectTimeout(Timeout.ofMinutes(1))
-                                .setSocketTimeout(Timeout.ofMinutes(1))
-                                .setValidateAfterInactivity(TimeValue.ofSeconds(15))
-                                .setTimeToLive(TimeValue.ofMinutes(15))
-                                .build();
                     }
+                    return ConnectionConfig.custom()
+                            .setConnectTimeout(Timeout.ofMinutes(1))
+                            .setSocketTimeout(Timeout.ofMinutes(1))
+                            .setValidateAfterInactivity(TimeValue.ofSeconds(15))
+                            .setTimeToLive(TimeValue.ofMinutes(15))
+                            .build();
                 })
                 .setTlsConfigResolver(host -> {
                     // Use different settings for specific hosts
@@ -76,9 +75,8 @@ public class ClientConnectionConfig {
                                 .setSupportedProtocols(TLS.V_1_3)
                                 .setHandshakeTimeout(Timeout.ofSeconds(10))
                                 .build();
-                    } else {
-                        return TlsConfig.DEFAULT;
                     }
+                    return TlsConfig.DEFAULT;
                 })
                 .build();
         try (CloseableHttpClient httpclient = HttpClients.custom()

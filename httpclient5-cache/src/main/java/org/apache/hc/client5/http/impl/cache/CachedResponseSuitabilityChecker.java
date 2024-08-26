@@ -176,26 +176,24 @@ class CachedResponseSuitabilityChecker {
             if (stale >= requestCacheControl.getMaxStale()) {
                 LOG.debug("Response from cache is not suitable due to the request max-stale requirement");
                 return CacheSuitability.REVALIDATION_REQUIRED;
-            } else {
-                LOG.debug("The cache entry is fresh enough");
-                return CacheSuitability.FRESH_ENOUGH;
             }
+            LOG.debug("The cache entry is fresh enough");
+            return CacheSuitability.FRESH_ENOUGH;
         }
 
         if (fresh) {
             LOG.debug("The cache entry is fresh");
             return CacheSuitability.FRESH;
-        } else {
-            if (responseCacheControl.getStaleWhileRevalidate() > 0) {
-                final long stale = currentAge.compareTo(freshnessLifetime) > 0 ? currentAge.toSeconds() - freshnessLifetime.toSeconds() : 0;
-                if (stale < responseCacheControl.getStaleWhileRevalidate()) {
-                    LOG.debug("The cache entry is stale but suitable while being revalidated");
-                    return CacheSuitability.STALE_WHILE_REVALIDATED;
-                }
-            }
-            LOG.debug("The cache entry is stale");
-            return CacheSuitability.STALE;
         }
+        if (responseCacheControl.getStaleWhileRevalidate() > 0) {
+            final long stale = currentAge.compareTo(freshnessLifetime) > 0 ? currentAge.toSeconds() - freshnessLifetime.toSeconds() : 0;
+            if (stale < responseCacheControl.getStaleWhileRevalidate()) {
+                LOG.debug("The cache entry is stale but suitable while being revalidated");
+                return CacheSuitability.STALE_WHILE_REVALIDATED;
+            }
+        }
+        LOG.debug("The cache entry is stale");
+        return CacheSuitability.STALE;
     }
 
     boolean requestMethodMatch(final HttpRequest request, final HttpCacheEntry entry) {
@@ -209,9 +207,8 @@ class CachedResponseSuitabilityChecker {
             final URI cacheURI = new URI(entry.getRequestURI());
             if (requestURI.isAbsolute()) {
                 return Objects.equals(requestURI, cacheURI);
-            } else {
-                return Objects.equals(requestURI.getPath(), cacheURI.getPath()) && Objects.equals(requestURI.getQuery(), cacheURI.getQuery());
             }
+            return Objects.equals(requestURI.getPath(), cacheURI.getPath()) && Objects.equals(requestURI.getQuery(), cacheURI.getQuery());
         } catch (final URISyntaxException ex) {
             return false;
         }

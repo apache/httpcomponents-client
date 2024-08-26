@@ -55,9 +55,8 @@ public final class CacheSupport {
         }
         if (locationUri.isAbsolute()) {
             return locationUri;
-        } else {
-            return URIUtils.resolve(requestUri, locationUri);
         }
+        return URIUtils.resolve(requestUri, locationUri);
     }
 
     public static boolean isSameOrigin(final URI requestURI, final URI targetURI) {

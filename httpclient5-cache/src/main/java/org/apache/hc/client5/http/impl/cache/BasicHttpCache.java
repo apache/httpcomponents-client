@@ -164,9 +164,8 @@ class BasicHttpCache implements HttpCache {
                 }
             }
             return new CacheMatch(null, new CacheHit(rootKey, root));
-        } else {
-            return new CacheMatch(new CacheHit(rootKey, root), null);
         }
+        return new CacheMatch(new CacheHit(rootKey, root), null);
     }
 
     @Override
@@ -197,26 +196,25 @@ class BasicHttpCache implements HttpCache {
             }
             storeInternal(rootKey, entry);
             return new CacheHit(rootKey, entry);
-        } else {
-            final String variantCacheKey = variantKey + rootKey;
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Store variant entry in cache: {}", variantCacheKey);
-            }
-
-            storeInternal(variantCacheKey, entry);
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Update root entry: {}", rootKey);
-            }
-
-            updateInternal(rootKey, existing -> {
-                final Set<String> variants = existing != null ? new HashSet<>(existing.getVariants()) : new HashSet<>();
-                variants.add(variantKey);
-                return cacheEntryFactory.createRoot(entry, variants);
-            });
-            return new CacheHit(rootKey, variantCacheKey, entry);
         }
+        final String variantCacheKey = variantKey + rootKey;
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Store variant entry in cache: {}", variantCacheKey);
+        }
+
+        storeInternal(variantCacheKey, entry);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Update root entry: {}", rootKey);
+        }
+
+        updateInternal(rootKey, existing -> {
+            final Set<String> variants = existing != null ? new HashSet<>(existing.getVariants()) : new HashSet<>();
+            variants.add(variantKey);
+            return cacheEntryFactory.createRoot(entry, variants);
+        });
+        return new CacheHit(rootKey, variantCacheKey, entry);
     }
 
     @Override

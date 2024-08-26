@@ -178,11 +178,10 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
         }
         if (this.nonRetriableIOExceptionClasses.contains(exception.getClass())) {
             return false;
-        } else {
-            for (final Class<? extends IOException> rejectException : this.nonRetriableIOExceptionClasses) {
-                if (rejectException.isInstance(exception)) {
-                    return false;
-                }
+        }
+        for (final Class<? extends IOException> rejectException : this.nonRetriableIOExceptionClasses) {
+            if (rejectException.isInstance(exception)) {
+                return false;
             }
         }
         if (request instanceof CancellableDependency && ((CancellableDependency) request).isCancelled()) {

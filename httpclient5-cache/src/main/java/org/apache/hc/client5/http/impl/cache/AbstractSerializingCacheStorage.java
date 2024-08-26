@@ -89,9 +89,8 @@ public abstract class AbstractSerializingCacheStorage<T, CAS> implements HttpCac
         final HttpCacheStorageEntry entry = serializer.deserialize(storageObject);
         if (key.equals(entry.getKey())) {
             return entry.getContent();
-        } else {
-            return null;
         }
+        return null;
     }
 
     @Override

@@ -101,18 +101,16 @@ public class FileResourceFactory implements ResourceFactory {
     public Resource generate(final String requestId, final byte[] content, final int off, final int len) throws ResourceIOException {
         if (content != null) {
             return generate(requestId, null, content, off, len);
-        } else {
-            return generate(requestId, null, null, 0, 0);
         }
+        return generate(requestId, null, null, 0, 0);
     }
 
     @Override
     public Resource generate(final String requestId, final byte[] content) throws ResourceIOException {
         if (content != null) {
             return generate(requestId, null, content, 0, content.length);
-        } else {
-            return generate(requestId, null, null, 0, 0);
         }
+        return generate(requestId, null, null, 0, 0);
     }
 
     /**

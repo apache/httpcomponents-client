@@ -685,10 +685,9 @@ abstract  class TestRedirects extends AbstractIntegrationTestBase {
                                        final HttpContext context) throws HttpException, IOException {
                         if (count.incrementAndGet() == 1) {
                             throw new IOException("Boom");
-                        } else {
-                            response.setCode(200);
-                            response.setEntity(new StringEntity("test"));
                         }
+                        response.setCode(200);
+                        response.setEntity(new StringEntity("test"));
                     }
 
                 }));

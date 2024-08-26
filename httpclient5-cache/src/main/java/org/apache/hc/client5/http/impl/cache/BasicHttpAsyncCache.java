@@ -144,9 +144,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
 
                                     }));
                             return;
-                        } else {
-                            callback.completed(new CacheMatch(null, new CacheHit(rootKey, root)));
                         }
+                        callback.completed(new CacheMatch(null, new CacheHit(rootKey, root)));
                     } else {
                         callback.completed(new CacheMatch(new CacheHit(rootKey, root), null));
                     }
@@ -350,39 +349,38 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
                 }
 
             });
-        } else {
-            final String variantCacheKey = variantKey + rootKey;
+        }
+        final String variantCacheKey = variantKey + rootKey;
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Store variant entry in cache: {}", variantCacheKey);
-            }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Store variant entry in cache: {}", variantCacheKey);
+        }
 
-            return storeInternal(variantCacheKey, entry, new CallbackContribution<Boolean>(callback) {
+        return storeInternal(variantCacheKey, entry, new CallbackContribution<Boolean>(callback) {
 
-                @Override
-                public void completed(final Boolean result) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Update root entry: {}", rootKey);
-                    }
-
-                    updateInternal(rootKey,
-                            existing -> {
-                                final Set<String> variantMap = existing != null ? new HashSet<>(existing.getVariants()) : new HashSet<>();
-                                variantMap.add(variantKey);
-                                return cacheEntryFactory.createRoot(entry, variantMap);
-                            },
-                            new CallbackContribution<Boolean>(callback) {
-
-                                @Override
-                                public void completed(final Boolean result) {
-                                    callback.completed(new CacheHit(rootKey, variantCacheKey, entry));
-                                }
-
-                            });
+            @Override
+            public void completed(final Boolean result) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Update root entry: {}", rootKey);
                 }
 
-            });
-        }
+                updateInternal(rootKey,
+                        existing -> {
+                            final Set<String> variantMap = existing != null ? new HashSet<>(existing.getVariants()) : new HashSet<>();
+                            variantMap.add(variantKey);
+                            return cacheEntryFactory.createRoot(entry, variantMap);
+                        },
+                        new CallbackContribution<Boolean>(callback) {
+
+                            @Override
+                            public void completed(final Boolean result) {
+                                callback.completed(new CacheHit(rootKey, variantCacheKey, entry));
+                            }
+
+                        });
+            }
+
+        });
     }
 
     @Override

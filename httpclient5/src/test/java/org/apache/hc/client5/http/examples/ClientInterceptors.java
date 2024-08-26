@@ -79,9 +79,8 @@ public class ClientInterceptors {
                         final ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_NOT_FOUND, "Oppsie");
                         response.setEntity(new StringEntity("bad luck", ContentType.TEXT_PLAIN));
                         return response;
-                    } else {
-                        return chain.proceed(request, scope);
                     }
+                    return chain.proceed(request, scope);
                 })
                 .build()) {
 

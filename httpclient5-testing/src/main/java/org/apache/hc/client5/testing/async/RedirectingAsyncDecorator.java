@@ -129,11 +129,7 @@ public class RedirectingAsyncDecorator implements AsyncServerExchangeHandler {
 
     @Override
     public int available() {
-        if (!redirecting.get()) {
-            return exchangeHandler.available();
-        } else {
-            return 0;
-        }
+        return redirecting.get() ? 0 : exchangeHandler.available();
     }
 
     @Override

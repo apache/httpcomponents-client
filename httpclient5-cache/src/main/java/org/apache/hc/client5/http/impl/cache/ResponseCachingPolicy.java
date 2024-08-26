@@ -231,12 +231,11 @@ class ResponseCachingPolicy {
     protected boolean isExplicitlyNonCacheable(final ResponseCacheControl cacheControl) {
         if (cacheControl == null) {
             return false;
-        } else {
-            // The response is considered explicitly non-cacheable if it contains
-            // "no-store" or (if sharedCache is true) "private" directives.
-            // Note that "no-cache" is considered cacheable but requires validation before use.
-            return cacheControl.isNoStore() || (sharedCache && cacheControl.isCachePrivate());
         }
+        // The response is considered explicitly non-cacheable if it contains
+        // "no-store" or (if sharedCache is true) "private" directives.
+        // Note that "no-cache" is considered cacheable but requires validation before use.
+        return cacheControl.isNoStore() || (sharedCache && cacheControl.isCachePrivate());
     }
 
     protected boolean isExplicitlyCacheable(final ResponseCacheControl cacheControl, final HttpResponse response) {

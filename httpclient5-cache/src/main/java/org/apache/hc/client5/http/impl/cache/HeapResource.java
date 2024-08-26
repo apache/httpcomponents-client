@@ -62,11 +62,7 @@ public class HeapResource extends Resource {
     @Override
     public long length() {
         final byte[] byteArray = this.arrayRef.get();
-        if (byteArray != null) {
-            return byteArray.length;
-        } else {
-            return -1;
-        }
+        return byteArray != null ? byteArray.length : -1;
     }
 
     @Override

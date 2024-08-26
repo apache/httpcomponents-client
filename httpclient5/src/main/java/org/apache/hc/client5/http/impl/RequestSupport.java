@@ -57,15 +57,14 @@ public final class RequestSupport {
             }
             if (pathSegments.isEmpty()) {
                 return "/";
-            } else {
-                final StringBuilder buf = new StringBuilder();
-                buf.append('/');
-                for (final String pathSegment : pathSegments) {
-                    PercentCodec.encode(buf, pathSegment, StandardCharsets.US_ASCII);
-                    buf.append('/');
-                }
-                return buf.toString();
             }
+            final StringBuilder buf = new StringBuilder();
+            buf.append('/');
+            for (final String pathSegment : pathSegments) {
+                PercentCodec.encode(buf, pathSegment, StandardCharsets.US_ASCII);
+                buf.append('/');
+            }
+            return buf.toString();
         } catch (final URISyntaxException ex) {
             return path;
         }

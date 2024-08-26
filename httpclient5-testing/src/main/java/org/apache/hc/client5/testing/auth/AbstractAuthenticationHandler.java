@@ -69,9 +69,8 @@ abstract class AbstractAuthenticationHandler implements AuthenticationHandler<St
             } catch (final IllegalArgumentException ex) {
                 throw new ProtocolException("Malformed " + getSchemeName() + " credentials");
             }
-        } else {
-            throw new ProtocolException("Unexpected challenge type");
         }
+        throw new ProtocolException("Unexpected challenge type");
     }
 
 }

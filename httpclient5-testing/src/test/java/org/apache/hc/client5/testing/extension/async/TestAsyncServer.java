@@ -93,9 +93,8 @@ public class TestAsyncServer {
     public InetSocketAddress start() throws Exception {
         if (http1Config == null) {
             return server.start(httpProcessor, exchangeHandlerDecorator, h2Config);
-        } else {
-            return server.start(httpProcessor, exchangeHandlerDecorator, http1Config);
         }
+        return server.start(httpProcessor, exchangeHandlerDecorator, http1Config);
     }
 
 }

@@ -54,9 +54,8 @@ final public class InternalCacheStorage {
                         evictionQueue.add(new HttpCacheStorageEntry(eldest.getKey(), eldest.getValue()));
                     }
                     return true;
-                } else {
-                    return false;
                 }
+                return false;
             }
 
         };

@@ -160,9 +160,8 @@ public class AuthenticatingAsyncDecorator implements AsyncServerExchangeHandler 
         final AsyncResponseProducer responseProducer = responseProducerRef.get();
         if (responseProducer == null) {
             return exchangeHandler.available();
-        } else {
-            return responseProducer.available();
         }
+        return responseProducer.available();
     }
 
     @Override

@@ -352,7 +352,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         byte[] ntlm2SessionResponseUserSessionKey;
         byte[] lanManagerSessionKey;
 
-        public CipherGen(final Random random, final long currentTime,
+        CipherGen(final Random random, final long currentTime,
             final String domain, final String user, final char[] password,
             final byte[] challenge, final String target, final byte[] targetInformation,
             final byte[] clientChallenge, final byte[] clientChallenge2,
@@ -372,7 +372,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             this.timestamp = timestamp;
         }
 
-        public CipherGen(final Random random, final long currentTime,
+        CipherGen(final Random random, final long currentTime,
             final String domain,
             final String user,
             final char[] password,
@@ -383,7 +383,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Calculate and return client challenge */
-        public byte[] getClientChallenge() {
+        byte[] getClientChallenge() {
             if (clientChallenge == null) {
                 clientChallenge = makeRandomChallenge(random);
             }
@@ -391,7 +391,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Calculate and return second client challenge */
-        public byte[] getClientChallenge2() {
+        byte[] getClientChallenge2() {
             if (clientChallenge2 == null) {
                 clientChallenge2 = makeRandomChallenge(random);
             }
@@ -399,7 +399,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Calculate and return random secondary key */
-        public byte[] getSecondaryKey() {
+        byte[] getSecondaryKey() {
             if (secondaryKey == null) {
                 secondaryKey = makeSecondaryKey(random);
             }
@@ -407,7 +407,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Calculate and return the LMHash */
-        public byte[] getLMHash()
+        byte[] getLMHash()
             throws NTLMEngineException {
             if (lmHash == null) {
                 lmHash = lmHash(password);
@@ -416,17 +416,16 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Calculate and return the LMResponse */
-        public byte[] getLMResponse()
-            throws NTLMEngineException {
+        byte[] getLMResponse()
+                throws NTLMEngineException {
             if (lmResponse == null) {
-                lmResponse = lmResponse(getLMHash(),challenge);
+                lmResponse = lmResponse(getLMHash(), challenge);
             }
             return lmResponse;
         }
 
         /** Calculate and return the NTLMHash */
-        public byte[] getNTLMHash()
-            throws NTLMEngineException {
+        byte[] getNTLMHash() {
             if (ntlmHash == null) {
                 ntlmHash = ntlmHash(password);
             }
@@ -434,17 +433,16 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Calculate and return the NTLMResponse */
-        public byte[] getNTLMResponse()
-            throws NTLMEngineException {
+        byte[] getNTLMResponse()
+                throws NTLMEngineException {
             if (ntlmResponse == null) {
-                ntlmResponse = lmResponse(getNTLMHash(),challenge);
+                ntlmResponse = lmResponse(getNTLMHash(), challenge);
             }
             return ntlmResponse;
         }
 
         /** Calculate the LMv2 hash */
-        public byte[] getLMv2Hash()
-            throws NTLMEngineException {
+        byte[] getLMv2Hash() {
             if (lmv2Hash == null) {
                 lmv2Hash = lmv2Hash(domain, user, getNTLMHash());
             }
@@ -452,8 +450,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Calculate the NTLMv2 hash */
-        public byte[] getNTLMv2Hash()
-            throws NTLMEngineException {
+        byte[] getNTLMv2Hash() {
             if (ntlmv2Hash == null) {
                 ntlmv2Hash = ntlmv2Hash(domain, user, getNTLMHash());
             }
@@ -461,7 +458,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Calculate a timestamp */
-        public byte[] getTimestamp() {
+        byte[] getTimestamp() {
             if (timestamp == null) {
                 long time = this.currentTime;
                 time += 11644473600000L; // milliseconds from January 1, 1601 -> epoch.
@@ -477,7 +474,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Calculate the NTLMv2Blob */
-        public byte[] getNTLMv2Blob() {
+        byte[] getNTLMv2Blob() {
             if (ntlmv2Blob == null) {
                 ntlmv2Blob = createBlob(getClientChallenge2(), targetInformation, getTimestamp());
             }
@@ -485,34 +482,32 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Calculate the NTLMv2Response */
-        public byte[] getNTLMv2Response()
-            throws NTLMEngineException {
+        byte[] getNTLMv2Response() {
             if (ntlmv2Response == null) {
-                ntlmv2Response = lmv2Response(getNTLMv2Hash(),challenge,getNTLMv2Blob());
+                ntlmv2Response = lmv2Response(getNTLMv2Hash(), challenge, getNTLMv2Blob());
             }
             return ntlmv2Response;
         }
 
         /** Calculate the LMv2Response */
-        public byte[] getLMv2Response()
-            throws NTLMEngineException {
+        byte[] getLMv2Response() {
             if (lmv2Response == null) {
-                lmv2Response = lmv2Response(getLMv2Hash(),challenge,getClientChallenge());
+                lmv2Response = lmv2Response(getLMv2Hash(), challenge, getClientChallenge());
             }
             return lmv2Response;
         }
 
         /** Get NTLM2SessionResponse */
-        public byte[] getNTLM2SessionResponse()
-            throws NTLMEngineException {
+        byte[] getNTLM2SessionResponse()
+                throws NTLMEngineException {
             if (ntlm2SessionResponse == null) {
-                ntlm2SessionResponse = ntlm2SessionResponse(getNTLMHash(),challenge,getClientChallenge());
+                ntlm2SessionResponse = ntlm2SessionResponse(getNTLMHash(), challenge, getClientChallenge());
             }
             return ntlm2SessionResponse;
         }
 
         /** Calculate and return LM2 session response */
-        public byte[] getLM2SessionResponse() {
+        byte[] getLM2SessionResponse() {
             if (lm2SessionResponse == null) {
                 final byte[] clntChallenge = getClientChallenge();
                 lm2SessionResponse = new byte[24];
@@ -523,7 +518,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Get LMUserSessionKey */
-        public byte[] getLMUserSessionKey()
+        byte[] getLMUserSessionKey()
             throws NTLMEngineException {
             if (lmUserSessionKey == null) {
                 lmUserSessionKey = new byte[16];
@@ -534,8 +529,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Get NTLMUserSessionKey */
-        public byte[] getNTLMUserSessionKey()
-            throws NTLMEngineException {
+        byte[] getNTLMUserSessionKey() {
             if (ntlmUserSessionKey == null) {
                 final MD4 md4 = new MD4();
                 md4.update(getNTLMHash());
@@ -545,8 +539,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** GetNTLMv2UserSessionKey */
-        public byte[] getNTLMv2UserSessionKey()
-            throws NTLMEngineException {
+        byte[] getNTLMv2UserSessionKey() {
             if (ntlmv2UserSessionKey == null) {
                 final byte[] ntlmv2hash = getNTLMv2Hash();
                 final byte[] truncatedResponse = new byte[16];
@@ -557,8 +550,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Get NTLM2SessionResponseUserSessionKey */
-        public byte[] getNTLM2SessionResponseUserSessionKey()
-            throws NTLMEngineException {
+        byte[] getNTLM2SessionResponseUserSessionKey() {
             if (ntlm2SessionResponseUserSessionKey == null) {
                 final byte[] ntlm2SessionResponseNonce = getLM2SessionResponse();
                 final byte[] sessionNonce = new byte[challenge.length + ntlm2SessionResponseNonce.length];
@@ -570,7 +562,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         /** Get LAN Manager session key */
-        public byte[] getLanManagerSessionKey()
+        byte[] getLanManagerSessionKey()
             throws NTLMEngineException {
             if (lanManagerSessionKey == null) {
                 try {
@@ -689,7 +681,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      * @return The NTLM Hash of the given password, used in the calculation of
      *         the NTLM Response and the NTLMv2 and LMv2 Hashes.
      */
-    private static byte[] ntlmHash(final char[] password) throws NTLMEngineException {
+    private static byte[] ntlmHash(final char[] password) {
         final byte[] unicodePassword = new ByteArrayBuilder()
                 .charset(UNICODE_LITTLE_UNMARKED).append(password).toByteArray();
         final MD4 md4 = new MD4();
@@ -703,8 +695,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      * @return The LMv2 Hash, used in the calculation of the NTLMv2 and LMv2
      *         Responses.
      */
-    private static byte[] lmv2Hash(final String domain, final String user, final byte[] ntlmHash)
-            throws NTLMEngineException {
+    private static byte[] lmv2Hash(final String domain, final String user, final byte[] ntlmHash) {
         final HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
         // Upper case username, upper case domain!
         hmacMD5.update(user.toUpperCase(Locale.ROOT).getBytes(UNICODE_LITTLE_UNMARKED));
@@ -720,8 +711,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      * @return The NTLMv2 Hash, used in the calculation of the NTLMv2 and LMv2
      *         Responses.
      */
-    private static byte[] ntlmv2Hash(final String domain, final String user, final byte[] ntlmHash)
-            throws NTLMEngineException {
+    private static byte[] ntlmv2Hash(final String domain, final String user, final byte[] ntlmHash) {
         final HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
         // Upper case username, mixed case target!!
         hmacMD5.update(user.toUpperCase(Locale.ROOT).getBytes(UNICODE_LITTLE_UNMARKED));
@@ -835,13 +825,13 @@ final class NTLMEngineImpl implements NTLMEngine {
             rc4 = initCipher();
         }
 
-        public byte[] getSigningKey()
+        byte[] getSigningKey()
         {
             return signingKey;
         }
 
 
-        public byte[] getSealingKey()
+        byte[] getSealingKey()
         {
             return sealingKey;
         }
@@ -929,7 +919,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             return MessageDigest.isEqual( signature, computedSignature );
         }
 
-        public byte[] signAndEncryptMessage( final byte[] cleartextMessage ) throws NTLMEngineException
+        byte[] signAndEncryptMessage( final byte[] cleartextMessage ) throws NTLMEngineException
         {
             final byte[] encryptedMessage = encrypt( cleartextMessage );
             final byte[] signature = computeSignature( cleartextMessage );
@@ -940,7 +930,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             return outMessage;
         }
 
-        public byte[] decryptAndVerifySignedMessage( final byte[] inMessage ) throws NTLMEngineException
+        byte[] decryptAndVerifySignedMessage( final byte[] inMessage ) throws NTLMEngineException
         {
             final byte[] signature = new byte[16];
             System.arraycopy( inMessage, 0, signature, 0, signature.length );
@@ -1060,7 +1050,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      * @param flags is the flags.
      * @return the character set.
      */
-    private static Charset getCharset(final int flags) throws NTLMEngineException
+    private static Charset getCharset(final int flags)
     {
         if ((flags & FLAG_REQUEST_UNICODE_ENCODING) == 0) {
             return DEFAULT_CHARSET;
@@ -1217,11 +1207,11 @@ final class NTLMEngineImpl implements NTLMEngine {
          *
          * @return The response as above.
          */
-        public String getResponse() {
+        String getResponse() {
             return new String(Base64.encodeBase64(getBytes()), StandardCharsets.US_ASCII);
         }
 
-        public byte[] getBytes() {
+        byte[] getBytes() {
             if (messageContents == null) {
                 buildMessage();
             }
@@ -1616,11 +1606,11 @@ final class NTLMEngineImpl implements NTLMEngine {
             userBytes = user.getBytes(charset);
         }
 
-        public byte[] getEncryptedRandomSessionKey() {
+        byte[] getEncryptedRandomSessionKey() {
             return sessionKey;
         }
 
-        public byte[] getExportedSessionKey() {
+        byte[] getExportedSessionKey() {
             return exportedSessionKey;
         }
 

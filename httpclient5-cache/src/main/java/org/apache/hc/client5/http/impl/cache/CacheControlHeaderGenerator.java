@@ -92,9 +92,8 @@ class CacheControlHeaderGenerator {
                 BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(buf, params.get(i), false);
             }
             return BufferedHeader.create(buf);
-        } else {
-            return null;
         }
+        return null;
     }
 
     public void generate(final RequestCacheControl cacheControl, final HttpMessage message) {

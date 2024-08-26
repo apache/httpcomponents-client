@@ -234,6 +234,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public EndpointInfo getEndpointInfo() {
         final Endpoint endpoint = sessionRef.get();
         if (endpoint != null && endpoint.session.isOpen()) {

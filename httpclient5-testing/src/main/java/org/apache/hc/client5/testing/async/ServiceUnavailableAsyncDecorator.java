@@ -109,11 +109,7 @@ public class ServiceUnavailableAsyncDecorator implements AsyncServerExchangeHand
 
     @Override
     public int available() {
-        if (!serviceUnavailable.get()) {
-            return exchangeHandler.available();
-        } else {
-            return 0;
-        }
+        return serviceUnavailable.get() ? 0 : exchangeHandler.available();
     }
 
     @Override

@@ -88,11 +88,7 @@ public final class MockConnPoolControl implements ConnPoolControl<HttpRoute> {
     @Override
     public int getMaxPerRoute(final HttpRoute route) {
         final Integer max = this.maxPerHostMap.get(route);
-        if (max != null) {
-            return max;
-        } else {
-            return this.defaultMax;
-        }
+        return max != null ? max : this.defaultMax;
     }
 
     @Override

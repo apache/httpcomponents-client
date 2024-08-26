@@ -534,12 +534,11 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                         exchangeId, asyncExecCallback, backendResponse, entityDetails);
                 cachingConsumerRef.set(cachingDataConsumer);
                 return cachingDataConsumer;
-            } else {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("{} backend response is not cacheable", exchangeId);
-                }
-                return asyncExecCallback.handleResponse(backendResponse, entityDetails);
             }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} backend response is not cacheable", exchangeId);
+            }
+            return asyncExecCallback.handleResponse(backendResponse, entityDetails);
         }
 
         @Override
@@ -1079,10 +1078,9 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                         LOG.debug("{} serving stale response due to {} status and stale-if-error enabled", exchangeId, status);
                     }
                     return null;
-                } else {
-                    committed.set(response);
-                    return asyncExecCallback.handleResponse(response, entityDetails);
                 }
+                committed.set(response);
+                return asyncExecCallback.handleResponse(response, entityDetails);
             }
 
             @Override

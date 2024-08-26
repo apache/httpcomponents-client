@@ -267,6 +267,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         });
     }
 
+    @Override
     public EndpointInfo getEndpointInfo() {
         final AsyncConnectionEndpoint endpoint = endpointRef.get();
         return endpoint != null ? endpoint.getInfo() : null;

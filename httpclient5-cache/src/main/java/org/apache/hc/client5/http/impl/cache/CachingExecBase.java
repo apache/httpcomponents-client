@@ -114,9 +114,8 @@ public class CachingExecBase {
             final Instant now) throws ResourceIOException {
         if (shouldSendNotModifiedResponse(request, entry, now)) {
             return responseGenerator.generateNotModifiedResponse(entry);
-        } else {
-            return responseGenerator.generateResponse(request, entry);
         }
+        return responseGenerator.generateResponse(request, entry);
     }
 
     SimpleHttpResponse generateGatewayTimeout() {

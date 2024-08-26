@@ -131,9 +131,8 @@ class CacheValidityPolicy {
                 LOG.debug("No explicit expiration time present in the response. Using heuristic freshness lifetime calculation.");
             }
             return getHeuristicFreshnessLifetime(entry);
-        } else {
-            return TimeValue.ZERO_MILLISECONDS;
         }
+        return TimeValue.ZERO_MILLISECONDS;
     }
 
     TimeValue getHeuristicFreshnessLifetime(final HttpCacheEntry entry) {
