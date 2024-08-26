@@ -175,7 +175,8 @@ public class ProxyClient {
             if (status < 200) {
                 throw new HttpException("Unexpected response to CONNECT request: " + response);
             }
-            if (this.authenticator.isChallenged(proxy, ChallengeType.PROXY, response, this.proxyAuthExchange, context)) {
+            if (this.authenticator.isChallenged(proxy, ChallengeType.PROXY, response, this.proxyAuthExchange, context)
+                    || authenticator.isChallengeExpected(proxyAuthExchange)) {
                 if (this.authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                         this.proxyAuthStrategy, this.proxyAuthExchange, context)) {
                     // Retry request

@@ -86,6 +86,10 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * containing the terminal authorization response, the scheme is considered unsuccessful
  * and in FAILED state.
  * </p>
+ * <p>
+ * This interface cannot correctly handle some authentication methods, like SPENGO.
+ * See {@link AuthSchemeV2} for a more capable interface.
+ * </p>
  *
  * @since 4.0
  */
@@ -127,6 +131,9 @@ public interface AuthScheme {
      * This method tests if the authorization process has been fully completed (either
      * successfully or unsuccessfully), that is, all the required authorization
      * challenges have been processed in their entirety.
+     *
+     * Note that due to some assumptions made about the control flow by the authentication code
+     * returning true will immediately cause the authentication process to fail.
      *
      * @return {@code true} if the authentication process has been completed,
      * {@code false} otherwise.

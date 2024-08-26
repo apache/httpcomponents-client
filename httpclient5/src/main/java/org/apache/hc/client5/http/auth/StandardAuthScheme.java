@@ -66,20 +66,12 @@ public final class StandardAuthScheme {
 
     /**
      * SPNEGO authentication scheme as defined in RFC 4559 and RFC 4178.
-     *
-     * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
-     * supported. Consider using Basic or Bearer authentication with TLS instead.
      */
-    @Deprecated
     public static final String SPNEGO = "Negotiate";
 
     /**
      * Kerberos authentication scheme as defined in RFC 4120.
-     *
-     * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
-     * supported. Consider using Basic or Bearer authentication with TLS instead.
      */
-    @Deprecated
     public static final String KERBEROS = "Kerberos";
 
 }

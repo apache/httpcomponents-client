@@ -253,6 +253,7 @@ public final class ConnectExec implements ExecChainHandler {
 
             if (config.isAuthenticationEnabled()) {
                 final boolean proxyAuthRequested = authenticator.isChallenged(proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
+                final boolean proxyMutualAuthRequired = authenticator.isChallengeExpected(proxyAuthExchange);
 
                 if (authCacheKeeper != null) {
                     if (proxyAuthRequested) {
@@ -262,7 +263,7 @@ public final class ConnectExec implements ExecChainHandler {
                     }
                 }
 
-                if (proxyAuthRequested) {
+                if (proxyAuthRequested || proxyMutualAuthRequired) {
                     final boolean updated = authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                             proxyAuthStrategy, proxyAuthExchange, context);
 
