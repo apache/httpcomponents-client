@@ -41,14 +41,7 @@ import org.ietf.jgss.Oid;
  * </p>
  *
  * @since 4.2
- *
- * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
- * supported. Consider using Basic or Bearer authentication with TLS instead.
- *
- * @see BasicScheme
- * @see BearerScheme
  */
-@Deprecated
 @Experimental
 public class SPNegoScheme extends GGSSchemeBase {
 
