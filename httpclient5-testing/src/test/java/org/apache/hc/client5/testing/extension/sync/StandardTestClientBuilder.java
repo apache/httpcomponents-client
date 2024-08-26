@@ -33,6 +33,7 @@ import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -147,6 +148,12 @@ final class StandardTestClientBuilder implements TestClientBuilder {
     @Override
     public TestClientBuilder addExecInterceptorLast(final String name, final ExecChainHandler interceptor) {
         this.clientBuilder.addExecInterceptorLast(name, interceptor);
+        return this;
+    }
+
+    @Override
+    public TestClientBuilder setDefaultCredentialsProvider(final CredentialsProvider credentialsProvider) {
+        this.clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
         return this;
     }
 

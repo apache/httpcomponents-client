@@ -38,6 +38,9 @@ import org.apache.hc.core5.util.Args;
  */
 public class AuthExchange {
 
+    // This only tracks the server state. In particular, even if the state is SUCCESS,
+    // the authentication may still fail if the challenge sent with a response cannot
+    // be validated locally in case of a mutual authentication.
     public enum State {
 
         UNCHALLENGED, CHALLENGED, HANDSHAKE, FAILURE, SUCCESS

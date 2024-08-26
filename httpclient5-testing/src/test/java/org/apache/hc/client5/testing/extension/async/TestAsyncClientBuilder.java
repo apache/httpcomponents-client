@@ -33,6 +33,7 @@ import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
@@ -102,6 +103,10 @@ public interface TestAsyncClientBuilder {
     }
 
     default TestAsyncClientBuilder setDefaultAuthSchemeRegistry(Lookup<AuthSchemeFactory> authSchemeRegistry) {
+        throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
+    }
+
+    default TestAsyncClientBuilder setDefaultCredentialsProvider(CredentialsProvider credentialsProvider) {
         throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
     }
 
