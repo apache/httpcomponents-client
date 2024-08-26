@@ -68,11 +68,7 @@ class RequestEntityProxy implements HttpEntity  {
 
     @Override
     public boolean isRepeatable() {
-        if (!consumed) {
-            return true;
-        } else {
-            return original.isRepeatable();
-        }
+        return consumed && original.isRepeatable();
     }
 
     @Override

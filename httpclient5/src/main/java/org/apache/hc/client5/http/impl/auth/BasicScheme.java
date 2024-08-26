@@ -232,9 +232,8 @@ public class BasicScheme implements AuthScheme, StateHolder<BasicScheme.State>, 
     public State store() {
         if (complete) {
             return new State(new HashMap<>(paramMap), credentials);
-        } else {
-            return null;
         }
+        return null;
     }
 
     @Override

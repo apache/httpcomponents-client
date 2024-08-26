@@ -202,7 +202,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
      * @return this instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder setDefaultSocketConfig(final SocketConfig config) {
-        this.socketConfigResolver = (route) -> config;
+        this.socketConfigResolver = route -> config;
         return this;
     }
 
@@ -225,7 +225,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
      * @since 5.2
      */
     public final PoolingHttpClientConnectionManagerBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
-        this.connectionConfigResolver = (route) -> config;
+        this.connectionConfigResolver = route -> config;
         return this;
     }
 
@@ -248,7 +248,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
      * @since 5.2
      */
     public final PoolingHttpClientConnectionManagerBuilder setDefaultTlsConfig(final TlsConfig config) {
-        this.tlsConfigResolver = (host) -> config;
+        this.tlsConfigResolver = host -> config;
         return this;
     }
 

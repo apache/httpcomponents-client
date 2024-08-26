@@ -65,10 +65,20 @@ public final class SimpleBody {
         return new SimpleBody(body, null, contentType);
     }
 
+    /**
+     * Gets the content type.
+     *
+     * @return the content type.
+     */
     public ContentType getContentType() {
         return contentType;
     }
 
+    /**
+     * Gets the body as a byte array.
+     *
+     * @return the body as a byte array.
+     */
     public byte[] getBodyBytes() {
         if (bodyAsBytes != null) {
             return bodyAsBytes;
@@ -80,19 +90,33 @@ public final class SimpleBody {
         }
     }
 
+    /**
+     * Gets the body as a String.
+     *
+     * @return the body as a String.
+     */
     public String getBodyText() {
         if (bodyAsBytes != null) {
             final Charset charset = (contentType != null ? contentType : ContentType.DEFAULT_TEXT).getCharset();
             return new String(bodyAsBytes, charset != null ? charset : StandardCharsets.US_ASCII);
-        } else {
-            return bodyAsText;
         }
+        return bodyAsText;
     }
 
+    /**
+     * Tests whether the body is currently cached as a String.
+     *
+     * @return whether the body is currently cached as a String.
+     */
     public boolean isText() {
         return bodyAsText != null;
     }
 
+    /**
+     * Tests whether the body is currently cached as a byte array.
+     *
+     * @return whether the body is currently cached as a byte array.
+     */
     public boolean isBytes() {
         return bodyAsBytes != null;
     }

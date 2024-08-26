@@ -72,6 +72,8 @@ public interface AsyncExecChainHandler {
      * @param scope the execution scope .
      * @param chain the next element in the request execution chain.
      * @param asyncExecCallback the execution callback.
+     * @throws HttpException If a protocol error occurs.
+     * @throws IOException   If an I/O error occurs.
      */
     void execute(
             HttpRequest request,

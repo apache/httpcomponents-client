@@ -45,21 +45,47 @@ public class ConfigurableHttpRequest extends BasicHttpRequest implements Configu
     private static final long serialVersionUID = 1L;
     private RequestConfig requestConfig;
 
+    /**
+     * Constructs a new request message with the given method and request path.
+     *
+     * @param method request method.
+     * @param path request path.
+     */
     public ConfigurableHttpRequest(final String method, final String path) {
         super(method, path);
     }
 
+    /**
+     * Constructs a new request message with the given method, host, and request path.
+     *
+     * @param method request method.
+     * @param host request host.
+     * @param path request path.
+     */
     public ConfigurableHttpRequest(final String method, final HttpHost host, final String path) {
         super(method, host, path);
     }
 
     /**
+     * Constructs a new request message with the given method, scheme, authority, and request path.
+     *
+     * @param method request method.
+     * @param scheme request host.
+     * @param authority request URI authority.
+     * @param path request path.
      * @since 5.1
      */
     public ConfigurableHttpRequest(final String method, final String scheme, final URIAuthority authority, final String path) {
         super(method, scheme, authority, path);
     }
 
+    /**
+     * Constructs a new request message with the given method, and request URI.
+     *
+     * @param method request method.
+     * @param requestUri request URI.
+     * @since 5.1
+     */
     public ConfigurableHttpRequest(final String method, final URI requestUri) {
         super(method, requestUri);
     }
@@ -69,6 +95,11 @@ public class ConfigurableHttpRequest extends BasicHttpRequest implements Configu
         return requestConfig;
     }
 
+    /**
+     * Sets the request configuration.
+     *
+     * @param requestConfig the request configuration.
+     */
     public void setConfig(final RequestConfig requestConfig) {
         this.requestConfig = requestConfig;
     }

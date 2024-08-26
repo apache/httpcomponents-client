@@ -141,9 +141,8 @@ public abstract class GGSSchemeBase implements AuthScheme {
         final GSSContext gssContext = createGSSContext(manager, oid, serverName, gssCredential);
         if (input != null) {
             return gssContext.initSecContext(input, 0, input.length);
-        } else {
-            return gssContext.initSecContext(new byte[] {}, 0, 0);
         }
+        return gssContext.initSecContext(new byte[] {}, 0, 0);
     }
 
     /**

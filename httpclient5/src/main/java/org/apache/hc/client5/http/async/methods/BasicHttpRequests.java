@@ -65,125 +65,280 @@ public final class BasicHttpRequests {
         return create(Method.normalizedValueOf(method), uri);
     }
 
+    /**
+     * Creates a new DELETE {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest delete(final String uri) {
         return delete(URI.create(uri));
     }
 
+    /**
+     * Creates a new DELETE {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest delete(final URI uri) {
         return create(Method.DELETE, uri);
     }
 
+    /**
+     * Creates a new DELETE {@link BasicHttpRequest}.
+     *
+     * @param host HTTP host.
+     * @param path request path.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest delete(final HttpHost host, final String path) {
         return create(Method.DELETE, host, path);
     }
 
+    /**
+     * Creates a new GET {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest get(final String uri) {
         return get(URI.create(uri));
     }
 
+    /**
+     * Creates a new GET {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest get(final URI uri) {
         return create(Method.GET, uri);
     }
 
+    /**
+     * Creates a new HEAD {@link BasicHttpRequest}.
+     *
+     * @param host HTTP host.
+     * @param path request path.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest get(final HttpHost host, final String path) {
         return create(Method.GET, host, path);
     }
 
+    /**
+     * Creates a new HEAD {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest head(final String uri) {
         return head(URI.create(uri));
     }
 
+    /**
+     * Creates a new HEAD {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest head(final URI uri) {
         return create(Method.HEAD, uri);
     }
 
+    /**
+     * Creates a new HEAD {@link BasicHttpRequest}.
+     *
+     * @param host HTTP host.
+     * @param path request path.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest head(final HttpHost host, final String path) {
         return create(Method.HEAD, host, path);
     }
 
+    /**
+     * Creates a new OPTIONS {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest options(final String uri) {
         return options(URI.create(uri));
     }
 
+    /**
+     * Creates a new OPTIONS {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest options(final URI uri) {
         return create(Method.OPTIONS, uri);
     }
 
+    /**
+     * Creates a new OPTIONS {@link BasicHttpRequest}.
+     *
+     * @param host HTTP host.
+     * @param path request path.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest options(final HttpHost host, final String path) {
         return create(Method.OPTIONS, host, path);
     }
 
+    /**
+     * Creates a new PATCH {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest patch(final String uri) {
         return patch(URI.create(uri));
     }
 
+    /**
+     * Creates a new PATCH {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest patch(final URI uri) {
         return create(Method.PATCH, uri);
     }
 
+    /**
+     * Creates a new PATCH {@link BasicHttpRequest}.
+     *
+     * @param host HTTP host.
+     * @param path request path.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest patch(final HttpHost host, final String path) {
         return create(Method.PATCH, host, path);
     }
 
+    /**
+     * Creates a new POST {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest post(final String uri) {
         return post(URI.create(uri));
     }
 
+    /**
+     * Creates a new POST {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest post(final URI uri) {
         return create(Method.POST, uri);
     }
 
+    /**
+     * Creates a new POST {@link BasicHttpRequest}.
+     *
+     * @param host HTTP host.
+     * @param path request path.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest post(final HttpHost host, final String path) {
         return create(Method.POST, host, path);
     }
 
+    /**
+     * Creates a new PUT {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest put(final String uri) {
         return put(URI.create(uri));
     }
 
+    /**
+     * Creates a new PUT {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest put(final URI uri) {
         return create(Method.PUT, uri);
     }
 
+    /**
+     * Creates a new PUT {@link BasicHttpRequest}.
+     *
+     * @param host HTTP host.
+     * @param path request path.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest put(final HttpHost host, final String path) {
         return create(Method.PUT, host, path);
     }
 
+    /**
+     * Creates a new TRACE {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest trace(final String uri) {
         return trace(URI.create(uri));
     }
 
+    /**
+     * Creates a new TRACE {@link BasicHttpRequest}.
+     *
+     * @param uri a non-null URI.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest trace(final URI uri) {
         return create(Method.TRACE, uri);
     }
 
+    /**
+     * Creates a new TRACE {@link BasicHttpRequest}.
+     *
+     * @param host HTTP host.
+     * @param path request path.
+     * @return a new BasicHttpRequest
+     */
     public static BasicHttpRequest trace(final HttpHost host, final String path) {
         return create(Method.TRACE, host, path);
     }
 
     /**
-     * Creates a request object of the exact subclass of {@link BasicHttpRequest}.
+     * Creates a new {@link BasicHttpRequest}.
      *
+     * @param method a non-null HTTP method.
      * @param uri a non-null URI String.
-     * @return a new subclass of BasicHttpRequest
+     * @return a new BasicHttpRequest
      */
     public static BasicHttpRequest create(final Method method, final String uri) {
         return create(method, URI.create(uri));
     }
 
     /**
-     * Creates a request object of the exact subclass of {@link BasicHttpRequest}.
+     * Creates a new {@link BasicHttpRequest}.
      *
+     * @param method a non-null HTTP method.
      * @param uri a non-null URI.
-     * @return a new subclass of BasicHttpRequest
+     * @return a new BasicHttpRequest
      */
     public static BasicHttpRequest create(final Method method, final URI uri) {
         return new BasicHttpRequest(method, uri);
     }
 
     /**
-     * Creates a request object of the exact subclass of {@link BasicHttpRequest}.
+     * Creates a new {@link BasicHttpRequest}.
      *
+     * @param method a non-null HTTP method.
      * @param host HTTP host.
      * @param path request path.
      * @return a new subclass of BasicHttpRequest

@@ -169,9 +169,8 @@ public class HttpClientContext extends HttpCoreContext {
         }
         if (context instanceof HttpClientContext) {
             return (HttpClientContext) context;
-        } else {
-            return new Delegate(context);
         }
+        return new Delegate(context);
     }
 
     /**

@@ -164,7 +164,7 @@ public final class SimpleHttpRequests {
      * Creates a request object of the exact subclass of {@link SimpleHttpRequest}.
      *
      * @param uri a non-null URI String.
-     * @return a new subclass of SimpleHttpRequest
+     * @return a new SimpleHttpRequest.
      */
     public static SimpleHttpRequest create(final Method method, final String uri) {
         return create(method, URI.create(uri));
@@ -173,8 +173,9 @@ public final class SimpleHttpRequests {
     /**
      * Creates a request object of the exact subclass of {@link SimpleHttpRequest}.
      *
+     * @param method a non-null HTTP method.
      * @param uri a non-null URI.
-     * @return a new subclass of SimpleHttpRequest
+     * @return a new SimpleHttpRequest.
      */
     public static SimpleHttpRequest create(final Method method, final URI uri) {
         return new SimpleHttpRequest(method, uri);
@@ -183,9 +184,10 @@ public final class SimpleHttpRequests {
     /**
      * Creates a request object of the exact subclass of {@link SimpleHttpRequest}.
      *
+     * @param method a non-null HTTP method.
      * @param host HTTP host.
      * @param path request path.
-     * @return a new subclass of SimpleHttpRequest
+     * @return a new SimpleHttpRequest.
      */
     public static SimpleHttpRequest create(final Method method, final HttpHost host, final String path) {
         return new SimpleHttpRequest(method, host, path);

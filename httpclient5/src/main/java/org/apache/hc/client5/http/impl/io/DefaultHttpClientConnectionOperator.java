@@ -253,10 +253,9 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                         LOG.debug("{} connection to {} failed ({}); terminating operation", endpointHost, remoteAddress, ex.getClass());
                     }
                     throw ConnectExceptionSupport.enhance(ex, endpointHost, remoteAddresses);
-                } else {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("{} connection to {} failed ({}); retrying connection to the next address", endpointHost, remoteAddress, ex.getClass());
-                    }
+                }
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} connection to {} failed ({}); retrying connection to the next address", endpointHost, remoteAddress, ex.getClass());
                 }
             }
         }

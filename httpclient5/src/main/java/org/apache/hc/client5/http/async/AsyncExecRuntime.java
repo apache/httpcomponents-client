@@ -135,7 +135,9 @@ public interface AsyncExecRuntime {
     }
 
     /**
-     * Returns information about the underlying endpoint when connected or {@code null} otherwise.
+     * Gets information about the underlying endpoint when connected or {@code null} otherwise.
+     *
+     * @return the underlying endpoint or {@code null}
      */
     default EndpointInfo getEndpointInfo() {
         return null;

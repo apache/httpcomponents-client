@@ -167,9 +167,8 @@ public class BearerScheme implements AuthScheme, StateHolder<BearerScheme.State>
     public State store() {
         if (complete) {
             return new State(new HashMap<>(paramMap), bearerToken);
-        } else {
-            return null;
         }
+        return null;
     }
 
     @Override

@@ -49,6 +49,8 @@ public interface AsyncExecCallback {
      * @param entityDetails the response entity details or {@code null} if the response
      *                      does not enclose an entity.
      * @return the data consumer to be used for processing of incoming response message body.
+     * @throws HttpException If a protocol error occurs.
+     * @throws IOException   If an I/O error occurs.
      */
     AsyncDataConsumer handleResponse(
             HttpResponse response,
@@ -58,6 +60,8 @@ public interface AsyncExecCallback {
      * Triggered to signal receipt of an intermediate response message.
      *
      * @param response the intermediate response message.
+     * @throws HttpException If a protocol error occurs.
+     * @throws IOException   If an I/O error occurs.
      */
     void handleInformationResponse(HttpResponse response) throws HttpException, IOException;
 

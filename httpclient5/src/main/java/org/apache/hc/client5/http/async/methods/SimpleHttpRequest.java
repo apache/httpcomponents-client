@@ -58,6 +58,11 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
     private SimpleBody body;
 
     /**
+     * Creates a new request message with the given method and request path.
+     *
+     * @param method request method.
+     * @param uri request URI.
+     * @return a new SimpleHttpRequest.
      * @since 5.1
      */
     public static SimpleHttpRequest create(final String method, final String uri) {
@@ -65,6 +70,11 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
     }
 
     /**
+     * Creates a new request message with the given method and request path.
+     *
+     * @param method request method.
+     * @param uri request URI.
+     * @return a new SimpleHttpRequest.
      * @since 5.1
      */
     public static SimpleHttpRequest create(final String method, final URI uri) {
@@ -72,6 +82,11 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
     }
 
     /**
+     * Creates a new request message with the given method and request path.
+     *
+     * @param method request method.
+     * @param uri request URI.
+     * @return a new SimpleHttpRequest.
      * @since 5.1
      */
     public static SimpleHttpRequest create(final Method method, final URI uri) {
@@ -79,6 +94,12 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
     }
 
     /**
+     * Creates a new request message with the given method, host, and request path.
+     *
+     * @param method request method.
+     * @param host request host.
+     * @param path request path.
+     * @return a new SimpleHttpRequest.
      * @since 5.1
      */
     public static SimpleHttpRequest create(final Method method, final HttpHost host, final String path) {
@@ -86,6 +107,13 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
     }
 
     /**
+     * Creates a new request message with the given method, scheme, authority, and request path.
+     *
+     * @param method request method.
+     * @param scheme request host.
+     * @param authority request URI authority.
+     * @param path request path.
+     * @return a new SimpleHttpRequest.
      * @since 5.1
      */
     public static SimpleHttpRequest create(final String method, final String scheme, final URIAuthority authority, final String path) {
@@ -93,6 +121,10 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
     }
 
     /**
+     * Copies the given HttpRequest.
+     *
+     * @param original the source to copy.
+     * @return a new SimpleHttpRequest.
      * @deprecated Use {@link SimpleRequestBuilder}
      */
     @Deprecated
@@ -108,19 +140,43 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
         return copy;
     }
 
+    /**
+     * Constructs a new request message with the given method and request path.
+     *
+     * @param method request method.
+     * @param path request path.
+     */
     public SimpleHttpRequest(final String method, final String path) {
         super(method, path);
     }
 
+    /**
+     * Constructs a new request message with the given method, host, and request path.
+     *
+     * @param method request method.
+     * @param host request host.
+     * @param path request path.
+     */
     public SimpleHttpRequest(final String method, final HttpHost host, final String path) {
         super(method, host, path);
     }
 
+    /**
+     * Constructs a new request message with the given method, and request URI.
+     *
+     * @param method request method.
+     * @param requestUri request URI.
+     * @since 5.1
+     */
     public SimpleHttpRequest(final String method, final URI requestUri) {
         super(method, requestUri);
     }
 
     /**
+     * Constructs a new request message with the given method, and request URI.
+     *
+     * @param method request method.
+     * @param requestUri request URI.
      * @since 5.1
      */
     public SimpleHttpRequest(final Method method, final URI requestUri) {
@@ -128,6 +184,11 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
     }
 
     /**
+     * Constructs a new request message with the given method, host, and request path.
+     *
+     * @param method request method.
+     * @param host request host.
+     * @param path request path.
      * @since 5.1
      */
     public SimpleHttpRequest(final Method method, final HttpHost host, final String path) {
@@ -135,36 +196,79 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
     }
 
     /**
+     * Constructs a new request message with the given method, scheme, authority, and request path.
+     *
+     * @param method request method.
+     * @param scheme request host.
+     * @param authority request URI authority.
+     * @param path request path.
      * @since 5.1
      */
     public SimpleHttpRequest(final String method, final String scheme, final URIAuthority authority, final String path) {
         super(method, scheme, authority, path);
     }
 
+    /**
+     * Sets the message body and content type.
+     *
+     * @param body request body.
+     */
     public void setBody(final SimpleBody body) {
         this.body = body;
     }
 
+    /**
+     * Sets the message body and content type.
+     *
+     * @param bodyBytes request body.
+     * @param contentType request content type.
+     */
     public void setBody(final byte[] bodyBytes, final ContentType contentType) {
         this.body = SimpleBody.create(bodyBytes, contentType);
     }
 
+    /**
+     * Sets the message body and content type.
+     *
+     * @param bodyText request body.
+     * @param contentType request content type.
+     */
     public void setBody(final String bodyText, final ContentType contentType) {
         this.body = SimpleBody.create(bodyText, contentType);
     }
 
+    /**
+     * Gets the request body.
+     *
+     * @return the request body.
+     */
     public SimpleBody getBody() {
         return body;
     }
 
+    /**
+     * Gets the request content type.
+     *
+     * @return the request content type.
+     */
     public ContentType getContentType() {
         return body != null ? body.getContentType() : null;
     }
 
+    /**
+     * Gets the request body as a String.
+     *
+     * @return the request body.
+     */
     public String getBodyText() {
         return body != null ? body.getBodyText() : null;
     }
 
+    /**
+     * Gets the request body as a byte array.
+     *
+     * @return the request body.
+     */
     public byte[] getBodyBytes() {
         return body != null ? body.getBodyBytes() : null;
     }

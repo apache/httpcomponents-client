@@ -144,15 +144,14 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                     }
                     currentRequest = ClassicRequestBuilder.copy(scope.originalRequest).build();
                     continue;
-                } else {
-                    if (ex instanceof NoHttpResponseException) {
-                        final NoHttpResponseException updatedex = new NoHttpResponseException(
-                                route.getTargetHost().toHostString() + " failed to respond");
-                        updatedex.setStackTrace(ex.getStackTrace());
-                        throw updatedex;
-                    }
-                    throw ex;
                 }
+                if (ex instanceof NoHttpResponseException) {
+                    final NoHttpResponseException updatedex = new NoHttpResponseException(
+                            route.getTargetHost().toHostString() + " failed to respond");
+                    updatedex.setStackTrace(ex.getStackTrace());
+                    throw updatedex;
+                }
+                throw ex;
             }
 
             try {

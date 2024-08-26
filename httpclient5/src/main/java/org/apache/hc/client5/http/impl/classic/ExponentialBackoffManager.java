@@ -71,6 +71,7 @@ public class ExponentialBackoffManager extends AbstractBackoff {
      * @param curr the current pool size
      * @return the new pool size after applying the backoff
      */
+    @Override
     protected int getBackedOffPoolSize(final int curr) {
         if (curr <= 1) {
             return 1;
@@ -84,6 +85,7 @@ public class ExponentialBackoffManager extends AbstractBackoff {
         return result;
     }
 
+    @Override
     public void setBackoffFactor(final double rate) {
         Args.check(rate > 0.0, "Growth rate must be greater than 0.0");
         this.getBackoffFactor().set(rate);

@@ -52,6 +52,8 @@ public abstract class AbstractBinPushConsumer extends AbstractBinDataConsumer im
      * @param response the response message head
      * @param contentType the content type of the response body,
      *                    or {@code null} if the response does not enclose a response entity.
+     * @throws HttpException If a protocol error occurs.
+     * @throws IOException   If an I/O error occurs.
      */
     protected abstract void start(HttpRequest promise, HttpResponse response, ContentType contentType) throws HttpException, IOException;
 

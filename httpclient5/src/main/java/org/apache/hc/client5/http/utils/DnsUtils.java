@@ -68,9 +68,8 @@ public class DnsUtils {
                 remaining--;
             }
             return buf.toString();
-        } else {
-            return s;
         }
+        return s;
     }
 
 }

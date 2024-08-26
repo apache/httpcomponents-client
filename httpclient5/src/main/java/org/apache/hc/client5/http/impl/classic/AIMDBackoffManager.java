@@ -76,6 +76,7 @@ public class AIMDBackoffManager extends AbstractBackoff {
      * @param curr the current pool size
      * @return the backed-off pool size, with a minimum value of 1
      */
+    @Override
     protected int getBackedOffPoolSize(final int curr) {
         if (curr <= 1) {
             return 1;

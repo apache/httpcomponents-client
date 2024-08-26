@@ -144,9 +144,8 @@ final class DefaultManagedHttpClientConnection
         final Socket socket = getSocket();
         if (socket instanceof SSLSocket) {
             return ((SSLSocket) socket).getSession();
-        } else {
-            return null;
         }
+        return null;
     }
 
     @Override

@@ -108,9 +108,8 @@ public final class ETag {
                 cursor.updatePos(cursor.getPos() + 1);
                 if (ch == '"') {
                     break;
-                } else {
-                    sb.append(ch);
                 }
+                sb.append(ch);
             }
             value = sb.toString();
         }

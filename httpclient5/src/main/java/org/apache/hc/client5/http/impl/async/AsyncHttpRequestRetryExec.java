@@ -131,9 +131,8 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                         LOG.debug("{} retrying request in {}", exchangeId, state.delay);
                     }
                     return new DiscardingEntityConsumer<>();
-                } else {
-                    return asyncExecCallback.handleResponse(response, entityDetails);
                 }
+                return asyncExecCallback.handleResponse(response, entityDetails);
             }
 
             @Override

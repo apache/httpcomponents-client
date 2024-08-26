@@ -215,9 +215,8 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
                 }
             }
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     private static boolean matchIdentity(final String host, final String identity,

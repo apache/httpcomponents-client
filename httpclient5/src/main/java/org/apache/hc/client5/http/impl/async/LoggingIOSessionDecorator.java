@@ -49,8 +49,7 @@ final class LoggingIOSessionDecorator implements Decorator<IOSession> {
         final Logger sessionLog = LoggerFactory.getLogger(ioSession.getClass());
         if (sessionLog.isDebugEnabled() || WIRE_LOG.isDebugEnabled()) {
             return new LoggingIOSession(ioSession, sessionLog, WIRE_LOG);
-        } else {
-            return ioSession;
         }
+        return ioSession;
     }
 }
