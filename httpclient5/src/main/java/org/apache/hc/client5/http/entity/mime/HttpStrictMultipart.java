@@ -83,7 +83,7 @@ class HttpStrictMultipart extends AbstractMultipartFormat {
         // For strict, we output all fields with MIME-standard encoding.
         final Header header = part.getHeader();
         for (final MimeField field: header) {
-            writeField(field, out);
+            writeField(field, charset, out);
         }
     }
 
