@@ -962,6 +962,22 @@ public class HttpClientBuilder {
                         authCachingDisabled),
                 ChainElement.PROTOCOL.name());
 
+        if (!contentCompressionDisabled) {
+            if (contentDecoderMap != null) {
+                final List<String> encodings = new ArrayList<>(contentDecoderMap.keySet());
+                final RegistryBuilder<InputStreamFactory> b2 = RegistryBuilder.create();
+                for (final Map.Entry<String, InputStreamFactory> entry: contentDecoderMap.entrySet()) {
+                    b2.register(entry.getKey(), entry.getValue());
+                }
+                final Registry<InputStreamFactory> decoderRegistry = b2.build();
+                execChainDefinition.addFirst(
+                        new ContentCompressionExec(encodings, decoderRegistry, true),
+                        ChainElement.COMPRESS.name());
+            } else {
+                execChainDefinition.addFirst(new ContentCompressionExec(true), ChainElement.COMPRESS.name());
+            }
+        }
+
         // Add request retry executor, if not disabled
         if (!automaticRetriesDisabled) {
             HttpRequestRetryStrategy retryStrategyCopy = this.retryStrategy;
@@ -988,22 +1004,6 @@ public class HttpClientBuilder {
                 routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, defaultProxySelector);
             } else {
                 routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
-            }
-        }
-
-        if (!contentCompressionDisabled) {
-            if (contentDecoderMap != null) {
-                final List<String> encodings = new ArrayList<>(contentDecoderMap.keySet());
-                final RegistryBuilder<InputStreamFactory> b2 = RegistryBuilder.create();
-                for (final Map.Entry<String, InputStreamFactory> entry: contentDecoderMap.entrySet()) {
-                    b2.register(entry.getKey(), entry.getValue());
-                }
-                final Registry<InputStreamFactory> decoderRegistry = b2.build();
-                execChainDefinition.addFirst(
-                        new ContentCompressionExec(encodings, decoderRegistry, true),
-                        ChainElement.COMPRESS.name());
-            } else {
-                execChainDefinition.addFirst(new ContentCompressionExec(true), ChainElement.COMPRESS.name());
             }
         }
 
