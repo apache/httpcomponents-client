@@ -1285,6 +1285,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 //FLAG_REQUEST_LAN_MANAGER_KEY |
                 FLAG_REQUEST_NTLMv1 |
                 FLAG_REQUEST_NTLM2_SESSION |
+                FLAG_REQUEST_TARGET |
 
                 // Protocol version request
                 FLAG_REQUEST_VERSION |
