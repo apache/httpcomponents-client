@@ -234,10 +234,10 @@ public abstract class GGSSchemeBase implements AuthScheme2 {
     protected byte[] generateGSSToken(
             final byte[] input, final Oid oid, final String gssServiceName, final String gssHostname) throws GSSException {
         final GSSManager manager = getManager();
-        final GSSName spn = manager.createName(gssServiceName + "@" + gssHostname, GSSName.NT_HOSTBASED_SERVICE);
+        final GSSName peerName = manager.createName(gssServiceName + "@" + gssHostname, GSSName.NT_HOSTBASED_SERVICE);
 
         if (gssContext == null) {
-            gssContext = createGSSContext(manager, oid, spn, gssCredential);
+            gssContext = createGSSContext(manager, oid, peerName, gssCredential);
         }
         if (input != null) {
             return gssContext.initSecContext(input, 0, input.length);
@@ -251,9 +251,9 @@ public abstract class GGSSchemeBase implements AuthScheme2 {
     protected GSSContext createGSSContext(
             final GSSManager manager,
             final Oid oid,
-            final GSSName spn,
+            final GSSName peerName,
             final GSSCredential gssCredential) throws GSSException {
-        final GSSContext gssContext = manager.createContext(spn.canonicalize(oid), oid, gssCredential,
+        final GSSContext gssContext = manager.createContext(peerName.canonicalize(oid), oid, gssCredential,
                 GSSContext.DEFAULT_LIFETIME);
         gssContext.requestMutualAuth(true);
         if (config.getRequestDelegCreds() != KerberosConfig.Option.DEFAULT) {
