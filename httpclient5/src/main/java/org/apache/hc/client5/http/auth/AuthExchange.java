@@ -40,7 +40,7 @@ public class AuthExchange {
 
     // This only tracks the server state. In particular, even if the state is SUCCESS,
     // the authentication may still fail if the challenge sent with an authorized response cannot
-    // be validated locally for AuthSchemeV2 schemes.
+    // be validated locally for AuthScheme2 schemes.
     public enum State {
 
         UNCHALLENGED, CHALLENGED, HANDSHAKE, FAILURE, SUCCESS

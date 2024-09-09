@@ -38,7 +38,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * @since 5.5
  */
-public interface AuthSchemeV2 extends AuthScheme {
+public interface AuthScheme2 extends AuthScheme {
 
     /**
      * Processes the given auth challenge. Some authentication schemes may involve multiple
@@ -73,15 +73,15 @@ public interface AuthSchemeV2 extends AuthScheme {
             boolean challenged) throws AuthenticationException;
 
     /**
-     * The old processChallenge signature is unfit for use in AuthSchemeV2.
+     * The old processChallenge signature is unfit for use in AuthScheme2.
      * If the old signature is sufficient for a scheme, then it should implement {@link AuthScheme}
-     * instead AuthSchemeV2.
+     * instead AuthScheme2.
      */
     @Override
     default void processChallenge(
             AuthChallenge authChallenge,
             HttpContext context) throws MalformedChallengeException {
-        throw new UnsupportedOperationException("on AuthSchemeV2 implementations only the four "
+        throw new UnsupportedOperationException("on AuthScheme2 implementations only the four "
                 + "argument processChallenge method can be called");
     }
 
@@ -89,7 +89,7 @@ public interface AuthSchemeV2 extends AuthScheme {
      * Indicates that the even authorized (i.e. not 401 or 407) responses must be processed
      * by this Scheme.
      *
-     * The AuthScheme(V1) interface only processes unauthorised responses.
+     * The original AuthScheme interface only processes unauthorised responses.
      * This method indicates that non unauthorised responses are expected to contain challenges
      * and must be processed by the Scheme.
      * This is required to implement the SPENGO RFC and Kerberos mutual authentication.

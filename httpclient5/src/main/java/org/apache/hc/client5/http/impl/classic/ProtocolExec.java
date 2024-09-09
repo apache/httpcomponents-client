@@ -221,7 +221,7 @@ public final class ProtocolExec implements ExecChainHandler {
                         EntityUtils.consume(responseEntity);
                     } else {
                         execRuntime.disconnectEndpoint();
-                        // We don't have any connection based AuthSchemeV2 implementations.
+                        // We don't have any connection based AuthScheme2 implementations.
                         // If one existed, we'd have think about how to handle it
                         if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
                                 && proxyAuthExchange.isConnectionBased()) {

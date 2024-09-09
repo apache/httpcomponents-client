@@ -87,8 +87,8 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * and in FAILED state.
  * </p>
  * <p>
- * This interface cannot correctly handle some authentication methods, like SPENGO.
- * See {@link AuthSchemeV2} for a more capable interface.
+ * This interface cannot correctly handle some authentication methods, like SPNEGO.
+ * See {@link AuthScheme2} for a more capable interface.
  * </p>
  *
  * @since 4.0

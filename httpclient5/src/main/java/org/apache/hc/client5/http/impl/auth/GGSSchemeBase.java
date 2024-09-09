@@ -32,7 +32,7 @@ import java.security.Principal;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthChallenge;
-import org.apache.hc.client5.http.auth.AuthSchemeV2;
+import org.apache.hc.client5.http.auth.AuthScheme2;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -62,7 +62,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 // FIXME The class name looks like a Typo. Rename in 6.0 ?
-public abstract class GGSSchemeBase implements AuthSchemeV2 {
+public abstract class GGSSchemeBase implements AuthScheme2 {
 
     enum State {
         UNINITIATED,
@@ -134,7 +134,7 @@ public abstract class GGSSchemeBase implements AuthSchemeV2 {
 
         final byte[] challengeToken = Base64.decodeBase64(authChallenge== null ? null : authChallenge.getValue());
 
-        final String authServer;
+        final String gssHostname;
         String hostname = host.getHostName();
         if (config.getUseCanonicalHostname() != KerberosConfig.Option.DISABLE){
             try {
@@ -143,18 +143,18 @@ public abstract class GGSSchemeBase implements AuthSchemeV2 {
             }
         }
         if (config.getStripPort() != KerberosConfig.Option.DISABLE) {
-            authServer = hostname;
+            gssHostname = hostname;
         } else {
-            authServer = hostname + ":" + host.getPort();
+            gssHostname = hostname + ":" + host.getPort();
         }
 
         if (LOG.isDebugEnabled()) {
             final HttpClientContext clientContext = HttpClientContext.adapt(context);
             final String exchangeId = clientContext.getExchangeId();
-            LOG.debug("{} GSS init {}", exchangeId, authServer);
+            LOG.debug("{} GSS init {}", exchangeId, gssHostname);
         }
         try {
-            queuedToken = generateToken(challengeToken, KERBEROS_SCHEME, authServer);
+            queuedToken = generateToken(challengeToken, KERBEROS_SCHEME, gssHostname);
             switch (state) {
             case UNINITIATED:
                 if (challenge != NO_TOKEN) {
@@ -232,12 +232,12 @@ public abstract class GGSSchemeBase implements AuthSchemeV2 {
      * @since 4.4
      */
     protected byte[] generateGSSToken(
-            final byte[] input, final Oid oid, final String serviceName, final String authServer) throws GSSException {
+            final byte[] input, final Oid oid, final String gssServiceName, final String gssHostname) throws GSSException {
         final GSSManager manager = getManager();
-        final GSSName serverName = manager.createName(serviceName + "@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
+        final GSSName spn = manager.createName(gssServiceName + "@" + gssHostname, GSSName.NT_HOSTBASED_SERVICE);
 
         if (gssContext == null) {
-            gssContext = createGSSContext(manager, oid, serverName, gssCredential);
+            gssContext = createGSSContext(manager, oid, spn, gssCredential);
         }
         if (input != null) {
             return gssContext.initSecContext(input, 0, input.length);
@@ -251,9 +251,9 @@ public abstract class GGSSchemeBase implements AuthSchemeV2 {
     protected GSSContext createGSSContext(
             final GSSManager manager,
             final Oid oid,
-            final GSSName serverName,
+            final GSSName spn,
             final GSSCredential gssCredential) throws GSSException {
-        final GSSContext gssContext = manager.createContext(serverName.canonicalize(oid), oid, gssCredential,
+        final GSSContext gssContext = manager.createContext(spn.canonicalize(oid), oid, gssCredential,
                 GSSContext.DEFAULT_LIFETIME);
         gssContext.requestMutualAuth(true);
         if (config.getRequestDelegCreds() != KerberosConfig.Option.DEFAULT) {
@@ -267,7 +267,7 @@ public abstract class GGSSchemeBase implements AuthSchemeV2 {
     /**
      * @since 4.4
      */
-    protected abstract byte[] generateToken(byte[] input, String serviceName, String authServer) throws GSSException;
+    protected abstract byte[] generateToken(byte[] input, String gssServiceName, String gssHostname) throws GSSException;
 
     @Override
     public boolean isChallengeComplete() {

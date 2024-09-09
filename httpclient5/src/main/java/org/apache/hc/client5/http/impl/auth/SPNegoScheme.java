@@ -64,8 +64,8 @@ public class SPNegoScheme extends GGSSchemeBase {
     }
 
     @Override
-    protected byte[] generateToken(final byte[] input, final String serviceName, final String authServer) throws GSSException {
-        return generateGSSToken(input, new Oid(SPNEGO_OID), serviceName, authServer);
+    protected byte[] generateToken(final byte[] input, final String gssServiceName, final String gssHostname) throws GSSException {
+        return generateGSSToken(input, new Oid(SPNEGO_OID), gssServiceName, gssHostname);
     }
 
     @Override
