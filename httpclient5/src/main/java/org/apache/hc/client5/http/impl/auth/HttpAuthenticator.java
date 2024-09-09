@@ -38,7 +38,7 @@ import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemeV2;
+import org.apache.hc.client5.http.auth.AuthScheme2;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -160,13 +160,13 @@ public final class HttpAuthenticator {
      * have challenge HTTP code. (i.e whether it needs a mutual authentication token)
      *
      * @param authExchange
-     * @return true is authExchange's scheme is AuthExchangeV2, which currently expects
+     * @return true is authExchange's scheme is AuthScheme2, which currently expects
      * a WWW-Authenticate header even for authorized HTTP responses
      */
     public boolean isChallengeExpected(final AuthExchange authExchange) {
         final AuthScheme authScheme = authExchange.getAuthScheme();
-        if (authScheme != null && authScheme instanceof AuthSchemeV2) {
-            return ((AuthSchemeV2)authScheme).isChallengeExpected();
+        if (authScheme != null && authScheme instanceof AuthScheme2) {
+            return ((AuthScheme2)authScheme).isChallengeExpected();
         } else {
             return false;
         }
@@ -289,8 +289,8 @@ public final class HttpAuthenticator {
                             LOG.debug("{} Processing authorization challenge {}", exchangeId, challenge);
                         }
                         try {
-                            if (authScheme instanceof AuthSchemeV2) {
-                                ((AuthSchemeV2)authScheme).processChallenge(host, challenge, context, challenged);
+                            if (authScheme instanceof AuthScheme2) {
+                                ((AuthScheme2)authScheme).processChallenge(host, challenge, context, challenged);
                             } else {
                                 authScheme.processChallenge(challenge, context);
                             }
@@ -345,13 +345,13 @@ public final class HttpAuthenticator {
         }
         for (final AuthScheme authScheme: preferredSchemes) {
             // We only respond to the the first successfully processed challenge. However, the
-            // AuthScheme(V1) API does not really process the challenge at this point, so we need
+            // original AuthScheme API does not really process the challenge at this point, so we need
             // to process/store each challenge here anyway.
             try {
                 final String schemeName = authScheme.getName();
                 final AuthChallenge challenge = challengeMap.get(schemeName.toLowerCase(Locale.ROOT));
-                if (authScheme instanceof AuthSchemeV2) {
-                    ((AuthSchemeV2)authScheme).processChallenge(host, challenge, context, challenged);
+                if (authScheme instanceof AuthScheme2) {
+                    ((AuthScheme2)authScheme).processChallenge(host, challenge, context, challenged);
                 } else {
                     authScheme.processChallenge(challenge, context);
                 }
