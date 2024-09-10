@@ -68,11 +68,13 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
 
     private static final List<String> DEFAULT_SCHEME_PRIORITY =
         Collections.unmodifiableList(Arrays.asList(
-                StandardAuthScheme.SPNEGO,
-                StandardAuthScheme.KERBEROS,
                 StandardAuthScheme.BEARER,
                 StandardAuthScheme.DIGEST,
                 StandardAuthScheme.BASIC));
+
+    protected List<String> getSchemePriority() {
+        return DEFAULT_SCHEME_PRIORITY;
+    }
 
     @Override
     public List<AuthScheme> select(
@@ -97,7 +99,7 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
         Collection<String> authPrefs = challengeType == ChallengeType.TARGET ?
                 config.getTargetPreferredAuthSchemes() : config.getProxyPreferredAuthSchemes();
         if (authPrefs == null) {
-            authPrefs = DEFAULT_SCHEME_PRIORITY;
+            authPrefs = getSchemePriority();
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} Authentication schemes in the order of preference: {}", exchangeId, authPrefs);

@@ -30,7 +30,11 @@ package org.apache.hc.client5.testing.sync;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
+import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthScheme;
@@ -43,6 +47,7 @@ import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.client5.http.auth.KerberosConfig.Option;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.auth.SPNegoScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -101,6 +106,22 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
 
     static KerberosConfig MUTUAL_KERBEROS_CONFIG = KerberosConfig.custom().setRequestMutualAuth(Option.ENABLE).build();
 
+    private static class SpnegoAuthenticationStrategy extends DefaultAuthenticationStrategy {
+
+        private static final List<String> SPNEGO_SCHEME_PRIORITY =
+                Collections.unmodifiableList(
+                    Arrays.asList(StandardAuthScheme.SPNEGO,
+                        StandardAuthScheme.BEARER,
+                        StandardAuthScheme.DIGEST,
+                        StandardAuthScheme.BASIC));
+
+        @Override
+        protected final List<String> getSchemePriority() {
+            return SPNEGO_SCHEME_PRIORITY;
+        }
+    }
+
+    final AuthenticationStrategy spnegoAuthenticationStrategy = new SpnegoAuthenticationStrategy();
 
     final CredentialsProvider jaasCredentialsProvider = CredentialsProviderBuilder.create()
             .add(new AuthScope(null, null, -1, null, null), new UseJaasCredentials())
@@ -282,6 +303,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
             .register(StandardAuthScheme.SPNEGO, nsf)
             .build();
         configureClient(t -> {
+            t.setTargetAuthenticationStrategy(spnegoAuthenticationStrategy);
             t.setDefaultAuthSchemeRegistry(authSchemeRegistry);
             t.setDefaultCredentialsProvider(jaasCredentialsProvider);
         });
@@ -311,6 +333,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
             .register(StandardAuthScheme.SPNEGO, nsf)
             .build();
         configureClient(t -> {
+            t.setTargetAuthenticationStrategy(spnegoAuthenticationStrategy);
             t.setDefaultAuthSchemeRegistry(authSchemeRegistry);
             t.setDefaultCredentialsProvider(jaasCredentialsProvider);
         });
@@ -344,6 +367,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
             .build();
 
         configureClient(t -> {
+            t.setTargetAuthenticationStrategy(spnegoAuthenticationStrategy);
             t.setDefaultAuthSchemeRegistry(authSchemeRegistry);
             t.setDefaultCredentialsProvider(jaasCredentialsProvider);
         });
@@ -376,6 +400,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
             .build();
 
         configureClient(t -> {
+            t.setTargetAuthenticationStrategy(spnegoAuthenticationStrategy);
             t.setDefaultAuthSchemeRegistry(authSchemeRegistry);
         });
 
@@ -416,6 +441,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
             .register(StandardAuthScheme.SPNEGO, nsf)
             .build();
         configureClient(t -> {
+            t.setTargetAuthenticationStrategy(spnegoAuthenticationStrategy);
             t.setDefaultAuthSchemeRegistry(authSchemeRegistry);
         });
 
@@ -456,6 +482,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
             .register(StandardAuthScheme.SPNEGO, nsf)
             .build();
         configureClient(t -> {
+            t.setTargetAuthenticationStrategy(spnegoAuthenticationStrategy);
             t.setDefaultAuthSchemeRegistry(authSchemeRegistry);
         });
 
@@ -498,6 +525,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
             .build();
 
         configureClient(t -> {
+            t.setTargetAuthenticationStrategy(spnegoAuthenticationStrategy);
             t.setDefaultAuthSchemeRegistry(authSchemeRegistry);
         });
 
