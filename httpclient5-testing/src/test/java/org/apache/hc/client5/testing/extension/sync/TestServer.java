@@ -60,7 +60,10 @@ public class TestServer {
     }
 
     public InetSocketAddress start() throws IOException {
-        server.start(http1Config, httpProcessor, exchangeHandlerDecorator);
+        server.configure(http1Config);
+        server.configure(exchangeHandlerDecorator);
+        server.configure(httpProcessor);
+        server.start();
         return new InetSocketAddress(server.getInetAddress(), server.getPort());
     }
 

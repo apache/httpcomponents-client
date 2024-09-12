@@ -91,10 +91,14 @@ public class TestAsyncServer {
     }
 
     public InetSocketAddress start() throws Exception {
-        if (http1Config == null) {
-            return server.start(httpProcessor, exchangeHandlerDecorator, h2Config);
+        if (http1Config != null) {
+            server.configure(http1Config);
+        } else {
+            server.configure(h2Config);
         }
-        return server.start(httpProcessor, exchangeHandlerDecorator, http1Config);
+        server.configure(exchangeHandlerDecorator);
+        server.configure(httpProcessor);
+        return server.start();
     }
 
 }
