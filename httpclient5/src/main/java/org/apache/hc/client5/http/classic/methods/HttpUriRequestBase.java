@@ -34,6 +34,9 @@ import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 
+/**
+ * Base class for HTTP method subclasses.
+ */
 public class HttpUriRequestBase extends BasicClassicHttpRequest implements HttpUriRequest, CancellableDependency {
 
     private static final long serialVersionUID = 1L;
@@ -41,6 +44,12 @@ public class HttpUriRequestBase extends BasicClassicHttpRequest implements HttpU
     private final AtomicMarkableReference<Cancellable> cancellableRef;
     private RequestConfig requestConfig;
 
+    /**
+     * Constructs a new instance with the given method and request URI.
+     *
+     * @param method request method.
+     * @param requestUri request URI.
+     */
     public HttpUriRequestBase(final String method, final URI requestUri) {
         super(method, requestUri);
         this.cancellableRef = new AtomicMarkableReference<>(null, false);
@@ -104,6 +113,11 @@ public class HttpUriRequestBase extends BasicClassicHttpRequest implements HttpU
         return isCancelled();
     }
 
+    /**
+     * Sets the request configuration.
+     *
+     * @param requestConfig the request configuration.
+     */
     public void setConfig(final RequestConfig requestConfig) {
         this.requestConfig = requestConfig;
     }

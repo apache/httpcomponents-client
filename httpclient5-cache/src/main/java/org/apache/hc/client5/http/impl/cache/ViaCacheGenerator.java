@@ -53,7 +53,7 @@ final class ViaCacheGenerator {
     }
 
     String lookup(final ProtocolVersion pv) {
-        return internalCache.computeIfAbsent(pv, (v) -> {
+        return internalCache.computeIfAbsent(pv, v -> {
             final VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.hc.client5", getClass().getClassLoader());
             return generateViaHeader(vi, v);
         });

@@ -46,7 +46,7 @@ abstract  class AbstractIntegrationTestBase {
     public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
 
     @RegisterExtension
-    private TestClientResources testResources;
+    private final TestClientResources testResources;
 
     protected AbstractIntegrationTestBase(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel) {
         this.testResources = new TestClientResources(scheme, clientProtocolLevel, TIMEOUT);

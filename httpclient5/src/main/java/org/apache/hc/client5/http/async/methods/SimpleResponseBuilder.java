@@ -36,7 +36,7 @@ import org.apache.hc.core5.http.support.AbstractResponseBuilder;
 import org.apache.hc.core5.util.Args;
 
 /**
- * Builder for {@link SimpleHttpResponse} instances.
+ * Builds {@link SimpleHttpResponse} instances.
  *
  * @since 5.1
  */
@@ -48,11 +48,23 @@ public class SimpleResponseBuilder extends AbstractResponseBuilder<SimpleHttpRes
         super(status);
     }
 
+    /**
+     * Creates a new SimpleResponseBuilder with the given status.
+     *
+     * @param status response status.
+     * @return a new SimpleResponseBuilder.
+     */
     public static SimpleResponseBuilder create(final int status) {
         Args.checkRange(status, 100, 599, "HTTP status code");
         return new SimpleResponseBuilder(status);
     }
 
+    /**
+     * Copies a source instance into a new one.
+     *
+     * @param response the source instance to copy.
+     * @return a new SimpleResponseBuilder.
+     */
     public static SimpleResponseBuilder copy(final SimpleHttpResponse response) {
         Args.notNull(response, "HTTP response");
         final SimpleResponseBuilder builder = new SimpleResponseBuilder(response.getCode());
@@ -113,20 +125,45 @@ public class SimpleResponseBuilder extends AbstractResponseBuilder<SimpleHttpRes
         return this;
     }
 
+    /**
+     * Gets the body.
+     *
+     * @return the body.
+     */
     public SimpleBody getBody() {
         return body;
     }
 
+    /**
+     * Sets the body.
+     *
+     * @param body the body.
+     * @return this instance.
+     */
     public SimpleResponseBuilder setBody(final SimpleBody body) {
         this.body = body;
         return this;
     }
 
+    /**
+     * Sets the body.
+     *
+     * @param content the body content.
+     * @param contentType the body content-type.
+     * @return this instance.
+     */
     public SimpleResponseBuilder setBody(final String content, final ContentType contentType) {
         this.body = SimpleBody.create(content, contentType);
         return this;
     }
 
+    /**
+     * Sets the body.
+     *
+     * @param content the body content.
+     * @param contentType the body content-type.
+     * @return this instance.
+     */
     public SimpleResponseBuilder setBody(final byte[] content, final ContentType contentType) {
         this.body = SimpleBody.create(content, contentType);
         return this;

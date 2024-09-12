@@ -41,6 +41,8 @@ public interface BackoffManager {
      * Called when we have decided that the result of
      * using a connection should be interpreted as a
      * backoff signal.
+     *
+     * @param route the affected route.
      */
     void backOff(HttpRoute route);
 
@@ -48,6 +50,8 @@ public interface BackoffManager {
      * Called when we have determined that the result of
      * using a connection has succeeded and that we may
      * probe for more connections.
+     *
+     * @param route the affected route.
      */
     void probe(HttpRoute route);
 }

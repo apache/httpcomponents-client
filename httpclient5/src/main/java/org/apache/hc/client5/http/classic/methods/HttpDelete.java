@@ -38,24 +38,26 @@ public class HttpDelete extends HttpUriRequestBase {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The method name {@value}.
+     */
     public final static String METHOD_NAME = "DELETE";
 
-
     /**
-     * Creates a new instance initialized with the given URI.
+     * Constructs a new instance initialized with the given URI.
      *
      * @param uri a non-null request URI.
-     * @throws IllegalArgumentException if the uri is null.
+     * @throws IllegalArgumentException if the URI is null.
      */
     public HttpDelete(final URI uri) {
         super(METHOD_NAME, uri);
     }
 
     /**
-     * Creates a new instance initialized with the given URI.
+     * Constructs a new instance initialized with the given URI.
      *
      * @param uri a non-null request URI.
-     * @throws IllegalArgumentException if the uri is invalid.
+     * @throws IllegalArgumentException if the URI is invalid.
      */
     public HttpDelete(final String uri) {
         this(URI.create(uri));

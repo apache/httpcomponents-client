@@ -76,6 +76,7 @@ public interface ExecRuntime {
      * @param state the expected connection state. May be {@code null} if connection
      *              can be state-less or its state is irrelevant.
      * @param context the execution context.
+     * @throws IOException if an I/O error occurs.
      */
     void acquireEndpoint(
             String id,
@@ -104,6 +105,8 @@ public interface ExecRuntime {
 
     /**
      * Disconnects the local endpoint from the initial hop in the connection route.
+     *
+     * @throws IOException if an I/O error occurs.
      */
     void disconnectEndpoint() throws IOException;
 
@@ -113,6 +116,7 @@ public interface ExecRuntime {
      * or multiple proxies).
      *
      * @param context the execution context.
+     * @throws IOException if an I/O error occurs.
      */
     void connectEndpoint(HttpClientContext context) throws IOException;
 
@@ -120,11 +124,14 @@ public interface ExecRuntime {
      * Upgrades transport security of the active connection by using the TLS security protocol.
      *
      * @param context the execution context.
+     * @throws IOException if an I/O error occurs.
      */
     void upgradeTls(HttpClientContext context) throws IOException;
 
     /**
-     * Returns information about the underlying endpoint when connected or {@code null} otherwise.
+     * Gets information about the underlying endpoint when connected or {@code null} otherwise.
+     *
+     * @return an EndpointInfo, defaults to {@code null}.
      */
     default EndpointInfo getEndpointInfo() {
         return null;
@@ -136,6 +143,9 @@ public interface ExecRuntime {
      * @param id unique operation ID or {@code null}.
      * @param request the request message.
      * @param context the execution context.
+     * @return a ClassicHttpResponse.
+     * @throws IOException if an I/O error occurs.
+     * @throws HttpException if a protocol error occurs.
      */
     ClassicHttpResponse execute(
             String id,
@@ -149,7 +159,9 @@ public interface ExecRuntime {
      * @param request the request message.
      * @param informationCallback information (1xx) response handler
      * @param context the execution context.
-     *
+     * @return a ClassicHttpResponse.
+     * @throws IOException if an I/O error occurs.
+     * @throws HttpException if a protocol error occurs.
      * @since 5.4
      */
     default ClassicHttpResponse execute(

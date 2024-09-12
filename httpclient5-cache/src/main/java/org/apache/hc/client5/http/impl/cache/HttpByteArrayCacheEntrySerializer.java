@@ -181,7 +181,7 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
             final RequestLine requestLine = new RequestLine(cacheEntry.getRequestMethod(), cacheEntry.getRequestURI(), HttpVersion.HTTP_1_1);
             lineFormatter.formatRequestLine(line, requestLine);
             outputBuffer.writeLine(line, out);
-            for (Iterator<Header> it = cacheEntry.requestHeaderIterator(); it.hasNext(); ) {
+            for (final Iterator<Header> it = cacheEntry.requestHeaderIterator(); it.hasNext(); ) {
                 line.clear();
                 lineFormatter.formatHeader(line, it.next());
                 outputBuffer.writeLine(line, out);
@@ -193,7 +193,7 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
             final StatusLine statusLine = new StatusLine(HttpVersion.HTTP_1_1, cacheEntry.getStatus(), "");
             lineFormatter.formatStatusLine(line, statusLine);
             outputBuffer.writeLine(line, out);
-            for (Iterator<Header> it = cacheEntry.headerIterator(); it.hasNext(); ) {
+            for (final Iterator<Header> it = cacheEntry.headerIterator(); it.hasNext(); ) {
                 line.clear();
                 lineFormatter.formatHeader(line, it.next());
                 outputBuffer.writeLine(line, out);

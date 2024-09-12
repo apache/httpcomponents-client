@@ -39,7 +39,7 @@ final class SimpleAsyncEntityConsumer extends AbstractBinAsyncEntityConsumer<byt
 
     private final ByteArrayBuffer buffer;
 
-    public SimpleAsyncEntityConsumer() {
+    SimpleAsyncEntityConsumer() {
         super();
         this.buffer = new ByteArrayBuffer(1024);
     }

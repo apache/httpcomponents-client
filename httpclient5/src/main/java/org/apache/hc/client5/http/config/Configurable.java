@@ -35,7 +35,9 @@ package org.apache.hc.client5.http.config;
 public interface Configurable {
 
     /**
-     * Returns actual request configuration.
+     * Gets the actual request configuration.
+     *
+     * @return the actual request configuration.
      */
     RequestConfig getConfig();
 

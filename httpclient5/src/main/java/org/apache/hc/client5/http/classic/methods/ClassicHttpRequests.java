@@ -92,7 +92,7 @@ public final class ClassicHttpRequests {
      * @param method A method supported by this class.
      * @param uri a non-null request string URI.
      * @throws IllegalArgumentException if the method is not supported.
-     * @throws IllegalArgumentException if the string uri is null.
+     * @throws IllegalArgumentException if the string URI is null.
      * @return A new HttpUriRequest.
      */
     public static HttpUriRequest create(final String method, final String uri) {
@@ -105,73 +105,185 @@ public final class ClassicHttpRequests {
      * @param method A method supported by this class.
      * @param uri a non-null request URI.
      * @throws IllegalArgumentException if the method is not supported.
-     * @throws IllegalArgumentException if the uri is null.
+     * @throws IllegalArgumentException if the URI is null.
      * @return A new HttpUriRequest.
      */
     public static HttpUriRequest create(final String method, final URI uri) {
         return create(Method.normalizedValueOf(method), uri);
     }
 
+    /**
+     * Constructs a new {@code "DELETE"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "DELETE" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest delete(final String uri) {
         return delete(URI.create(uri));
     }
 
+    /**
+     * Constructs a new {@code "DELETE"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "DELETE" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest delete(final URI uri) {
         return new HttpDelete(uri);
     }
 
+    /**
+     * Constructs a new {@code "GET"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "GET" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest get(final String uri) {
         return get(URI.create(uri));
     }
 
+    /**
+     * Constructs a new {@code "GET"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "GET" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest get(final URI uri) {
         return new HttpGet(uri);
     }
 
+    /**
+     * Constructs a new {@code "HEAD"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "HEAD" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest head(final String uri) {
         return head(URI.create(uri));
     }
 
+    /**
+     * Constructs a new {@code "HEAD"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "HEAD" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest head(final URI uri) {
         return new HttpHead(uri);
     }
 
+    /**
+     * Constructs a new {@code "OPTIONS"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "OPTIONS" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest options(final String uri) {
         return options(URI.create(uri));
     }
 
+    /**
+     * Constructs a new {@code "OPTIONS"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "OPTIONS" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest options(final URI uri) {
         return new HttpOptions(uri);
     }
 
+    /**
+     * Constructs a new {@code "PATCH"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "PATCH" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest patch(final String uri) {
         return patch(URI.create(uri));
     }
 
+    /**
+     * Constructs a new {@code "PATCH"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "PATCH" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest patch(final URI uri) {
         return new HttpPatch(uri);
     }
 
+    /**
+     * Constructs a new {@code "POST"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "POST" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest post(final String uri) {
         return post(URI.create(uri));
     }
 
+    /**
+     * Constructs a new {@code "POST"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "POST" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest post(final URI uri) {
         return new HttpPost(uri);
     }
 
+    /**
+     * Constructs a new {@code "PUT"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "PUT" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest put(final String uri) {
         return put(URI.create(uri));
     }
 
+    /**
+     * Constructs a new {@code "PUT"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "PUT" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest put(final URI uri) {
         return new HttpPut(uri);
     }
 
+    /**
+     * Constructs a new {@code "TRACE"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "TRACE" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest trace(final String uri) {
         return trace(URI.create(uri));
     }
 
+    /**
+     * Constructs a new {@code "TRACE"} HttpUriRequest initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @return a new "TRACE" HttpUriRequest.
+     * @throws IllegalArgumentException if the URI is null.
+     */
     public static HttpUriRequest trace(final URI uri) {
         return new HttpTrace(uri);
     }

@@ -57,6 +57,11 @@ public final class SimpleResponseConsumer extends AbstractAsyncResponseConsumer<
         super(entityConsumer);
     }
 
+    /**
+     * Creates a new SimpleResponseConsumer instance initialized with a new {@code SimpleAsyncEntityConsumer}.
+     *
+     * @return a new SimpleResponseConsumer instance.
+     */
     public static SimpleResponseConsumer create() {
         return new SimpleResponseConsumer(new SimpleAsyncEntityConsumer());
     }

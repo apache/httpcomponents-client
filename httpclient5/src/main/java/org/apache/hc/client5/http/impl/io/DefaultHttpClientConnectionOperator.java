@@ -78,14 +78,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultHttpClientConnectionOperator.class);
 
-    static final DetachedSocketFactory PLAIN_SOCKET_FACTORY = new DetachedSocketFactory() {
-
-        @Override
-        public Socket create(final Proxy socksProxy) throws IOException {
-            return socksProxy == null ? new Socket() : new Socket(socksProxy);
-        }
-
-    };
+    static final DetachedSocketFactory PLAIN_SOCKET_FACTORY = socksProxy -> socksProxy == null ? new Socket() : new Socket(socksProxy);
 
     private final DetachedSocketFactory detachedSocketFactory;
     private final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup;

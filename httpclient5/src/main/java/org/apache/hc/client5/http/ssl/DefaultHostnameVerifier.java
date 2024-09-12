@@ -78,10 +78,18 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
 
     private final PublicSuffixMatcher publicSuffixMatcher;
 
+    /**
+     * Constructs new instance with a PublicSuffixMatcher.
+     *
+     * @param publicSuffixMatcher a PublicSuffixMatcher.
+     */
     public DefaultHostnameVerifier(final PublicSuffixMatcher publicSuffixMatcher) {
         this.publicSuffixMatcher = publicSuffixMatcher;
     }
 
+    /**
+     * Constructs new instance without a PublicSuffixMatcher.
+     */
     public DefaultHostnameVerifier() {
         this(null);
     }
@@ -123,9 +131,8 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
         }
     }
 
-    static void matchIPAddress(final String host, final List<SubjectName> subjectAlts) throws SSLException {
-        for (int i = 0; i < subjectAlts.size(); i++) {
-            final SubjectName subjectAlt = subjectAlts.get(i);
+    static void matchIPAddress(final String host, final List<SubjectName> subjectAlts) throws SSLPeerUnverifiedException {
+        for (final SubjectName subjectAlt : subjectAlts) {
             if (subjectAlt.getType() == SubjectName.IP) {
                 if (host.equals(subjectAlt.getValue())) {
                     return;
@@ -136,10 +143,9 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
                 "of the subject alternative names: " + subjectAlts);
     }
 
-    static void matchIPv6Address(final String host, final List<SubjectName> subjectAlts) throws SSLException {
+    static void matchIPv6Address(final String host, final List<SubjectName> subjectAlts) throws SSLPeerUnverifiedException {
         final String normalisedHost = normaliseAddress(host);
-        for (int i = 0; i < subjectAlts.size(); i++) {
-            final SubjectName subjectAlt = subjectAlts.get(i);
+        for (final SubjectName subjectAlt : subjectAlts) {
             if (subjectAlt.getType() == SubjectName.IP) {
                 final String normalizedSubjectAlt = normaliseAddress(subjectAlt.getValue());
                 if (normalisedHost.equals(normalizedSubjectAlt)) {
@@ -152,10 +158,9 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
     }
 
     static void matchDNSName(final String host, final List<SubjectName> subjectAlts,
-                             final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
+                             final PublicSuffixMatcher publicSuffixMatcher) throws SSLPeerUnverifiedException {
         final String normalizedHost = DnsUtils.normalize(host);
-        for (int i = 0; i < subjectAlts.size(); i++) {
-            final SubjectName subjectAlt = subjectAlts.get(i);
+        for (final SubjectName subjectAlt : subjectAlts) {
             if (subjectAlt.getType() == SubjectName.DNS) {
                 final String normalizedSubjectAlt = DnsUtils.normalize(subjectAlt.getValue());
                 if (matchIdentityStrict(normalizedHost, normalizedSubjectAlt, publicSuffixMatcher)) {

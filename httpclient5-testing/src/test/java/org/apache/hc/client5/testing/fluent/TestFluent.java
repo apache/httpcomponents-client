@@ -56,7 +56,7 @@ class TestFluent {
     public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
 
     @RegisterExtension
-    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, ClientProtocolLevel.STANDARD, TIMEOUT);
+    private final TestClientResources testResources = new TestClientResources(URIScheme.HTTP, ClientProtocolLevel.STANDARD, TIMEOUT);
 
     @BeforeEach
     void setUp() {

@@ -44,6 +44,12 @@ public class MimeField {
     private final String value;
     private final List<NameValuePair> parameters;
 
+    /**
+     * Constructs a new instance.
+     *
+     * @param name the field name.
+     * @param value the field value.
+     */
     public MimeField(final String name, final String value) {
         super();
         this.name = name;
@@ -52,6 +58,11 @@ public class MimeField {
     }
 
     /**
+     * Constructs a new instance.
+     *
+     * @param name the field name.
+     * @param value the field value.
+     * @param parameters the field parameters.
      * @since 4.6
      */
     public MimeField(final String name, final String value, final List<NameValuePair> parameters) {
@@ -61,26 +72,43 @@ public class MimeField {
                 Collections.unmodifiableList(new ArrayList<>(parameters)) : Collections.emptyList();
     }
 
+    /**
+     * Constructs a new instance by copying another's properties.
+     *
+     * @param from the source field.
+     */
     public MimeField(final MimeField from) {
         this(from.name, from.value, from.parameters);
     }
 
+    /**
+     * Gets the field name.
+     *
+     * @return the field name.
+     */
     public String getName() {
         return this.name;
     }
 
     /**
+     * Gets the field value.
+     *
+     * @return the field value.
      * @since 4.6
      */
     public String getValue() {
         return this.value;
     }
 
+    /**
+     * Converts this instance to a body String.
+     *
+     * @return this instance as a body String.
+     */
     public String getBody() {
         final StringBuilder sb = new StringBuilder();
         sb.append(this.value);
-        for (int i = 0; i < this.parameters.size(); i++) {
-            final NameValuePair parameter = this.parameters.get(i);
+        parameters.forEach(parameter -> {
             sb.append("; ");
             sb.append(parameter.getName());
             sb.append("=\"");
@@ -93,10 +121,15 @@ public class MimeField {
                 sb.append(ch);
             }
             sb.append("\"");
-        }
+        });
         return sb.toString();
     }
 
+    /**
+     * Gets the field parameters.
+     *
+     * @return the field parameters.
+     */
     public List<NameValuePair> getParameters() {
         return this.parameters;
     }

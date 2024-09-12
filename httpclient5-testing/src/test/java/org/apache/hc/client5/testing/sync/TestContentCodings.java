@@ -29,7 +29,6 @@ package org.apache.hc.client5.testing.sync;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -47,8 +46,6 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
 import org.apache.hc.client5.testing.extension.sync.TestClient;
-import org.apache.hc.core5.http.ClassicHttpRequest;
-import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
@@ -58,7 +55,6 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.MessageSupport;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -83,19 +79,7 @@ abstract  class TestContentCodings extends AbstractIntegrationTestBase {
     @Test
     void testResponseWithNoContent() throws Exception {
         configureServer(bootstrap -> bootstrap
-                .register("*", new HttpRequestHandler() {
-
-                    /**
-                     * {@inheritDoc}
-                     */
-                    @Override
-                    public void handle(
-                            final ClassicHttpRequest request,
-                            final ClassicHttpResponse response,
-                            final HttpContext context) {
-                        response.setCode(HttpStatus.SC_NO_CONTENT);
-                    }
-                }));
+                .register("*", (request, response, context) -> response.setCode(HttpStatus.SC_NO_CONTENT)));
 
         final HttpHost target = startServer();
 
@@ -326,43 +310,33 @@ abstract  class TestContentCodings extends AbstractIntegrationTestBase {
      */
     private HttpRequestHandler createDeflateEncodingRequestHandler(
             final String entityText, final boolean rfc1951) {
-        return new HttpRequestHandler() {
+        return (request, response, context) -> {
+            response.setEntity(new StringEntity(entityText));
+            response.addHeader("Content-Type", "text/plain");
+            final Iterator<HeaderElement> it = MessageSupport.iterate(request, "Accept-Encoding");
+            while (it.hasNext()) {
+        final HeaderElement element = it.next();
+        if ("deflate".equalsIgnoreCase(element.getName())) {
+            response.addHeader("Content-Encoding", "deflate");
 
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public void handle(
-                    final ClassicHttpRequest request,
-                    final ClassicHttpResponse response,
-                    final HttpContext context) {
-                response.setEntity(new StringEntity(entityText));
-                response.addHeader("Content-Type", "text/plain");
-                final Iterator<HeaderElement> it = MessageSupport.iterate(request, "Accept-Encoding");
-                while (it.hasNext()) {
-                    final HeaderElement element = it.next();
-                    if ("deflate".equalsIgnoreCase(element.getName())) {
-                        response.addHeader("Content-Encoding", "deflate");
-
-                            /* Gack. DeflaterInputStream is Java 6. */
-                        // response.setEntity(new InputStreamEntity(new DeflaterInputStream(new
-                        // ByteArrayInputStream(
-                        // entityText.getBytes("utf-8"))), -1));
-                        final byte[] uncompressed = entityText.getBytes(StandardCharsets.UTF_8);
-                        final Deflater compressor = new Deflater(Deflater.DEFAULT_COMPRESSION, rfc1951);
-                        compressor.setInput(uncompressed);
-                        compressor.finish();
-                        final byte[] output = new byte[100];
-                        final int compressedLength = compressor.deflate(output);
-                        final byte[] compressed = new byte[compressedLength];
-                        System.arraycopy(output, 0, compressed, 0, compressedLength);
-                        response.setEntity(new InputStreamEntity(
-                                new ByteArrayInputStream(compressed), compressedLength, null));
-                        return;
-                    }
-                }
+                /* Gack. DeflaterInputStream is Java 6. */
+            // response.setEntity(new InputStreamEntity(new DeflaterInputStream(new
+            // ByteArrayInputStream(
+            // entityText.getBytes("utf-8"))), -1));
+            final byte[] uncompressed = entityText.getBytes(StandardCharsets.UTF_8);
+            final Deflater compressor = new Deflater(Deflater.DEFAULT_COMPRESSION, rfc1951);
+            compressor.setInput(uncompressed);
+            compressor.finish();
+            final byte[] output = new byte[100];
+            final int compressedLength = compressor.deflate(output);
+            final byte[] compressed = new byte[compressedLength];
+            System.arraycopy(output, 0, compressed, 0, compressedLength);
+            response.setEntity(new InputStreamEntity(
+                    new ByteArrayInputStream(compressed), compressedLength, null));
+            return;
+        }
             }
-        };
+         };
     }
 
     /**
@@ -374,57 +348,47 @@ abstract  class TestContentCodings extends AbstractIntegrationTestBase {
      * @return a non-null {@link HttpRequestHandler}
      */
     private HttpRequestHandler createGzipEncodingRequestHandler(final String entityText) {
-        return new HttpRequestHandler() {
+        return (request, response, context) -> {
+            response.setEntity(new StringEntity(entityText));
+            response.addHeader("Content-Type", "text/plain");
+            response.addHeader("Content-Type", "text/plain");
+            final Iterator<HeaderElement> it = MessageSupport.iterate(request, "Accept-Encoding");
+            while (it.hasNext()) {
+        final HeaderElement element = it.next();
+        if ("gzip".equalsIgnoreCase(element.getName())) {
+            response.addHeader("Content-Encoding", "gzip");
 
-            /**
-             * {@inheritDoc}
+            /*
+             * We have to do a bit more work with gzip versus deflate, since
+             * Gzip doesn't appear to have an equivalent to DeflaterInputStream in
+             * the JDK.
+             *
+             * UPDATE: DeflaterInputStream is Java 6 anyway, so we have to do a bit
+             * of work there too!
              */
-            @Override
-            public void handle(
-                    final ClassicHttpRequest request,
-                    final ClassicHttpResponse response,
-                    final HttpContext context) throws IOException {
-                response.setEntity(new StringEntity(entityText));
-                response.addHeader("Content-Type", "text/plain");
-                response.addHeader("Content-Type", "text/plain");
-                final Iterator<HeaderElement> it = MessageSupport.iterate(request, "Accept-Encoding");
-                while (it.hasNext()) {
-                    final HeaderElement element = it.next();
-                    if ("gzip".equalsIgnoreCase(element.getName())) {
-                        response.addHeader("Content-Encoding", "gzip");
+            final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            final OutputStream out = new GZIPOutputStream(bytes);
 
-                        /*
-                         * We have to do a bit more work with gzip versus deflate, since
-                         * Gzip doesn't appear to have an equivalent to DeflaterInputStream in
-                         * the JDK.
-                         *
-                         * UPDATE: DeflaterInputStream is Java 6 anyway, so we have to do a bit
-                         * of work there too!
-                         */
-                        final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                        final OutputStream out = new GZIPOutputStream(bytes);
+            final ByteArrayInputStream uncompressed = new ByteArrayInputStream(
+                    entityText.getBytes(StandardCharsets.UTF_8));
 
-                        final ByteArrayInputStream uncompressed = new ByteArrayInputStream(
-                                entityText.getBytes(StandardCharsets.UTF_8));
+            final byte[] buf = new byte[60];
 
-                        final byte[] buf = new byte[60];
-
-                        int n;
-                        while ((n = uncompressed.read(buf)) != -1) {
-                            out.write(buf, 0, n);
-                        }
-
-                        out.close();
-
-                        final byte[] arr = bytes.toByteArray();
-                        response.setEntity(new InputStreamEntity(new ByteArrayInputStream(arr),
-                                arr.length, null));
-
-                        return;
-                    }
-                }
+            int n;
+            while ((n = uncompressed.read(buf)) != -1) {
+                out.write(buf, 0, n);
             }
-        };
+
+            out.close();
+
+            final byte[] arr = bytes.toByteArray();
+            response.setEntity(new InputStreamEntity(new ByteArrayInputStream(arr),
+                    arr.length, null));
+
+            return;
+        }
+            }
+         };
     }
 
     /**

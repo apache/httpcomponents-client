@@ -46,10 +46,13 @@ public class HttpOptions extends HttpUriRequestBase {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The method name {@value}.
+     */
     public final static String METHOD_NAME = "OPTIONS";
 
     /**
-     * Creates a new instance initialized with the given URI.
+     * Constructs a new instance initialized with the given URI.
      *
      * @param uri a non-null request URI.
      * @throws IllegalArgumentException if the uri is null.
@@ -59,7 +62,7 @@ public class HttpOptions extends HttpUriRequestBase {
     }
 
     /**
-     * Creates a new instance initialized with the given URI.
+     * Constructs a new instance initialized with the given URI.
      *
      * @param uri a non-null request URI.
      * @throws IllegalArgumentException if the uri is invalid.
@@ -73,6 +76,12 @@ public class HttpOptions extends HttpUriRequestBase {
         return METHOD_NAME;
     }
 
+    /**
+     * Gets the allowed method names defined by {@code "Allow"} headers.
+     *
+     * @param response the response to query.
+     * @return The response to query.
+     */
     public Set<String> getAllowedMethods(final HttpResponse response) {
         Args.notNull(response, "HTTP response");
 

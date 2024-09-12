@@ -59,7 +59,6 @@ import org.apache.hc.client5.testing.classic.RedirectingDecorator;
 import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
 import org.apache.hc.client5.testing.extension.sync.TestClient;
 import org.apache.hc.client5.testing.redirect.Redirect;
-import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ConnectionClosedException;
@@ -72,7 +71,6 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
-import org.apache.hc.core5.http.io.HttpServerRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
@@ -607,26 +605,19 @@ abstract  class TestRedirects extends AbstractIntegrationTestBase {
     void testCompressionHeaderRedirect() throws Exception {
         final Queue<String> values = new ConcurrentLinkedQueue<>();
         configureServer(bootstrap -> bootstrap
-                .setExchangeHandlerDecorator(new Decorator<HttpServerRequestHandler>() {
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)) {
 
                     @Override
-                    public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                        return new RedirectingDecorator(
-                                requestHandler,
-                                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)) {
-
-                            @Override
-                            public void handle(final ClassicHttpRequest request,
-                                               final ResponseTrigger responseTrigger,
-                                               final HttpContext context) throws HttpException, IOException {
-                                final Header header = request.getHeader(HttpHeaders.ACCEPT_ENCODING);
-                                if (header != null) {
-                                    values.add(header.getValue());
-                                }
-                                super.handle(request, responseTrigger, context);
-                            }
-
-                        };
+                    public void handle(final ClassicHttpRequest request,
+                                       final ResponseTrigger responseTrigger,
+                                       final HttpContext context) throws HttpException, IOException {
+                        final Header header = request.getHeader(HttpHeaders.ACCEPT_ENCODING);
+                        if (header != null) {
+                            values.add(header.getValue());
+                        }
+                        super.handle(request, responseTrigger, context);
                     }
 
                 })

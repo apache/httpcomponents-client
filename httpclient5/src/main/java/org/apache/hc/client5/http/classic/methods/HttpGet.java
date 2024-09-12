@@ -38,10 +38,13 @@ public class HttpGet extends HttpUriRequestBase {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The method name {@value}.
+     */
     public final static String METHOD_NAME = "GET";
 
     /**
-     * Creates a new instance initialized with the given URI.
+     * Constructs a new instance initialized with the given URI.
      *
      * @param uri a non-null request URI.
      * @throws IllegalArgumentException if the uri is null.
@@ -51,7 +54,7 @@ public class HttpGet extends HttpUriRequestBase {
     }
 
     /**
-     * Creates a new instance initialized with the given URI.
+     * Constructs a new instance initialized with the given URI.
      *
      * @param uri a non-null request URI.
      * @throws IllegalArgumentException if the uri is invalid.

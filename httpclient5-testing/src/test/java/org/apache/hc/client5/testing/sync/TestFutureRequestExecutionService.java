@@ -164,7 +164,7 @@ class TestFutureRequestExecutionService {
         }
     }
 
-    private final class CountingCallback implements FutureCallback<Boolean> {
+    private static final class CountingCallback implements FutureCallback<Boolean> {
 
         private final CountDownLatch latch;
 
@@ -190,7 +190,7 @@ class TestFutureRequestExecutionService {
     }
 
 
-    private final class OkidokiHandler implements HttpClientResponseHandler<Boolean> {
+    private static final class OkidokiHandler implements HttpClientResponseHandler<Boolean> {
         @Override
         public Boolean handleResponse(
                 final ClassicHttpResponse response) {
