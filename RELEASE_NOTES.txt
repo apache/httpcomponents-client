@@ -1,10 +1,10 @@
-﻿Release 5.4 BETA1
+﻿Release 5.4
 ------------------
 
-This is the first BETA release in the 5.4 release series. It upgrades HttpCore to version
-5.3-beta1 and adds a few minor improvements and fixes.
+This is the first GA release in the 5.4 release series. This release finalizes the 5.4 APIs,
+upgrades HttpCore to version 5.3 and improves the Public Suffix matching algorithm implementation.
 
-IMPORTANT! Please note the new cache entry serialization format is incompatible with earlier
+IMPORTANT! The new cache entry serialization format is incompatible with earlier
 versions of HttpClient Cache. Persistent caches (file system based, Memcached, EhCAche
 with object serialization) created with any earlier version MUST be flushed and re-populated
 or the cache backend MUST be configured to use the old, deprecated cache entry serializer.
@@ -36,6 +36,58 @@ Notable changes and features included in the 5.4 series:
 
 * HttpContext optimization and performance improvement.
 
+* Async cache is no longer considered experimental.
+
+
+Change Log
+-------------------
+
+* HTTPCLIENT-2338: Put compress exec interceptor after retry exec interceptor.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Upgraded HttpCore to version 5.3.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Javadoc improvements.
+  Contributed by Gary Gregory <garydgregory at gmail.com>
+
+* DeflateInputStream extends FilterInputStream
+  Contributed by Gary Gregory <garydgregory at gmail.com>
+
+* HTTPCLIENT-2335: Added close() method with CloseMode parameter to CloseableHttpResponse.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2336: Corrected hostname identity verification logic.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2336: Updated PublicSuffixMatcher to use the 'formal algorithm' as specified
+  https://github.com/publicsuffix/list/wiki/Format#formal-algorithm.
+  Contributed by Adrian Woodhead <adrian.woodhead at humansecurity.com>
+
+* Input streams returned by DecompressingEntity#getContent to support mark(int) and reset()
+  if the underlying stream does.
+  Contributed by Gary Gregory <garydgregory at gmail.com>
+
+* Improved FQDN matching.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Removed @Experimental from async cache classes.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2333: Update execution scope upon request redirect to avoid re-execution
+  of the original request in case of an I/O error.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Re-introduced LaxRedirectStrategy from 4.x
+  Contributed by Otavio Prado <otavio.prado at sensedia.com>
+
+
+
+Release 5.4 BETA1
+------------------
+
+This is the first BETA release in the 5.4 release series. It upgrades HttpCore to version
+5.3-beta1 and adds a few minor improvements and fixes.
 
 
 Change Log
