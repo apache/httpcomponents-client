@@ -74,6 +74,8 @@ public class EntityBuilder {
     private boolean chunked;
     private boolean gzipCompressed;
 
+    private boolean compressed;
+
     EntityBuilder() {
         super();
     }
@@ -322,6 +324,29 @@ public class EntityBuilder {
         return chunked;
     }
 
+
+    /**
+     * Tests if the entity is to be compressed ({@code true}), or not ({@code false}).
+     *
+     * @return {@code true} if entity is to be compressed, {@code false} otherwise.
+     * @since 5.4
+     */
+    public boolean isCompressed() {
+        return compressed;
+    }
+
+    /**
+     * Sets entities to be compressed.
+     *
+     * @param compressed {@code true} if the entity should be compressed, {@code false} otherwise.
+     * @return this instance.
+     * @since 5.4
+     */
+    public EntityBuilder setCompressed(final boolean compressed) {
+        this.compressed = compressed;
+        return this;
+    }
+
     /**
      * Sets entities to be chunked.
      * @return this instance.
@@ -347,6 +372,7 @@ public class EntityBuilder {
      */
     public EntityBuilder gzipCompressed() {
         this.gzipCompressed = true;
+        this.compressed = true;
         return this;
     }
 
@@ -380,8 +406,8 @@ public class EntityBuilder {
         } else {
             throw new IllegalStateException("No entity set");
         }
-        if (this.gzipCompressed) {
-            return new GzipCompressingEntity(e);
+        if (this.compressed) {
+            return new DecompressEntity(e, CompressorFactory.INSTANCE.getFormattedName(contentEncoding));
         }
         return e;
     }

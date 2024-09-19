@@ -36,7 +36,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
@@ -94,7 +93,6 @@ import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.NamedElementChain;
-import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
@@ -233,6 +231,10 @@ public class HttpClientBuilder {
     private ProxySelector proxySelector;
 
     private List<Closeable> closeables;
+
+    private List<String> encodings;
+
+    private boolean noWrap;
 
     public static HttpClientBuilder create() {
         return new HttpClientBuilder();
@@ -696,12 +698,60 @@ public class HttpClientBuilder {
      * to be used for automatic content decompression.
      *
      * @return this instance.
+     * @deprecated Use {@link HttpClientBuilder#setEncodings(List)}
      */
+    @Deprecated
     public final HttpClientBuilder setContentDecoderRegistry(
             final LinkedHashMap<String, InputStreamFactory> contentDecoderMap) {
         this.contentDecoderMap = contentDecoderMap;
+        setEncodings(new ArrayList<>(contentDecoderMap.keySet()));
         return this;
     }
+
+    /**
+     * Sets the list of content encodings to be supported for automatic content compression and decompression.
+     * <p>
+     * This method allows the user to provide a list of content encodings that the client will support during HTTP
+     * requests and responses. It enables automatic handling of compressed data streams for specified encodings.
+     * Supported encodings could include algorithms like "gzip", "deflate", "br" (Brotli), or custom encodings
+     * depending on the available compression implementations.
+     * </p>
+     *
+     * <pre>
+     * Example:
+     * {@code
+     * List<String> supportedEncodings = Arrays.asList("gzip", "deflate", "br");
+     * HttpClientBuilder builder = HttpClientBuilder.create()
+     *      .setEncodings(supportedEncodings);
+     * }
+     * </pre>
+     *
+     * @param encodings a list of encoding names to support for automatic content compression and decompression
+     * @return this {@code HttpClientBuilder} instance for method chaining
+     * @since 5.0
+     */
+    public final HttpClientBuilder setEncodings(final List<String> encodings) {
+        this.encodings = encodings;
+        return this;
+    }
+
+    /**
+     * Sets the "noWrap" option for the HTTP client.
+     * <p>
+     * When enabled, this option disables the zlib header and trailer in deflate compression streams.
+     * This is useful when working with servers that require or expect raw deflate streams without
+     * the standard zlib header and trailer.
+     * </p>
+     *
+     * @param noWrap if {@code true}, disables the zlib header and trailer in deflate streams.
+     * @return the updated {@link HttpClientBuilder} instance.
+     * @since 5.4
+     */
+    public final HttpClientBuilder setNoWrap(final boolean noWrap) {
+        this.noWrap = noWrap;
+        return this;
+    }
+
 
     /**
      * Sets default {@link RequestConfig} instance which will be used
@@ -962,22 +1012,6 @@ public class HttpClientBuilder {
                         authCachingDisabled),
                 ChainElement.PROTOCOL.name());
 
-        if (!contentCompressionDisabled) {
-            if (contentDecoderMap != null) {
-                final List<String> encodings = new ArrayList<>(contentDecoderMap.keySet());
-                final RegistryBuilder<InputStreamFactory> b2 = RegistryBuilder.create();
-                for (final Map.Entry<String, InputStreamFactory> entry: contentDecoderMap.entrySet()) {
-                    b2.register(entry.getKey(), entry.getValue());
-                }
-                final Registry<InputStreamFactory> decoderRegistry = b2.build();
-                execChainDefinition.addFirst(
-                        new ContentCompressionExec(encodings, decoderRegistry, true),
-                        ChainElement.COMPRESS.name());
-            } else {
-                execChainDefinition.addFirst(new ContentCompressionExec(true), ChainElement.COMPRESS.name());
-            }
-        }
-
         // Add request retry executor, if not disabled
         if (!automaticRetriesDisabled) {
             HttpRequestRetryStrategy retryStrategyCopy = this.retryStrategy;
@@ -1004,6 +1038,16 @@ public class HttpClientBuilder {
                 routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, defaultProxySelector);
             } else {
                 routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
+            }
+        }
+
+        if (!contentCompressionDisabled) {
+            if (encodings != null && !encodings.isEmpty()) {
+                execChainDefinition.addFirst(
+                        new ContentCompressionExec(encodings, true, noWrap),
+                        ChainElement.COMPRESS.name());
+            } else {
+                execChainDefinition.addFirst(new ContentCompressionExec(true, noWrap), ChainElement.COMPRESS.name());
             }
         }
 

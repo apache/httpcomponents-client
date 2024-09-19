@@ -40,7 +40,9 @@ import org.apache.hc.core5.util.Args;
  *
  *
  * @since 4.0
+ * @deprecated Use {@link CompressorFactory#compressEntity(HttpEntity, String)} to handle compression.
  */
+@Deprecated
 public class GzipCompressingEntity extends HttpEntityWrapper {
 
     private static final String GZIP_CODEC = "gzip";

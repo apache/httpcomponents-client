@@ -52,7 +52,7 @@ class TestDeflate {
         compresser.finish();
         final int len = compresser.deflate(compressed);
 
-        final HttpEntity entity = new DeflateDecompressingEntity(new ByteArrayEntity(compressed, 0, len, ContentType.APPLICATION_OCTET_STREAM));
+        final HttpEntity entity = CompressorFactory.INSTANCE.decompressEntity(new ByteArrayEntity(compressed, 0, len, ContentType.APPLICATION_OCTET_STREAM), "deflate", true);
         Assertions.assertEquals(s, EntityUtils.toString(entity));
     }
 
