@@ -37,7 +37,9 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  * {@link InputStreamFactory} for handling Deflate Content Coded responses.
  *
  * @since 5.0
+ * @deprecated Use {@link CompressorFactory}.
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DeflateInputStreamFactory implements InputStreamFactory {
 

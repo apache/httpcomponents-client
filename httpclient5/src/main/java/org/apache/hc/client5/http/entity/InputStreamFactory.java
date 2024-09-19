@@ -33,7 +33,9 @@ import java.io.InputStream;
  * Factory for decorated {@link InputStream}s.
  *
  * @since 4.4
+ * @deprecated Use {@link CompressorFactory} to retrieve appropriate {@link InputStream}s for compression handling.
  */
+@Deprecated
 public interface InputStreamFactory {
 
     InputStream create(InputStream inputStream) throws IOException;
