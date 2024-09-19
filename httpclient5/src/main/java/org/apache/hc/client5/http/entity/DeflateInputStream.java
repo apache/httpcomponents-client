@@ -38,7 +38,9 @@ import java.util.zip.ZipException;
 /**
  * Deflates an input stream. This class includes logic needed for various RFCs in order
  * to reasonably implement the "deflate" compression algorithm.
+ * @deprecated Use {@link CompressorFactory} for handling Deflate compression.
  */
+@Deprecated
 public class DeflateInputStream extends FilterInputStream {
 
     public DeflateInputStream(final InputStream wrapped) throws IOException {

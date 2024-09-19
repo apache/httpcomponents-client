@@ -43,7 +43,9 @@ import org.apache.hc.core5.http.HttpEntity;
  * @see GzipDecompressingEntity
  *
  * @since 4.1
+ * @deprecated Use {@link DecompressEntity} or {@link CompressorFactory} for decompression handling.
  */
+@Deprecated
 public class DeflateDecompressingEntity extends DecompressingEntity {
 
     /**

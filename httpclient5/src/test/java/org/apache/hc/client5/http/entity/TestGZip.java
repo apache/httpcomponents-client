@@ -47,46 +47,55 @@ import org.mockito.Mockito;
 class TestGZip {
 
     @Test
-    void testBasic() throws Exception {
+    void testBasic() {
         final String s = "some kind of text";
-        final StringEntity e = new StringEntity(s, ContentType.TEXT_PLAIN, false);
-        try (final GzipCompressingEntity gzipe = new GzipCompressingEntity(e)) {
-            Assertions.assertTrue(gzipe.isChunked());
-            Assertions.assertEquals(-1, gzipe.getContentLength());
-            Assertions.assertNotNull(gzipe.getContentEncoding());
-            Assertions.assertEquals("gzip", gzipe.getContentEncoding());
-        }
+        final HttpEntity entity = CompressorFactory.INSTANCE.decompressEntity(new StringEntity(s, ContentType.TEXT_PLAIN, false), "gz");
+        Assertions.assertEquals(17, entity.getContentLength());
+        Assertions.assertNotNull(entity.getContentEncoding());
+        Assertions.assertEquals("gz", entity.getContentEncoding());
     }
 
     @Test
     void testCompressionDecompression() throws Exception {
         final StringEntity in = new StringEntity("some kind of text", ContentType.TEXT_PLAIN);
-        try (final GzipCompressingEntity gzipe = new GzipCompressingEntity(in)) {
-            final ByteArrayOutputStream buf = new ByteArrayOutputStream();
-            gzipe.writeTo(buf);
-            final ByteArrayEntity out = new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
-            final GzipDecompressingEntity gunzipe = new GzipDecompressingEntity(out);
-            Assertions.assertEquals("some kind of text", EntityUtils.toString(gunzipe, StandardCharsets.US_ASCII));
-        }
+
+        // Compress the input entity using the factory
+        final HttpEntity gzipe = CompressorFactory.INSTANCE.compressEntity(in, "gz");
+
+        // Write the compressed content to a ByteArrayOutputStream
+        final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        gzipe.writeTo(buf);
+
+        // Create a new entity using the compressed content
+        final ByteArrayEntity out = new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
+
+        // Decompress the entity
+        final HttpEntity gunzipe = CompressorFactory.INSTANCE.decompressEntity(out, "gz");
+
+        // Verify the decompressed content
+        Assertions.assertEquals("some kind of text", EntityUtils.toString(gunzipe, StandardCharsets.US_ASCII));
     }
 
     @Test
     void testCompressionIOExceptionLeavesOutputStreamOpen() throws Exception {
         final HttpEntity in = Mockito.mock(HttpEntity.class);
         Mockito.doThrow(new IOException("Ooopsie")).when(in).writeTo(ArgumentMatchers.any());
-        try (final GzipCompressingEntity gzipe = new GzipCompressingEntity(in)) {
-            final OutputStream out = Mockito.mock(OutputStream.class);
-            try {
-                gzipe.writeTo(out);
-            } catch (final IOException ex) {
-                Mockito.verify(out, Mockito.never()).close();
-            }
+
+        // Compress the mocked entity
+        final HttpEntity gzipe = CompressorFactory.INSTANCE.compressEntity(in, "gz");
+
+        // Mock the output stream
+        final OutputStream out = Mockito.mock(OutputStream.class);
+        try {
+            gzipe.writeTo(out);
+        } catch (final IOException ex) {
+            Mockito.verify(out, Mockito.never()).close();
         }
     }
 
     @Test
     void testDecompressionWithMultipleGZipStream() throws Exception {
-        final int[] data = new int[] {
+        final int[] data = new int[]{
                 0x1f, 0x8b, 0x08, 0x08, 0x03, 0xf1, 0x55, 0x5a, 0x00, 0x03, 0x74, 0x65, 0x73, 0x74, 0x31, 0x00,
                 0x2b, 0x2e, 0x29, 0x4a, 0x4d, 0xcc, 0xd5, 0x35, 0xe4, 0x02, 0x00, 0x03, 0x61, 0xf0, 0x5f, 0x09,
                 0x00, 0x00, 0x00, 0x1f, 0x8b, 0x08, 0x08, 0x08, 0xf1, 0x55, 0x5a, 0x00, 0x03, 0x74, 0x65, 0x73,
@@ -98,9 +107,13 @@ class TestGZip {
             bytes[i] = (byte) (data[i] & 0xff);
         }
 
-        try (final GzipDecompressingEntity entity = new GzipDecompressingEntity(new InputStreamEntity(new ByteArrayInputStream(bytes), ContentType.APPLICATION_OCTET_STREAM))) {
-            Assertions.assertEquals("stream-1\nstream-2\n", EntityUtils.toString(entity, StandardCharsets.US_ASCII));
-        }
+        // Decompress multiple GZip streams using the factory
+        final HttpEntity entity = CompressorFactory.INSTANCE.decompressEntity(
+                new InputStreamEntity(new ByteArrayInputStream(bytes), ContentType.APPLICATION_OCTET_STREAM),
+                "gz");
+
+        // Verify the decompressed content
+        Assertions.assertEquals("stream-1\nstream-2\n", EntityUtils.toString(entity, StandardCharsets.US_ASCII));
     }
 
 }

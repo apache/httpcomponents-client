@@ -57,6 +57,8 @@ final class StandardTestClientBuilder implements TestClientBuilder {
 
     private HttpClientConnectionManager connectionManager;
 
+    private boolean noWrap;
+
     public StandardTestClientBuilder() {
         this.clientBuilder = HttpClientBuilder.create();
     }
@@ -69,6 +71,12 @@ final class StandardTestClientBuilder implements TestClientBuilder {
     @Override
     public TestClientBuilder setTimeout(final Timeout timeout) {
         this.timeout = timeout;
+        return this;
+    }
+
+    @Override
+    public TestClientBuilder setNoWrap(final boolean noWrap) {
+        this.noWrap = noWrap;
         return this;
     }
 
@@ -165,6 +173,7 @@ final class StandardTestClientBuilder implements TestClientBuilder {
 
         final CloseableHttpClient client = clientBuilder
                 .setConnectionManager(connectionManagerCopy)
+                .setNoWrap(noWrap)
                 .build();
         return new TestClient(client, connectionManagerCopy);
     }

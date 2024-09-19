@@ -108,7 +108,7 @@ abstract  class TestContentCodings extends AbstractIntegrationTestBase {
 
         final HttpHost target = startServer();
 
-        final TestClient client = client();
+        final TestClient client = client(true);
 
         final HttpGet request = new HttpGet("/some-resource");
         client.execute(target, request, response -> {
@@ -133,7 +133,7 @@ abstract  class TestContentCodings extends AbstractIntegrationTestBase {
 
         final HttpHost target = startServer();
 
-        final TestClient client = client();
+        final TestClient client = client(false);
 
         final HttpGet request = new HttpGet("/some-resource");
         client.execute(target, request, response -> {
@@ -289,7 +289,7 @@ abstract  class TestContentCodings extends AbstractIntegrationTestBase {
 
         final HttpHost target = startServer();
 
-        final TestClient client = client();
+        final TestClient client = client(true);
 
         final HttpGet request = new HttpGet("/some-resource");
         final String response = client.execute(target, request, new BasicHttpClientResponseHandler());
