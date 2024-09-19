@@ -27,12 +27,16 @@
 
 package org.apache.hc.client5.http.entity;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -116,12 +120,25 @@ class TestEntityBuilder {
 
     @Test
     void testBuildGZipped() {
-        final HttpEntity entity = EntityBuilder.create().setText("stuff").gzipCompressed().build();
+        final HttpEntity entity = EntityBuilder.create().setText("stuff").setCompressed(true).setContentEncoding("gzip").build();
         Assertions.assertNotNull(entity);
         Assertions.assertNotNull(entity.getContentType());
         Assertions.assertEquals("text/plain; charset=UTF-8", entity.getContentType());
         Assertions.assertNotNull(entity.getContentEncoding());
-        Assertions.assertEquals("gzip", entity.getContentEncoding());
+        Assertions.assertEquals("gz", entity.getContentEncoding());
+    }
+
+    @Test
+    public void testCompressionDecompression() throws Exception {
+        final String originalContent = "some kind of text";
+        final StringEntity originalEntity = new StringEntity(originalContent, ContentType.TEXT_PLAIN);
+        final HttpEntity compressedEntity = CompressorFactory.INSTANCE.compressEntity(originalEntity, "gz");
+        final ByteArrayOutputStream compressedOut = new ByteArrayOutputStream();
+        compressedEntity.writeTo(compressedOut);
+        final ByteArrayEntity out = new ByteArrayEntity(compressedOut.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
+        final HttpEntity decompressedEntity = CompressorFactory.INSTANCE.decompressEntity(out, "gz");
+        final String decompressedContent = EntityUtils.toString(decompressedEntity, StandardCharsets.UTF_8);
+        Assertions.assertEquals(originalContent, decompressedContent, "The decompressed content should match the original content.");
     }
 
 }

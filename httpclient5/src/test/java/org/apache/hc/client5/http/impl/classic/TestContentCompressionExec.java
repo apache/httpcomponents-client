@@ -30,7 +30,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.entity.DecompressingEntity;
+import org.apache.hc.client5.http.entity.DecompressEntity;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.client5.http.entity.GzipDecompressingEntity;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -116,7 +116,7 @@ class TestContentCompressionExec {
 
         final HttpEntity entity = response.getEntity();
         Assertions.assertNotNull(entity);
-        Assertions.assertTrue(entity instanceof DecompressingEntity);
+        Assertions.assertTrue(entity instanceof DecompressEntity);
     }
 
     @Test
@@ -148,7 +148,7 @@ class TestContentCompressionExec {
 
         final HttpEntity entity = response.getEntity();
         Assertions.assertNotNull(entity);
-        Assertions.assertTrue(entity instanceof DecompressingEntity);
+        Assertions.assertTrue(entity instanceof DecompressEntity);
     }
 
     @Test
@@ -164,7 +164,7 @@ class TestContentCompressionExec {
 
         final HttpEntity entity = response.getEntity();
         Assertions.assertNotNull(entity);
-        Assertions.assertTrue(entity instanceof DecompressingEntity);
+        Assertions.assertTrue(entity instanceof DecompressEntity);
     }
 
     @Test
@@ -196,7 +196,7 @@ class TestContentCompressionExec {
 
         final HttpEntity entity = response.getEntity();
         Assertions.assertNotNull(entity);
-        Assertions.assertTrue(entity instanceof DecompressingEntity);
+        Assertions.assertTrue(entity instanceof DecompressEntity);
     }
 
     @Test

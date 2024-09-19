@@ -111,4 +111,9 @@ public class TestClientResources implements AfterEachCallback {
         return client;
     }
 
+    public TestClient client(final boolean noWrap) throws Exception {
+        clientBuilder.setNoWrap(noWrap);
+        return client();
+    }
+
 }
