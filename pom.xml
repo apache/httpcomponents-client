@@ -68,7 +68,7 @@
     <conscrypt.version>2.5.2</conscrypt.version>
     <ehcache.version>3.10.8</ehcache.version>
     <memcached.version>2.12.3</memcached.version>
-    <slf4j.version>1.7.36</slf4j.version>
+    <slf4j.version>2.0.0</slf4j.version>
     <junit.version>5.11.0</junit.version>
     <hamcrest.version>3.0</hamcrest.version>
     <mockito.version>4.11.0</mockito.version>
