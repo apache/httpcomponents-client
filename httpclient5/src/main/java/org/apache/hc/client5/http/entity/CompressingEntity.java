@@ -76,7 +76,6 @@ public class CompressingEntity extends HttpEntityWrapper {
         return contentEncoding;
     }
 
-
     /**
      * Returns whether the entity is chunked. This is determined by the wrapped entity.
      *
@@ -86,7 +85,6 @@ public class CompressingEntity extends HttpEntityWrapper {
     public boolean isChunked() {
         return super.isChunked();
     }
-
 
     /**
      * This method is unsupported because the content is meant to be compressed during the
@@ -110,7 +108,6 @@ public class CompressingEntity extends HttpEntityWrapper {
     @Override
     public void writeTo(final OutputStream outStream) throws IOException {
         Args.notNull(outStream, "Output stream");
-
         // Get the compressor based on the specified content encoding
         final OutputStream compressorStream;
         try {
@@ -118,7 +115,6 @@ public class CompressingEntity extends HttpEntityWrapper {
         } catch (final CompressorException e) {
             throw new IOException("Error initializing decompression stream", e);
         }
-
         if (compressorStream != null) {
             // Write compressed data
             super.writeTo(compressorStream);
