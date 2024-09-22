@@ -692,7 +692,6 @@ public class HttpClientBuilder {
         return this;
     }
 
-
     /**
      * Sets a map of {@link org.apache.hc.client5.http.entity.InputStreamFactory}s
      * to be used for automatic content decompression.
@@ -751,7 +750,6 @@ public class HttpClientBuilder {
         this.noWrap = noWrap;
         return this;
     }
-
 
     /**
      * Sets default {@link RequestConfig} instance which will be used
