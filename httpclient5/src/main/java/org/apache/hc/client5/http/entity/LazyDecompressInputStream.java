@@ -34,7 +34,6 @@ import java.io.UncheckedIOException;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.hc.core5.io.Closer;
 
-
 /**
  * A {@link FilterInputStream} that lazily initializes and applies decompression on the underlying input stream.
  * This class supports multiple compression types and uses {@link CompressorFactory} to obtain the appropriate
@@ -211,4 +210,3 @@ public class LazyDecompressInputStream extends FilterInputStream {
         initWrapper().reset();
     }
 }
-
