@@ -35,7 +35,6 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
 import org.apache.hc.core5.util.Args;
 
-
 /**
  * An {@link HttpEntity} wrapper that applies compression to the content before writing it to
  * an output stream. This class supports various compression algorithms based on the
