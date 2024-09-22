@@ -51,6 +51,7 @@ import javax.security.auth.x500.X500Principal;
 
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
@@ -271,7 +272,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
                     final X509Certificate x509 = (X509Certificate) cert;
                     final X500Principal peer = x509.getSubjectX500Principal();
 
-                    LOG.debug(" peer principal: {}", peer);
+                    LOG.debug("Peer principal: {}", toEscapedString(peer));
                     final Collection<List<?>> altNames1 = x509.getSubjectAlternativeNames();
                     if (altNames1 != null) {
                         final List<String> altNames = new ArrayList<>();
@@ -284,7 +285,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
                     }
 
                     final X500Principal issuer = x509.getIssuerX500Principal();
-                    LOG.debug(" issuer principal: {}", issuer);
+                    LOG.debug("Issuer principal: {}", toEscapedString(issuer));
                     final Collection<List<?>> altNames2 = x509.getIssuerAlternativeNames();
                     if (altNames2 != null) {
                         final List<String> altNames = new ArrayList<>();
@@ -320,6 +321,35 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
                         "of the subject alternative names: " + subjectAlts);
             }
         }
+    }
+
+    /**
+     * Converts an X500Principal to a cleaned string by escaping control characters.
+     * <p>
+     * This method processes the RFC2253 format of the X500Principal and escapes
+     * any ISO control characters to avoid issues in logging or other outputs.
+     * Control characters are replaced with their escaped hexadecimal representation.
+     * </p>
+     *
+     * <p><strong>Note:</strong> For testing purposes, this method is package-private
+     * to allow access within the same package. This allows tests to verify the correct
+     * behavior of the escaping process.</p>
+     *
+     * @param principal the X500Principal to escape
+     * @return the escaped string representation of the X500Principal
+     */
+    @Internal
+    String toEscapedString(final X500Principal principal) {
+        final String principalValue = principal.getName(X500Principal.RFC2253);
+        final StringBuilder sanitizedPrincipal = new StringBuilder(principalValue.length());
+        for (final char c : principalValue.toCharArray()) {
+            if (Character.isISOControl(c)) {
+                sanitizedPrincipal.append(String.format("\\x%02x", (int) c));
+            } else {
+                sanitizedPrincipal.append(c);
+            }
+        }
+        return sanitizedPrincipal.toString();
     }
 
 }
