@@ -324,7 +324,6 @@ public class EntityBuilder {
         return chunked;
     }
 
-
     /**
      * Tests if the entity is to be compressed ({@code true}), or not ({@code false}).
      *
