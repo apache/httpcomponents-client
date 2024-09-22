@@ -44,7 +44,6 @@ import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.testing.classic.ClassicTestServer;
 
-
 /**
  * Demonstrates handling of HTTP responses with content compression using Apache HttpClient.
  * <p>
