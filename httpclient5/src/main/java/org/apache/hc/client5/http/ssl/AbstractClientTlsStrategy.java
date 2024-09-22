@@ -285,7 +285,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
                     }
 
                     final X500Principal issuer = x509.getIssuerX500Principal();
-                    LOG.debug("Escaped issuer principal: {}", toEscapedString(issuer));
+                    LOG.debug("Issuer principal: {}", toEscapedString(issuer));
                     final Collection<List<?>> altNames2 = x509.getIssuerAlternativeNames();
                     if (altNames2 != null) {
                         final List<String> altNames = new ArrayList<>();
