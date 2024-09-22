@@ -344,7 +344,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
         final StringBuilder sanitizedPrincipal = new StringBuilder(principalValue.length());
         for (final char c : principalValue.toCharArray()) {
             if (Character.isISOControl(c)) {
-                sanitizedPrincipal.append("\\x").append(String.format("%02x", (int) c));
+                sanitizedPrincipal.append(String.format("\\x%02x", (int) c));
             } else {
                 sanitizedPrincipal.append(c);
             }
