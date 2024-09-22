@@ -136,7 +136,6 @@ public class CompressorFactory {
     public InputStream getCompressorInputStream(final String name, final InputStream inputStream, final boolean noWrap) throws CompressorException {
         Args.notNull(inputStream, "InputStream");
         Args.notNull(name, "name");
-
         final String formattedName = getFormattedName(name);
         return isSupported(formattedName, false)
                 ? createCompressorInputStream(formattedName, inputStream, noWrap)
@@ -155,9 +154,7 @@ public class CompressorFactory {
         return isSupported(formattedName, true)
                 ? createCompressorOutputStream(formattedName, outputStream)
                 : outputStream;
-
     }
-
 
     /**
      * Decompresses the provided HTTP entity using the specified compression format.
@@ -277,6 +274,4 @@ public class CompressorFactory {
         return availableProviders.contains(name);
     }
 }
-
-
 
