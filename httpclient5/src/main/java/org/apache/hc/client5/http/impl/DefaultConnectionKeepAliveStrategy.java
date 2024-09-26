@@ -70,7 +70,7 @@ public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveSt
             if (value != null && param.equalsIgnoreCase("timeout")) {
                 try {
                     return TimeValue.ofSeconds(Long.parseLong(value));
-                } catch(final NumberFormatException ignore) {
+                } catch (final NumberFormatException ignore) {
                 }
             }
         }

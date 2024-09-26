@@ -30,7 +30,7 @@ import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
 import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
 import org.apache.hc.core5.http.URIScheme;
 
-abstract  class TestH2ClientAuthentication extends AbstractHttpAsyncClientAuthenticationTest {
+abstract class TestH2ClientAuthentication extends AbstractHttpAsyncClientAuthenticationTest {
 
     public TestH2ClientAuthentication(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.H2_ONLY, ServerProtocolLevel.H2_ONLY);

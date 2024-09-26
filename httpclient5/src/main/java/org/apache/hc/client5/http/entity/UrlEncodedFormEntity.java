@@ -66,7 +66,7 @@ public class UrlEncodedFormEntity extends StringEntity {
      *
      * @param parameters list of name/value pairs
      */
-    public UrlEncodedFormEntity (final List <? extends NameValuePair> parameters){
+    public UrlEncodedFormEntity(final List<? extends NameValuePair> parameters) {
         this(parameters, null);
     }
 
@@ -78,8 +78,8 @@ public class UrlEncodedFormEntity extends StringEntity {
      *
      * @since 4.2
      */
-    public UrlEncodedFormEntity (
-        final Iterable <? extends NameValuePair> parameters) {
+    public UrlEncodedFormEntity(
+            final Iterable<? extends NameValuePair> parameters) {
         this(parameters, null);
     }
 

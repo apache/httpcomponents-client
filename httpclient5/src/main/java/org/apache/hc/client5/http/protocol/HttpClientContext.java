@@ -70,7 +70,7 @@ public class HttpClientContext extends HttpCoreContext {
      * @deprecated Use getter methods
      */
     @Deprecated
-    public static final String HTTP_ROUTE   = "http.route";
+    public static final String HTTP_ROUTE = "http.route";
 
     /**
      * @deprecated Use getter methods
@@ -82,55 +82,55 @@ public class HttpClientContext extends HttpCoreContext {
      * @deprecated Use getter methods
      */
     @Deprecated
-    public static final String COOKIESPEC_REGISTRY   = "http.cookiespec-registry";
+    public static final String COOKIESPEC_REGISTRY = "http.cookiespec-registry";
 
     /**
      * @deprecated Use getter methods
      */
     @Deprecated
-    public static final String COOKIE_SPEC           = "http.cookie-spec";
+    public static final String COOKIE_SPEC = "http.cookie-spec";
 
     /**
      * @deprecated Use getter methods
      */
     @Deprecated
-    public static final String COOKIE_ORIGIN         = "http.cookie-origin";
+    public static final String COOKIE_ORIGIN = "http.cookie-origin";
 
     /**
      * @deprecated Use getter methods
      */
     @Deprecated
-    public static final String COOKIE_STORE          = "http.cookie-store";
+    public static final String COOKIE_STORE = "http.cookie-store";
 
     /**
      * @deprecated Use getter methods
      */
     @Deprecated
-    public static final String CREDS_PROVIDER        = "http.auth.credentials-provider";
+    public static final String CREDS_PROVIDER = "http.auth.credentials-provider";
 
     /**
      * @deprecated Use getter methods
      */
     @Deprecated
-    public static final String AUTH_CACHE            = "http.auth.auth-cache";
+    public static final String AUTH_CACHE = "http.auth.auth-cache";
 
     /**
      * @deprecated Use getter methods
      */
     @Deprecated
-    public static final String AUTH_EXCHANGE_MAP     = "http.auth.exchanges";
+    public static final String AUTH_EXCHANGE_MAP = "http.auth.exchanges";
 
     /**
      * @deprecated Use getter methods
      */
     @Deprecated
-    public static final String USER_TOKEN            = "http.user-token";
+    public static final String USER_TOKEN = "http.user-token";
 
     /**
      * @deprecated Use getter methods
      */
     @Deprecated
-    public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry";
+    public static final String AUTHSCHEME_REGISTRY = "http.authscheme-registry";
 
     /**
      * @deprecated Use getter methods

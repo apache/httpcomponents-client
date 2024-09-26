@@ -77,7 +77,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.reactivestreams.Publisher;
 
-abstract  class AbstractHttpReactiveFundamentalsTest extends AbstractIntegrationTestBase {
+abstract class AbstractHttpReactiveFundamentalsTest extends AbstractIntegrationTestBase {
 
     public AbstractHttpReactiveFundamentalsTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
         super(scheme, clientProtocolLevel, serverProtocolLevel);
@@ -85,7 +85,7 @@ abstract  class AbstractHttpReactiveFundamentalsTest extends AbstractIntegration
 
     @Test
     @Timeout(value = 60_000, unit = MILLISECONDS)
-    public void testSequentialGetRequests() throws Exception {
+    void testSequentialGetRequests() throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", () -> new ReactiveServerExchangeHandler(new ReactiveRandomProcessor())));
         final HttpHost target = startServer();
@@ -108,7 +108,7 @@ abstract  class AbstractHttpReactiveFundamentalsTest extends AbstractIntegration
 
     @Test
     @Timeout(value = 2000, unit = MILLISECONDS)
-    public void testSequentialHeadRequests() throws Exception {
+    void testSequentialHeadRequests() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", () ->
                 new ReactiveServerExchangeHandler(new ReactiveRandomProcessor())));
         final HttpHost target = startServer();
@@ -130,7 +130,7 @@ abstract  class AbstractHttpReactiveFundamentalsTest extends AbstractIntegration
 
     @Test
     @Timeout(value = 60_000, unit = MILLISECONDS)
-    public void testSequentialPostRequests() throws Exception {
+    void testSequentialPostRequests() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/echo/*", () ->
                 new ReactiveServerExchangeHandler(new ReactiveEchoProcessor())));
         final HttpHost target = startServer();
@@ -160,7 +160,7 @@ abstract  class AbstractHttpReactiveFundamentalsTest extends AbstractIntegration
 
     @Test
     @Timeout(value = 60_000, unit = MILLISECONDS)
-    public void testConcurrentPostRequests() throws Exception {
+    void testConcurrentPostRequests() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/echo/*", () ->
                 new ReactiveServerExchangeHandler(new ReactiveEchoProcessor())));
         final HttpHost target = startServer();
@@ -209,7 +209,7 @@ abstract  class AbstractHttpReactiveFundamentalsTest extends AbstractIntegration
 
     @Test
     @Timeout(value = 60_000, unit = MILLISECONDS)
-    public void testRequestExecutionFromCallback() throws Exception {
+    void testRequestExecutionFromCallback() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", () ->
                 new ReactiveServerExchangeHandler(new ReactiveRandomProcessor())));
         final HttpHost target = startServer();

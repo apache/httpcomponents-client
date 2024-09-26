@@ -76,7 +76,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-abstract  class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegrationTestBase {
+abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegrationTestBase {
 
     public AbstractHttpAsyncClientAuthenticationTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
         super(scheme, clientProtocolLevel, serverProtocolLevel);
@@ -240,7 +240,7 @@ abstract  class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegr
         configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
         final DefaultAuthenticationStrategy authStrategy = Mockito.spy(new DefaultAuthenticationStrategy());
-        configureClient(builder ->  builder.setTargetAuthenticationStrategy(authStrategy));
+        configureClient(builder -> builder.setTargetAuthenticationStrategy(authStrategy));
         final TestAsyncClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();

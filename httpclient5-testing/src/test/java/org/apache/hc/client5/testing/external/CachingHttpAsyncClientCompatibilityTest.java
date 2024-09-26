@@ -107,7 +107,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
         client.close();
     }
 
-    enum TestResult {OK, NOK}
+    enum TestResult { OK, NOK }
 
     private void logResult(final TestResult result,
                            final HttpRequest request,
@@ -186,7 +186,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
                     final Throwable cause = ex.getCause();
                     logResult(TestResult.NOK, httpGet1, null, "(" + cause.getMessage() + ")");
                 } catch (final TimeoutException ex) {
-                    logResult(TestResult.NOK, httpGet1,  null,"(time out)");
+                    logResult(TestResult.NOK, httpGet1, null, "(time out)");
                 }
 
                 final SimpleHttpRequest httpGet2 = SimpleRequestBuilder.get()
@@ -207,7 +207,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
                     final Throwable cause = ex.getCause();
                     logResult(TestResult.NOK, httpGet2, null, "(" + cause.getMessage() + ")");
                 } catch (final TimeoutException ex) {
-                    logResult(TestResult.NOK, httpGet2,  null,"(time out)");
+                    logResult(TestResult.NOK, httpGet2, null, "(time out)");
                 }
 
                 Thread.sleep(2000);
@@ -231,7 +231,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
                     final Throwable cause = ex.getCause();
                     logResult(TestResult.NOK, httpGet3, null, "(" + cause.getMessage() + ")");
                 } catch (final TimeoutException ex) {
-                    logResult(TestResult.NOK, httpGet3,  null,"(time out)");
+                    logResult(TestResult.NOK, httpGet3, null, "(time out)");
                 }
             }
         }

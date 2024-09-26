@@ -721,7 +721,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final AsyncExecChain.Scope scope,
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) {
-        final HttpCacheContext context  = HttpCacheContext.cast(scope.clientContext);
+        final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
         final String exchangeId = scope.exchangeId;
 
         if (LOG.isDebugEnabled()) {

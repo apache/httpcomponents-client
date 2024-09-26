@@ -37,7 +37,7 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 
-class RequestEntityProxy implements HttpEntity  {
+class RequestEntityProxy implements HttpEntity {
 
     static void enhance(final ClassicHttpRequest request) {
         final HttpEntity entity = request.getEntity();

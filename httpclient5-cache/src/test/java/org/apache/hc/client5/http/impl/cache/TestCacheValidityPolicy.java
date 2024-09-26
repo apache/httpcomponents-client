@@ -80,7 +80,7 @@ class TestCacheValidityPolicy {
     @Test
     void testNegativeApparentAgeIsBroughtUpToZero() {
         final Header[] headers = new Header[] { new BasicHeader("Date", DateUtils.formatStandardDate(sixSecondsAgo)) };
-        final HttpCacheEntry entry  = HttpTestUtils.makeCacheEntry(now, tenSecondsAgo, headers);
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, tenSecondsAgo, headers);
         assertEquals(TimeValue.ofSeconds(0), impl.getApparentAge(entry));
     }
 

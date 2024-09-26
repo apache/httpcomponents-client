@@ -53,9 +53,9 @@ public class AuthChallengeParser {
 
     private final Tokenizer tokenParser = Tokenizer.INSTANCE;
 
-    private final static char BLANK            = ' ';
-    private final static char COMMA_CHAR       = ',';
-    private final static char EQUAL_CHAR       = '=';
+    private final static char BLANK = ' ';
+    private final static char COMMA_CHAR = ',';
+    private final static char EQUAL_CHAR = '=';
 
     private static final Tokenizer.Delimiter TERMINATORS = Tokenizer.delimiters(BLANK, EQUAL_CHAR, COMMA_CHAR);
     private static final Tokenizer.Delimiter DELIMITER = Tokenizer.delimiters(COMMA_CHAR);

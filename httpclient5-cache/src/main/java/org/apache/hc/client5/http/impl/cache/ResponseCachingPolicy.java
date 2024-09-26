@@ -235,7 +235,7 @@ class ResponseCachingPolicy {
         // The response is considered explicitly non-cacheable if it contains
         // "no-store" or (if sharedCache is true) "private" directives.
         // Note that "no-cache" is considered cacheable but requires validation before use.
-        return cacheControl.isNoStore() || (sharedCache && cacheControl.isCachePrivate());
+        return cacheControl.isNoStore() || sharedCache && cacheControl.isCachePrivate();
     }
 
     protected boolean isExplicitlyCacheable(final ResponseCacheControl cacheControl, final HttpResponse response) {
@@ -371,11 +371,11 @@ class ResponseCachingPolicy {
      * @return true if the HTTP status code is understood, false otherwise.
      */
     private boolean understoodStatusCode(final int status) {
-        return (status >= 200 && status <= 206)    ||
-                (status >= 300 && status <= 399)   ||
-                (status >= 400 && status <= 417)   ||
-                (status == 421)                    ||
-                (status >= 500 && status <= 505);
+        return status >= 200 && status <= 206 ||
+                status >= 300 && status <= 399 ||
+                status >= 400 && status <= 417 ||
+                status == 421 ||
+                status >= 500 && status <= 505;
     }
 
     /**

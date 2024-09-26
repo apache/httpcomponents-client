@@ -94,7 +94,7 @@ public interface TestClientBuilder {
         throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
     }
 
-    default TestClientBuilder  addExecInterceptorLast(String name, ExecChainHandler interceptor) {
+    default TestClientBuilder addExecInterceptorLast(String name, ExecChainHandler interceptor) {
         throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
     }
 

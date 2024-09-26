@@ -105,7 +105,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         Args.notNull(proxyHttpProcessor, "Proxy HTTP processor");
         Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         this.proxyHttpProcessor = proxyHttpProcessor;
-        this.proxyAuthStrategy  = proxyAuthStrategy;
+        this.proxyAuthStrategy = proxyAuthStrategy;
         this.authenticator = new HttpAuthenticator();
         this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(schemePortResolver);
         this.routeDirector = BasicRouteDirector.INSTANCE;
@@ -232,7 +232,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
                     @Override
                     public void completed(final AsyncExecRuntime execRuntime) {
-                        final HttpHost proxy  = route.getProxyHost();
+                        final HttpHost proxy = route.getProxyHost();
                         tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("{} connected to proxy", exchangeId);
@@ -356,7 +356,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                 break;
 
             default:
-                throw new IllegalStateException("Unknown step indicator "  + step + " from RouteDirector.");
+                throw new IllegalStateException("Unknown step indicator " + step + " from RouteDirector.");
         }
     }
 

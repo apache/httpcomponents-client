@@ -94,9 +94,9 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         if (tunnelled == TunnelType.TUNNELLED) {
             Args.check(this.proxyChain != null, "Proxy required if tunnelled");
         }
-        this.secure       = secure;
-        this.tunnelled    = tunnelled != null ? tunnelled : TunnelType.PLAIN;
-        this.layered      = layered != null ? layered : LayerType.PLAIN;
+        this.secure = secure;
+        this.tunnelled = tunnelled != null ? tunnelled : TunnelType.PLAIN;
+        this.layered = layered != null ? layered : LayerType.PLAIN;
     }
 
     /**
@@ -221,8 +221,8 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     public HttpRoute(final HttpHost target, final NamedEndpoint targetName, final InetAddress local,
                      final HttpHost proxy, final boolean secure) {
         this(target, targetName, local, Collections.singletonList(Args.notNull(proxy, "Proxy host")), secure,
-             secure ? TunnelType.TUNNELLED : TunnelType.PLAIN,
-             secure ? LayerType.LAYERED    : LayerType.PLAIN);
+                secure ? TunnelType.TUNNELLED : TunnelType.PLAIN,
+                secure ? LayerType.LAYERED : LayerType.PLAIN);
     }
 
     /**
@@ -242,7 +242,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
                      final boolean secure) {
         this(target, null, local, Collections.singletonList(Args.notNull(proxy, "Proxy host")), secure,
                 secure ? TunnelType.TUNNELLED : TunnelType.PLAIN,
-                secure ? LayerType.LAYERED    : LayerType.PLAIN);
+                secure ? LayerType.LAYERED : LayerType.PLAIN);
     }
 
     /**
@@ -307,7 +307,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
 
     @Override
     public boolean isTunnelled() {
-        return (this.tunnelled == TunnelType.TUNNELLED);
+        return this.tunnelled == TunnelType.TUNNELLED;
     }
 
     @Override
@@ -317,7 +317,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
 
     @Override
     public boolean isLayered() {
-        return (this.layered == LayerType.LAYERED);
+        return this.layered == LayerType.LAYERED;
     }
 
     @Override
@@ -341,14 +341,14 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         if (obj instanceof HttpRoute) {
             final HttpRoute that = (HttpRoute) obj;
             return
-                // Do the cheapest tests first
-                (this.secure    == that.secure) &&
-                (this.tunnelled == that.tunnelled) &&
-                (this.layered   == that.layered) &&
-                Objects.equals(this.targetHost, that.targetHost) &&
-                Objects.equals(this.targetName, that.targetName) &&
-                Objects.equals(this.localAddress, that.localAddress) &&
-                Objects.equals(this.proxyChain, that.proxyChain);
+                    // Do the cheapest tests first
+                    this.secure == that.secure &&
+                            this.tunnelled == that.tunnelled &&
+                            this.layered == that.layered &&
+                            Objects.equals(this.targetHost, that.targetHost) &&
+                            Objects.equals(this.targetName, that.targetName) &&
+                            Objects.equals(this.localAddress, that.localAddress) &&
+                            Objects.equals(this.proxyChain, that.proxyChain);
         }
         return false;
     }
@@ -383,7 +383,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      */
     @Override
     public String toString() {
-        final StringBuilder cab = new StringBuilder(50 + getHopCount()*30);
+        final StringBuilder cab = new StringBuilder(50 + getHopCount() * 30);
         if (this.localAddress != null) {
             cab.append(this.localAddress);
             cab.append("->");

@@ -1038,7 +1038,7 @@ public class HttpAsyncClientBuilder {
             if (evictExpiredConnections || evictIdleConnections) {
                 if (connManagerCopy instanceof ConnPoolControl) {
                     final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor((ConnPoolControl<?>) connManagerCopy,
-                            maxIdleTime,  maxIdleTime);
+                            maxIdleTime, maxIdleTime);
                     closeablesCopy.add(connectionEvictor::shutdown);
                     connectionEvictor.start();
                 }

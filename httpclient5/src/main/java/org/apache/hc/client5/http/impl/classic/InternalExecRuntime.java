@@ -117,14 +117,14 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
                 if (log.isDebugEnabled()) {
                     log.debug("{} acquired endpoint {}", id, ConnPoolSupport.getId(connectionEndpoint));
                 }
-            } catch(final TimeoutException ex) {
+            } catch (final TimeoutException ex) {
                 connRequest.cancel();
                 throw new ConnectionRequestTimeoutException(ex.getMessage());
-            } catch(final InterruptedException interrupted) {
+            } catch (final InterruptedException interrupted) {
                 connRequest.cancel();
                 Thread.currentThread().interrupt();
                 throw new RequestFailedException("Request aborted", interrupted);
-            } catch(final ExecutionException ex) {
+            } catch (final ExecutionException ex) {
                 connRequest.cancel();
                 Throwable cause = ex.getCause();
                 if (cause == null) {

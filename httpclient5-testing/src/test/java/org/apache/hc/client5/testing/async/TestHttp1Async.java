@@ -52,7 +52,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-abstract  class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest {
+abstract class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest {
 
     public TestHttp1Async(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);

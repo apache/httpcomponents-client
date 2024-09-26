@@ -399,36 +399,36 @@ class TestHttpByteArrayCacheEntrySerializer {
      */
     @Test
     void testDeserializeCacheEntryWithTrailingGarbage() {
-        final String content1 =HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+        final String content1 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
                 "HC-Key: unique-cache-key\n" +
-                        "HC-Resource-Length: 11\n" +
-                        "HC-Request-Instant: 1686210849596\n" +
-                        "HC-Response-Instant: 1686210849596\n" +
-                        "\n" +
-                        "GET /stuff HTTP/1.1\n" +
-                        "\n" +
-                        "HTTP/1.1 200 \n" +
-                        "Content-Type: text/plain; charset=UTF-8\n" +
-                        "Cache-control: public, max-age=31536000\n" +
-                        "\n" +
-                        "Hello World..... Rubbish";
+                "HC-Resource-Length: 11\n" +
+                "HC-Request-Instant: 1686210849596\n" +
+                "HC-Response-Instant: 1686210849596\n" +
+                "\n" +
+                "GET /stuff HTTP/1.1\n" +
+                "\n" +
+                "HTTP/1.1 200 \n" +
+                "Content-Type: text/plain; charset=UTF-8\n" +
+                "Cache-control: public, max-age=31536000\n" +
+                "\n" +
+                "Hello World..... Rubbish";
         final byte[] bytes1 = content1.getBytes(StandardCharsets.UTF_8);
         final ResourceIOException exception1 = Assertions.assertThrows(ResourceIOException.class, () ->
                 httpCacheEntrySerializer.deserialize(bytes1));
         Assertions.assertEquals("Unexpected content at the end of cache content", exception1.getMessage());
 
-        final String content2 =HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+        final String content2 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
                 "HC-Key: unique-cache-key\n" +
-                        "HC-Request-Instant: 1686210849596\n" +
-                        "HC-Response-Instant: 1686210849596\n" +
-                        "\n" +
-                        "GET /stuff HTTP/1.1\n" +
-                        "\n" +
-                        "HTTP/1.1 200 \n" +
-                        "Content-Type: text/plain; charset=UTF-8\n" +
-                        "Cache-control: public, max-age=31536000\n" +
-                        "\n" +
-                        "Rubbish";
+                "HC-Request-Instant: 1686210849596\n" +
+                "HC-Response-Instant: 1686210849596\n" +
+                "\n" +
+                "GET /stuff HTTP/1.1\n" +
+                "\n" +
+                "HTTP/1.1 200 \n" +
+                "Content-Type: text/plain; charset=UTF-8\n" +
+                "Cache-control: public, max-age=31536000\n" +
+                "\n" +
+                "Rubbish";
         final byte[] bytes2 = content2.getBytes(StandardCharsets.UTF_8);
         final ResourceIOException exception2 = Assertions.assertThrows(ResourceIOException.class, () ->
                 httpCacheEntrySerializer.deserialize(bytes2));

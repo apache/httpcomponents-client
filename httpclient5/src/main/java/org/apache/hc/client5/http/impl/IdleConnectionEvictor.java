@@ -65,7 +65,7 @@ public final class IdleConnectionEvictor {
                 }
             } catch (final InterruptedException ex) {
                 Thread.currentThread().interrupt();
-            } catch (final Exception ex) {
+            } catch (final Exception ignore) {
             }
 
         });

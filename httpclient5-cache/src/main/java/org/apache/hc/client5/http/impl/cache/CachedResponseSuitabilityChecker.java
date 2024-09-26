@@ -198,7 +198,7 @@ class CachedResponseSuitabilityChecker {
 
     boolean requestMethodMatch(final HttpRequest request, final HttpCacheEntry entry) {
         return request.getMethod().equalsIgnoreCase(entry.getRequestMethod()) ||
-                (Method.HEAD.isSame(request.getMethod()) && Method.GET.isSame(entry.getRequestMethod()));
+                Method.HEAD.isSame(request.getMethod()) && Method.GET.isSame(entry.getRequestMethod());
     }
 
     boolean requestUriMatch(final HttpRequest request, final HttpCacheEntry entry) {
@@ -295,10 +295,10 @@ class CachedResponseSuitabilityChecker {
             return true;
         }
 
-        final boolean etagValidatorMatches = (hasEtagValidator) && etagValidatorMatches(request, entry);
-        final boolean lastModifiedValidatorMatches = (hasLastModifiedValidator) && lastModifiedValidatorMatches(request, entry, now);
+        final boolean etagValidatorMatches = hasEtagValidator && etagValidatorMatches(request, entry);
+        final boolean lastModifiedValidatorMatches = hasLastModifiedValidator && lastModifiedValidatorMatches(request, entry, now);
 
-        if ((hasEtagValidator && hasLastModifiedValidator)
+        if (hasEtagValidator && hasLastModifiedValidator
                 && !(etagValidatorMatches && lastModifiedValidatorMatches)) {
             return false;
         } else if (hasEtagValidator && !etagValidatorMatches) {
@@ -309,9 +309,9 @@ class CachedResponseSuitabilityChecker {
     }
 
     boolean hasUnsupportedConditionalHeaders(final HttpRequest request) {
-        return (request.containsHeader(HttpHeaders.IF_RANGE)
+        return request.containsHeader(HttpHeaders.IF_RANGE)
                 || request.containsHeader(HttpHeaders.IF_MATCH)
-                || request.containsHeader(HttpHeaders.IF_UNMODIFIED_SINCE));
+                || request.containsHeader(HttpHeaders.IF_UNMODIFIED_SINCE);
     }
 
     boolean hasSupportedEtagValidator(final HttpRequest request) {

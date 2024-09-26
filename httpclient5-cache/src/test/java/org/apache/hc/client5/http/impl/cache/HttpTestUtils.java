@@ -80,7 +80,7 @@ public class HttpTestUtils {
                 return false;
             }
         }
-        return (-1 == i2.read());
+        return -1 == i2.read();
     }
 
     /*

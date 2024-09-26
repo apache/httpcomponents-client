@@ -61,7 +61,7 @@ public class BasicTestAuthenticator implements Authenticator {
         if (TextUtils.isBlank(credentials)) {
             return new AuthResult(false);
         }
-        final String error = credentials.endsWith("-expired") ? "token expired"  : "invalid token";
+        final String error = credentials.endsWith("-expired") ? "token expired" : "invalid token";
         return new AuthResult(false, new BasicNameValuePair("error", error));
     }
 

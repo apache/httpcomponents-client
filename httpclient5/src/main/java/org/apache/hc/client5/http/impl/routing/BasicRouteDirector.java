@@ -65,7 +65,7 @@ public class BasicRouteDirector implements HttpRouteDirector {
 
         int step = UNREACHABLE;
 
-        if ((fact == null) || (fact.getHopCount() < 1)) {
+        if (fact == null || fact.getHopCount() < 1) {
             step = firstStep(plan);
         } else if (plan.getHopCount() > 1) {
             step = proxiedStep(plan, fact);
@@ -122,9 +122,8 @@ public class BasicRouteDirector implements HttpRouteDirector {
         }
 
         // Local address has to match only if the plan specifies one.
-        if ((plan.getLocalAddress() != null) &&
-            !plan.getLocalAddress().equals(fact.getLocalAddress())
-            ) {
+        if (plan.getLocalAddress() != null &&
+                !plan.getLocalAddress().equals(fact.getLocalAddress())) {
             return UNREACHABLE;
         }
 
@@ -155,7 +154,7 @@ public class BasicRouteDirector implements HttpRouteDirector {
             return UNREACHABLE;
         }
 
-        for (int i=0; i<fhc-1; i++) {
+        for (int i = 0; i < fhc - 1; i++) {
             if (!plan.getHopTarget(i).equals(fact.getHopTarget(i))) {
                 return UNREACHABLE;
             }
@@ -167,8 +166,8 @@ public class BasicRouteDirector implements HttpRouteDirector {
         }
 
         // proxy chain and target are the same, check tunnelling and layering
-        if ((fact.isTunnelled() && !plan.isTunnelled()) ||
-            (fact.isLayered()   && !plan.isLayered())) {
+        if (fact.isTunnelled() && !plan.isTunnelled() ||
+                fact.isLayered() && !plan.isLayered()) {
             return UNREACHABLE;
         }
 

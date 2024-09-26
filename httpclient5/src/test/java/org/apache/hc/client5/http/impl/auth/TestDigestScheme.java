@@ -296,10 +296,10 @@ class TestDigestScheme {
     void testDigestAuthenticationMD5Sess() throws Exception {
         // Example using Digest auth with MD5-sess
 
-        final String realm="realm";
-        final String username="username";
-        final String password="password";
-        final String nonce="e273f1776275974f1a120d8b92c5b3cb";
+        final String realm = "realm";
+        final String username = "username";
+        final String password = "password";
+        final String nonce = "e273f1776275974f1a120d8b92c5b3cb";
 
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
@@ -307,7 +307,7 @@ class TestDigestScheme {
                 .add(new AuthScope(host, realm, null), username, password.toCharArray())
                 .build();
 
-        final String challenge=StandardAuthScheme.DIGEST + " realm=\"" + realm + "\", "
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
             + "opaque=\"SomeString\", "
             + "stale=false, "
@@ -331,7 +331,7 @@ class TestDigestScheme {
         Assertions.assertEquals("MD5-sess", table.get("algorithm"));
         Assertions.assertEquals("/", table.get("uri"));
         Assertions.assertEquals(nonce, table.get("nonce"));
-        Assertions.assertEquals(1, Integer.parseInt(table.get("nc"),16));
+        Assertions.assertEquals(1, Integer.parseInt(table.get("nc"), 16));
         Assertions.assertNotNull(table.get("cnonce"));
         Assertions.assertEquals("SomeString", table.get("opaque"));
         Assertions.assertEquals("auth", table.get("qop"));
@@ -346,10 +346,10 @@ class TestDigestScheme {
     void testDigestAuthenticationMD5SessNoQop() throws Exception {
         // Example using Digest auth with MD5-sess
 
-        final String realm="realm";
-        final String username="username";
-        final String password="password";
-        final String nonce="e273f1776275974f1a120d8b92c5b3cb";
+        final String realm = "realm";
+        final String username = "username";
+        final String password = "password";
+        final String nonce = "e273f1776275974f1a120d8b92c5b3cb";
 
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
@@ -357,7 +357,7 @@ class TestDigestScheme {
                 .add(new AuthScope(host, realm, null), username, password.toCharArray())
                 .build();
 
-        final String challenge=StandardAuthScheme.DIGEST + " realm=\"" + realm + "\", "
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
             + "opaque=\"SomeString\", "
             + "stale=false, "
@@ -390,10 +390,10 @@ class TestDigestScheme {
     void testDigestAuthenticationMD5SessUnknownQop() throws Exception {
         // Example using Digest auth with MD5-sess
 
-        final String realm="realm";
-        final String username="username";
-        final String password="password";
-        final String nonce="e273f1776275974f1a120d8b92c5b3cb";
+        final String realm = "realm";
+        final String username = "username";
+        final String password = "password";
+        final String nonce = "e273f1776275974f1a120d8b92c5b3cb";
 
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
@@ -401,7 +401,7 @@ class TestDigestScheme {
                 .add(new AuthScope(host, realm, null), username, password.toCharArray())
                 .build();
 
-        final String challenge=StandardAuthScheme.DIGEST + " realm=\"" + realm + "\", "
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
             + "opaque=\"SomeString\", "
             + "stale=false, "
@@ -425,10 +425,10 @@ class TestDigestScheme {
     void testDigestAuthenticationUnknownAlgo() throws Exception {
         // Example using Digest auth with MD5-sess
 
-        final String realm="realm";
-        final String username="username";
-        final String password="password";
-        final String nonce="e273f1776275974f1a120d8b92c5b3cb";
+        final String realm = "realm";
+        final String username = "username";
+        final String password = "password";
+        final String nonce = "e273f1776275974f1a120d8b92c5b3cb";
 
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
@@ -436,7 +436,7 @@ class TestDigestScheme {
                 .add(new AuthScope(host, realm, null), username, password.toCharArray())
                 .build();
 
-        final String challenge=StandardAuthScheme.DIGEST + " realm=\"" + realm + "\", "
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
             + "opaque=\"SomeString\", "
             + "stale=false, "
@@ -554,7 +554,7 @@ class TestDigestScheme {
         Assertions.assertEquals(sessionKey1, sessionKey2);
 
         final String challenge2 = StandardAuthScheme.DIGEST + " qop=\"auth\", algorithm=MD5-sess, nonce=\"1234567890abcdef\", " +
-            "charset=utf-8, realm=\"subnet.domain.com\"";
+                "charset=utf-8, realm=\"subnet.domain.com\"";
         final AuthChallenge authChallenge2 = parse(challenge2);
         authscheme.processChallenge(authChallenge2, null);
         Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
@@ -569,7 +569,7 @@ class TestDigestScheme {
         Assertions.assertEquals(sessionKey1, sessionKey3);
 
         final String challenge3 = StandardAuthScheme.DIGEST + " qop=\"auth\", algorithm=MD5-sess, nonce=\"fedcba0987654321\", " +
-            "charset=utf-8, realm=\"subnet.domain.com\"";
+                "charset=utf-8, realm=\"subnet.domain.com\"";
         final AuthChallenge authChallenge3 = parse(challenge3);
         authscheme.processChallenge(authChallenge3, null);
         Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
@@ -594,12 +594,12 @@ class TestDigestScheme {
         digester.write(0xe4);
         digester.write(0xf6);
         digester.write(0xfc);
-        digester.write(new byte[] { 'a', 'b', 'c'});
+        digester.write(new byte[]{'a', 'b', 'c'});
         Assertions.assertNull(digester.getDigest());
         digester.close();
         Assertions.assertEquals("acd2b59cd01c7737d8069015584c6cac", DigestScheme.formatHex(digester.getDigest()));
         Assertions.assertThrows(IOException.class, () -> digester.write('a'));
-        Assertions.assertThrows(IOException.class, () -> digester.write(new byte[] { 'a', 'b', 'c'}));
+        Assertions.assertThrows(IOException.class, () -> digester.write(new byte[]{'a', 'b', 'c'}));
     }
 
     @Test
@@ -658,7 +658,7 @@ class TestDigestScheme {
     @Test
     void testDigestAuthenticationQopAuthOrAuthIntNonRepeatableEntity() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("Post", "/");
-        request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1, ContentType.DEFAULT_TEXT));
+        request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[]{'a'}), -1, ContentType.DEFAULT_TEXT));
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
                 .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
@@ -705,7 +705,7 @@ class TestDigestScheme {
     @Test
     void testDigestAuthenticationQopIntOnlyNonRepeatableEntity() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("Post", "/");
-        request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1, ContentType.DEFAULT_TEXT));
+        request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[]{'a'}), -1, ContentType.DEFAULT_TEXT));
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
                 .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
@@ -768,7 +768,7 @@ class TestDigestScheme {
 
         // Generate expected userhash
         final MessageDigest md = MessageDigest.getInstance("MD5");
-        md.update(("username:realm1").getBytes(StandardCharsets.UTF_8));
+        md.update("username:realm1".getBytes(StandardCharsets.UTF_8));
         final String expectedUserhash = bytesToHex(md.digest());
 
         Assertions.assertEquals(expectedUserhash, table.get("username"));
@@ -819,6 +819,7 @@ class TestDigestScheme {
         final String response = table.get("response");
         Assertions.assertNotNull(response);
     }
+
     @Test
     void testDigestAuthenticationWithInvalidUsernameAndValidUsernameStar() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");

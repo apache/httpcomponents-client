@@ -1212,7 +1212,7 @@ class TestProtocolRequirements {
         try (final InputStream i1 = resp1.getEntity().getContent();
              final InputStream i2 = result.getEntity().getContent()) {
             int b1, b2;
-            while((b1 = i1.read()) != -1) {
+            while ((b1 = i1.read()) != -1) {
                 b2 = i2.read();
                 Assertions.assertEquals(b1, b2);
             }
@@ -1262,7 +1262,7 @@ class TestProtocolRequirements {
             "Content-MD5", "Content-Type", "Expires", "Last-Modified",
             "Location", "Retry-After"
         };
-        for(final String h : endToEndHeaders) {
+        for (final String h : endToEndHeaders) {
             Assertions.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp1, h),
                                 HttpTestUtils.getCanonicalHeaderValue(result, h));
         }
@@ -1306,7 +1306,7 @@ class TestProtocolRequirements {
             "Content-Location", "Content-Type", "Expires", "Location",
             "Retry-After"
         };
-        for(final String h : endToEndHeaders) {
+        for (final String h : endToEndHeaders) {
             Assertions.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
                                 HttpTestUtils.getCanonicalHeaderValue(result1, h));
             Assertions.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
@@ -2093,7 +2093,7 @@ class TestProtocolRequirements {
         final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.CONTENT_ENCODING);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
-            switch(total_encodings) {
+            switch (total_encodings) {
                 case 0:
                     Assertions.assertEquals("gzip", elt.getName());
                     break;
@@ -2118,7 +2118,7 @@ class TestProtocolRequirements {
         final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.CONTENT_ENCODING);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
-            switch(total_encodings) {
+            switch (total_encodings) {
                 case 0:
                     Assertions.assertEquals("gzip", elt.getName());
                     break;

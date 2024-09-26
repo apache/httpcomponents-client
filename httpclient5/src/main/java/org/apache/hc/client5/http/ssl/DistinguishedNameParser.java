@@ -114,7 +114,7 @@ final class DistinguishedNameParser {
                     dst.append(current);
                     escaped = false;
                 } else {
-                    if ((delimiters != null && delimiters.test(current))
+                    if (delimiters != null && delimiters.test(current)
                             || Tokenizer.isWhitespace(current) || current == '\"') {
                         break;
                     } else if (current == '\\') {

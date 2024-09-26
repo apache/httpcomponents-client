@@ -47,7 +47,7 @@ public final class ProtocolSwitchStrategy {
 
     enum ProtocolSwitch { FAILURE, TLS }
 
-    public ProtocolVersion switchProtocol(final HttpMessage response) throws ProtocolException  {
+    public ProtocolVersion switchProtocol(final HttpMessage response) throws ProtocolException {
         final Iterator<String> it = MessageSupport.iterateTokens(response, HttpHeaders.UPGRADE);
 
         ProtocolVersion tlsUpgrade = null;

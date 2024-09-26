@@ -96,7 +96,7 @@ public class SimpleResponseBuilder extends AbstractResponseBuilder<SimpleHttpRes
     }
 
     @Override
-    public SimpleResponseBuilder addHeader(final String name, final    String value) {
+    public SimpleResponseBuilder addHeader(final String name, final String value) {
         super.addHeader(name, value);
         return this;
     }

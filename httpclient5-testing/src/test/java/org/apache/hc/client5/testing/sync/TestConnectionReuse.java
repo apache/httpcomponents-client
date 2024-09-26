@@ -350,8 +350,8 @@ class TestConnectionReuse extends AbstractIntegrationTestBase {
                 final EntityDetails entityDetails,
                 final HttpContext context) {
             final Header connection = response.getFirstHeader(HttpHeaders.CONNECTION);
-            if(connection != null) {
-                if(!connection.getValue().equalsIgnoreCase("Close")) {
+            if (connection != null) {
+                if (!connection.getValue().equalsIgnoreCase("Close")) {
                     response.addHeader(HeaderElements.KEEP_ALIVE, "timeout=1");
                 }
             }

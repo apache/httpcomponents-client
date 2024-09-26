@@ -126,8 +126,7 @@ class TestRFC5861Compliance {
     }
 
     @Test
-    void testConsumesErrorResponseWhenServingStale()
-            throws Exception{
+    void testConsumesErrorResponseWhenServingStale() throws Exception {
         final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
@@ -152,8 +151,7 @@ class TestRFC5861Compliance {
     }
 
     @Test
-    void testStaleIfErrorInResponseYieldsToMustRevalidate()
-            throws Exception{
+    void testStaleIfErrorInResponseYieldsToMustRevalidate() throws Exception {
         final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
@@ -174,8 +172,7 @@ class TestRFC5861Compliance {
     }
 
     @Test
-    void testStaleIfErrorInResponseYieldsToProxyRevalidateForSharedCache()
-            throws Exception{
+    void testStaleIfErrorInResponseYieldsToProxyRevalidateForSharedCache() throws Exception {
         assertTrue(config.isSharedCache());
         final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
@@ -197,8 +194,7 @@ class TestRFC5861Compliance {
     }
 
     @Test
-    void testStaleIfErrorInResponseYieldsToExplicitFreshnessRequest()
-            throws Exception{
+    void testStaleIfErrorInResponseYieldsToExplicitFreshnessRequest() throws Exception {
         final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
@@ -220,8 +216,7 @@ class TestRFC5861Compliance {
     }
 
     @Test
-    void testStaleIfErrorInResponseIsFalseReturnsError()
-            throws Exception{
+    void testStaleIfErrorInResponseIsFalseReturnsError() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
@@ -244,8 +239,7 @@ class TestRFC5861Compliance {
     }
 
     @Test
-    void testStaleIfErrorInRequestIsFalseReturnsError()
-            throws Exception{
+    void testStaleIfErrorInRequestIsFalseReturnsError() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();

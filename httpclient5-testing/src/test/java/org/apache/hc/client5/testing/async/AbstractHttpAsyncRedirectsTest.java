@@ -66,7 +66,7 @@ import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-abstract  class AbstractHttpAsyncRedirectsTest extends AbstractIntegrationTestBase {
+abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegrationTestBase {
 
     public AbstractHttpAsyncRedirectsTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
         super(scheme, clientProtocolLevel, serverProtocolLevel);

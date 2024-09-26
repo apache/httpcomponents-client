@@ -252,7 +252,7 @@ class TestNTLMEngineImpl {
                 "me", "mypassword", "myhost", "mydomain".toCharArray(),
                 toBytes("0001020304050607"),
                 0xffffffff,
-                null,null).getBytes();
+                null, null).getBytes();
         checkArraysMatch(toBytes("4E544C4D53535000030000001800180048000000180018006000000004000400780000000C000C007C0000001400140088000000100010009C000000FFFFFFFF0501280A0000000FA86886A5D297814200000000000000000000000000000000EEC7568E00798491244959B9C942F4F367C5CBABEEF546F74D0045006D00790068006F00730074006D007900700061007300730077006F007200640094DDAB1EBB82C9A1AB914CAE6F199644"),
             bytes);
         final byte[] bytes2 = new NTLMEngineImpl.Type3Message(
@@ -268,22 +268,22 @@ class TestNTLMEngineImpl {
     }
 
     private static final String cannedCert =
-        "-----BEGIN CERTIFICATE-----\n"+
-        "MIIDIDCCAgigAwIBAgIEOqKaWTANBgkqhkiG9w0BAQsFADBSMQswCQYDVQQGEwJVUzEQMA4GA1UEBxMH\n"+
-        "TXkgQ2l0eTEYMBYGA1UEChMPTXkgT3JnYW5pemF0aW9uMRcwFQYDVQQDEw5NeSBBcHBsaWNhdGlvbjAe\n"+
-        "Fw0xNzAzMTcxNDAyMzRaFw0yNzAzMTUxNDAyMzRaMFIxCzAJBgNVBAYTAlVTMRAwDgYDVQQHEwdNeSBD\n"+
-        "aXR5MRgwFgYDVQQKEw9NeSBPcmdhbml6YXRpb24xFzAVBgNVBAMTDk15IEFwcGxpY2F0aW9uMIIBIjAN\n"+
-        "BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArc+mbViBaHeRSt82KrJ5IF+62b/Qob95Lca4DJIislTY\n"+
-        "vLPIo0R1faBV8BkEeUQwo01srkf3RaGLCHNZnFal4KEzbtiUy6W+n08G5E9w9YG+WSwW2dmjvEI7k2a2\n"+
-        "xqlaM4NdMKL4ONPXcxfZsMDqxDgpdkaNPKpZ10NDq6rmBTkQw/OSG0z1KLtwLkF1ZQ/3mXdjVzvP83V2\n"+
-        "g17AqBazb0Z1YHsVKmkGjPqnq3niJH/6Oke4N+5k/1cE5lSJcQNGP0nqeGdJfvqQZ+gk6gH/sOngZL9X\n"+
-        "hPVkpseAwHa+xuPneDSjibLgLmMt3XGDK6jGfjdp5FWqFvAD5E3LHbW9gwIDAQABMA0GCSqGSIb3DQEB\n"+
-        "CwUAA4IBAQCpUXUHhl5LyMSO5Q0OktEc9AaFjZtVfknpPde6Zeh35Pqd2354ErvJSBWgzFAphda0oh2s\n"+
-        "OIAFkM6LJQEnVDTbXDXN+YY8e3gb9ryfh85hkhC0XI9qp17WPSkmw8XgDfvRd6YQgKm1AnLxjOCwG2jg\n"+
-        "i09iZBIWkW3ZeRAMvWPHHjvq44iZB5ZrEl0apgumS6MxpUzKOr5Pcq0jxJDw2UCj5YloFMNl+UINv2vV\n"+
-        "aL/DR6ivc61dOfN1E/VNBGkkCk/AogNyucGiFMCq9hd25Y9EbkBBqObYTH1XMX+ufsJh+6hG7KDQ1e/F\n"+
-        "nRrlhKwM2uRe+aSH0D6/erjDBT7tXvwn\n"+
-        "-----END CERTIFICATE-----";
+            "-----BEGIN CERTIFICATE-----\n" +
+            "MIIDIDCCAgigAwIBAgIEOqKaWTANBgkqhkiG9w0BAQsFADBSMQswCQYDVQQGEwJVUzEQMA4GA1UEBxMH\n" +
+            "TXkgQ2l0eTEYMBYGA1UEChMPTXkgT3JnYW5pemF0aW9uMRcwFQYDVQQDEw5NeSBBcHBsaWNhdGlvbjAe\n" +
+            "Fw0xNzAzMTcxNDAyMzRaFw0yNzAzMTUxNDAyMzRaMFIxCzAJBgNVBAYTAlVTMRAwDgYDVQQHEwdNeSBD\n" +
+            "aXR5MRgwFgYDVQQKEw9NeSBPcmdhbml6YXRpb24xFzAVBgNVBAMTDk15IEFwcGxpY2F0aW9uMIIBIjAN\n" +
+            "BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArc+mbViBaHeRSt82KrJ5IF+62b/Qob95Lca4DJIislTY\n" +
+            "vLPIo0R1faBV8BkEeUQwo01srkf3RaGLCHNZnFal4KEzbtiUy6W+n08G5E9w9YG+WSwW2dmjvEI7k2a2\n" +
+            "xqlaM4NdMKL4ONPXcxfZsMDqxDgpdkaNPKpZ10NDq6rmBTkQw/OSG0z1KLtwLkF1ZQ/3mXdjVzvP83V2\n" +
+            "g17AqBazb0Z1YHsVKmkGjPqnq3niJH/6Oke4N+5k/1cE5lSJcQNGP0nqeGdJfvqQZ+gk6gH/sOngZL9X\n" +
+            "hPVkpseAwHa+xuPneDSjibLgLmMt3XGDK6jGfjdp5FWqFvAD5E3LHbW9gwIDAQABMA0GCSqGSIb3DQEB\n" +
+            "CwUAA4IBAQCpUXUHhl5LyMSO5Q0OktEc9AaFjZtVfknpPde6Zeh35Pqd2354ErvJSBWgzFAphda0oh2s\n" +
+            "OIAFkM6LJQEnVDTbXDXN+YY8e3gb9ryfh85hkhC0XI9qp17WPSkmw8XgDfvRd6YQgKm1AnLxjOCwG2jg\n" +
+            "i09iZBIWkW3ZeRAMvWPHHjvq44iZB5ZrEl0apgumS6MxpUzKOr5Pcq0jxJDw2UCj5YloFMNl+UINv2vV\n" +
+            "aL/DR6ivc61dOfN1E/VNBGkkCk/AogNyucGiFMCq9hd25Y9EbkBBqObYTH1XMX+ufsJh+6hG7KDQ1e/F\n" +
+            "nRrlhKwM2uRe+aSH0D6/erjDBT7tXvwn\n" +
+            "-----END CERTIFICATE-----";
 
     @Test
     void testType3MessageWithCert() throws Exception {
@@ -318,9 +318,9 @@ class TestNTLMEngineImpl {
 
     /* Byte array check helper */
     static void checkArraysMatch(final byte[] a1, final byte[] a2) {
-        Assertions.assertEquals(a1.length,a2.length);
+        Assertions.assertEquals(a1.length, a2.length);
         for (int i = 0; i < a1.length; i++) {
-            Assertions.assertEquals(a1[i],a2[i]);
+            Assertions.assertEquals(a1[i], a2[i]);
         }
     }
 

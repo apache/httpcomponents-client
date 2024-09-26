@@ -77,7 +77,8 @@ class TestResponseEntityProxy {
         final HttpEntity wrappedEntity = httpEntityArgumentCaptor.getValue();
 
         final InputStream is = wrappedEntity.getContent();
-        while (is.read() != -1) {} // read until the end
+        while (is.read() != -1) {
+        } // read until the end
         final Supplier<List<? extends Header>> trailers = wrappedEntity.getTrailers();
 
         Assertions.assertTrue(trailers.get().isEmpty());
@@ -98,7 +99,8 @@ class TestResponseEntityProxy {
         final HttpEntity wrappedEntity = httpEntityArgumentCaptor.getValue();
 
         final InputStream is = wrappedEntity.getContent();
-        while (is.read() != -1) {} // consume the stream so it can reach to trailers and parse
+        while (is.read() != -1) {
+        } // consume the stream so it can reach to trailers and parse
         final Supplier<List<? extends Header>> trailers = wrappedEntity.getTrailers();
         final List<? extends Header> headers = trailers.get();
 

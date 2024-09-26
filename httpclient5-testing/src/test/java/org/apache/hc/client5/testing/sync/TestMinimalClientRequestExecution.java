@@ -51,7 +51,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Client protocol handling tests.
  */
-abstract  class TestMinimalClientRequestExecution extends AbstractIntegrationTestBase {
+abstract class TestMinimalClientRequestExecution extends AbstractIntegrationTestBase {
 
     protected TestMinimalClientRequestExecution(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.MINIMAL);

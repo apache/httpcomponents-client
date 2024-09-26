@@ -328,7 +328,7 @@ public class SSLConnectionSocketFactory implements org.apache.hc.client5.http.so
         if (supportedProtocols != null) {
             sslsock.setEnabledProtocols(supportedProtocols);
         } else {
-            sslsock.setEnabledProtocols((TLS.excludeWeak(sslsock.getEnabledProtocols())));
+            sslsock.setEnabledProtocols(TLS.excludeWeak(sslsock.getEnabledProtocols()));
         }
         if (supportedCipherSuites != null) {
             sslsock.setEnabledCipherSuites(supportedCipherSuites);

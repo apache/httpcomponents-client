@@ -79,8 +79,8 @@ class TestDefaultBackoffStrategy {
 
     @Test
     void doesNotBackOffForNon429And503StatusCodes() {
-        for(int i = 100; i <= 599; i++) {
-            if (i== HttpStatus.SC_TOO_MANY_REQUESTS || i == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+        for (int i = 100; i <= 599; i++) {
+            if (i == HttpStatus.SC_TOO_MANY_REQUESTS || i == HttpStatus.SC_SERVICE_UNAVAILABLE) {
                 continue;
             }
             final HttpResponse resp = new BasicHttpResponse(i, "Foo");

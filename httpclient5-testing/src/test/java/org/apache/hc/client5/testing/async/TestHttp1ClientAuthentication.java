@@ -49,7 +49,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-abstract  class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthenticationTest {
+abstract class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthenticationTest {
 
     public TestHttp1ClientAuthentication(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);

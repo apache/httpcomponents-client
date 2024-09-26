@@ -112,7 +112,7 @@ public interface SetCookie extends Cookie {
      *
      * @since 5.2
      */
-    default void setHttpOnly (final boolean httpOnly){
+    default void setHttpOnly(final boolean httpOnly) {
     }
 
 }

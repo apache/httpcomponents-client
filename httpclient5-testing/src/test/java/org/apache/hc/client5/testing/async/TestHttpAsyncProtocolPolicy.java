@@ -45,7 +45,7 @@ import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 
-abstract  class TestHttpAsyncProtocolPolicy extends AbstractIntegrationTestBase {
+abstract class TestHttpAsyncProtocolPolicy extends AbstractIntegrationTestBase {
 
     private final HttpVersion version;
 

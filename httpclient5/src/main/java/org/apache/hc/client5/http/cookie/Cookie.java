@@ -40,12 +40,12 @@ import java.util.Date;
  */
 public interface Cookie {
 
-    String PATH_ATTR       = "path";
-    String DOMAIN_ATTR     = "domain";
-    String MAX_AGE_ATTR    = "max-age";
-    String SECURE_ATTR     = "secure";
-    String EXPIRES_ATTR    = "expires";
-    String HTTP_ONLY_ATTR  = "httpOnly";
+    String PATH_ATTR = "path";
+    String DOMAIN_ATTR = "domain";
+    String MAX_AGE_ATTR = "max-age";
+    String SECURE_ATTR = "secure";
+    String EXPIRES_ATTR = "expires";
+    String HTTP_ONLY_ATTR = "httpOnly";
 
     /**
      * @since 5.0
@@ -164,7 +164,9 @@ public interface Cookie {
     /**
      * Returns creation time of the cookie.
      */
-    default Instant getCreationInstant() { return null;  }
+    default Instant getCreationInstant() {
+        return null;
+    }
 
     /**
      * Checks whether this Cookie has been marked as {@code httpOnly}.
@@ -175,7 +177,7 @@ public interface Cookie {
      *
      * @since 5.2
      */
-    default boolean isHttpOnly(){
+    default boolean isHttpOnly() {
         return false;
     }
 

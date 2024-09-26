@@ -100,7 +100,7 @@ public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
                     return null;
                 });
             } catch (final PrivilegedActionException e) {
-                Asserts.check(e.getCause() instanceof  IOException,
+                Asserts.check(e.getCause() instanceof IOException,
                         "method contract violation only checked exceptions are wrapped: " + e.getCause());
                 // only checked exceptions are wrapped - error and RTExceptions are rethrown by doPrivileged
                 throw (IOException) e.getCause();

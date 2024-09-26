@@ -211,10 +211,10 @@ public abstract class GGSSchemeBase implements AuthScheme {
             try {
                 final String authServer;
                 String hostname = host.getHostName();
-                if (config.getUseCanonicalHostname() != org.apache.hc.client5.http.auth.KerberosConfig.Option.DISABLE){
+                if (config.getUseCanonicalHostname() != org.apache.hc.client5.http.auth.KerberosConfig.Option.DISABLE) {
                     try {
-                         hostname = dnsResolver.resolveCanonicalHostname(host.getHostName());
-                    } catch (final UnknownHostException ignore){
+                        hostname = dnsResolver.resolveCanonicalHostname(host.getHostName());
+                    } catch (final UnknownHostException ignore) {
                     }
                 }
                 if (config.getStripPort() != org.apache.hc.client5.http.auth.KerberosConfig.Option.DISABLE) {

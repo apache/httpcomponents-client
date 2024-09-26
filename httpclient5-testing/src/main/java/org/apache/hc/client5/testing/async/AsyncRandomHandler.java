@@ -209,7 +209,7 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
         }
 
         @Override
-        public void failed(final  Exception cause) {
+        public void failed(final Exception cause) {
         }
 
     }

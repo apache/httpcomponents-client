@@ -106,7 +106,7 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
     private Proxy chooseProxy(final List<Proxy> proxies) {
         Proxy result = null;
         // check the list for one we can use
-        for (int i=0; (result == null) && (i < proxies.size()); i++) {
+        for (int i = 0; result == null && i < proxies.size(); i++) {
             final Proxy p = proxies.get(i);
             switch (p.type()) {
 

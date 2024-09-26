@@ -42,7 +42,7 @@ import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-abstract  class AbstractIntegrationTestBase {
+abstract class AbstractIntegrationTestBase {
 
     public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
 

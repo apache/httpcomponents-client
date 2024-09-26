@@ -118,7 +118,7 @@ public final class RedirectExec implements ExecChainHandler {
                         return response;
                     }
                     if (redirectCount >= maxRedirects) {
-                        throw new RedirectException("Maximum redirects ("+ maxRedirects + ") exceeded");
+                        throw new RedirectException("Maximum redirects (" + maxRedirects + ") exceeded");
                     }
                     redirectCount++;
 

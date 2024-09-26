@@ -48,7 +48,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 /**
  * A handler that generates random data.
  */
-public class  RandomHandler implements HttpRequestHandler {
+public class RandomHandler implements HttpRequestHandler {
 
     /**
      * Handles a request by generating random data.
@@ -186,8 +186,8 @@ public class  RandomHandler implements HttpRequestHandler {
         public void writeTo(final OutputStream out) throws IOException {
 
             final int blocksize = 2048;
-            int       remaining = (int) length; // range checked in constructor
-            final byte[]         data = new byte[Math.min(remaining, blocksize)];
+            int remaining = (int) length; // range checked in constructor
+            final byte[] data = new byte[Math.min(remaining, blocksize)];
 
             while (remaining > 0) {
                 final int end = Math.min(remaining, data.length);
@@ -195,7 +195,7 @@ public class  RandomHandler implements HttpRequestHandler {
                 double value = 0.0;
                 for (int i = 0; i < end; i++) {
                     // we get 5 random characters out of one random value
-                    if (i%5 == 0) {
+                    if (i % 5 == 0) {
                         value = Math.random();
                     }
                     value = value * RANGE.length;

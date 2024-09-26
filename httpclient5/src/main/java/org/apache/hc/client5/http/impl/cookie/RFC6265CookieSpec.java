@@ -61,11 +61,11 @@ import org.apache.hc.core5.util.Tokenizer;
 @Contract(threading = ThreadingBehavior.SAFE)
 public class RFC6265CookieSpec implements CookieSpec {
 
-    private final static char PARAM_DELIMITER  = ';';
-    private final static char COMMA_CHAR       = ',';
-    private final static char EQUAL_CHAR       = '=';
-    private final static char DQUOTE_CHAR      = '"';
-    private final static char ESCAPE_CHAR      = '\\';
+    private final static char PARAM_DELIMITER = ';';
+    private final static char COMMA_CHAR = ',';
+    private final static char EQUAL_CHAR = '=';
+    private final static char DQUOTE_CHAR = '"';
+    private final static char ESCAPE_CHAR = '\\';
 
     // IMPORTANT!
     // These private static variables must be treated as immutable and never exposed outside this class

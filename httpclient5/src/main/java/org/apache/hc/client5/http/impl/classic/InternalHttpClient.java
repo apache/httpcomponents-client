@@ -117,7 +117,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
         this.credentialsProvider = credentialsProvider;
         this.contextAdaptor = contextAdaptor;
         this.defaultConfig = defaultConfig;
-        this.closeables = closeables != null ?  new ConcurrentLinkedQueue<>(closeables) : null;
+        this.closeables = closeables != null ? new ConcurrentLinkedQueue<>(closeables) : null;
     }
 
     private HttpRoute determineRoute(final HttpHost target, final HttpRequest request, final HttpContext context) throws HttpException {
