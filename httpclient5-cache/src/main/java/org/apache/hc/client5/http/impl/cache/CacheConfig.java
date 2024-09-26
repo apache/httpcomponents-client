@@ -227,7 +227,7 @@ public class CacheConfig implements Cloneable {
     /**
      * Returns the number of times to retry a cache processChallenge on failure
      */
-    public int getMaxUpdateRetries(){
+    public int getMaxUpdateRetries() {
         return maxUpdateRetries;
     }
 

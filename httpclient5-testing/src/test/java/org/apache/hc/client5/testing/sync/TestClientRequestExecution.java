@@ -71,7 +71,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Client protocol handling tests.
  */
-abstract  class TestClientRequestExecution extends AbstractIntegrationTestBase {
+abstract class TestClientRequestExecution extends AbstractIntegrationTestBase {
 
     public TestClientRequestExecution(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD);
@@ -313,7 +313,7 @@ abstract  class TestClientRequestExecution extends AbstractIntegrationTestBase {
     }
 
     @Test @Disabled("Fails intermittently with GitHub Actions")
-    public void testRequestCancellation() throws Exception {
+    void testRequestCancellation() throws Exception {
         startServer();
         final HttpHost target = startServer();
 

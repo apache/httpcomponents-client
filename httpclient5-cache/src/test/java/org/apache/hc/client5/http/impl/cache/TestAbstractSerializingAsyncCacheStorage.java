@@ -73,7 +73,7 @@ class TestAbstractSerializingAsyncCacheStorage {
 
     @BeforeEach
     @SuppressWarnings("unchecked")
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
         impl = Mockito.mock(AbstractBinaryAsyncCacheStorage.class,
                 Mockito.withSettings().defaultAnswer(Answers.CALLS_REAL_METHODS).useConstructor(3));

@@ -52,7 +52,6 @@ public class ClientConnectionConfig {
         final PoolingHttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
                 .setConnectionConfigResolver(route -> {
                     // Use different settings for all secure (TLS) connections
-                    final HttpHost targetHost = route.getTargetHost();
                     if (route.isSecure()) {
                         return ConnectionConfig.custom()
                                 .setConnectTimeout(Timeout.ofMinutes(2))

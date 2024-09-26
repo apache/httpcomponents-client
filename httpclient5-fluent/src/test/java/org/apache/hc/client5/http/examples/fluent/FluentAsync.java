@@ -80,11 +80,11 @@ public class FluentAsync {
             queue.add(future);
         }
 
-        while(!queue.isEmpty()) {
+        while (!queue.isEmpty()) {
             final Future<Content> future = queue.remove();
             try {
                 future.get();
-            } catch (final ExecutionException ex) {
+            } catch (final ExecutionException ignore) {
             }
         }
         System.out.println("Done");

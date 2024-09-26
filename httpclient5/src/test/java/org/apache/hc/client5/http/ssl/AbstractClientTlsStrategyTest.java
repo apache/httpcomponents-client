@@ -43,10 +43,10 @@ import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.junit.jupiter.api.Test;
 
-public class AbstractClientTlsStrategyTest {
+class AbstractClientTlsStrategyTest {
 
     @Test
-    public void testToEscapedString_withControlCharacters() {
+    void testToEscapedString_withControlCharacters() {
         // Create a X500Principal with control characters
         final X500Principal principal = new X500Principal("CN=Test\b\bName\n,O=TestOrg");
 
@@ -75,7 +75,7 @@ public class AbstractClientTlsStrategyTest {
     }
 
     @Test
-    public void testVerifySession_escapedPeerAndIssuer() throws Exception {
+    void testVerifySession_escapedPeerAndIssuer() throws Exception {
         // Mock SSLSession and X509Certificate
         final SSLSession mockSession = mock(SSLSession.class);
         final X509Certificate mockCert = mock(X509Certificate.class);

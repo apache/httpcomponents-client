@@ -101,7 +101,7 @@ public class NTCredentials implements Credentials, Serializable {
             final String workstation,
             final String domain,
             final String netbiosDomain) {
-        this(password, userName,  domain, netbiosDomain);
+        this(password, userName, domain, netbiosDomain);
     }
 
     /**

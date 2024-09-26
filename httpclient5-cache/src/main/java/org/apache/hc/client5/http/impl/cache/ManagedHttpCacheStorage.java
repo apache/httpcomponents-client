@@ -240,7 +240,8 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         return active.get();
     }
 
-    private boolean compareAndSet(){
+    private boolean compareAndSet() {
         return this.active.compareAndSet(true, false);
     }
+
 }

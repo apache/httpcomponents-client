@@ -126,8 +126,8 @@ public final class ByteArrayBuilder {
         if (b == null) {
             return this;
         }
-        if ((off < 0) || (off > b.length) || (len < 0) ||
-                ((off + len) < 0) || ((off + len) > b.length)) {
+        if (off < 0 || off > b.length || len < 0 ||
+                off + len < 0 || off + len > b.length) {
             throw new IndexOutOfBoundsException("off: " + off + " len: " + len + " b.length: " + b.length);
         }
         ensureFreeCapacity(len);
@@ -154,8 +154,8 @@ public final class ByteArrayBuilder {
         if (b == null) {
             return this;
         }
-        if ((off < 0) || (off > b.length) || (len < 0) ||
-                ((off + len) < 0) || ((off + len) > b.length)) {
+        if (off < 0 || off > b.length || len < 0 ||
+                off + len < 0 || off + len > b.length) {
             throw new IndexOutOfBoundsException("off: " + off + " len: " + len + " b.length: " + b.length);
         }
         return append(CharBuffer.wrap(b, off, len));

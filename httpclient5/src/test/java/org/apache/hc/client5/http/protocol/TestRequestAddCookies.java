@@ -77,7 +77,7 @@ class TestRequestAddCookies {
         this.cookieSpecRegistry = RegistryBuilder.<CookieSpecFactory>create()
             .register(StandardCookieSpec.RELAXED, new RFC6265CookieSpecFactory(
                     RFC6265CookieSpecFactory.CompatibilityLevel.RELAXED, null))
-            .register(StandardCookieSpec.STRICT,  new RFC6265CookieSpecFactory(
+            .register(StandardCookieSpec.STRICT, new RFC6265CookieSpecFactory(
                     RFC6265CookieSpecFactory.CompatibilityLevel.STRICT, null))
             .register(StandardCookieSpec.IGNORE, new IgnoreCookieSpecFactory())
             .build();
@@ -389,9 +389,9 @@ class TestRequestAddCookies {
         this.cookieStore.clear();
 
         cookieStore.addCookie(makeCookie("nomatch", "value", "localhost.local", "/noway"));
-        cookieStore.addCookie(makeCookie("name2",   "value", "localhost.local", "/foobar/yada"));
-        cookieStore.addCookie(makeCookie("name3",   "value", "localhost.local", "/foobar"));
-        cookieStore.addCookie(makeCookie("name1",   "value", "localhost.local", "/foobar/yada/yada"));
+        cookieStore.addCookie(makeCookie("name2", "value", "localhost.local", "/foobar/yada"));
+        cookieStore.addCookie(makeCookie("name3", "value", "localhost.local", "/foobar"));
+        cookieStore.addCookie(makeCookie("name1", "value", "localhost.local", "/foobar/yada/yada"));
 
         final HttpRoute route = new HttpRoute(this.target, null, false);
 

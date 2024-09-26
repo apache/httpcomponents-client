@@ -78,7 +78,7 @@ class TestBasicScheme {
         final BasicScheme authscheme = new BasicScheme();
         authscheme.processChallenge(authChallenge, null);
 
-        final HttpHost host  = new HttpHost("somehost", 80);
+        final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
                 .add(new AuthScope(host, "test", null), "testuser", "testpass".toCharArray())
                 .build();
@@ -87,7 +87,7 @@ class TestBasicScheme {
         Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
-        final byte[] testCreds =  "testuser:testpass".getBytes(StandardCharsets.US_ASCII);
+        final byte[] testCreds = "testuser:testpass".getBytes(StandardCharsets.US_ASCII);
 
         final String expected = "Basic " + BASE64_ENC.encodeToString(testCreds);
 
@@ -101,7 +101,7 @@ class TestBasicScheme {
 
     @Test
     void testBasicAuthenticationDefaultCharset() throws Exception {
-        final HttpHost host  = new HttpHost("somehost", 80);
+        final HttpHost host = new HttpHost("somehost", 80);
         final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("test", TEST_UTF8_PASSWORD.toCharArray());
         final BasicScheme authscheme = new BasicScheme();
         final HttpRequest request = new BasicHttpRequest("GET", "/");
@@ -112,7 +112,7 @@ class TestBasicScheme {
 
     @Test
     void testBasicAuthenticationDefaultCharsetUTF8() throws Exception {
-        final HttpHost host  = new HttpHost("somehost", 80);
+        final HttpHost host = new HttpHost("somehost", 80);
         final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("test", TEST_UTF8_PASSWORD.toCharArray());
         final BasicScheme authscheme = new BasicScheme();
         final HttpRequest request = new BasicHttpRequest("GET", "/");
@@ -128,7 +128,7 @@ class TestBasicScheme {
         final BasicScheme authscheme = new BasicScheme();
         authscheme.processChallenge(authChallenge, null);
 
-        final HttpHost host  = new HttpHost("somehost", 80);
+        final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
                 .add(new AuthScope(host, "test", null), "test", TEST_UTF8_PASSWORD.toCharArray())
                 .build();
@@ -161,7 +161,7 @@ class TestBasicScheme {
     @Test
     void testBasicAuthenticationUserCredentialsMissing() {
         final BasicScheme authscheme = new BasicScheme();
-        final HttpHost host  = new HttpHost("somehost", 80);
+        final HttpHost host = new HttpHost("somehost", 80);
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         Assertions.assertThrows(AuthenticationException.class, () -> authscheme.generateAuthResponse(host, request, null));
     }
@@ -169,7 +169,7 @@ class TestBasicScheme {
     @Test
     void testBasicAuthenticationUsernameWithBlank() throws Exception {
         final BasicScheme authscheme = new BasicScheme();
-        final HttpHost host  = new HttpHost("somehost", 80);
+        final HttpHost host = new HttpHost("somehost", 80);
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         authscheme.initPreemptive(new UsernamePasswordCredentials("blah blah", null));
         authscheme.generateAuthResponse(host, request, null);
@@ -178,7 +178,7 @@ class TestBasicScheme {
     @Test
     void testBasicAuthenticationUsernameWithTab() {
         final BasicScheme authscheme = new BasicScheme();
-        final HttpHost host  = new HttpHost("somehost", 80);
+        final HttpHost host = new HttpHost("somehost", 80);
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         authscheme.initPreemptive(new UsernamePasswordCredentials("blah\tblah", null));
         Assertions.assertThrows(AuthenticationException.class, () -> authscheme.generateAuthResponse(host, request, null));
@@ -187,7 +187,7 @@ class TestBasicScheme {
     @Test
     void testBasicAuthenticationUsernameWithColon() {
         final BasicScheme authscheme = new BasicScheme();
-        final HttpHost host  = new HttpHost("somehost", 80);
+        final HttpHost host = new HttpHost("somehost", 80);
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         authscheme.initPreemptive(new UsernamePasswordCredentials("blah:blah", null));
         Assertions.assertThrows(AuthenticationException.class, () -> authscheme.generateAuthResponse(host, request, null));

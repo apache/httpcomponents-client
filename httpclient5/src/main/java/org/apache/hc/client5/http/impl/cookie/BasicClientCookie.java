@@ -159,7 +159,7 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
      */
     @Override
     public boolean isPersistent() {
-        return (null != cookieExpiryDate);
+        return null != cookieExpiryDate;
     }
 
 
@@ -268,8 +268,8 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
     @Override
     public boolean isExpired(final Date date) {
         Args.notNull(date, "Date");
-        return (cookieExpiryDate != null
-            && cookieExpiryDate.compareTo(DateUtils.toInstant(date)) <= 0);
+        return cookieExpiryDate != null
+                && cookieExpiryDate.compareTo(DateUtils.toInstant(date)) <= 0;
     }
 
     /**
@@ -281,8 +281,8 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
     @Override
     public boolean isExpired(final Instant instant) {
         Args.notNull(instant, "Instant");
-        return (cookieExpiryDate != null
-                && cookieExpiryDate.compareTo(instant) <= 0);
+        return cookieExpiryDate != null
+                && cookieExpiryDate.compareTo(instant) <= 0;
     }
 
     /**
@@ -391,7 +391,7 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
     private String value;
 
     /** Domain attribute. */
-    private String  cookieDomain;
+    private String cookieDomain;
 
     /** Expiration {@link Instant}. */
     private Instant cookieExpiryDate;

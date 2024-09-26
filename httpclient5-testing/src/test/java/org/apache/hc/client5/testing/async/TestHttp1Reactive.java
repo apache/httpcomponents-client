@@ -57,7 +57,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Publisher;
 
-abstract  class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest {
+abstract class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest {
 
     public TestHttp1Reactive(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);
@@ -99,7 +99,7 @@ abstract  class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest {
 
     @Test
     @Timeout(value = 60_000, unit = MILLISECONDS)
-    public void testSharedPool() throws Exception {
+    void testSharedPool() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", () ->
                 new ReactiveServerExchangeHandler(new ReactiveRandomProcessor())));
         final HttpHost target = startServer();

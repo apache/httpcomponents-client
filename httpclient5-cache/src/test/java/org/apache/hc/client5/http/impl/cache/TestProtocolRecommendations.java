@@ -268,7 +268,7 @@ class TestProtocolRecommendations {
         ClassicHttpResponse result = null;
         try {
             result = execute(req2);
-        } catch (final IOException acceptable) {
+        } catch (final IOException expected) {
         }
 
         if (result != null) {
@@ -745,8 +745,8 @@ class TestProtocolRecommendations {
         final ClassicHttpRequest captured = reqCapture.getValue();
         boolean foundEtag1 = false;
         boolean foundEtag2 = false;
-        for(final Header h : captured.getHeaders("If-None-Match")) {
-            for(final String etag : h.getValue().split(",")) {
+        for (final Header h : captured.getHeaders("If-None-Match")) {
+            for (final String etag : h.getValue().split(",")) {
                 if ("\"etag1\"".equals(etag.trim())) {
                     foundEtag1 = true;
                 }

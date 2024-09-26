@@ -112,7 +112,7 @@ public class FutureRequestExecutionService implements Closeable {
             final HttpContext context,
             final HttpClientResponseHandler<T> HttpClientResponseHandler,
             final FutureCallback<T> callback) {
-        if(closed.get()) {
+        if (closed.get()) {
             throw new IllegalStateException("Close has been called on this httpclient instance.");
         }
         metrics.getScheduledConnections().incrementAndGet();

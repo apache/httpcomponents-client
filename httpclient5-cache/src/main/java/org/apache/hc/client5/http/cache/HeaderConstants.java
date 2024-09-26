@@ -165,7 +165,8 @@ public class HeaderConstants {
     public static final String CACHE_CONTROL_STALE_WHILE_REVALIDATE = "stale-while-revalidate";
     public static final String CACHE_CONTROL_ONLY_IF_CACHED = "only-if-cached";
     public static final String CACHE_CONTROL_MUST_UNDERSTAND = "must-understand";
-    public static final String CACHE_CONTROL_IMMUTABLE= "immutable";
+    public static final String CACHE_CONTROL_IMMUTABLE = "immutable";
+
     /**
      * @deprecated Use {@link #CACHE_CONTROL_STALE_IF_ERROR}
      */

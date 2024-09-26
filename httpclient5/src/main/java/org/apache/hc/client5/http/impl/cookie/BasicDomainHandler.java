@@ -132,7 +132,7 @@ public class BasicDomainHandler implements CommonCookieAttributeHandler {
         if (host.equals(domain)) {
             return true;
         }
-        if ((cookie.containsAttribute(Cookie.DOMAIN_ATTR))) {
+        if (cookie.containsAttribute(Cookie.DOMAIN_ATTR)) {
             return domainMatch(domain, host);
         }
         return false;

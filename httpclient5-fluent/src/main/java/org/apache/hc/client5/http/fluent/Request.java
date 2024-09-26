@@ -364,7 +364,7 @@ public class Request {
         return this;
     }
 
-    public Request bodyForm(final Iterable <? extends NameValuePair> formParams, final Charset charset) {
+    public Request bodyForm(final Iterable<? extends NameValuePair> formParams, final Charset charset) {
         final List<NameValuePair> paramList = new ArrayList<>();
         for (final NameValuePair param : formParams) {
             paramList.add(param);
@@ -375,7 +375,7 @@ public class Request {
         return bodyString(s, contentType);
     }
 
-    public Request bodyForm(final Iterable <? extends NameValuePair> formParams) {
+    public Request bodyForm(final Iterable<? extends NameValuePair> formParams) {
         return bodyForm(formParams, StandardCharsets.ISO_8859_1);
     }
 

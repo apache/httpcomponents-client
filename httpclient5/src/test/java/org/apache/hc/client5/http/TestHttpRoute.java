@@ -340,29 +340,29 @@ class TestHttpRoute {
     void testHopping() {
         // test getHopCount() and getHopTarget() with different proxy chains
         final HttpHost[] proxies = null;
-        final HttpRoute  route   = new HttpRoute(TARGET1, null, proxies, true,
-                                           TunnelType.PLAIN, LayerType.PLAIN);
+        final HttpRoute route = new HttpRoute(TARGET1, null, proxies, true,
+                TunnelType.PLAIN, LayerType.PLAIN);
         Assertions.assertEquals(1, route.getHopCount(), "A: hop count");
         Assertions.assertEquals(TARGET1, route.getHopTarget(0), "A: hop 0");
         Assertions.assertThrows(IllegalArgumentException.class, () -> route.getHopTarget(1));
-        Assertions.assertThrows(IllegalArgumentException.class, () ->  route.getHopTarget(-1));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> route.getHopTarget(-1));
 
-        final HttpHost[] proxies2 = new HttpHost[]{ PROXY3 };
-        final HttpRoute route2   = new HttpRoute(TARGET1, LOCAL62, proxies2, false,
-                                TunnelType.TUNNELLED, LayerType.PLAIN);
+        final HttpHost[] proxies2 = new HttpHost[]{PROXY3};
+        final HttpRoute route2 = new HttpRoute(TARGET1, LOCAL62, proxies2, false,
+                TunnelType.TUNNELLED, LayerType.PLAIN);
         Assertions.assertEquals(2, route2.getHopCount(), "B: hop count");
         Assertions.assertEquals(PROXY3, route2.getHopTarget(0), "B: hop 0");
         Assertions.assertEquals(TARGET1, route2.getHopTarget(1), "B: hop 1");
         Assertions.assertThrows(IllegalArgumentException.class, () -> route2.getHopTarget(2));
         Assertions.assertThrows(IllegalArgumentException.class, () -> route2.getHopTarget(-2));
 
-        final HttpHost[] proxies3 = new HttpHost[]{ PROXY3, PROXY1, PROXY2 };
-        final HttpRoute route3   = new HttpRoute(TARGET1, LOCAL42, proxies3, false,
-                                TunnelType.PLAIN, LayerType.LAYERED);
+        final HttpHost[] proxies3 = new HttpHost[]{PROXY3, PROXY1, PROXY2};
+        final HttpRoute route3 = new HttpRoute(TARGET1, LOCAL42, proxies3, false,
+                TunnelType.PLAIN, LayerType.LAYERED);
         Assertions.assertEquals(4, route3.getHopCount(), "C: hop count");
-        Assertions.assertEquals(PROXY3 , route3.getHopTarget(0), "C: hop 0");
-        Assertions.assertEquals(PROXY1 , route3.getHopTarget(1), "C: hop 1");
-        Assertions.assertEquals(PROXY2 , route3.getHopTarget(2), "C: hop 2");
+        Assertions.assertEquals(PROXY3, route3.getHopTarget(0), "C: hop 0");
+        Assertions.assertEquals(PROXY1, route3.getHopTarget(1), "C: hop 1");
+        Assertions.assertEquals(PROXY2, route3.getHopTarget(2), "C: hop 2");
         Assertions.assertEquals(TARGET1, route3.getHopTarget(3), "C: hop 3");
         Assertions.assertThrows(IllegalArgumentException.class, () -> route3.getHopTarget(4));
         Assertions.assertThrows(IllegalArgumentException.class, () -> route3.getHopTarget(Integer.MIN_VALUE));

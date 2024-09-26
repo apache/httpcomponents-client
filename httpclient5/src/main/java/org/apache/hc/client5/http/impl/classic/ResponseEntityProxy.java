@@ -190,7 +190,8 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
     private static final class NullOutputStream extends OutputStream {
         private static final NullOutputStream INSTANCE = new NullOutputStream();
 
-        private NullOutputStream() {}
+        private NullOutputStream() {
+        }
 
         @Override
         public void write(@SuppressWarnings("unused") final int byteValue) {

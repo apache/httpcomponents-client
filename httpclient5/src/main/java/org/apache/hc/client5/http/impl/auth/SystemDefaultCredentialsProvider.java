@@ -162,7 +162,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 return new PasswordAuthentication(proxyUser,
                         proxyPassword != null ? proxyPassword.toCharArray() : new char[] {});
             }
-        } catch (final NumberFormatException ex) {
+        } catch (final NumberFormatException ignore) {
         }
 
         return null;

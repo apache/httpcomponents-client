@@ -47,7 +47,7 @@ import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-abstract  class TestHttp1RequestReExecution extends AbstractIntegrationTestBase {
+abstract class TestHttp1RequestReExecution extends AbstractIntegrationTestBase {
 
     public TestHttp1RequestReExecution(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);

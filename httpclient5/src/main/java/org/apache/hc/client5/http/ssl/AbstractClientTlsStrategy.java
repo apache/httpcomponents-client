@@ -226,7 +226,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
         if (supportedProtocols != null) {
             sslParameters.setProtocols(supportedProtocols);
         } else {
-            sslParameters.setProtocols((TLS.excludeWeak(upgradedSocket.getEnabledProtocols())));
+            sslParameters.setProtocols(TLS.excludeWeak(upgradedSocket.getEnabledProtocols()));
         }
         if (supportedCipherSuites != null) {
             sslParameters.setCipherSuites(supportedCipherSuites);

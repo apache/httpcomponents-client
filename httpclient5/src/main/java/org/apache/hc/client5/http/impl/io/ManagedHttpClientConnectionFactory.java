@@ -170,7 +170,7 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
      *
      * @since 5.1
      */
-    public static Builder builder()  {
+    public static Builder builder() {
         return new Builder();
     }
 
@@ -189,7 +189,8 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
         private HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory;
         private HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory;
 
-        private Builder() {}
+        private Builder() {
+        }
 
         public Builder http1Config(final Http1Config http1Config) {
             this.http1Config = http1Config;

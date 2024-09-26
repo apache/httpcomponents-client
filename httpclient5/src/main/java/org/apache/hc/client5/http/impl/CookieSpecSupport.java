@@ -27,8 +27,8 @@
 
 package org.apache.hc.client5.http.impl;
 
-import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
+import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.impl.cookie.IgnoreCookieSpecFactory;
 import org.apache.hc.client5.http.impl.cookie.RFC6265CookieSpecFactory;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
@@ -78,6 +78,7 @@ public final class CookieSpecSupport {
         return createDefaultBuilder(publicSuffixMatcher).build();
     }
 
-    private CookieSpecSupport() {}
+    private CookieSpecSupport() {
+    }
 
 }

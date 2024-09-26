@@ -58,7 +58,6 @@ public class AsyncClientConnectionConfig {
         final PoolingAsyncClientConnectionManager cm = PoolingAsyncClientConnectionManagerBuilder.create()
                 .setConnectionConfigResolver(route -> {
                     // Use different settings for all secure (TLS) connections
-                    final HttpHost targetHost = route.getTargetHost();
                     if (route.isSecure()) {
                         return ConnectionConfig.custom()
                                 .setConnectTimeout(Timeout.ofMinutes(2))

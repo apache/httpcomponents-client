@@ -141,7 +141,7 @@ public class DigestScheme implements AuthScheme, Serializable {
     private UsernamePasswordCredentials credentials;
 
     public DigestScheme() {
-        this.defaultCharset =  StandardCharsets.UTF_8;
+        this.defaultCharset = StandardCharsets.UTF_8;
         this.paramMap = new HashMap<>();
         this.complete = false;
     }
@@ -474,8 +474,8 @@ public class DigestScheme implements AuthScheme, Serializable {
                 buffer.append(", ");
             }
             final String name = param.getName();
-            final boolean noQuotes = ("nc".equals(name) || "qop".equals(name)
-                    || "algorithm".equals(name));
+            final boolean noQuotes = "nc".equals(name) || "qop".equals(name)
+                    || "algorithm".equals(name);
             BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(buffer, param, !noQuotes);
         }
         return buffer.toString();
@@ -514,8 +514,8 @@ public class DigestScheme implements AuthScheme, Serializable {
         final int n = binaryData.length;
         final char[] buffer = new char[n * 2];
         for (int i = 0; i < n; i++) {
-            final int low = (binaryData[i] & 0x0f);
-            final int high = ((binaryData[i] & 0xf0) >> 4);
+            final int low = binaryData[i] & 0x0f;
+            final int high = (binaryData[i] & 0xf0) >> 4;
             buffer[i * 2] = HEXADECIMAL[high];
             buffer[(i * 2) + 1] = HEXADECIMAL[low];
         }

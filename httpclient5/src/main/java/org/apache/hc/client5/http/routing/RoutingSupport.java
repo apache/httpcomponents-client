@@ -71,7 +71,7 @@ public final class RoutingSupport {
             return null;
         }
         if (host.getPort() < 0) {
-            final int port = (schemePortResolver != null ? schemePortResolver: DefaultSchemePortResolver.INSTANCE).resolve(host);
+            final int port = (schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE).resolve(host);
             if (port > 0) {
                 return new HttpHost(host.getSchemeName(), host.getAddress(), host.getHostName(), port);
             }

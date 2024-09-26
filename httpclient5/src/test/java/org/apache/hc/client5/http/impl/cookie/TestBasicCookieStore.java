@@ -66,7 +66,7 @@ class TestBasicCookieStore {
         final BasicCookieStore store = new BasicCookieStore();
         final BasicClientCookie cookie = new BasicClientCookie("name1", "value1");
 
-        final Instant  minus_10_days = Instant.now().minus(10, ChronoUnit.DAYS);
+        final Instant minus_10_days = Instant.now().minus(10, ChronoUnit.DAYS);
         cookie.setExpiryDate(minus_10_days);
         store.addCookie(cookie);
         final List<Cookie> list = store.getCookies();

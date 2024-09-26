@@ -109,7 +109,7 @@ public class CacheContextBuilder extends AbstractClientContextBuilder<HttpCacheC
 
     @Override
     public HttpCacheContext build() {
-        final HttpCacheContext context =  super.build();
+        final HttpCacheContext context = super.build();
         context.setRequestCacheControl(cacheControl);
         return context;
     }

@@ -79,10 +79,10 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      */
     public RouteTracker(final HttpHost target, final InetAddress local) {
         Args.notNull(target, "Target host");
-        this.targetHost   = target;
+        this.targetHost = target;
         this.localAddress = local;
-        this.tunnelled    = TunnelType.PLAIN;
-        this.layered      = LayerType.PLAIN;
+        this.tunnelled = TunnelType.PLAIN;
+        this.layered = LayerType.PLAIN;
     }
 
     /**
@@ -129,9 +129,9 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     public void connectProxy(final HttpHost proxy, final boolean secure) {
         Args.notNull(proxy, "Proxy host");
         Asserts.check(!this.connected, "Already connected");
-        this.connected  = true;
-        this.proxyChain = new HttpHost[]{ proxy };
-        this.secure     = secure;
+        this.connected = true;
+        this.proxyChain = new HttpHost[]{proxy};
+        this.secure = secure;
     }
 
     /**
@@ -144,7 +144,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         Asserts.check(this.connected, "No tunnel unless connected");
         Asserts.notNull(this.proxyChain, "No tunnel without proxy");
         this.tunnelled = TunnelType.TUNNELLED;
-        this.secure    = secure;
+        this.secure = secure;
     }
 
     /**
@@ -161,13 +161,13 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         Asserts.check(this.connected, "No tunnel unless connected");
         Asserts.notNull(this.proxyChain, "No tunnel without proxy");
         // prepare an extended proxy chain
-        final HttpHost[] proxies = new HttpHost[this.proxyChain.length+1];
+        final HttpHost[] proxies = new HttpHost[this.proxyChain.length + 1];
         System.arraycopy(this.proxyChain, 0,
-                         proxies, 0, this.proxyChain.length);
-        proxies[proxies.length-1] = proxy;
+                proxies, 0, this.proxyChain.length);
+        proxies[proxies.length - 1] = proxy;
 
         this.proxyChain = proxies;
-        this.secure     = secure;
+        this.secure = secure;
     }
 
     /**
@@ -181,7 +181,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         // although this case is probably not considered elsewhere
         Asserts.check(this.connected, "No layered protocol unless connected");
         this.layered = LayerType.LAYERED;
-        this.secure  = secure;
+        this.secure = secure;
     }
 
     @Override
@@ -213,7 +213,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         final int hopcount = getHopCount();
         Args.check(hop < hopcount, "Hop index exceeds tracked route length");
         HttpHost result = null;
-        if (hop < hopcount-1) {
+        if (hop < hopcount - 1) {
             result = this.proxyChain[hop];
         } else {
             result = this.targetHost;
@@ -224,7 +224,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
 
     @Override
     public HttpHost getProxyHost() {
-        return (this.proxyChain == null) ? null : this.proxyChain[0];
+        return this.proxyChain == null ? null : this.proxyChain[0];
     }
 
     public boolean isConnected() {
@@ -238,7 +238,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
 
     @Override
     public boolean isTunnelled() {
-        return (this.tunnelled == TunnelType.TUNNELLED);
+        return this.tunnelled == TunnelType.TUNNELLED;
     }
 
     @Override
@@ -248,7 +248,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
 
     @Override
     public boolean isLayered() {
-        return (this.layered == LayerType.LAYERED);
+        return this.layered == LayerType.LAYERED;
     }
 
     @Override
@@ -290,14 +290,14 @@ public final class RouteTracker implements RouteInfo, Cloneable {
 
         final RouteTracker that = (RouteTracker) o;
         return
-            // Do the cheapest checks first
-            (this.connected == that.connected) &&
-            (this.secure    == that.secure) &&
-            (this.tunnelled == that.tunnelled) &&
-            (this.layered   == that.layered) &&
-            Objects.equals(this.targetHost, that.targetHost) &&
-            Objects.equals(this.localAddress, that.localAddress) &&
-            Objects.equals(this.proxyChain, that.proxyChain);
+                // Do the cheapest checks first
+                this.connected == that.connected &&
+                        this.secure == that.secure &&
+                        this.tunnelled == that.tunnelled &&
+                        this.layered == that.layered &&
+                        Objects.equals(this.targetHost, that.targetHost) &&
+                        Objects.equals(this.localAddress, that.localAddress) &&
+                        Objects.equals(this.proxyChain, that.proxyChain);
     }
 
     /**
@@ -332,7 +332,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      */
     @Override
     public String toString() {
-        final StringBuilder cab = new StringBuilder(50 + getHopCount()*30);
+        final StringBuilder cab = new StringBuilder(50 + getHopCount() * 30);
 
         cab.append("RouteTracker[");
         if (this.localAddress != null) {

@@ -153,7 +153,7 @@ class TestMultipartEntityBuilder {
         eb.addParameter(new BasicNameValuePair("charset", "ascii"));
         eb.addParameter(new BasicNameValuePair("my", "stuff"));
         eb.buildEntity();
-        final MultipartFormEntity entity =  eb.buildEntity();
+        final MultipartFormEntity entity = eb.buildEntity();
         Assertions.assertNotNull(entity);
         Assertions.assertEquals("multipart/related; boundary=yada-yada; charset=ascii; my=stuff",
                 entity.getContentType());

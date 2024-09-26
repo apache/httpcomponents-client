@@ -146,7 +146,7 @@ public final class ConnectExec implements ExecChainHandler {
                             break;
                         case HttpRouteDirector.CONNECT_PROXY:
                             execRuntime.connectEndpoint(context);
-                            final HttpHost proxy  = route.getProxyHost();
+                            final HttpHost proxy = route.getProxyHost();
                             tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
                             break;
                         case HttpRouteDirector.TUNNEL_TARGET: {
@@ -159,20 +159,22 @@ public final class ConnectExec implements ExecChainHandler {
                                 LOG.debug("{} tunnel to target created.", exchangeId);
                             }
                             tracker.tunnelTarget(false);
-                        }   break;
+                        }
+                        break;
 
                         case HttpRouteDirector.TUNNEL_PROXY: {
                             // The most simple example for this case is a proxy chain
                             // of two proxies, where P1 must be tunnelled to P2.
                             // route: Source -> P1 -> P2 -> Target (3 hops)
                             // fact:  Source -> P1 -> Target       (2 hops)
-                            final int hop = fact.getHopCount()-1; // the hop to establish
+                            final int hop = fact.getHopCount() - 1; // the hop to establish
                             final boolean secure = createTunnelToProxy(route, hop, context);
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("{} tunnel to proxy created.", exchangeId);
                             }
                             tracker.tunnelProxy(route.getHopTarget(hop), secure);
-                        }   break;
+                        }
+                        break;
 
                         case HttpRouteDirector.LAYER_PROTOCOL:
                             execRuntime.upgradeTls(context);

@@ -63,7 +63,7 @@ public interface RouteInfo {
      * But we don't want to exclude that use case.
      * </p>
      */
-    enum LayerType  { PLAIN, LAYERED }
+    enum LayerType { PLAIN, LAYERED }
 
     /**
      * Obtains the target host.

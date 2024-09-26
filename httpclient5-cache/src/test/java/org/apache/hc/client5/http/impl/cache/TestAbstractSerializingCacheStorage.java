@@ -61,7 +61,7 @@ class TestAbstractSerializingCacheStorage {
 
     @BeforeEach
     @SuppressWarnings("unchecked")
-    public void setUp() {
+    void setUp() {
         impl = Mockito.mock(AbstractBinaryCacheStorage.class,
                 Mockito.withSettings().defaultAnswer(Answers.CALLS_REAL_METHODS).useConstructor(3));
     }
@@ -125,7 +125,7 @@ class TestAbstractSerializingCacheStorage {
     }
 
     @Test
-    void testCacheRemove()  throws Exception{
+    void testCacheRemove() throws Exception {
         final String key = "foo";
 
         when(impl.digestToStorageKey(key)).thenReturn("bar");

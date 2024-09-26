@@ -37,9 +37,10 @@ class FormBodyPartTest {
 
     @Test
     void testConstructorCompat() throws Exception {
-        final File tmp= File.createTempFile("test", "test");
+        final File tmp = File.createTempFile("test", "test");
         tmp.deleteOnExit();
         final FileBody obj = new FileBody(tmp, ContentType.APPLICATION_OCTET_STREAM);
         Assertions.assertEquals(tmp.getName(), obj.getFilename());
     }
+
 }

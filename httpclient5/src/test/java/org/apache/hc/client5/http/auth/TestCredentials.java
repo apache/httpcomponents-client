@@ -64,7 +64,7 @@ class TestCredentials {
         Assertions.assertEquals(new NTUserPrincipal("DOMAIN", "name"),
                 creds1.getUserPrincipal());
         Assertions.assertArrayEquals("pwd".toCharArray(), creds1.getPassword());
-        Assertions.assertEquals("[principal: DOMAIN\\name][workstation: "+ creds1.getWorkstation() +"][netbiosDomain: DOMAIN]",
+        Assertions.assertEquals("[principal: DOMAIN\\name][workstation: " + creds1.getWorkstation() + "][netbiosDomain: DOMAIN]",
                 creds1.toString());
         final NTCredentials creds2 = new NTCredentials(
                 "name", null, null, null);
@@ -72,7 +72,7 @@ class TestCredentials {
         Assertions.assertEquals(new NTUserPrincipal(null, "name"),
                 creds2.getUserPrincipal());
         Assertions.assertNull(creds2.getPassword());
-        Assertions.assertEquals("[principal: name][workstation: "+creds1.getWorkstation() +"][netbiosDomain: null]",
+        Assertions.assertEquals("[principal: name][workstation: " + creds1.getWorkstation() + "][netbiosDomain: null]",
                 creds2.toString());
     }
 

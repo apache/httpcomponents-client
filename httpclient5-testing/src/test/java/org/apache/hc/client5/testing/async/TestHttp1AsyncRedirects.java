@@ -52,7 +52,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Redirection test cases.
  */
-abstract  class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest {
+abstract class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest {
 
     public TestHttp1AsyncRedirects(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);

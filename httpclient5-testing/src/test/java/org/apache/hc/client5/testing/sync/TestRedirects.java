@@ -84,7 +84,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Redirection test cases.
  */
-abstract  class TestRedirects extends AbstractIntegrationTestBase {
+abstract class TestRedirects extends AbstractIntegrationTestBase {
 
     protected TestRedirects(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD);

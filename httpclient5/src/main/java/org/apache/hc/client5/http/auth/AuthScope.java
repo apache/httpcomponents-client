@@ -74,7 +74,7 @@ public class AuthScope {
             final String schemeName) {
         this.protocol = protocol != null ? protocol.toLowerCase(Locale.ROOT) : null;
         this.host = host != null ? host.toLowerCase(Locale.ROOT) : null;
-        this.port = port >= 0 ? port: -1;
+        this.port = port >= 0 ? port : -1;
         this.realm = realm;
         this.schemeName = schemeName != null ? schemeName.toUpperCase(Locale.ROOT) : null;
     }

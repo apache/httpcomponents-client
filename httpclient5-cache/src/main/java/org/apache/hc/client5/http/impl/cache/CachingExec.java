@@ -218,7 +218,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final HttpHost target,
             final ClassicHttpRequest request,
             final ExecChain.Scope scope,
-            final ExecChain chain) throws IOException, HttpException  {
+            final ExecChain chain) throws IOException, HttpException {
 
         final String exchangeId = scope.exchangeId;
         final Instant requestDate = getCurrentDate();
@@ -244,7 +244,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final ExecChain.Scope scope,
             final ExecChain chain) throws IOException, HttpException {
         final String exchangeId = scope.exchangeId;
-        final HttpCacheContext context  = HttpCacheContext.cast(scope.clientContext);
+        final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} cache hit: {}", exchangeId, new RequestLine(request));
@@ -353,7 +353,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final ClassicHttpRequest request,
             final ExecChain.Scope scope,
             final ExecChain chain) throws IOException, HttpException {
-        final HttpCacheContext context  = HttpCacheContext.cast(scope.clientContext);
+        final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
         Instant requestDate = getCurrentDate();
         final ClassicHttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(
                 responseCacheControl, request, hit.entry);
@@ -397,7 +397,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final ExecChain.Scope scope,
             final ExecChain chain) throws HttpException {
         final String exchangeId = scope.exchangeId;
-        final HttpCacheContext context  = HttpCacheContext.cast(scope.clientContext);
+        final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
         try {
             return revalidateCacheEntry(responseCacheControl, hit, target, request, scope, chain);
         } catch (final IOException ex) {
@@ -418,7 +418,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final ExecChain.Scope scope,
             final ExecChain chain) throws HttpException, IOException {
         final String exchangeId = scope.exchangeId;
-        final HttpCacheContext context  = HttpCacheContext.cast(scope.clientContext);
+        final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
         final ClassicHttpResponse response;
         try {
             response = revalidateCacheEntry(responseCacheControl, hit, target, request, scope, chain);
@@ -490,7 +490,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final Instant requestSent,
             final Instant responseReceived) throws IOException {
         final String exchangeId = scope.exchangeId;
-        final HttpCacheContext context  = HttpCacheContext.cast(scope.clientContext);
+        final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
         final int statusCode = backendResponse.getCode();
         // handle 304 Not Modified responses
         if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
@@ -573,7 +573,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         }
         cacheMisses.getAndIncrement();
 
-        final HttpCacheContext context  = HttpCacheContext.cast(scope.clientContext);
+        final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
         if (requestCacheControl.isOnlyIfCached()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} request marked only-if-cached", exchangeId);
@@ -643,7 +643,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 return callBackend(target, unconditional, scope, chain);
             }
 
-            final HttpCacheContext context  = HttpCacheContext.cast(scope.clientContext);
+            final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
             context.setCacheResponseStatus(CacheResponseStatus.VALIDATED);
             cacheUpdates.getAndIncrement();
 

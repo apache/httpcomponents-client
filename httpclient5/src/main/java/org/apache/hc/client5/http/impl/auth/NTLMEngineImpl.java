@@ -1224,7 +1224,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         void buildMessage() {
-            throw new RuntimeException("Message builder not implemented for "+getClass().getName());
+            throw new RuntimeException("Message builder not implemented for " + getClass().getName());
         }
     }
 
@@ -1241,7 +1241,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
         Type1Message(final String domain, final String host, final Integer flags) {
             super();
-            this.flags = ((flags == null)?getDefaultFlags(): flags.intValue());
+            this.flags = flags == null ? getDefaultFlags() : flags.intValue();
 
             // See HTTPCLIENT-1662
             final String unqualifiedHost = host;
@@ -1541,7 +1541,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             try {
                 // This conditional may not work on Windows Server 2008 R2 and above, where it has not yet
                 // been tested
-                if (((type2Flags & FLAG_TARGETINFO_PRESENT) != 0) &&
+                if ((type2Flags & FLAG_TARGETINFO_PRESENT) != 0 &&
                     targetInformation != null && target != null) {
                     // NTLMv2
                     ntResp = gen.getNTLMv2Response();
@@ -1621,7 +1621,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             final int lmRespLen = lmResp.length;
 
             final int domainLen = domainBytes != null ? domainBytes.length : 0;
-            final int hostLen = hostBytes != null ? hostBytes.length: 0;
+            final int hostLen = hostBytes != null ? hostBytes.length : 0;
             final int userLen = userBytes.length;
             final int sessionKeyLen;
             if (sessionKey != null) {
@@ -1808,26 +1808,26 @@ final class NTLMEngineImpl implements NTLMEngine {
     }
 
     static int F(final int x, final int y, final int z) {
-        return ((x & y) | (~x & z));
+        return (x & y) | (~x & z);
     }
 
     static int G(final int x, final int y, final int z) {
-        return ((x & y) | (x & z) | (y & z));
+        return (x & y) | (x & z) | (y & z);
     }
 
     static int H(final int x, final int y, final int z) {
-        return (x ^ y ^ z);
+        return x ^ y ^ z;
     }
 
     static int rotintlft(final int val, final int numbits) {
-        return ((val << numbits) | (val >>> (32 - numbits)));
+        return (val << numbits) | (val >>> (32 - numbits));
     }
 
     static MessageDigest getMD5() {
         try {
             return MessageDigest.getInstance("MD5");
         } catch (final NoSuchAlgorithmException ex) {
-            throw new RuntimeException("MD5 message digest doesn't seem to exist - fatal error: "+ex.getMessage(), ex);
+            throw new RuntimeException("MD5 message digest doesn't seem to exist - fatal error: " + ex.getMessage(), ex);
         }
     }
 
@@ -1929,70 +1929,70 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
 
         void round1(final int[] d) {
-            A = rotintlft((A + F(B, C, D) + d[0]), 3);
-            D = rotintlft((D + F(A, B, C) + d[1]), 7);
-            C = rotintlft((C + F(D, A, B) + d[2]), 11);
-            B = rotintlft((B + F(C, D, A) + d[3]), 19);
+            A = rotintlft(A + F(B, C, D) + d[0], 3);
+            D = rotintlft(D + F(A, B, C) + d[1], 7);
+            C = rotintlft(C + F(D, A, B) + d[2], 11);
+            B = rotintlft(B + F(C, D, A) + d[3], 19);
 
-            A = rotintlft((A + F(B, C, D) + d[4]), 3);
-            D = rotintlft((D + F(A, B, C) + d[5]), 7);
-            C = rotintlft((C + F(D, A, B) + d[6]), 11);
-            B = rotintlft((B + F(C, D, A) + d[7]), 19);
+            A = rotintlft(A + F(B, C, D) + d[4], 3);
+            D = rotintlft(D + F(A, B, C) + d[5], 7);
+            C = rotintlft(C + F(D, A, B) + d[6], 11);
+            B = rotintlft(B + F(C, D, A) + d[7], 19);
 
-            A = rotintlft((A + F(B, C, D) + d[8]), 3);
-            D = rotintlft((D + F(A, B, C) + d[9]), 7);
-            C = rotintlft((C + F(D, A, B) + d[10]), 11);
-            B = rotintlft((B + F(C, D, A) + d[11]), 19);
+            A = rotintlft(A + F(B, C, D) + d[8], 3);
+            D = rotintlft(D + F(A, B, C) + d[9], 7);
+            C = rotintlft(C + F(D, A, B) + d[10], 11);
+            B = rotintlft(B + F(C, D, A) + d[11], 19);
 
-            A = rotintlft((A + F(B, C, D) + d[12]), 3);
-            D = rotintlft((D + F(A, B, C) + d[13]), 7);
-            C = rotintlft((C + F(D, A, B) + d[14]), 11);
-            B = rotintlft((B + F(C, D, A) + d[15]), 19);
+            A = rotintlft(A + F(B, C, D) + d[12], 3);
+            D = rotintlft(D + F(A, B, C) + d[13], 7);
+            C = rotintlft(C + F(D, A, B) + d[14], 11);
+            B = rotintlft(B + F(C, D, A) + d[15], 19);
         }
 
         void round2(final int[] d) {
-            A = rotintlft((A + G(B, C, D) + d[0] + 0x5a827999), 3);
-            D = rotintlft((D + G(A, B, C) + d[4] + 0x5a827999), 5);
-            C = rotintlft((C + G(D, A, B) + d[8] + 0x5a827999), 9);
-            B = rotintlft((B + G(C, D, A) + d[12] + 0x5a827999), 13);
+            A = rotintlft(A + G(B, C, D) + d[0] + 0x5a827999, 3);
+            D = rotintlft(D + G(A, B, C) + d[4] + 0x5a827999, 5);
+            C = rotintlft(C + G(D, A, B) + d[8] + 0x5a827999, 9);
+            B = rotintlft(B + G(C, D, A) + d[12] + 0x5a827999, 13);
 
-            A = rotintlft((A + G(B, C, D) + d[1] + 0x5a827999), 3);
-            D = rotintlft((D + G(A, B, C) + d[5] + 0x5a827999), 5);
-            C = rotintlft((C + G(D, A, B) + d[9] + 0x5a827999), 9);
-            B = rotintlft((B + G(C, D, A) + d[13] + 0x5a827999), 13);
+            A = rotintlft(A + G(B, C, D) + d[1] + 0x5a827999, 3);
+            D = rotintlft(D + G(A, B, C) + d[5] + 0x5a827999, 5);
+            C = rotintlft(C + G(D, A, B) + d[9] + 0x5a827999, 9);
+            B = rotintlft(B + G(C, D, A) + d[13] + 0x5a827999, 13);
 
-            A = rotintlft((A + G(B, C, D) + d[2] + 0x5a827999), 3);
-            D = rotintlft((D + G(A, B, C) + d[6] + 0x5a827999), 5);
-            C = rotintlft((C + G(D, A, B) + d[10] + 0x5a827999), 9);
-            B = rotintlft((B + G(C, D, A) + d[14] + 0x5a827999), 13);
+            A = rotintlft(A + G(B, C, D) + d[2] + 0x5a827999, 3);
+            D = rotintlft(D + G(A, B, C) + d[6] + 0x5a827999, 5);
+            C = rotintlft(C + G(D, A, B) + d[10] + 0x5a827999, 9);
+            B = rotintlft(B + G(C, D, A) + d[14] + 0x5a827999, 13);
 
-            A = rotintlft((A + G(B, C, D) + d[3] + 0x5a827999), 3);
-            D = rotintlft((D + G(A, B, C) + d[7] + 0x5a827999), 5);
-            C = rotintlft((C + G(D, A, B) + d[11] + 0x5a827999), 9);
-            B = rotintlft((B + G(C, D, A) + d[15] + 0x5a827999), 13);
+            A = rotintlft(A + G(B, C, D) + d[3] + 0x5a827999, 3);
+            D = rotintlft(D + G(A, B, C) + d[7] + 0x5a827999, 5);
+            C = rotintlft(C + G(D, A, B) + d[11] + 0x5a827999, 9);
+            B = rotintlft(B + G(C, D, A) + d[15] + 0x5a827999, 13);
 
         }
 
         void round3(final int[] d) {
-            A = rotintlft((A + H(B, C, D) + d[0] + 0x6ed9eba1), 3);
-            D = rotintlft((D + H(A, B, C) + d[8] + 0x6ed9eba1), 9);
-            C = rotintlft((C + H(D, A, B) + d[4] + 0x6ed9eba1), 11);
-            B = rotintlft((B + H(C, D, A) + d[12] + 0x6ed9eba1), 15);
+            A = rotintlft(A + H(B, C, D) + d[0] + 0x6ed9eba1, 3);
+            D = rotintlft(D + H(A, B, C) + d[8] + 0x6ed9eba1, 9);
+            C = rotintlft(C + H(D, A, B) + d[4] + 0x6ed9eba1, 11);
+            B = rotintlft(B + H(C, D, A) + d[12] + 0x6ed9eba1, 15);
 
-            A = rotintlft((A + H(B, C, D) + d[2] + 0x6ed9eba1), 3);
-            D = rotintlft((D + H(A, B, C) + d[10] + 0x6ed9eba1), 9);
-            C = rotintlft((C + H(D, A, B) + d[6] + 0x6ed9eba1), 11);
-            B = rotintlft((B + H(C, D, A) + d[14] + 0x6ed9eba1), 15);
+            A = rotintlft(A + H(B, C, D) + d[2] + 0x6ed9eba1, 3);
+            D = rotintlft(D + H(A, B, C) + d[10] + 0x6ed9eba1, 9);
+            C = rotintlft(C + H(D, A, B) + d[6] + 0x6ed9eba1, 11);
+            B = rotintlft(B + H(C, D, A) + d[14] + 0x6ed9eba1, 15);
 
-            A = rotintlft((A + H(B, C, D) + d[1] + 0x6ed9eba1), 3);
-            D = rotintlft((D + H(A, B, C) + d[9] + 0x6ed9eba1), 9);
-            C = rotintlft((C + H(D, A, B) + d[5] + 0x6ed9eba1), 11);
-            B = rotintlft((B + H(C, D, A) + d[13] + 0x6ed9eba1), 15);
+            A = rotintlft(A + H(B, C, D) + d[1] + 0x6ed9eba1, 3);
+            D = rotintlft(D + H(A, B, C) + d[9] + 0x6ed9eba1, 9);
+            C = rotintlft(C + H(D, A, B) + d[5] + 0x6ed9eba1, 11);
+            B = rotintlft(B + H(C, D, A) + d[13] + 0x6ed9eba1, 15);
 
-            A = rotintlft((A + H(B, C, D) + d[3] + 0x6ed9eba1), 3);
-            D = rotintlft((D + H(A, B, C) + d[11] + 0x6ed9eba1), 9);
-            C = rotintlft((C + H(D, A, B) + d[7] + 0x6ed9eba1), 11);
-            B = rotintlft((B + H(C, D, A) + d[15] + 0x6ed9eba1), 15);
+            A = rotintlft(A + H(B, C, D) + d[3] + 0x6ed9eba1, 3);
+            D = rotintlft(D + H(A, B, C) + d[11] + 0x6ed9eba1, 9);
+            C = rotintlft(C + H(D, A, B) + d[7] + 0x6ed9eba1, 11);
+            B = rotintlft(B + H(C, D, A) + d[15] + 0x6ed9eba1, 15);
 
         }
 

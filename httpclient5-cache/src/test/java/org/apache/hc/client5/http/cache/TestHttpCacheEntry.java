@@ -176,7 +176,7 @@ class TestHttpCacheEntry {
         entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK, headers, mockResource, null);
         final Header[] result = entry.getHeaders();
         assertEquals(headers.length, result.length);
-        for(int i=0; i<headers.length; i++) {
+        for (int i = 0; i < headers.length; i++) {
             assertEquals(headers[i], result[i]);
         }
     }

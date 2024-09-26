@@ -74,7 +74,7 @@ class TestFutureRequestExecutionService {
                 .setCanonicalHostName("localhost")
                 .register("/wait", (request, response, context) -> {
                     try {
-                        while(blocked.get()) {
+                        while (blocked.get()) {
                             Thread.sleep(10);
                         }
                     } catch (final InterruptedException e) {
@@ -133,7 +133,7 @@ class TestFutureRequestExecutionService {
     void shouldExecuteMultipleCalls() throws Exception {
         final int reqNo = 100;
         final Queue<Future<Boolean>> tasks = new LinkedList<>();
-        for(int i = 0; i < reqNo; i++) {
+        for (int i = 0; i < reqNo; i++) {
             final Future<Boolean> task = httpAsyncClientWithFuture.execute(
                     new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
             tasks.add(task);
@@ -150,7 +150,7 @@ class TestFutureRequestExecutionService {
         final int reqNo = 100;
         final Queue<Future<Boolean>> tasks = new LinkedList<>();
         final CountDownLatch latch = new CountDownLatch(reqNo);
-        for(int i = 0; i < reqNo; i++) {
+        for (int i = 0; i < reqNo; i++) {
             final Future<Boolean> task = httpAsyncClientWithFuture.execute(
                     new HttpGet(uri), HttpClientContext.create(),
                     new OkidokiHandler(), new CountingCallback(latch));

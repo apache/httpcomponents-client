@@ -89,7 +89,7 @@ public class InMemoryDnsResolver implements DnsResolver {
         if (LOG.isInfoEnabled()) {
             LOG.info("Resolving {} to {}", host, Arrays.deepToString(resolvedAddresses));
         }
-        if(resolvedAddresses == null){
+        if (resolvedAddresses == null) {
             throw new UnknownHostException(host);
         }
         return resolvedAddresses;

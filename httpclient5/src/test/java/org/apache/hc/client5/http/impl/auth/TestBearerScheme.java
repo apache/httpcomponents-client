@@ -60,7 +60,7 @@ class TestBearerScheme {
         final AuthScheme authscheme = new BearerScheme();
         authscheme.processChallenge(authChallenge, null);
 
-        final HttpHost host  = new HttpHost("somehost", 80);
+        final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
                 .add(new AuthScope(host, "test", null), new BearerToken("some token"))
                 .build();

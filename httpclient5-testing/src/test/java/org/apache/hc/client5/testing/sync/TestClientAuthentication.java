@@ -92,7 +92,7 @@ import org.mockito.Mockito;
 /**
  * Unit tests for automatic client authentication.
  */
-abstract  class TestClientAuthentication extends AbstractIntegrationTestBase {
+abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
 
     protected TestClientAuthentication(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD);

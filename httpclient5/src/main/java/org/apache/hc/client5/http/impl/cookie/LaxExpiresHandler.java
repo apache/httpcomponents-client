@@ -139,7 +139,7 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
                         foundTime = true;
                         hour = Integer.parseInt(matcher.group(1));
                         minute = Integer.parseInt(matcher.group(2));
-                        second =Integer.parseInt(matcher.group(3));
+                        second = Integer.parseInt(matcher.group(3));
                         continue;
                     }
                 }

@@ -34,10 +34,11 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests {@link PublicSuffixMatcherLoader}.
  */
-public class TestPublicSuffixMatcherLoader {
+class TestPublicSuffixMatcherLoader {
 
     @Test
-    public void testGetDefault() {
+    void testGetDefault() {
         assertNotNull(PublicSuffixMatcherLoader.getDefault());
     }
+
 }

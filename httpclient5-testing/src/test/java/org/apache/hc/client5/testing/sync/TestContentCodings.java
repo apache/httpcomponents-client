@@ -63,7 +63,7 @@ import org.junit.jupiter.api.Test;
  * require no intervention from the user of HttpClient, but we still want to let clients do their
  * own thing if they so wish.
  */
-abstract  class TestContentCodings extends AbstractIntegrationTestBase {
+abstract class TestContentCodings extends AbstractIntegrationTestBase {
 
     protected TestContentCodings(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.STANDARD);

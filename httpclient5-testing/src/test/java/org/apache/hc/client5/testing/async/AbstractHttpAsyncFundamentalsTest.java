@@ -58,7 +58,7 @@ import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
 
-abstract  class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrationTestBase {
+abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrationTestBase {
 
     protected AbstractHttpAsyncFundamentalsTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
         super(scheme, clientProtocolLevel, serverProtocolLevel);

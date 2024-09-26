@@ -43,20 +43,15 @@ import org.junit.jupiter.api.Test;
 class TestRouteDirector {
 
     // a selection of constants for generating routes
-    public final static
-        HttpHost TARGET1 = new HttpHost("target1.test.invalid", 80);
-    public final static
-        HttpHost TARGET2 = new HttpHost("target2.test.invalid", 8080);
+    public final static HttpHost TARGET1 = new HttpHost("target1.test.invalid", 80);
+    public final static HttpHost TARGET2 = new HttpHost("target2.test.invalid", 8080);
     // It is not necessary to have extra targets for https.
     // The 'layered' and 'secure' flags are specified explicitly
     // for routes, they will not be determined from the scheme.
 
-    public final static
-        HttpHost PROXY1 = new HttpHost("proxy1.test.invalid", 80);
-    public final static
-        HttpHost PROXY2 = new HttpHost("proxy2.test.invalid", 1080);
-    public final static
-        HttpHost PROXY3 = new HttpHost("proxy3.test.invalid", 88);
+    public final static HttpHost PROXY1 = new HttpHost("proxy1.test.invalid", 80);
+    public final static HttpHost PROXY2 = new HttpHost("proxy2.test.invalid", 1080);
+    public final static HttpHost PROXY3 = new HttpHost("proxy3.test.invalid", 88);
 
     public final static InetAddress LOCAL41;
     public final static InetAddress LOCAL42;
@@ -66,14 +61,14 @@ class TestRouteDirector {
     // need static initializer to deal with exceptions
     static {
         try {
-            LOCAL41 = InetAddress.getByAddress(new byte[]{ 127, 0, 0, 1 });
-            LOCAL42 = InetAddress.getByAddress(new byte[]{ 127, 0, 0, 2 });
+            LOCAL41 = InetAddress.getByAddress(new byte[]{127, 0, 0, 1});
+            LOCAL42 = InetAddress.getByAddress(new byte[]{127, 0, 0, 2});
 
             LOCAL61 = InetAddress.getByAddress(new byte[]{
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
             });
             LOCAL62 = InetAddress.getByAddress(new byte[]{
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2
             });
 
         } catch (final Exception x) {
@@ -93,8 +88,8 @@ class TestRouteDirector {
     void testDirect() {
 
         final HttpRouteDirector rowdy = BasicRouteDirector.INSTANCE;
-        final HttpRoute route1   = new HttpRoute(TARGET1);
-        final HttpRoute route2   = new HttpRoute(TARGET2);
+        final HttpRoute route1 = new HttpRoute(TARGET1);
+        final HttpRoute route2 = new HttpRoute(TARGET2);
         final HttpRoute route1p1 = new HttpRoute(TARGET1, null, PROXY1, false);
 
         int step = rowdy.nextStep(route1, null);
@@ -123,8 +118,8 @@ class TestRouteDirector {
         final HttpRoute route1p1 = new HttpRoute(TARGET1, null, PROXY1, false);
         final HttpRoute route1p2 = new HttpRoute(TARGET1, null, PROXY2, false);
         final HttpRoute route2p1 = new HttpRoute(TARGET2, null, PROXY1, false);
-        final HttpRoute route0   = new HttpRoute(PROXY1);
-        final HttpRoute route1   = new HttpRoute(TARGET1);
+        final HttpRoute route0 = new HttpRoute(PROXY1);
+        final HttpRoute route1 = new HttpRoute(TARGET1);
 
         int step = rowdy.nextStep(route1p1, null);
         Assertions.assertEquals(HttpRouteDirector.CONNECT_PROXY, step, "wrong step to route1p1");
@@ -156,19 +151,19 @@ class TestRouteDirector {
 
     @Test
     void testProxyChain() {
-        final HttpHost[] chainA = { PROXY1 };
-        final HttpHost[] chainB = { PROXY1, PROXY2 };
-        final HttpHost[] chainC = { PROXY2, PROXY1 };
+        final HttpHost[] chainA = {PROXY1};
+        final HttpHost[] chainB = {PROXY1, PROXY2};
+        final HttpHost[] chainC = {PROXY2, PROXY1};
 
         final HttpRouteDirector rowdy = BasicRouteDirector.INSTANCE;
-        final HttpRoute route1cA  = new HttpRoute(TARGET1, null, chainA, false,
-                                            TunnelType.PLAIN, LayerType.PLAIN);
-        final HttpRoute route1cB  = new HttpRoute(TARGET1, null, chainB, false,
-                                            TunnelType.PLAIN, LayerType.PLAIN);
-        final HttpRoute route1cC  = new HttpRoute(TARGET1, null, chainC, false,
-                                            TunnelType.PLAIN, LayerType.PLAIN);
-        final HttpRoute route1cD  = new HttpRoute(TARGET1, null, chainC, false,
-                                            TunnelType.PLAIN, LayerType.PLAIN);
+        final HttpRoute route1cA = new HttpRoute(TARGET1, null, chainA, false,
+                TunnelType.PLAIN, LayerType.PLAIN);
+        final HttpRoute route1cB = new HttpRoute(TARGET1, null, chainB, false,
+                TunnelType.PLAIN, LayerType.PLAIN);
+        final HttpRoute route1cC = new HttpRoute(TARGET1, null, chainC, false,
+                TunnelType.PLAIN, LayerType.PLAIN);
+        final HttpRoute route1cD = new HttpRoute(TARGET1, null, chainC, false,
+                TunnelType.PLAIN, LayerType.PLAIN);
 
         int step = rowdy.nextStep(route1cA, null);
         Assertions.assertEquals(HttpRouteDirector.CONNECT_PROXY, step, "wrong step to route1cA");
@@ -258,8 +253,8 @@ class TestRouteDirector {
     void testDirectSecure() {
 
         final HttpRouteDirector rowdy = BasicRouteDirector.INSTANCE;
-        final HttpRoute route1u   = new HttpRoute(TARGET1, null, false);
-        final HttpRoute route1s   = new HttpRoute(TARGET1, null, true);
+        final HttpRoute route1u = new HttpRoute(TARGET1, null, false);
+        final HttpRoute route1s = new HttpRoute(TARGET1, null, true);
         final HttpRoute route1p1u = new HttpRoute(TARGET1, null, PROXY1, false);
         final HttpRoute route1p1s = new HttpRoute(TARGET1, null, PROXY1, true);
 
@@ -278,7 +273,6 @@ class TestRouteDirector {
         Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route 1s from 1u not detected");
 
 
-
         step = rowdy.nextStep(route1s, route1p1u);
         Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route 1s from 1p1u not detected");
 
@@ -290,24 +284,24 @@ class TestRouteDirector {
     void testProxyTLS() {
 
         final HttpRouteDirector rowdy = BasicRouteDirector.INSTANCE;
-        final HttpRoute route1    = new HttpRoute
-            (TARGET1, null, PROXY1, false,
-             TunnelType.PLAIN, LayerType.PLAIN);
-        final HttpRoute route1t   = new HttpRoute
-            (TARGET1, null, PROXY1, false,
-             TunnelType.TUNNELLED, LayerType.PLAIN);
-        final HttpRoute route1tl  = new HttpRoute
-            (TARGET1, null, PROXY1, false,
-             TunnelType.TUNNELLED, LayerType.LAYERED);
-        final HttpRoute route1s   = new HttpRoute
-            (TARGET1, null, PROXY1, true,
-             TunnelType.PLAIN, LayerType.PLAIN);
-        final HttpRoute route1ts  = new HttpRoute
-            (TARGET1, null, PROXY1, true,
-             TunnelType.TUNNELLED, LayerType.PLAIN);
+        final HttpRoute route1 = new HttpRoute
+                (TARGET1, null, PROXY1, false,
+                        TunnelType.PLAIN, LayerType.PLAIN);
+        final HttpRoute route1t = new HttpRoute
+                (TARGET1, null, PROXY1, false,
+                        TunnelType.TUNNELLED, LayerType.PLAIN);
+        final HttpRoute route1tl = new HttpRoute
+                (TARGET1, null, PROXY1, false,
+                        TunnelType.TUNNELLED, LayerType.LAYERED);
+        final HttpRoute route1s = new HttpRoute
+                (TARGET1, null, PROXY1, true,
+                        TunnelType.PLAIN, LayerType.PLAIN);
+        final HttpRoute route1ts = new HttpRoute
+                (TARGET1, null, PROXY1, true,
+                        TunnelType.TUNNELLED, LayerType.PLAIN);
         final HttpRoute route1tls = new HttpRoute
-            (TARGET1, null, PROXY1, true,
-             TunnelType.TUNNELLED, LayerType.LAYERED);
+                (TARGET1, null, PROXY1, true,
+                        TunnelType.TUNNELLED, LayerType.LAYERED);
 
         // we don't consider a route that is layered but not tunnelled
 
@@ -347,7 +341,6 @@ class TestRouteDirector {
 
         step = rowdy.nextStep(route1tls, route1tls);
         Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1tls not detected");
-
 
 
         step = rowdy.nextStep(route1, route1t);

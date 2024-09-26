@@ -301,7 +301,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                                         final ProtocolVersion protocolVersion = connection.getProtocolVersion();
                                         if (protocolVersion != null && protocolVersion.greaterEquals(HttpVersion.HTTP_2_0)) {
                                             connection.submitCommand(new PingCommand(new BasicPingHandler(result -> {
-                                                if (result == null || !result)  {
+                                                if (result == null || !result) {
                                                     if (LOG.isDebugEnabled()) {
                                                         LOG.debug("{} connection {} is stale", id, ConnPoolSupport.getId(connection));
                                                     }
@@ -443,7 +443,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         }
         final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = internalEndpoint.getPoolEntry();
         final HttpRoute route = poolEntry.getRoute();
-        final HttpHost firstHop = route.getProxyHost() != null ? route.getProxyHost(): route.getTargetHost();
+        final HttpHost firstHop = route.getProxyHost() != null ? route.getProxyHost() : route.getTargetHost();
         final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
         final Timeout connectTimeout = timeout != null ? timeout : connectionConfig.getConnectTimeout();
 
@@ -638,7 +638,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         this.tlsConfigResolver = tlsConfigResolver;
     }
 
-    void closeIfExpired(final PoolEntry<HttpRoute, ManagedAsyncClientConnection > entry) {
+    void closeIfExpired(final PoolEntry<HttpRoute, ManagedAsyncClientConnection> entry) {
         final long now = System.currentTimeMillis();
         if (entry.getExpiryDeadline().isBefore(now)) {
             entry.discardConnection(CloseMode.GRACEFUL);

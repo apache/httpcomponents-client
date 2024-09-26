@@ -47,8 +47,8 @@ final class CredentialsMatcher {
         if (creds == null) {
             // Nope.
             // Do a full scan
-            int bestMatchFactor  = -1;
-            AuthScope bestMatch  = null;
+            int bestMatchFactor = -1;
+            AuthScope bestMatch = null;
             for (final AuthScope current: map.keySet()) {
                 final int factor = authScope.match(current);
                 if (factor > bestMatchFactor) {

@@ -43,7 +43,7 @@ import org.apache.hc.core5.http.message.StatusLine;
 public class ClientChunkEncodedPost {
 
     public static void main(final String[] args) throws Exception {
-        if (args.length != 1)  {
+        if (args.length != 1) {
             System.out.println("File path not given");
             System.exit(1);
         }
