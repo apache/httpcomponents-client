@@ -149,7 +149,7 @@ public abstract class GGSSchemeBase implements AuthScheme2 {
         }
 
         if (LOG.isDebugEnabled()) {
-            final HttpClientContext clientContext = HttpClientContext.adapt(context);
+            final HttpClientContext clientContext = HttpClientContext.cast(context);
             final String exchangeId = clientContext.getExchangeId();
             LOG.debug("{} GSS init {}", exchangeId, gssHostname);
         }
@@ -159,7 +159,7 @@ public abstract class GGSSchemeBase implements AuthScheme2 {
             case UNINITIATED:
                 if (challenge != NO_TOKEN) {
                     if (LOG.isDebugEnabled()) {
-                        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+                        final HttpClientContext clientContext = HttpClientContext.cast(context);
                         final String exchangeId = clientContext.getExchangeId();
                         LOG.debug("{} Internal GSS error: token received when none was sent yet: {}", exchangeId, challengeToken);
                     }
@@ -176,7 +176,7 @@ public abstract class GGSSchemeBase implements AuthScheme2 {
                     if (!gssContext.isEstablished()) {
                         if (LOG.isDebugEnabled()) {
                             final HttpClientContext clientContext =
-                                    HttpClientContext.adapt(context);
+                                    HttpClientContext.cast(context);
                             final String exchangeId = clientContext.getExchangeId();
                             LOG.debug("{} GSSContext is not established ", exchangeId);
                         }
@@ -187,7 +187,7 @@ public abstract class GGSSchemeBase implements AuthScheme2 {
                     } else if (!gssContext.getMutualAuthState()) {
                         if (LOG.isDebugEnabled()) {
                             final HttpClientContext clientContext =
-                                    HttpClientContext.adapt(context);
+                                    HttpClientContext.cast(context);
                             final String exchangeId = clientContext.getExchangeId();
                             LOG.debug("{} requireMutualAuth is set but GSSAUthContext does not have"
                                     + " mutualAuthState set", exchangeId);
