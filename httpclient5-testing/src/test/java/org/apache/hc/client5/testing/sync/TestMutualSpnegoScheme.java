@@ -49,7 +49,7 @@ import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
-import org.apache.hc.client5.http.impl.auth.SPNegoScheme;
+import org.apache.hc.client5.http.impl.auth.MutualSpnegoScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.Base64;
 import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
@@ -80,9 +80,9 @@ import org.mockito.Mockito;
 /**
  * Tests for {@link SPNegoScheme}.
  */
-public class TestSPNegoScheme extends AbstractIntegrationTestBase {
+public class TestMutualSpnegoScheme extends AbstractIntegrationTestBase {
 
-    protected TestSPNegoScheme() {
+    protected TestMutualSpnegoScheme() {
         super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
     }
 
@@ -191,7 +191,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
      * Kerberos configuration.
      *
      */
-    private static class NegotiateSchemeWithMockGssManager extends SPNegoScheme {
+    private static class NegotiateSchemeWithMockGssManager extends MutualSpnegoScheme {
 
         final GSSManager manager = Mockito.mock(GSSManager.class);
         final GSSName name = Mockito.mock(GSSName.class);
@@ -218,7 +218,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
 
     }
 
-    private static class MutualNegotiateSchemeWithMockGssManager extends SPNegoScheme {
+    private static class MutualNegotiateSchemeWithMockGssManager extends MutualSpnegoScheme {
 
         final GSSManager manager = Mockito.mock(GSSManager.class);
         final GSSName name = Mockito.mock(GSSName.class);
