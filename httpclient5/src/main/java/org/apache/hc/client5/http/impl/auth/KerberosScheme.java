@@ -40,7 +40,13 @@ import org.ietf.jgss.Oid;
  * </p>
  *
  * @since 4.2
+ *
+ * @deprecated Do not use. Consider using Spengo, Basic or Bearer authentication with TLS instead.
+ *
+ * @see BasicScheme
+ * @see BearerScheme
  */
+@Deprecated
 @Experimental
 public class KerberosScheme extends GGSSchemeBase {
 
