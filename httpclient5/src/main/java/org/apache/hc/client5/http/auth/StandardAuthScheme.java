@@ -71,7 +71,11 @@ public final class StandardAuthScheme {
 
     /**
      * Kerberos authentication scheme as defined in RFC 4120.
+     *
+     * @deprecated Do not use. The Kerberos scheme was never standardized, and its
+     * implementation uses the old deprecated non mutual auth capable logic.
      */
+    @Deprecated
     public static final String KERBEROS = "Kerberos";
 
 }
