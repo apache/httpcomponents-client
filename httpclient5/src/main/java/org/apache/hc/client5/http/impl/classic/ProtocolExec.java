@@ -270,7 +270,7 @@ public final class ProtocolExec implements ExecChainHandler {
             final HttpHost target,
             final String pathPrefix,
             final HttpResponse response,
-            final HttpClientContext context) throws  AuthenticationException, MalformedChallengeException {
+            final HttpClientContext context) throws AuthenticationException, MalformedChallengeException {
                 final RequestConfig config = context.getRequestConfigOrDefault();
         if (config.isAuthenticationEnabled()) {
             final boolean targetAuthRequested = authenticator.isChallenged(
