@@ -41,8 +41,10 @@ import org.ietf.jgss.Oid;
  *
  * @since 4.2
  *
- * @deprecated Do not use. Consider using Spengo, Basic or Bearer authentication with TLS instead.
+ * @deprecated Do not use. The Kerberos authentication scheme was never standardised.
+ * Use {@link MutualSpnegoScheme} or some other scheme instead.
  *
+ * @see MutualSpnegoScheme
  * @see BasicScheme
  * @see BearerScheme
  */
