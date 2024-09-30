@@ -132,14 +132,14 @@ public abstract class GGSSchemeBase implements AuthScheme2 {
             return;
         }
 
-        final byte[] challengeToken = Base64.decodeBase64(authChallenge== null ? null : authChallenge.getValue());
+        final byte[] challengeToken = Base64.decodeBase64(authChallenge == null ? null : authChallenge.getValue());
 
         final String gssHostname;
         String hostname = host.getHostName();
-        if (config.getUseCanonicalHostname() != KerberosConfig.Option.DISABLE){
+        if (config.getUseCanonicalHostname() != KerberosConfig.Option.DISABLE) {
             try {
                  hostname = dnsResolver.resolveCanonicalHostname(host.getHostName());
-            } catch (final UnknownHostException ignore){
+            } catch (final UnknownHostException ignore) {
             }
         }
         if (config.getStripPort() != KerberosConfig.Option.DISABLE) {
@@ -171,7 +171,7 @@ public abstract class GGSSchemeBase implements AuthScheme2 {
             case TOKEN_SENT:
                 if (challenged) {
                     state = State.TOKEN_READY;
-                } else if (mutualAuth){
+                } else if (mutualAuth) {
                     // We should have received a valid mutualAuth token
                     if (!gssContext.isEstablished()) {
                         if (LOG.isDebugEnabled()) {

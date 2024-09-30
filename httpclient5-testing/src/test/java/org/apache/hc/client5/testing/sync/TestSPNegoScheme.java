@@ -153,7 +153,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
         final boolean sendMutualToken;
         final byte[] encodedMutualAuthToken;
 
-        SPNEGOMutualService (final boolean sendMutualToken, final byte[] encodedMutualAuthToken){
+        SPNEGOMutualService (final boolean sendMutualToken, final byte[] encodedMutualAuthToken) {
             this.sendMutualToken = sendMutualToken;
             this.encodedMutualAuthToken = encodedMutualAuthToken;
         }
@@ -170,9 +170,9 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
                 response.addHeader(new BasicHeader("WWW-Authenticate", StandardAuthScheme.SPNEGO));
                 response.addHeader(new BasicHeader("Connection", "Keep-Alive"));
                 response.setEntity(new StringEntity("auth required "));
-            } else if(callCount == 2) {
+            } else if (callCount == 2) {
                 callCount++;
-                if(request.getHeader("Authorization").getValue().contains(GOOD_TOKEN_B64)) {
+                if (request.getHeader("Authorization").getValue().contains(GOOD_TOKEN_B64)) {
                     response.setCode(HttpStatus.SC_OK);
                     if (sendMutualToken) {
                         response.addHeader(new BasicHeader("WWW-Authenticate", StandardAuthScheme.SPNEGO + " " + new String(encodedMutualAuthToken)));
@@ -293,7 +293,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
      * the server still keep asking for a valid ticket.
      */
     @Test
-    public void testDontTryToAuthenticateEndlessly() throws Exception {
+    void testDontTryToAuthenticateEndlessly() throws Exception {
         configureServer(t -> {
             t.register("*", new PleaseNegotiateService());
         });
@@ -308,7 +308,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
             t.setDefaultCredentialsProvider(jaasCredentialsProvider);
         });
 
-        final HttpHost target  = startServer();
+        final HttpHost target = startServer();
         final String s = "/path";
         final HttpGet httpget = new HttpGet(s);
         client().execute(target, httpget, response -> {
@@ -323,7 +323,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
      * if no token is generated. Client should be able to deal with this response.
      */
     @Test
-    public void testNoTokenGeneratedError() throws Exception {
+    void testNoTokenGeneratedError() throws Exception {
         configureServer(t -> {
             t.register("*", new PleaseNegotiateService());
         });
@@ -339,7 +339,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
         });
 
 
-        final HttpHost target  = startServer();
+        final HttpHost target = startServer();
         final String s = "/path";
         final HttpGet httpget = new HttpGet(s);
         client().execute(target, httpget, response -> {
@@ -354,11 +354,11 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
      * Test the success case for mutual auth
      */
     @Test
-    public void testMutualSuccess() throws Exception {
+    void testMutualSuccess() throws Exception {
         configureServer(t -> {
             t.register("*", new SPNEGOMutualService(true, GOOD_MUTUAL_AUTH_TOKEN_B64_BYTES));
         });
-        final HttpHost target  = startServer();
+        final HttpHost target = startServer();
 
         final MutualNegotiateSchemeWithMockGssManager mockAuthScheme = new MutualNegotiateSchemeWithMockGssManager(true, true);
         final AuthSchemeFactory nsf = new TestAuthSchemeFactory(mockAuthScheme);
@@ -388,7 +388,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
      * No mutual auth response token sent by server.
      */
     @Test
-    public void testMutualFailureNoToken() throws Exception {
+    void testMutualFailureNoToken() throws Exception {
         configureServer(t -> {
             t.register("*", new SPNEGOMutualService(false, null));
         });
@@ -407,7 +407,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
         final HttpClientContext context = new HttpClientContext();
         context.setCredentialsProvider(jaasCredentialsProvider);
 
-        final HttpHost target  = startServer();
+        final HttpHost target = startServer();
         final String s = "/path";
         final HttpGet httpget = new HttpGet(s);
         try {
@@ -430,7 +430,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
      * Server sends a "valid" token, but we mock the established status to false
      */
     @Test
-    public void testMutualFailureEstablishedStatusFalse() throws Exception {
+    void testMutualFailureEstablishedStatusFalse() throws Exception {
         configureServer(t -> {
             t.register("*", new SPNEGOMutualService(true, GOOD_MUTUAL_AUTH_TOKEN_B64_BYTES));
         });
@@ -448,7 +448,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
         final HttpClientContext context = new HttpClientContext();
         context.setCredentialsProvider(jaasCredentialsProvider);
 
-        final HttpHost target  = startServer();
+        final HttpHost target = startServer();
         final String s = "/path";
         final HttpGet httpget = new HttpGet(s);
         try {
@@ -471,7 +471,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
      * Server sends a "valid" token, but we mock the mutual auth status to false
      */
     @Test
-    public void testMutualFailureMutualStatusFalse() throws Exception {
+    void testMutualFailureMutualStatusFalse() throws Exception {
         configureServer(t -> {
             t.register("*", new SPNEGOMutualService(true, GOOD_MUTUAL_AUTH_TOKEN_B64_BYTES));
         });
@@ -489,7 +489,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
         final HttpClientContext context = new HttpClientContext();
         context.setCredentialsProvider(jaasCredentialsProvider);
 
-        final HttpHost target  = startServer();
+        final HttpHost target = startServer();
         final String s = "/path";
         final HttpGet httpget = new HttpGet(s);
         try {
@@ -512,7 +512,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
      * Server sends a "bad" token, and GSS throws an exception.
      */
     @Test
-    public void testMutualFailureBadToken() throws Exception {
+    void testMutualFailureBadToken() throws Exception {
         configureServer(t -> {
             t.register("*", new SPNEGOMutualService(true, BAD_MUTUAL_AUTH_TOKEN_B64_BYTES));
         });
@@ -532,7 +532,7 @@ public class TestSPNegoScheme extends AbstractIntegrationTestBase {
         final HttpClientContext context = new HttpClientContext();
         context.setCredentialsProvider(jaasCredentialsProvider);
 
-        final HttpHost target  = startServer();
+        final HttpHost target = startServer();
         final String s = "/path";
         final HttpGet httpget = new HttpGet(s);
         try {
