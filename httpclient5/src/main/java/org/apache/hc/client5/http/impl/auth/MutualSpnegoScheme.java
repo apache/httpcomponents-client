@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
+import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.core5.annotation.Experimental;
@@ -36,32 +37,61 @@ import org.ietf.jgss.Oid;
  * SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) authentication
  * scheme.
  * <p>
- * This class implements the old deprecated non mutual authentication capable SPNEGO implementation.
- * Use {@link MutualSpnegoScheme} instead.
+ * This is the new mutual authentication capable Scheme which replaces the old deprecated non mutual
+ * authentication capable {@link SPNegoScheme}
  * </p>
  *
- * @since 4.2
+ * <p>
+ * Note that this scheme is not enabled by default. To use it, you need create a custom
+ * {@link AuthenticationStrategy} and a custom {@link AuthSchemeFactory} {@link Registry},
+ * and set them on the HttpClientBuilder.
+ * </p>
  *
- * @deprecated Use {@link MutualSpnegoScheme} or some other auth scheme instead.
+ * <pre>
+ * {@code
+ * private static class SpnegoAuthenticationStrategy extends DefaultAuthenticationStrategy {
+ *   private static final List<String> SPNEGO_SCHEME_PRIORITY =
+ *       Collections.unmodifiableList(
+ *           Arrays.asList(StandardAuthScheme.SPNEGO
+ *           // Add other Schemes as needed
+ *           );
  *
- * @see MutualSpnegoScheme
- * @see BasicScheme
- * @see BearerScheme
+ *   @Override
+ *   protected final List<String> getSchemePriority() {
+ *     return SPNEGO_SCHEME_PRIORITY;
+ *   }
+ * }
+ *
+ * AuthenticationStrategy mutualStrategy = new SpnegoAuthenticationStrategy();
+ *
+ * AuthSchemeFactory mutualFactory = new MutualSpnegoSchemeFactory();
+ * Registry<AuthSchemeFactory> mutualSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
+ *     .register(StandardAuthScheme.SPNEGO, mutualFactory)
+ *     //register other schemes as needed
+ *     .build();
+ *
+ * CloseableHttpClient mutualClient = HttpClientBuilder.create()
+ *    .setTargetAuthenticationStrategy(mutualStrategy);
+ *    .setDefaultAuthSchemeRegistry(mutualSchemeRegistry);
+ *    .build();
+ * }
+ * </pre>
+ *
+ * @since 5.5
  */
-@Deprecated
 @Experimental
-public class SPNegoScheme extends GGSSchemeBase {
+public class MutualSpnegoScheme extends MutualGssSchemeBase {
 
     private static final String SPNEGO_OID = "1.3.6.1.5.5.2";
 
     /**
      * @since 5.0
      */
-    public SPNegoScheme(final org.apache.hc.client5.http.auth.KerberosConfig config, final DnsResolver dnsResolver) {
+    public MutualSpnegoScheme(final org.apache.hc.client5.http.auth.KerberosConfig config, final DnsResolver dnsResolver) {
         super(config, dnsResolver);
     }
 
-    public SPNegoScheme() {
+    public MutualSpnegoScheme() {
         super();
     }
 
@@ -71,8 +101,8 @@ public class SPNegoScheme extends GGSSchemeBase {
     }
 
     @Override
-    protected byte[] generateToken(final byte[] input, final String serviceName, final String authServer) throws GSSException {
-        return generateGSSToken(input, new Oid(SPNEGO_OID), serviceName, authServer);
+    protected byte[] generateToken(final byte[] input, final String gssServiceName, final String gssHostname) throws GSSException {
+        return generateGSSToken(input, new Oid(SPNEGO_OID), gssServiceName, gssHostname);
     }
 
     @Override
