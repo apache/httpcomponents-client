@@ -33,9 +33,9 @@
   <groupId>org.apache.httpcomponents.client5</groupId>
   <artifactId>httpclient5-parent</artifactId>
   <name>Apache HttpComponents Client Parent</name>
-  <version>5.4-beta2-SNAPSHOT</version>
+  <version>5.5-alpha1-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
-  <url>https://hc.apache.org/httpcomponents-client-5.4.x/${project.version}/</url>
+  <url>https://hc.apache.org/httpcomponents-client-5.5.x/${project.version}/</url>
   <inceptionYear>1999</inceptionYear>
   <packaging>pom</packaging>
 
@@ -48,14 +48,14 @@
     <connection>scm:git:https://gitbox.apache.org/repos/asf/httpcomponents-client.git</connection>
     <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/httpcomponents-client.git</developerConnection>
     <url>https://github.com/apache/httpcomponents-client/tree/${project.scm.tag}</url>
-    <tag>5.4-beta2-SNAPSHOT</tag>
+    <tag>5.5-alpha1-SNAPSHOT</tag>
   </scm>
 
  <distributionManagement>
     <site>
       <id>apache.website</id>
       <name>Apache HttpComponents Website</name>
-      <url>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/site/components/httpcomponents-client-5.4.x/LATEST/</url>
+      <url>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/site/components/httpcomponents-client-5.5.x/LATEST/</url>
     </site>
   </distributionManagement>
 
