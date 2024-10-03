@@ -344,4 +344,48 @@ class TestMainClientExec {
         Mockito.verify(execRuntime).discardEndpoint();
     }
 
+    @Test
+    void testGetUserTokenNewWay() {
+        // Set user token using the new method
+        final HttpClientContext context = HttpClientContext.create();
+        final String expectedToken = "nwe token way";
+        context.setUserToken(expectedToken);
+
+        // Retrieve using the getter
+        final Object actualToken = context.getUserToken();
+
+        // Validate that the token is set and retrieved correctly
+        Assertions.assertEquals(expectedToken, actualToken, "The user token should match the one set by setUserToken().");
+    }
+
+    @Test
+    void testGetUserTokenOldWay() {
+        // Set user token using context attributes (old way)
+        final HttpClientContext context = HttpClientContext.create();
+        final String expectedToken = "old token way";
+        context.setAttribute(HttpClientContext.USER_TOKEN, expectedToken);
+
+        // Retrieve using the getter
+        final Object actualToken = context.getUserToken();
+
+        // Validate that the token is retrieved correctly for backward compatibility
+        Assertions.assertEquals(expectedToken, actualToken, "The user token should match the one set by context attribute for backward compatibility.");
+    }
+
+    @Test
+    void testGetUserTokenBothSet() {
+        // Set user token using both the new and old methods
+        final HttpClientContext context = HttpClientContext.create();
+        final String newToken = "new token way";
+        final String oldToken = "old token way";
+        context.setUserToken(newToken);
+        context.setAttribute(HttpClientContext.USER_TOKEN, oldToken);
+
+        // Retrieve using the getter
+        final Object actualToken = context.getUserToken();
+
+        // Validate that the new method takes precedence over the old one
+        Assertions.assertEquals(newToken, actualToken, "The user token should match the one set by setUserToken(), taking precedence over the context attribute.");
+    }
+
 }

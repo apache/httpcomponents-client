@@ -53,6 +53,8 @@ import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Client execution {@link HttpContext}. This class can be re-used for
@@ -65,6 +67,8 @@ import org.apache.hc.core5.http.protocol.HttpCoreContext;
  * @since 4.3
  */
 public class HttpClientContext extends HttpCoreContext {
+
+    private static final Logger LOG = LoggerFactory.getLogger(HttpClientContext.class);
 
     /**
      * @deprecated Use getter methods
@@ -394,13 +398,30 @@ public class HttpClientContext extends HttpCoreContext {
     }
 
     /**
-     * Represents an arbitrary user token that identifies the user in the context
-     * of the request execution.
+     * Retrieves the user token associated with this context.
      * <p>
-     * This context attribute can be set by the caller.
+     * This method checks the internal user token field first. If it's not set,
+     * it falls back to retrieving the token from the context attributes for
+     * backward compatibility. It is <strong>strongly recommended</strong> to use
+     * {@link #setUserToken(Object)} for setting the user token, rather than
+     * manipulating context attributes directly.
+     * </p>
+     *
+     * @return the user token associated with this context, or {@code null} if not set.
      */
     public Object getUserToken() {
-        return userToken;
+        // For backward compatibility, check the internal userToken field first
+        if (userToken != null) {
+            return userToken;
+        }
+
+        if (LOG.isWarnEnabled()) {
+            LOG.warn("Retrieving user token from context attributes for backward compatibility. " +
+                    "It is strongly recommended to use 'setUserToken(Object)' to set the user token.");
+        }
+
+        // Fall back to context attributes for compatibility with older versions
+        return super.getAttribute(USER_TOKEN);
     }
 
     public void setUserToken(final Object userToken) {
@@ -436,6 +457,7 @@ public class HttpClientContext extends HttpCoreContext {
      * in the given context.
      * <p>
      * This context attribute is expected to be populated by the protocol handler.
+     *
      * @since 5.1
      */
     public String getExchangeId() {
@@ -585,6 +607,7 @@ public class HttpClientContext extends HttpCoreContext {
         @Override
         public void setUserToken(final Object userToken) {
             httpContext.setAttribute(USER_TOKEN, userToken);
+            super.setUserToken(userToken);
         }
 
         @Override
