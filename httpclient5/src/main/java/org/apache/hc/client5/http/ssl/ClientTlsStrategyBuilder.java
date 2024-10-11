@@ -134,8 +134,9 @@ public class ClientTlsStrategyBuilder {
     /**
      * Sets {@link HostnameVerificationPolicy} value.
      */
-    public void setHostnameVerificationPolicy(final HostnameVerificationPolicy hostnameVerificationPolicy) {
+    public final ClientTlsStrategyBuilder setHostnameVerificationPolicy(final HostnameVerificationPolicy hostnameVerificationPolicy) {
         this.hostnameVerificationPolicy = hostnameVerificationPolicy;
+        return this;
     }
 
     /**
