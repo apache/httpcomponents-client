@@ -133,9 +133,22 @@ public class ClientTlsStrategyBuilder {
 
     /**
      * Sets {@link HostnameVerificationPolicy} value.
+     *
+     * @deprecated Use #setHostVerificationPolicy
      */
+    @Deprecated
     public void setHostnameVerificationPolicy(final HostnameVerificationPolicy hostnameVerificationPolicy) {
         this.hostnameVerificationPolicy = hostnameVerificationPolicy;
+    }
+
+    /**
+     * Sets {@link HostnameVerificationPolicy} value.
+     *
+     * @since 5.5
+     */
+    public ClientTlsStrategyBuilder setHostVerificationPolicy(final HostnameVerificationPolicy hostnameVerificationPolicy) {
+        this.hostnameVerificationPolicy = hostnameVerificationPolicy;
+        return this;
     }
 
     /**
