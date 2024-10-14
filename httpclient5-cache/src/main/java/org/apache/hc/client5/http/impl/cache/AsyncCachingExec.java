@@ -877,7 +877,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                             public void completed(final CacheHit updated) {
                                 try {
                                     final SimpleHttpResponse cacheResponse = generateCachedResponse(request, updated.entry, responseDate);
-                                    context.setCacheEntry(hit.entry);
+                                    context.setCacheEntry(updated.entry);
                                     triggerResponse(cacheResponse, scope, asyncExecCallback);
                                 } catch (final ResourceIOException ex) {
                                     asyncExecCallback.failed(ex);
