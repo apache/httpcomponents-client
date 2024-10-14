@@ -29,7 +29,6 @@ package org.apache.hc.client5.testing.extension.sync;
 
 import java.util.function.Consumer;
 
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Asserts;
@@ -50,7 +49,6 @@ public class TestClientResources implements AfterEachCallback {
     private final TestClientBuilder clientBuilder;
 
     private TestServer server;
-    private PoolingHttpClientConnectionManager connManager;
     private TestClient client;
 
     public TestClientResources(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final Timeout timeout) {
@@ -76,11 +74,6 @@ public class TestClientResources implements AfterEachCallback {
         if (client != null) {
             client.close(CloseMode.GRACEFUL);
         }
-
-        if (connManager != null) {
-            connManager.close(CloseMode.IMMEDIATE);
-        }
-
         if (server != null) {
             server.shutdown(CloseMode.IMMEDIATE);
         }
