@@ -467,7 +467,9 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             }
             return backendResponse;
         }
+        final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
         final ResponseCacheControl responseCacheControl = CacheControlHeaderParser.INSTANCE.parse(backendResponse);
+        context.setResponseCacheControl(responseCacheControl);
         final boolean cacheable = responseCachingPolicy.isResponseCacheable(responseCacheControl, request, backendResponse);
         if (cacheable) {
             storeRequestIfModifiedSinceFor304Response(request, backendResponse);
