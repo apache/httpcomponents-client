@@ -57,7 +57,6 @@ abstract class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuth
 
     @Test
     void testBasicAuthenticationSuccessNonPersistentConnection() throws Exception {
-        final HttpHost target = startServer();
         configureServer(bootstrap -> bootstrap
                 .register("*", AsyncEchoHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler ->
@@ -68,6 +67,7 @@ abstract class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuth
                                 unauthorized.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
                             }
                         }));
+        final HttpHost target = startServer();
 
         final TestAsyncClient client = startClient();
 

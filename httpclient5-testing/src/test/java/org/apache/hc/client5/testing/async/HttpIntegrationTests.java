@@ -173,44 +173,44 @@ class HttpIntegrationTests {
 
     }
 
-//    @Nested
-//    @DisplayName("Client authentication (HTTP/1.1)")
-//    class AuthenticationHttp1 extends TestHttp1ClientAuthentication {
-//
-//        public AuthenticationHttp1() throws Exception {
-//            super(URIScheme.HTTP);
-//        }
-//
-//    }
-//
-//    @Nested
-//    @DisplayName("Client authentication (HTTP/1.1, TLS)")
-//    class AuthenticationHttp1Tls extends TestHttp1ClientAuthentication {
-//
-//        public AuthenticationHttp1Tls() throws Exception {
-//            super(URIScheme.HTTPS);
-//        }
-//
-//    }
+    @Nested
+    @DisplayName("Client authentication (HTTP/1.1)")
+    class AuthenticationHttp1 extends TestHttp1ClientAuthentication {
 
-//    @Nested
-//    @DisplayName("Client authentication (HTTP/2)")
-//    class AuthenticationH2 extends TestH2ClientAuthentication {
-//
-//        public AuthenticationH2() throws Exception {
-//            super(URIScheme.HTTP);
-//        }
-//
-//    }
-//
-//    @Nested
-//    @DisplayName("Client authentication (HTTP/2, TLS)")
-//    class AuthenticationH2Tls extends TestH2ClientAuthentication {
-//
-//        public AuthenticationH2Tls() throws Exception {
-//            super(URIScheme.HTTPS);
-//        }
-//
-//    }
-//
+        public AuthenticationHttp1() throws Exception {
+            super(URIScheme.HTTP);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Client authentication (HTTP/1.1, TLS)")
+    class AuthenticationHttp1Tls extends TestHttp1ClientAuthentication {
+
+        public AuthenticationHttp1Tls() throws Exception {
+            super(URIScheme.HTTPS);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Client authentication (HTTP/2)")
+    class AuthenticationH2 extends TestH2ClientAuthentication {
+
+        public AuthenticationH2() throws Exception {
+            super(URIScheme.HTTP);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Client authentication (HTTP/2, TLS)")
+    class AuthenticationH2Tls extends TestH2ClientAuthentication {
+
+        public AuthenticationH2Tls() throws Exception {
+            super(URIScheme.HTTPS);
+        }
+
+    }
+
 }

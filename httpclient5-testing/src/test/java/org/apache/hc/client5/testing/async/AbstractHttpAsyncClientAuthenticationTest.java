@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
@@ -60,6 +61,7 @@ import org.apache.hc.client5.testing.auth.BearerAuthenticationHandler;
 import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
 import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
 import org.apache.hc.client5.testing.extension.async.TestAsyncClient;
+import org.apache.hc.client5.testing.extension.async.TestAsyncServerBootstrap;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -82,10 +84,25 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
         super(scheme, clientProtocolLevel, serverProtocolLevel);
     }
 
+    public void configureServerWithBasicAuth(final Authenticator authenticator,
+                                             final Consumer<TestAsyncServerBootstrap> serverCustomizer) {
+        configureServer(bootstrap -> {
+            bootstrap.setExchangeHandlerDecorator(requestHandler ->
+                    new AuthenticatingAsyncDecorator(requestHandler, authenticator));
+            serverCustomizer.accept(bootstrap);
+        });
+    }
+
+    public void configureServerWithBasicAuth(final Consumer<TestAsyncServerBootstrap> serverCustomizer) {
+        configureServerWithBasicAuth(
+                new BasicTestAuthenticator("test:test", "test realm"),
+                serverCustomizer);
+    }
+
     @Test
     void testBasicAuthenticationNoCreds() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
         final HttpHost target = startServer();
-        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
         final TestAsyncClient client = startClient();
 
@@ -107,8 +124,8 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
 
     @Test
     void testBasicAuthenticationFailure() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
         final HttpHost target = startServer();
-        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
         final TestAsyncClient client = startClient();
 
@@ -132,8 +149,8 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
 
     @Test
     void testBasicAuthenticationSuccess() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
         final HttpHost target = startServer();
-        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
         final TestAsyncClient client = startClient();
 
@@ -158,8 +175,8 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
 
     @Test
     void testBasicAuthenticationWithEntitySuccess() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
         final HttpHost target = startServer();
-        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
         final TestAsyncClient client = startClient();
 
@@ -184,8 +201,8 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
 
     @Test
     void testBasicAuthenticationExpectationFailure() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
         final HttpHost target = startServer();
-        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
         final TestAsyncClient client = startClient();
 
@@ -209,8 +226,8 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
 
     @Test
     void testBasicAuthenticationExpectationSuccess() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
         final HttpHost target = startServer();
-        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
         final TestAsyncClient client = startClient();
 
@@ -236,8 +253,8 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
 
     @Test
     void testBasicAuthenticationCredentialsCaching() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
         final HttpHost target = startServer();
-        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
         final DefaultAuthenticationStrategy authStrategy = Mockito.spy(new DefaultAuthenticationStrategy());
         configureClient(builder -> builder.setTargetAuthenticationStrategy(authStrategy));
@@ -263,8 +280,8 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
 
     @Test
     void testBasicAuthenticationCredentialsCachingByPathPrefix() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
         final HttpHost target = startServer();
-        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
         final DefaultAuthenticationStrategy authStrategy = Mockito.spy(new DefaultAuthenticationStrategy());
         final Queue<HttpResponse> responseQueue = new ConcurrentLinkedQueue<>();
@@ -328,8 +345,8 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
 
     @Test
     void testAuthenticationUserinfoInRequestFailure() throws Exception {
+        configureServerWithBasicAuth(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
         final HttpHost target = startServer();
-        configureServer(bootstrap -> bootstrap.register("*", AsyncEchoHandler::new));
 
         final TestAsyncClient client = startClient();
 
@@ -359,8 +376,7 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
             }
         };
 
-        final HttpHost target = startServer();
-        configureServer(bootstrap -> bootstrap
+        configureServerWithBasicAuth(bootstrap -> bootstrap
                 .register("*", AsyncEchoHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new AuthenticatingAsyncDecorator(exchangeHandler, authenticator) {
 
@@ -371,6 +387,7 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
                     }
 
                 }));
+        final HttpHost target = startServer();
 
         final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
@@ -391,7 +408,6 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
 
         configureClient(builder -> builder.setDefaultAuthSchemeRegistry(authSchemeRegistry));
         final TestAsyncClient client = startClient();
-
 
         final RequestConfig config = RequestConfig.custom()
                 .setTargetPreferredAuthSchemes(Collections.singletonList("MyBasic"))
@@ -414,8 +430,7 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
 
     @Test
     void testAuthenticationFallback() throws Exception {
-        final HttpHost target = startServer();
-        configureServer(bootstrap -> bootstrap
+        configureServerWithBasicAuth(bootstrap -> bootstrap
                 .register("*", AsyncEchoHandler::new)
                 .setExchangeHandlerDecorator(exchangeHandler -> new AuthenticatingAsyncDecorator(exchangeHandler, new BasicTestAuthenticator("test:test", "test realm")) {
 
@@ -425,6 +440,7 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
                     }
 
                 }));
+        final HttpHost target = startServer();
 
         final TestAsyncClient client = startClient();
 
@@ -457,14 +473,14 @@ abstract class AbstractHttpAsyncClientAuthenticationTest extends AbstractIntegra
         }
         final String token = buf.toString();
 
-        final HttpHost target = startServer();
-        configureServer(bootstrap -> bootstrap
+        configureServerWithBasicAuth(bootstrap -> bootstrap
                 .register("*", AsyncEchoHandler::new)
                 .setExchangeHandlerDecorator(requestHandler ->
                         new AuthenticatingAsyncDecorator(
                                 requestHandler,
                                 new BearerAuthenticationHandler(),
                                 new BasicTestAuthenticator(token, "test realm"))));
+        final HttpHost target = startServer();
 
         final TestAsyncClient client = startClient();
 
