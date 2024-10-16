@@ -98,7 +98,20 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
 
     @Override
     public boolean isOpen() {
-        return ioSession.isOpen();
+        final IOSession ioSession = this.ioSession;
+        if (ioSession.isOpen()) {
+            final IOEventHandler handler = ioSession.getHandler();
+            if (handler instanceof HttpConnection) {
+                final HttpConnection conn = (HttpConnection) handler;
+                final ProtocolVersion protocolVersion = conn.getProtocolVersion();
+                if (protocolVersion != null && protocolVersion.greaterEquals(HttpVersion.HTTP_2)) {
+                    return conn.isOpen();
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
