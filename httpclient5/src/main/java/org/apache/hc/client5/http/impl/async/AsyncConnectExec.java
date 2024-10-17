@@ -191,6 +191,20 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             final AsyncExecChain.Scope scope,
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) {
+        try {
+            doProceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+        } catch (final RuntimeException ex) {
+            asyncExecCallback.failed(ex);
+        }
+    }
+
+    private void doProceedToNextHop(
+            final State state,
+            final HttpRequest request,
+            final AsyncEntityProducer entityProducer,
+            final AsyncExecChain.Scope scope,
+            final AsyncExecChain chain,
+            final AsyncExecCallback asyncExecCallback) {
         final RouteTracker tracker = state.tracker;
         final String exchangeId = scope.exchangeId;
         final HttpRoute route = scope.route;
