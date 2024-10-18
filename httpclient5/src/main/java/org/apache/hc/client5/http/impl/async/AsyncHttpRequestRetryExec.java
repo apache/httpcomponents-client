@@ -55,8 +55,7 @@ import org.slf4j.LoggerFactory;
  * Request executor in the asynchronous request execution chain that is
  * responsible for making a decision whether a request that failed due to
  * an I/O exception or received a specific response from the target server should
- * be re-executed. Note that this exec chain handler <em>will not</em> respect
- * {@link HttpRequestRetryStrategy#getRetryInterval(HttpResponse, int, org.apache.hc.core5.http.protocol.HttpContext)}.
+ * be re-executed.
  * <p>
  * Further responsibilities such as communication with the opposite
  * endpoint is delegated to the next executor in the request execution
