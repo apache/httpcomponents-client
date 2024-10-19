@@ -45,6 +45,7 @@ import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
@@ -70,6 +71,7 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.3
  */
+@Internal
 @Contract(threading = ThreadingBehavior.STATELESS)
 public final class HttpAuthenticator {
 

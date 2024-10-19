@@ -270,6 +270,8 @@
         <groupId>com.github.siom79.japicmp</groupId>
         <artifactId>japicmp-maven-plugin</artifactId>
         <configuration>
+          <!-- Do not commit, only for running the CI! -->
+          <skip>true</skip>
           <oldVersion>
             <dependency>
               <groupId>${project.groupId}</groupId>
