@@ -103,8 +103,8 @@ public final class ContainerImages {
                 .withFileFromClasspath("squid.conf", "docker/squid/squid.conf")
                 .withDockerfileFromBuilder(builder ->
                         builder
-                                .from("sameersbn/squid:3.3.8-22")
-                                .env("conf_dir", "/etc/squid3")
+                                .from("ubuntu/squid:5.2-22.04_beta")
+                                .env("conf_dir", "/etc/squid")
                                 .copy("squid.conf", "${conf_dir}/")
                                 //# user: squid; pwd: nopassword
                                 .run("echo \"squid:\\$apr1\\$.5saX63T\\$cMSoCJPqEfUw9br6zBdSO0\" > ${conf_dir}/htpasswd")
