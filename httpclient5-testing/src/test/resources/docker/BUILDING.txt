@@ -1,16 +1,27 @@
-= SSL key / cert material (optional)
+= SSL key / cert material
+
+Execute in the project root
 
 # Issue a certificate request
 ---
-openssl req -config openssl.cnf -new -nodes -sha256 -days 36500  \
- -subj '/O=Apache Software Foundation/OU=HttpComponents Project/CN=test-httpd/emailAddress=dev@hc.apache.org/' \
- -keyout server-key.pem -out server-certreq.pem
+openssl req -config test-CA/openssl.cnf -new -nodes -sha256 -days 36500  \
+ -subj '/O=Apache Software Foundation/OU=HttpComponents Project/CN=localhost/emailAddress=dev@hc.apache.org/' \
+ -addext 'subjectAltName = DNS:localhost,DNS:test-httpd' \
+ -keyout httpclient5-testing/src/test/resources/docker/server-key.pem \
+ -out httpclient5-testing/src/test/resources/docker/server-certreq.pem
 ---
 # Verify the request
 ---
-openssl req -in server-certreq.pem -text -noout
+openssl req -in httpclient5-testing/src/test/resources/docker/server-certreq.pem -text -noout
 ---
 # Sign new certificate with the test CA key
 ---
-openssl ca -config openssl.cnf -days 36500 -out server-cert.pem -in server-certreq.pem && rm server-certreq.pem
+openssl ca -config test-CA/openssl.cnf -days 36500 \
+ -out httpclient5-testing/src/test/resources/docker/server-cert.pem \
+ -in httpclient5-testing/src/test/resources/docker/server-certreq.pem \
+ && rm httpclient5-testing/src/test/resources/docker/server-certreq.pem
 ---
+
+# Create JKS store with the Test CA cert
+keytool -import -trustcacerts -alias test-ca -file test-CA/ca-cert.pem -keystore httpcore5-testing/src/test/resources/test-ca.jks -storepass nopassword
+

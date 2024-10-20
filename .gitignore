@@ -10,3 +10,6 @@ target
 **/log4j2-debug.xml
 **/.checkstyle
 *.bak
+/test-CA/newcerts/
+/test-CA/serial.txt*
+/test-CA/index.txt*
