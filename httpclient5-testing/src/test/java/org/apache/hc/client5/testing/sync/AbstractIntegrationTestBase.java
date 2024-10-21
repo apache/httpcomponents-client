@@ -78,4 +78,8 @@ abstract class AbstractIntegrationTestBase {
         return testResources.client();
     }
 
+    public TestClient client(final boolean noWrap) throws Exception {
+        return testResources.client(noWrap);
+    }
+
 }
