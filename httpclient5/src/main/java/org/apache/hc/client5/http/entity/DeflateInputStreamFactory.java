@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.entity;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.hc.client5.http.entity.compress.CompressingFactory;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
@@ -37,7 +38,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  * {@link InputStreamFactory} for handling Deflate Content Coded responses.
  *
  * @since 5.0
- * @deprecated Use {@link CompressorFactory}.
+ * @deprecated Use {@link CompressingFactory}.
  */
 @Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)

@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.entity;
+package org.apache.hc.client5.http.entity.compress;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +42,7 @@ import org.apache.hc.core5.util.Args;
  * This class supports different compression types and can handle both standard
  * compression (e.g., gzip, deflate) and variations that require a custom handling (e.g., noWrap).
  *
- * <p>Decompression is performed using a {@link LazyDecompressInputStream} that
+ * <p>Decompression is performed using a {@link LazyDecompressingInputStream} that
  * applies decompression lazily when content is requested.</p>
  *
  * <p>
@@ -54,7 +54,7 @@ import org.apache.hc.core5.util.Args;
  * @since 5.5
  */
 @Contract(threading = ThreadingBehavior.UNSAFE)
-public class DecompressEntity extends HttpEntityWrapper {
+public class DecompressingEntity extends HttpEntityWrapper {
 
     /**
      * The content input stream, initialized lazily during the first read.
@@ -72,25 +72,25 @@ public class DecompressEntity extends HttpEntityWrapper {
     private final boolean noWrap;
 
     /**
-     * Constructs a new {@link DecompressEntity} with the specified compression type and noWrap setting.
+     * Constructs a new {@link DecompressingEntity} with the specified compression type and noWrap setting.
      *
      * @param wrapped         the non-null {@link HttpEntity} to be wrapped.
      * @param compressionType the compression type (e.g., "gzip", "deflate").
      * @param noWrap          whether to decompress without headers for certain compression formats.
      */
-    public DecompressEntity(final HttpEntity wrapped, final String compressionType, final boolean noWrap) {
+    public DecompressingEntity(final HttpEntity wrapped, final String compressionType, final boolean noWrap) {
         super(wrapped);
         this.compressionType = compressionType;
         this.noWrap = noWrap;
     }
 
     /**
-     * Constructs a new {@link DecompressEntity} with the specified compression type, defaulting to no noWrap handling.
+     * Constructs a new {@link DecompressingEntity} with the specified compression type, defaulting to no noWrap handling.
      *
      * @param wrapped         the non-null {@link HttpEntity} to be wrapped.
      * @param compressionType the compression type (e.g., "gzip", "deflate").
      */
-    public DecompressEntity(final HttpEntity wrapped, final String compressionType) {
+    public DecompressingEntity(final HttpEntity wrapped, final String compressionType) {
         this(wrapped, compressionType, false);
     }
 
@@ -102,7 +102,7 @@ public class DecompressEntity extends HttpEntityWrapper {
      * @throws IOException if an error occurs during decompression.
      */
     private InputStream getDecompressingStream() throws IOException {
-        return new LazyDecompressInputStream(super.getContent(), compressionType, noWrap);
+        return new LazyDecompressingInputStream(super.getContent(), compressionType, noWrap);
     }
 
     /**

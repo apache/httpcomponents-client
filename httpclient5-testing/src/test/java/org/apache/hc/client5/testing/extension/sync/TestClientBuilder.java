@@ -98,6 +98,13 @@ public interface TestClientBuilder {
         throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
     }
 
+    /**
+     * Configures whether the client builder should wrap requests and responses.
+     *
+     * @param noWrap {@code true} to disable wrapping; {@code false} to enable wrapping.
+     * @return this builder instance.
+     * @since 5.5
+     */
     default TestClientBuilder setNoWrap(boolean noWrap) {
         return this;
     }

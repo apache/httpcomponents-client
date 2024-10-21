@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.entity;
+package org.apache.hc.client5.http.entity.compress;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -36,7 +36,7 @@ import org.apache.hc.core5.io.Closer;
 
 /**
  * A {@link FilterInputStream} that lazily initializes and applies decompression on the underlying input stream.
- * This class supports multiple compression types and uses {@link CompressorFactory} to obtain the appropriate
+ * This class supports multiple compression types and uses {@link CompressingFactory} to obtain the appropriate
  * decompression stream when the first read operation occurs.
  *
  * <p>This implementation delays the creation of the decompression stream until it is required, optimizing
@@ -44,7 +44,7 @@ import org.apache.hc.core5.io.Closer;
  *
  * @since 5.5
  */
-public class LazyDecompressInputStream extends FilterInputStream {
+public class LazyDecompressingInputStream extends FilterInputStream {
 
     /**
      * The lazily initialized decompression stream.
@@ -62,26 +62,26 @@ public class LazyDecompressInputStream extends FilterInputStream {
     private final boolean noWrap;
 
     /**
-     * Constructs a new {@link LazyDecompressInputStream} that applies the specified compression type and noWrap setting.
+     * Constructs a new {@link LazyDecompressingInputStream} that applies the specified compression type and noWrap setting.
      *
      * @param wrappedStream   the non-null {@link InputStream} to be wrapped and decompressed.
      * @param compressionType the compression type (e.g., "gzip", "deflate").
      * @param noWrap          whether to decompress without headers for certain compression formats.
      */
-    public LazyDecompressInputStream(final InputStream wrappedStream, final String compressionType, final boolean noWrap) {
+    public LazyDecompressingInputStream(final InputStream wrappedStream, final String compressionType, final boolean noWrap) {
         super(wrappedStream);
         this.compressionType = compressionType;
         this.noWrap = noWrap;
     }
 
     /**
-     * Constructs a new {@link LazyDecompressInputStream} that applies the specified compression type,
+     * Constructs a new {@link LazyDecompressingInputStream} that applies the specified compression type,
      * defaulting to no noWrap handling.
      *
      * @param wrappedStream   the non-null {@link InputStream} to be wrapped and decompressed.
      * @param compressionType the compression type (e.g., "gzip", "deflate").
      */
-    public LazyDecompressInputStream(final InputStream wrappedStream, final String compressionType) {
+    public LazyDecompressingInputStream(final InputStream wrappedStream, final String compressionType) {
         this(wrappedStream, compressionType, false);
     }
 
@@ -94,7 +94,7 @@ public class LazyDecompressInputStream extends FilterInputStream {
     private InputStream initWrapper() throws IOException {
         if (wrapperStream == null) {
             try {
-                wrapperStream = CompressorFactory.INSTANCE.getCompressorInputStream(compressionType, in, noWrap);
+                wrapperStream = CompressingFactory.INSTANCE.getDecompressorInputStream(compressionType, in, noWrap);
             } catch (final CompressorException e) {
                 throw new IOException("Error initializing decompression stream", e);
             }

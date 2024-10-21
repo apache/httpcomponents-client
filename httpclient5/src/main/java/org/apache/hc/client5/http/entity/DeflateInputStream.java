@@ -35,10 +35,12 @@ import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipException;
 
+import org.apache.hc.client5.http.entity.compress.CompressingFactory;
+
 /**
  * Deflates an input stream. This class includes logic needed for various RFCs in order
  * to reasonably implement the "deflate" compression algorithm.
- * @deprecated Use {@link CompressorFactory} for handling Deflate compression.
+ * @deprecated Use {@link CompressingFactory} for handling Deflate compression.
  */
 @Deprecated
 public class DeflateInputStream extends FilterInputStream {

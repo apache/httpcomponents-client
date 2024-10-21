@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.http.entity;
 
+import org.apache.hc.client5.http.entity.compress.CompressingFactory;
+import org.apache.hc.client5.http.entity.compress.DecompressingEntity;
 import org.apache.hc.core5.http.HttpEntity;
 
 /**
@@ -43,10 +45,10 @@ import org.apache.hc.core5.http.HttpEntity;
  * @see GzipDecompressingEntity
  *
  * @since 4.1
- * @deprecated Use {@link DecompressEntity} or {@link CompressorFactory} for decompression handling.
+ * @deprecated Use {@link DecompressingEntity} or {@link CompressingFactory} for decompression handling.
  */
 @Deprecated
-public class DeflateDecompressingEntity extends DecompressingEntity {
+public class DeflateDecompressingEntity extends org.apache.hc.client5.http.entity.DecompressingEntity {
 
     /**
      * Creates a new {@link DeflateDecompressingEntity} which will wrap the specified
