@@ -727,7 +727,7 @@ public class HttpClientBuilder {
      *
      * @param encodings a list of encoding names to support for automatic content compression and decompression
      * @return this {@code HttpClientBuilder} instance for method chaining
-     * @since 5.0
+     * @since 5.5
      */
     public final HttpClientBuilder setEncodings(final List<String> encodings) {
         this.encodings = encodings;
@@ -744,7 +744,7 @@ public class HttpClientBuilder {
      *
      * @param noWrap if {@code true}, disables the zlib header and trailer in deflate streams.
      * @return the updated {@link HttpClientBuilder} instance.
-     * @since 5.4
+     * @since 5.5
      */
     public final HttpClientBuilder setNoWrap(final boolean noWrap) {
         this.noWrap = noWrap;

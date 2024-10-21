@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.entity;
+package org.apache.hc.client5.http.entity.compress;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +40,7 @@ import org.apache.hc.core5.util.Args;
  * an output stream. This class supports various compression algorithms based on the
  * specified content encoding.
  *
- * <p>Compression is performed using {@link CompressorFactory}, which returns a corresponding
+ * <p>Compression is performed using {@link CompressingFactory}, which returns a corresponding
  * {@link OutputStream} for the requested compression type. This class does not support
  * reading the content directly through {@link #getContent()} as the content is always compressed
  * during write operations.</p>
@@ -108,20 +108,17 @@ public class CompressingEntity extends HttpEntityWrapper {
     @Override
     public void writeTo(final OutputStream outStream) throws IOException {
         Args.notNull(outStream, "Output stream");
-        // Get the compressor based on the specified content encoding
-        final OutputStream compressorStream;
-        try {
-            compressorStream = CompressorFactory.INSTANCE.getCompressorOutputStream(contentEncoding, outStream);
+
+        try (final OutputStream compressorStream = CompressingFactory.INSTANCE.getCompressorOutputStream(contentEncoding, outStream)) {
+            if (compressorStream != null) {
+                // Write compressed data
+                super.writeTo(compressorStream);
+            } else {
+                throw new UnsupportedOperationException("Unsupported compression: " + contentEncoding);
+            }
         } catch (final CompressorException e) {
-            throw new IOException("Error initializing decompression stream", e);
-        }
-        if (compressorStream != null) {
-            // Write compressed data
-            super.writeTo(compressorStream);
-            // Close the compressor stream after writing
-            compressorStream.close();
-        } else {
-            throw new UnsupportedOperationException("Unsupported compression: " + contentEncoding);
+            throw new IOException("Error initializing compression stream", e);
         }
     }
+
 }

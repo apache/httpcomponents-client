@@ -78,6 +78,14 @@ abstract class AbstractIntegrationTestBase {
         return testResources.client();
     }
 
+    /**
+     * Retrieves a {@link TestClient} instance configured with the specified wrapping option.
+     *
+     * @param noWrap {@code true} to disable wrapping; {@code false} to enable wrapping.
+     * @return a {@link TestClient} instance.
+     * @throws Exception if an error occurs during client retrieval or configuration.
+     * @since 5.5
+     */
     public TestClient client(final boolean noWrap) throws Exception {
         return testResources.client(noWrap);
     }

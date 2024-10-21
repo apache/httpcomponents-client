@@ -111,6 +111,14 @@ public class TestClientResources implements AfterEachCallback {
         return client;
     }
 
+    /**
+     * Creates a configured {@link TestClient} instance.
+     *
+     * @param noWrap {@code true} to disable wrapping; {@code false} to enable wrapping.
+     * @return a {@link TestClient} instance.
+     * @throws Exception if an error occurs during client creation.
+     * @since 5.5
+     */
     public TestClient client(final boolean noWrap) throws Exception {
         clientBuilder.setNoWrap(noWrap);
         return client();
