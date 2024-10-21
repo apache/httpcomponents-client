@@ -98,7 +98,7 @@ public interface TestClientBuilder {
         throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
     }
 
-    default TestClientBuilder setNoWrap(boolean noWrap){
+    default TestClientBuilder setNoWrap(boolean noWrap) {
         return this;
     }
 

@@ -118,7 +118,7 @@ public final class ContentCompressionExec implements ExecChainHandler {
      * </ul>
      */
     public ContentCompressionExec() {
-        this(null,  true, false);
+        this(null, true,false);
     }
 
 
