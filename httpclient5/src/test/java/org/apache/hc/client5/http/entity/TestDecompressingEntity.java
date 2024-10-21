@@ -36,6 +36,7 @@ import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 import java.util.zip.Checksum;
 
+import org.apache.hc.client5.http.entity.compress.DecompressingEntity;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -116,7 +117,7 @@ class TestDecompressingEntity {
      * The ChecksumEntity class extends DecompressEntity and wraps the input stream
      * with a CheckedInputStream to calculate a checksum as the data is read.
      */
-    static class ChecksumEntity extends DecompressEntity {
+    static class ChecksumEntity extends DecompressingEntity {
 
         private final Checksum checksum;
 

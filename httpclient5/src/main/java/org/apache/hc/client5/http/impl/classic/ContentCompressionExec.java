@@ -36,8 +36,8 @@ import java.util.zip.GZIPInputStream;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.entity.CompressorFactory;
-import org.apache.hc.client5.http.entity.DecompressEntity;
+import org.apache.hc.client5.http.entity.compress.CompressingFactory;
+import org.apache.hc.client5.http.entity.compress.DecompressingEntity;
 import org.apache.hc.client5.http.entity.DeflateInputStream;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
@@ -83,11 +83,11 @@ public final class ContentCompressionExec implements ExecChainHandler {
 
         if (acceptEncoding != null) {
             this.normalizedEncodings = acceptEncoding.stream()
-                    .map(CompressorFactory.INSTANCE::getFormattedName)
-                    .filter(CompressorFactory.INSTANCE.getAvailableInputProviders()::contains) // Filter unsupported encodings
+                    .map(CompressingFactory.INSTANCE::getFormattedName)
+                    .filter(CompressingFactory.INSTANCE.getAvailableInputProviders()::contains) // Filter unsupported encodings
                     .collect(Collectors.toList());
         } else {
-            this.normalizedEncodings = new ArrayList<>(CompressorFactory.INSTANCE.getAvailableInputProviders());
+            this.normalizedEncodings = new ArrayList<>(CompressingFactory.INSTANCE.getAvailableInputProviders());
         }
 
         // Set the 'Accept-Encoding' header
@@ -149,9 +149,9 @@ public final class ContentCompressionExec implements ExecChainHandler {
                 final ParserCursor cursor = new ParserCursor(0, contentEncoding.length());
                 final HeaderElement[] codecs = BasicHeaderValueParser.INSTANCE.parseElements(contentEncoding, cursor);
                 for (final HeaderElement codec : codecs) {
-                    final String codecname = CompressorFactory.INSTANCE.getFormattedName(codec.getName());
+                    final String codecname = CompressingFactory.INSTANCE.getFormattedName(codec.getName());
                     if (normalizedEncodings.contains(codecname)) {
-                        response.setEntity(new DecompressEntity(response.getEntity(), codecname, noWrap));
+                        response.setEntity(new DecompressingEntity(response.getEntity(), codecname, noWrap));
                         response.removeHeaders(HttpHeaders.CONTENT_LENGTH);
                         response.removeHeaders(HttpHeaders.CONTENT_ENCODING);
                         response.removeHeaders(HttpHeaders.CONTENT_MD5);

@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.entity;
 
+import org.apache.hc.client5.http.entity.compress.CompressingFactory;
 import org.apache.hc.core5.http.HttpEntity;
 
 /**
@@ -34,7 +35,7 @@ import org.apache.hc.core5.http.HttpEntity;
  *
  * @see GzipDecompressingEntity
  * @since 5.2
- * @deprecated Use {@link CompressorFactory} for handling Brotli decompression.
+ * @deprecated Use {@link CompressingFactory} for handling Brotli decompression.
  */
 @Deprecated
 public class BrotliDecompressingEntity extends DecompressingEntity {

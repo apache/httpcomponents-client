@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.entity;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.hc.client5.http.entity.compress.CompressingFactory;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.brotli.dec.BrotliInputStream;
@@ -37,7 +38,7 @@ import org.brotli.dec.BrotliInputStream;
  * {@link InputStreamFactory} for handling Brotli Content Coded responses.
  *
  * @since 5.2
- * @deprecated Use {@link CompressorFactory} for handling Brotli compression.
+ * @deprecated Use {@link CompressingFactory} for handling Brotli compression.
  */
 @Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)

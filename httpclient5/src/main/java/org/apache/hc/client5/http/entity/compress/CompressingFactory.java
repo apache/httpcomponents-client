@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.http.entity;
+package org.apache.hc.client5.http.entity.compress;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -64,13 +64,13 @@ import org.slf4j.LoggerFactory;
  *
  * @since 5.5
  */
-public class CompressorFactory {
+public class CompressingFactory {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CompressorFactory.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CompressingFactory.class);
     /**
      * Singleton instance of the factory.
      */
-    public static final CompressorFactory INSTANCE = new CompressorFactory();
+    public static final CompressingFactory INSTANCE = new CompressingFactory();
 
     private final CompressorStreamFactory compressorStreamFactory = new CompressorStreamFactory();
     private final AtomicReference<Set<String>> inputProvidersCache = new AtomicReference<>();
@@ -182,7 +182,7 @@ public class CompressorFactory {
             LOG.warn("Unsupported decompression type: {}", contentEncoding);
             return null;
         }
-        return new DecompressEntity(entity, contentEncoding, noWrap);
+        return new DecompressingEntity(entity, contentEncoding, noWrap);
     }
 
     /**

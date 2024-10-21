@@ -33,6 +33,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.hc.client5.http.entity.compress.CompressingFactory;
+import org.apache.hc.client5.http.entity.compress.DecompressingEntity;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.NameValuePair;
@@ -406,7 +408,7 @@ public class EntityBuilder {
             throw new IllegalStateException("No entity set");
         }
         if (this.compressed) {
-            return new DecompressEntity(e, CompressorFactory.INSTANCE.getFormattedName(contentEncoding));
+            return new DecompressingEntity(e, CompressingFactory.INSTANCE.getFormattedName(contentEncoding));
         }
         return e;
     }

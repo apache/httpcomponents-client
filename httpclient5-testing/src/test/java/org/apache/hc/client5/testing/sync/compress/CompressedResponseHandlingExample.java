@@ -30,7 +30,7 @@ package org.apache.hc.client5.testing.sync.compress;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.hc.client5.http.entity.CompressorFactory;
+import org.apache.hc.client5.http.entity.compress.CompressingFactory;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -106,7 +106,7 @@ public class CompressedResponseHandlingExample {
 
     private static HttpEntity compress(final String data, final String name) {
         final StringEntity originalEntity = new StringEntity(data, ContentType.TEXT_PLAIN);
-        return CompressorFactory.INSTANCE.compressEntity(originalEntity, name);
+        return CompressingFactory.INSTANCE.compressEntity(originalEntity, name);
     }
 
 }

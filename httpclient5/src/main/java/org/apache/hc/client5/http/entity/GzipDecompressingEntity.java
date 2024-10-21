@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.entity;
 
+import org.apache.hc.client5.http.entity.compress.CompressingFactory;
 import org.apache.hc.core5.http.HttpEntity;
 
 /**
@@ -33,7 +34,7 @@ import org.apache.hc.core5.http.HttpEntity;
  * gzip Content Coded responses.
  *
  * @since 4.1
- * @deprecated Use {@link CompressorFactory} for handling Gzip decompression.
+ * @deprecated Use {@link CompressingFactory} for handling Gzip decompression.
  */
 @Deprecated
 public class GzipDecompressingEntity extends DecompressingEntity {
