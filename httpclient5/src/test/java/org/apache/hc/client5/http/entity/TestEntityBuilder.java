@@ -129,7 +129,7 @@ class TestEntityBuilder {
     }
 
     @Test
-    public void testCompressionDecompression() throws Exception {
+    void testCompressionDecompression() throws Exception {
         final String originalContent = "some kind of text";
         final StringEntity originalEntity = new StringEntity(originalContent, ContentType.TEXT_PLAIN);
         final HttpEntity compressedEntity = CompressorFactory.INSTANCE.compressEntity(originalEntity, "gz");
