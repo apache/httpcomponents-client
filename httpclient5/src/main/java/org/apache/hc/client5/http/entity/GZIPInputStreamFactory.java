@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.hc.client5.http.entity.compress.CompressingFactory;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
@@ -38,7 +39,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  * {@link InputStreamFactory} for handling GZIPContent Coded responses.
  *
  * @since 5.0
- * @deprecated Use {@link CompressorFactory#getCompressorInputStream(String, InputStream, boolean)} instead.
+ * @deprecated Use {@link CompressingFactory#getDecompressorInputStream(String, InputStream, boolean)} instead.
  */
 @Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)

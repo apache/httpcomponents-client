@@ -33,6 +33,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.hc.client5.http.entity.compress.CompressingFactory;
+import org.apache.hc.client5.http.entity.compress.DecompressingEntity;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.NameValuePair;
@@ -328,7 +330,7 @@ public class EntityBuilder {
      * Tests if the entity is to be compressed ({@code true}), or not ({@code false}).
      *
      * @return {@code true} if entity is to be compressed, {@code false} otherwise.
-     * @since 5.4
+     * @since 5.5
      */
     public boolean isCompressed() {
         return compressed;
@@ -339,7 +341,7 @@ public class EntityBuilder {
      *
      * @param compressed {@code true} if the entity should be compressed, {@code false} otherwise.
      * @return this instance.
-     * @since 5.4
+     * @since 5.5
      */
     public EntityBuilder setCompressed(final boolean compressed) {
         this.compressed = compressed;
@@ -406,7 +408,7 @@ public class EntityBuilder {
             throw new IllegalStateException("No entity set");
         }
         if (this.compressed) {
-            return new DecompressEntity(e, CompressorFactory.INSTANCE.getFormattedName(contentEncoding));
+            return new DecompressingEntity(e, CompressingFactory.INSTANCE.getFormattedName(contentEncoding));
         }
         return e;
     }

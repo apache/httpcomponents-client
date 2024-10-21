@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.hc.client5.http.entity.compress.CompressingFactory;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
 import org.apache.hc.core5.util.Args;
@@ -40,7 +41,7 @@ import org.apache.hc.core5.util.Args;
  *
  *
  * @since 4.0
- * @deprecated Use {@link CompressorFactory#compressEntity(HttpEntity, String)} to handle compression.
+ * @deprecated Use {@link CompressingFactory#compressEntity(HttpEntity, String)} to handle compression.
  */
 @Deprecated
 public class GzipCompressingEntity extends HttpEntityWrapper {

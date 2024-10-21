@@ -35,7 +35,7 @@ import org.apache.hc.core5.io.Closer;
 
 /**
  * Lazy initializes from an {@link InputStream} wrapper.
- * @deprecated Use {@link LazyDecompressInputStream}
+ * @deprecated Use {@link org.apache.hc.client5.http.entity.compress.LazyDecompressingInputStream}
  */
 @Deprecated
 class LazyDecompressingInputStream extends FilterInputStream {

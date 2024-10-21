@@ -38,7 +38,7 @@ import org.apache.hc.core5.util.Args;
  * Common base class for decompressing {@link HttpEntity} implementations.
  *
  * @since 4.4
- * @deprecated
+ * @deprecated Use {{@link org.apache.hc.client5.http.entity.compress.DecompressingEntity}
  */
 @Deprecated
 public class DecompressingEntity extends HttpEntityWrapper {

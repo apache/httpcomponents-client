@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import org.apache.hc.client5.http.entity.compress.CompressingFactory;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
@@ -132,11 +133,11 @@ class TestEntityBuilder {
     void testCompressionDecompression() throws Exception {
         final String originalContent = "some kind of text";
         final StringEntity originalEntity = new StringEntity(originalContent, ContentType.TEXT_PLAIN);
-        final HttpEntity compressedEntity = CompressorFactory.INSTANCE.compressEntity(originalEntity, "gz");
+        final HttpEntity compressedEntity = CompressingFactory.INSTANCE.compressEntity(originalEntity, "gz");
         final ByteArrayOutputStream compressedOut = new ByteArrayOutputStream();
         compressedEntity.writeTo(compressedOut);
         final ByteArrayEntity out = new ByteArrayEntity(compressedOut.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
-        final HttpEntity decompressedEntity = CompressorFactory.INSTANCE.decompressEntity(out, "gz");
+        final HttpEntity decompressedEntity = CompressingFactory.INSTANCE.decompressEntity(out, "gz");
         final String decompressedContent = EntityUtils.toString(decompressedEntity, StandardCharsets.UTF_8);
         Assertions.assertEquals(originalContent, decompressedContent, "The decompressed content should match the original content.");
     }
