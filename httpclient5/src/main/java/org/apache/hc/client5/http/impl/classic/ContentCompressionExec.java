@@ -30,19 +30,15 @@ package org.apache.hc.client5.http.impl.classic;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.entity.BrotliDecompressingEntity;
-import org.apache.hc.client5.http.entity.BrotliInputStreamFactory;
-import org.apache.hc.client5.http.entity.DecompressingEntity;
+import org.apache.hc.client5.http.entity.compress.CompressingFactory;
+import org.apache.hc.client5.http.entity.compress.DecompressingEntity;
 import org.apache.hc.client5.http.entity.DeflateInputStream;
-import org.apache.hc.client5.http.entity.DeflateInputStreamFactory;
-import org.apache.hc.client5.http.entity.GZIPInputStreamFactory;
-import org.apache.hc.client5.http.entity.InputStreamFactory;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -54,8 +50,6 @@ import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.config.Lookup;
-import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.message.BasicHeaderValueParser;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.ParserCursor;
@@ -78,44 +72,41 @@ import org.brotli.dec.BrotliInputStream;
 public final class ContentCompressionExec implements ExecChainHandler {
 
     private final Header acceptEncoding;
-    private final Lookup<InputStreamFactory> decoderRegistry;
+    final List<String> normalizedEncodings;
     private final boolean ignoreUnknown;
+    private final boolean noWrap;
 
     public ContentCompressionExec(
             final List<String> acceptEncoding,
-            final Lookup<InputStreamFactory> decoderRegistry,
-            final boolean ignoreUnknown) {
+            final boolean ignoreUnknown,
+            final boolean noWrap) {
 
-        final boolean brotliSupported = BrotliDecompressingEntity.isAvailable();
-        final List<String> encodings = new ArrayList<>(4);
-        encodings.add("gzip");
-        encodings.add("x-gzip");
-        encodings.add("deflate");
-        if (brotliSupported) {
-            encodings.add("br");
-        }
-        this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING, encodings);
-
-        if (decoderRegistry != null) {
-            this.decoderRegistry = decoderRegistry;
+        if (acceptEncoding != null) {
+            this.normalizedEncodings = acceptEncoding.stream()
+                    .map(CompressingFactory.INSTANCE::getFormattedName)
+                    .filter(CompressingFactory.INSTANCE.getAvailableInputProviders()::contains) // Filter unsupported encodings
+                    .collect(Collectors.toList());
         } else {
-            final RegistryBuilder<InputStreamFactory> builder = RegistryBuilder.<InputStreamFactory>create()
-                .register("gzip", GZIPInputStreamFactory.getInstance())
-                .register("x-gzip", GZIPInputStreamFactory.getInstance())
-                .register("deflate", DeflateInputStreamFactory.getInstance());
-            if (brotliSupported) {
-                builder.register("br", BrotliInputStreamFactory.getInstance());
-            }
-            this.decoderRegistry = builder.build();
+            this.normalizedEncodings = new ArrayList<>(CompressingFactory.INSTANCE.getAvailableInputProviders());
         }
 
+        // Set the 'Accept-Encoding' header
+        this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING, normalizedEncodings);
 
         this.ignoreUnknown = ignoreUnknown;
+
+        this.noWrap = noWrap;
     }
 
     public ContentCompressionExec(final boolean ignoreUnknown) {
-        this(null, null, ignoreUnknown);
+        this(null, ignoreUnknown, false);
     }
+
+    public ContentCompressionExec(final boolean ignoreUnknown, final boolean noWrap) {
+        this(null, ignoreUnknown, noWrap);
+    }
+
+
 
     /**
      * Handles {@code gzip} and {@code deflate} compressed entities by using the following
@@ -127,7 +118,7 @@ public final class ContentCompressionExec implements ExecChainHandler {
      * </ul>
      */
     public ContentCompressionExec() {
-        this(null, null, true);
+        this(null, true,false);
     }
 
 
@@ -158,10 +149,9 @@ public final class ContentCompressionExec implements ExecChainHandler {
                 final ParserCursor cursor = new ParserCursor(0, contentEncoding.length());
                 final HeaderElement[] codecs = BasicHeaderValueParser.INSTANCE.parseElements(contentEncoding, cursor);
                 for (final HeaderElement codec : codecs) {
-                    final String codecname = codec.getName().toLowerCase(Locale.ROOT);
-                    final InputStreamFactory decoderFactory = decoderRegistry.lookup(codecname);
-                    if (decoderFactory != null) {
-                        response.setEntity(new DecompressingEntity(response.getEntity(), decoderFactory));
+                    final String codecname = CompressingFactory.INSTANCE.getFormattedName(codec.getName());
+                    if (normalizedEncodings.contains(codecname)) {
+                        response.setEntity(new DecompressingEntity(response.getEntity(), codecname, noWrap));
                         response.removeHeaders(HttpHeaders.CONTENT_LENGTH);
                         response.removeHeaders(HttpHeaders.CONTENT_ENCODING);
                         response.removeHeaders(HttpHeaders.CONTENT_MD5);
