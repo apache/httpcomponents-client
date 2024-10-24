@@ -302,7 +302,7 @@ public final class HttpAuthenticator {
                             }
                             authExchange.reset();
                             authExchange.setState(AuthExchange.State.FAILURE);
-                            if (!challenged) {
+                            if (isChallengeExpected) {
                                 throw ex;
                             }
                         }
