@@ -286,7 +286,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             if (responseTimeout != null) {
                 endpoint.setSocketTimeout(responseTimeout);
             }
-            endpoint.execute(id, exchangeHandler, context);
+            endpoint.execute(id, exchangeHandler, pushHandlerFactory, context);
             if (context.getRequestConfigOrDefault().isHardCancellationEnabled()) {
                 return () -> {
                     exchangeHandler.cancel();
