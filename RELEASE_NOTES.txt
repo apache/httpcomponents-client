@@ -1,4 +1,35 @@
-﻿Release 5.4
+﻿Release 5.4.1
+------------------
+
+This is a maintenance release that upgrades HttpCore to version 5.3.1 and fixes several defects found since
+release 5.4.
+
+Change Log
+-------------------
+
+* Fixed the problem with request specific push handlers being ignored.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Upgraded HttpCore to version 5.3.1.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Bug fix: Correct the issue with connection state detection in DefaultManagedAsyncClientConnection#isOpen().
+  Contributed by yhzdys <yhzdys at foxmail.com>
+
+* Bug fix: Fixed propagation of runtime exceptions thrown during connection route setup.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Bug fix: Asynchronous cache protocol handler incorrectly updates the actual cache entry in the cache execution
+  context upon cache entry re-validation.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Bug fix: Response Cache-Control attribute does not get updated in the cache execution context in case of
+  a cache miss.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+
+Release 5.4
 ------------------
 
 This is the first GA release in the 5.4 release series. This release finalizes the 5.4 APIs,
