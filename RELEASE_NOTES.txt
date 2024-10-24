@@ -19,11 +19,11 @@ Change Log
 * Bug fix: Fixed propagation of runtime exceptions thrown during connection route setup.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* Bug fix: async cache protocol handler incorrectly updates the actual cache entry in the cache execution
+* Bug fix: Asynchronous cache protocol handler incorrectly updates the actual cache entry in the cache execution
   context upon cache entry re-validation.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* Bug fix: response Cache-Control attribute does not get updated in the cache execution context in case of
+* Bug fix: Response Cache-Control attribute does not get updated in the cache execution context in case of
   a cache miss.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
