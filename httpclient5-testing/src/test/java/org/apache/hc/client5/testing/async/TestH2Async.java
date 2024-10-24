@@ -30,7 +30,7 @@ import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
 import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
 import org.apache.hc.core5.http.URIScheme;
 
-abstract class TestH2Async extends AbstractHttpAsyncFundamentalsTest {
+abstract class TestH2Async extends AbstractH2AsyncFundamentalsTest {
 
     public TestH2Async(final URIScheme scheme) {
         super(scheme, ClientProtocolLevel.H2_ONLY, ServerProtocolLevel.H2_ONLY);
