@@ -450,9 +450,9 @@ public class PoolingHttpClientConnectionManager
             } else {
                 if (LOG.isDebugEnabled()) {
                     if (conn != null && !conn.isConsistent()) {
-                        LOG.debug("{} connection is in an inconsistent state and cannot be kept alive)", ConnPoolSupport.getId(endpoint));
+                        LOG.debug("{} connection is in an inconsistent state and cannot be kept alive", ConnPoolSupport.getId(endpoint));
                     } else {
-                        LOG.debug("{} connection is not kept alive)", ConnPoolSupport.getId(endpoint));
+                        LOG.debug("{} connection is not kept alive", ConnPoolSupport.getId(endpoint));
                     }
                 }
             }
