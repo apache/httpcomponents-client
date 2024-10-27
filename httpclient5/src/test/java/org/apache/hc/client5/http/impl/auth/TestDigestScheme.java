@@ -906,5 +906,26 @@ class TestDigestScheme {
         Assertions.assertTrue(authResponse.contains("username*"));
     }
 
+    @Test
+    void testRspAuthFieldAndQuoting() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
+
+        // Challenge with qop set to "auth-int" to trigger rspauth field
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=\"auth-int\"";
+        final AuthChallenge authChallenge = parse(challenge);
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge, null);
+
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
+
+        final Map<String, String> table = parseAuthResponse(authResponse);
+
+        Assertions.assertNotNull(table.get("rspauth"));
+    }
 
 }
