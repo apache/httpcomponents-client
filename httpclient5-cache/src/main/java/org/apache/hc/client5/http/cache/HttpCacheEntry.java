@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -449,7 +450,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     @Deprecated
     public Map<String, String> getVariantMap() {
         return variants != null ? variants.stream()
-                .collect(Collectors.toMap(e -> e, e -> e + requestURI)) : Collections.emptyMap();
+                .collect(Collectors.toMap(Function.identity(), e -> e + requestURI)) : Collections.emptyMap();
     }
 
     /**
