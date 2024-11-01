@@ -556,7 +556,7 @@ public class DigestScheme implements AuthScheme, Serializable {
                 break;
             case "MD5":
             default:
-                length = 8;
+                length = 16;
                 break;
         }
         final byte[] tmp = new byte[length];
