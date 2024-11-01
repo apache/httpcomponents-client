@@ -315,11 +315,9 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
 
         final Charset charset = AuthSchemeSupport.parseCharset(paramMap.get("charset"), defaultCharset);
-        String digAlg = algorithm;
+
         // If an algorithm is not specified, default to MD5.
-        if (digAlg == null || digAlg.equalsIgnoreCase("MD5-sess")) {
-            digAlg = "MD5";
-        }
+        final String digAlg = resolveAlgorithm(algorithm);
 
         final MessageDigest digester;
         try {
@@ -343,7 +341,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         final String nc = sb.toString();
 
         if (cnonce == null) {
-            cnonce = formatHex(createCnonce());
+            cnonce = formatHex(createCnonce(digAlg));
         }
 
         if (buffer == null) {
@@ -378,7 +376,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
 
         // 3.2.2.2: Calculating digest
-        if ("MD5-sess".equalsIgnoreCase(algorithm)) {
+        if ("MD5-sess".equalsIgnoreCase(algorithm) || "SHA-256-sess".equalsIgnoreCase(algorithm) || "SHA-512-256-sess".equalsIgnoreCase(algorithm)) {
             // H( unq(username-value) ":" unq(realm-value) ":" passwd )
             //      ":" unq(nonce-value)
             //      ":" unq(cnonce-value)
@@ -517,10 +515,15 @@ public class DigestScheme implements AuthScheme, Serializable {
     }
 
     /**
-     * Encodes the 128 bit (16 bytes) MD5 digest into a 32 characters long string.
+     * Encodes a byte array digest into a hexadecimal string.
+     * <p>
+     * This method supports digests of various lengths, such as 16 bytes (128-bit) for MD5,
+     * 32 bytes (256-bit) for SHA-256, and SHA-512/256. Each byte is converted to two
+     * hexadecimal characters, so the resulting string length is twice the byte array length.
+     * </p>
      *
-     * @param binaryData array containing the digest
-     * @return encoded MD5, or {@code null} if encoding failed
+     * @param binaryData the array containing the digest bytes
+     * @return encoded hexadecimal string, or {@code null} if encoding failed
      */
     static String formatHex(final byte[] binaryData) {
         final int n = binaryData.length;
@@ -531,20 +534,45 @@ public class DigestScheme implements AuthScheme, Serializable {
             buffer[i * 2] = HEXADECIMAL[high];
             buffer[(i * 2) + 1] = HEXADECIMAL[low];
         }
-
         return new String(buffer);
+    }
+
+
+    /**
+     * Creates a random cnonce value based on the specified algorithm's expected entropy.
+     * Adjusts the length of the byte array based on the algorithm to ensure sufficient entropy.
+     *
+     * @param algorithm the algorithm for which the cnonce is being generated (e.g., "MD5", "SHA-256", "SHA-512-256").
+     * @return The cnonce value as a byte array.
+     * @since 5.5
+     */
+    static byte[] createCnonce(final String algorithm) {
+        final SecureRandom rnd = new SecureRandom();
+        final int length;
+        switch (algorithm.toUpperCase()) {
+            case "SHA-256":
+            case "SHA-512/256":
+                length = 32;
+                break;
+            case "MD5":
+            default:
+                length = 8;
+                break;
+        }
+        final byte[] tmp = new byte[length];
+        rnd.nextBytes(tmp);
+        return tmp;
     }
 
     /**
      * Creates a random cnonce value based on the current time.
      *
      * @return The cnonce value as String.
+     * @deprecated Use {@link DigestScheme#createCnonce(String)} instead.
      */
+    @Deprecated
     static byte[] createCnonce() {
-        final SecureRandom rnd = new SecureRandom();
-        final byte[] tmp = new byte[8];
-        rnd.nextBytes(tmp);
-        return tmp;
+        return createCnonce("MD5"); // Default to MD5 to maintain compatibility
     }
 
     private void writeObject(final ObjectOutputStream out) throws IOException {
@@ -600,5 +628,28 @@ public class DigestScheme implements AuthScheme, Serializable {
             }
         }
         return false;
+    }
+
+    /**
+     * Resolves the specified algorithm name to a standard form based on recognized algorithm suffixes.
+     * <p>
+     * This method translates session-based algorithms (e.g., "-sess" suffix) to their base forms
+     * for correct MessageDigest usage. If no algorithm is specified or "MD5-sess" is provided,
+     * it defaults to "MD5". The method also maps "SHA-512-256" to "SHA-512/256" to align with
+     * Java's naming for SHA-512/256.
+     * </p>
+     *
+     * @param algorithm the algorithm name to resolve, such as "MD5-sess", "SHA-256-sess", or "SHA-512-256-sess"
+     * @return the resolved base algorithm name, or the original algorithm name if no mapping applies
+     */
+    private String resolveAlgorithm(final String algorithm) {
+        if (algorithm == null || algorithm.equalsIgnoreCase("MD5-sess")) {
+            return "MD5";
+        } else if (algorithm.equalsIgnoreCase("SHA-256-sess")) {
+            return "SHA-256";
+        } else if (algorithm.equalsIgnoreCase("SHA-512-256-sess") || algorithm.equalsIgnoreCase("SHA-512-256")) {
+            return "SHA-512/256";
+        }
+        return algorithm; // If it's already a supported algorithm or doesn't need translating
     }
 }
