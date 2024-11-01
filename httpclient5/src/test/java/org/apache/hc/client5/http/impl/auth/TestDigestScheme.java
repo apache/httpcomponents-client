@@ -45,6 +45,7 @@ import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HeaderElement;
@@ -927,5 +928,63 @@ class TestDigestScheme {
 
         Assertions.assertNotNull(table.get("rspauth"));
     }
+
+    @Test
+    void testNextNonceUsageFromContext() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
+
+        final HttpClientContext context = HttpClientContext.create();
+        context.setNextNonce("sampleNextNonce"); // Set `nextNonce` in the context
+
+        final DigestScheme authscheme = new DigestScheme();
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"initialNonce\"";
+        final AuthChallenge authChallenge = parse(challenge);
+        authscheme.processChallenge(authChallenge, context);
+
+        // Simulate credentials validation and generate auth response
+        authscheme.isResponseReady(host, credentialsProvider, context);
+        final String authResponse = authscheme.generateAuthResponse(host, request, context);
+
+        // Validate that `sampleNextNonce` (from context) is used in place of the initial nonce
+        final Map<String, String> paramMap = parseAuthResponse(authResponse);
+        Assertions.assertEquals("sampleNextNonce", paramMap.get("nonce"), "The nonce should match 'auth-nextnonce' from the context.");
+
+        // Verify that `auth-nextnonce` was removed from context after use
+        Assertions.assertNull(context.getAttribute("auth-nextnonce"), "The next nonce should be removed from the context after use.");
+    }
+
+
+    @Test
+    void testNoNextNonceUsageFromContext() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
+
+        final HttpClientContext context = HttpClientContext.create();
+
+        // Initialize DigestScheme without setting any `nextNonce`
+        final DigestScheme authscheme = new DigestScheme();
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"initialNonce\"";
+        final AuthChallenge authChallenge = parse(challenge);
+        authscheme.processChallenge(authChallenge, context);
+
+        // Simulate credentials validation and generate auth response
+        authscheme.isResponseReady(host, credentialsProvider, context);
+        final String authResponse = authscheme.generateAuthResponse(host, request, context);
+
+        // Validate that the nonce in the response matches the initial nonce, not a nextNonce
+        final Map<String, String> paramMap = parseAuthResponse(authResponse);
+        Assertions.assertEquals("initialNonce", paramMap.get("nonce"), "The nonce should match the initial nonce provided in the challenge.");
+
+        // Verify that the context does not contain any `nextNonce` value set
+        Assertions.assertNull(context.getAttribute("auth-nextnonce"), "The context should not contain a nextNonce attribute.");
+    }
+
 
 }

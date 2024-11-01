@@ -202,6 +202,23 @@ public class HttpClientContext extends HttpCoreContext {
     private Object userToken;
     private RequestConfig requestConfig;
 
+    /**
+     * Stores the {@code nextnonce} value provided by the server in an HTTP response.
+     * <p>
+     * In the context of HTTP Digest Access Authentication, the {@code nextnonce} parameter
+     * is used by the client in subsequent requests to ensure one-time or session-bound usage
+     * of nonce values, enhancing security by preventing replay attacks.
+     * </p>
+     * <p>
+     * This field is set by an interceptor or other component that processes the server's
+     * response containing the {@code Authentication-Info} header. Once used, this value
+     * may be cleared from the context to avoid reuse.
+     * </p>
+     *
+     * @since 5.5
+     */
+    private String nextNonce;
+
     public HttpClientContext(final HttpContext context) {
         super(context);
     }
@@ -447,6 +464,28 @@ public class HttpClientContext extends HttpCoreContext {
      */
     public void setExchangeId(final String exchangeId) {
         this.exchangeId = exchangeId;
+    }
+
+    /**
+     * Retrieves the stored {@code nextnonce} value.
+     *
+     * @return the {@code nextnonce} parameter value, or {@code null} if not set
+     * @since 5.5
+     */
+    @Internal
+    public String getNextNonce() {
+        return nextNonce;
+    }
+
+    /**
+     * Sets the {@code nextnonce} value directly as an instance attribute.
+     *
+     * @param nextNonce the nonce value to set
+     * @since 5.5
+     */
+    @Internal
+    public void setNextNonce(final String nextNonce) {
+        this.nextNonce = nextNonce;
     }
 
     /**
