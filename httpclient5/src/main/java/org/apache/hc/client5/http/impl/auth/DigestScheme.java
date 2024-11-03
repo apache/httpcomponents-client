@@ -242,7 +242,7 @@ public class DigestScheme implements AuthScheme, Serializable {
     }
 
     @Override
-    public String generateAuthResponse(
+            public String generateAuthResponse(
             final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
@@ -317,11 +317,13 @@ public class DigestScheme implements AuthScheme, Serializable {
         final Charset charset = AuthSchemeSupport.parseCharset(paramMap.get("charset"), defaultCharset);
 
         // If an algorithm is not specified, default to MD5.
-        final String digAlg = resolveAlgorithm(algorithm);
+
+        DigestAlgorithm digAlg = null;
 
         final MessageDigest digester;
         try {
-            digester = createMessageDigest(digAlg);
+            digAlg = DigestAlgorithm.fromString(algorithm == null ? "MD5" : algorithm);
+            digester = createMessageDigest(digAlg.getBaseAlgorithm());
         } catch (final UnsupportedDigestAlgorithmException ex) {
             throw new AuthenticationException("Unsupported digest algorithm: " + digAlg);
         }
@@ -376,7 +378,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
 
         // 3.2.2.2: Calculating digest
-        if ("MD5-sess".equalsIgnoreCase(algorithm) || "SHA-256-sess".equalsIgnoreCase(algorithm) || "SHA-512-256-sess".equalsIgnoreCase(algorithm)) {
+        if (digAlg.isSessionBased()) {
             // H( unq(username-value) ":" unq(realm-value) ":" passwd )
             //      ":" unq(nonce-value)
             //      ":" unq(cnonce-value)
@@ -546,10 +548,10 @@ public class DigestScheme implements AuthScheme, Serializable {
      * @return The cnonce value as a byte array.
      * @since 5.5
      */
-    static byte[] createCnonce(final String algorithm) {
+    static byte[] createCnonce(final DigestAlgorithm algorithm) {
         final SecureRandom rnd = new SecureRandom();
         final int length;
-        switch (algorithm.toUpperCase()) {
+        switch (algorithm.name().toUpperCase()) {
             case "SHA-256":
             case "SHA-512/256":
                 length = 32;
@@ -564,16 +566,6 @@ public class DigestScheme implements AuthScheme, Serializable {
         return tmp;
     }
 
-    /**
-     * Creates a random cnonce value based on the current time.
-     *
-     * @return The cnonce value as String.
-     * @deprecated Use {@link DigestScheme#createCnonce(String)} instead.
-     */
-    @Deprecated
-    static byte[] createCnonce() {
-        return createCnonce("MD5"); // Default to MD5 to maintain compatibility
-    }
 
     private void writeObject(final ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
@@ -631,25 +623,100 @@ public class DigestScheme implements AuthScheme, Serializable {
     }
 
     /**
-     * Resolves the specified algorithm name to a standard form based on recognized algorithm suffixes.
-     * <p>
-     * This method translates session-based algorithms (e.g., "-sess" suffix) to their base forms
-     * for correct MessageDigest usage. If no algorithm is specified or "MD5-sess" is provided,
-     * it defaults to "MD5". The method also maps "SHA-512-256" to "SHA-512/256" to align with
-     * Java's naming for SHA-512/256.
-     * </p>
-     *
-     * @param algorithm the algorithm name to resolve, such as "MD5-sess", "SHA-256-sess", or "SHA-512-256-sess"
-     * @return the resolved base algorithm name, or the original algorithm name if no mapping applies
+     * Enum representing supported digest algorithms for HTTP Digest Authentication,
+     * including session-based variants.
      */
-    private String resolveAlgorithm(final String algorithm) {
-        if (algorithm == null || algorithm.equalsIgnoreCase("MD5-sess")) {
-            return "MD5";
-        } else if (algorithm.equalsIgnoreCase("SHA-256-sess")) {
-            return "SHA-256";
-        } else if (algorithm.equalsIgnoreCase("SHA-512-256-sess") || algorithm.equalsIgnoreCase("SHA-512-256")) {
-            return "SHA-512/256";
+    private enum DigestAlgorithm {
+
+        /**
+         * MD5 digest algorithm.
+         */
+        MD5("MD5", false),
+
+        /**
+         * MD5 digest algorithm with session-based variant.
+         */
+        MD5_SESS("MD5", true),
+
+        /**
+         * SHA-256 digest algorithm.
+         */
+        SHA_256("SHA-256", false),
+
+        /**
+         * SHA-256 digest algorithm with session-based variant.
+         */
+        SHA_256_SESS("SHA-256", true),
+
+        /**
+         * SHA-512/256 digest algorithm.
+         */
+        SHA_512_256("SHA-512/256", false),
+
+        /**
+         * SHA-512/256 digest algorithm with session-based variant.
+         */
+        SHA_512_256_SESS("SHA-512/256", true);
+
+        private final String baseAlgorithm;
+        private final boolean sessionBased;
+
+        /**
+         * Constructor for {@code DigestAlgorithm}.
+         *
+         * @param baseAlgorithm the base name of the algorithm, e.g., "MD5" or "SHA-256"
+         * @param sessionBased indicates if the algorithm is session-based (i.e., includes the "-sess" suffix)
+         */
+        DigestAlgorithm(final String baseAlgorithm, final boolean sessionBased) {
+            this.baseAlgorithm = baseAlgorithm;
+            this.sessionBased = sessionBased;
         }
-        return algorithm; // If it's already a supported algorithm or doesn't need translating
+
+        /**
+         * Retrieves the base algorithm name without session suffix.
+         *
+         * @return the base algorithm name
+         */
+        private String getBaseAlgorithm() {
+            return baseAlgorithm;
+        }
+
+        /**
+         * Checks if the algorithm is session-based.
+         *
+         * @return {@code true} if the algorithm includes the "-sess" suffix, otherwise {@code false}
+         */
+        private boolean isSessionBased() {
+            return sessionBased;
+        }
+
+        /**
+         * Maps a string representation of an algorithm to the corresponding enum constant.
+         *
+         * @param algorithm the algorithm name, e.g., "SHA-256" or "SHA-512-256-sess"
+         * @return the corresponding {@code DigestAlgorithm} constant
+         * @throws UnsupportedDigestAlgorithmException if the algorithm is unsupported
+         */
+        private static DigestAlgorithm fromString(final String algorithm) {
+            switch (algorithm.toUpperCase(Locale.ROOT)) {
+                case "MD5":
+                    return MD5;
+                case "MD5-SESS":
+                    return MD5_SESS;
+                case "SHA-256":
+                    return SHA_256;
+                case "SHA-256-SESS":
+                    return SHA_256_SESS;
+                case "SHA-512/256":
+                case "SHA-512-256":
+                    return SHA_512_256;
+                case "SHA-512-256-SESS":
+                    return SHA_512_256_SESS;
+                default:
+                    throw new UnsupportedDigestAlgorithmException("Unsupported digest algorithm: " + algorithm);
+            }
+        }
     }
+
+
 }

@@ -178,14 +178,9 @@ class TestDigestScheme {
         authscheme.processChallenge(authChallenge, null);
 
         Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
-        final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
-        final Map<String, String> table = parseAuthResponse(authResponse);
-        Assertions.assertEquals("username", table.get("username"));
-        Assertions.assertEquals("realm1", table.get("realm"));
-        Assertions.assertEquals("/", table.get("uri"));
-        Assertions.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
-        Assertions.assertEquals("8769e82e4e28ecc040b969562b9050580c6d186d", table.get("response"));
+        Assertions.assertThrows(AuthenticationException.class, () ->
+                authscheme.generateAuthResponse(host, request, null), "Expected UnsupportedDigestAlgorithmException for unsupported 'SHA' algorithm");
     }
 
     @Test
