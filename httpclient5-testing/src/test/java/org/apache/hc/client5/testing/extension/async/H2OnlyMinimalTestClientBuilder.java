@@ -69,6 +69,11 @@ final class H2OnlyMinimalTestClientBuilder implements TestAsyncClientBuilder {
     }
 
     @Override
+    public TestAsyncClientBuilder useMessageMultiplexing() {
+        return this;
+    }
+
+    @Override
     public TestAsyncClient build() throws Exception {
         final CloseableHttpAsyncClient client = HttpAsyncClients.createHttp2Minimal(
                 h2Config,

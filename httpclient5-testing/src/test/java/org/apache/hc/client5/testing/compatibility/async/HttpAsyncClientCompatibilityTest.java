@@ -26,6 +26,9 @@
  */
 package org.apache.hc.client5.testing.compatibility.async;
 
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.ContextBuilder;
@@ -38,10 +41,13 @@ import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.testing.Result;
 import org.apache.hc.client5.testing.extension.async.HttpAsyncClientResource;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.RequestNotExecutedException;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
@@ -51,6 +57,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 public abstract class HttpAsyncClientCompatibilityTest {
 
     static final Timeout TIMEOUT = Timeout.ofSeconds(5);
+    static final Timeout LONG_TIMEOUT = Timeout.ofSeconds(30);
 
     private final HttpVersionPolicy versionPolicy;
     private final HttpHost target;
@@ -116,6 +123,54 @@ public abstract class HttpAsyncClientCompatibilityTest {
             final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
             Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             assertProtocolVersion(context);
+        }
+    }
+
+    @Test
+    void test_concurrent_gets() throws Exception {
+        final CloseableHttpAsyncClient client = client();
+
+        final String[] requestUris = new String[] {"/111", "/222", "/333"};
+        final int n = 200;
+        final Queue<Result<Void>> queue = new ConcurrentLinkedQueue<>();
+        final CountDownLatch latch = new CountDownLatch(requestUris.length * n);
+
+        for (int i = 0; i < n; i++) {
+            for (final String requestUri: requestUris) {
+                final SimpleHttpRequest request = SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath(requestUri)
+                        .build();
+                final HttpClientContext context = context();
+                client.execute(request, context, new FutureCallback<SimpleHttpResponse>() {
+
+                    @Override
+                    public void completed(final SimpleHttpResponse response) {
+                        queue.add(new Result<>(request, response, null));
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void failed(final Exception ex) {
+                        queue.add(new Result<>(request, ex));
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void cancelled() {
+                        queue.add(new Result<>(request, new RequestNotExecutedException()));
+                        latch.countDown();
+                    }
+
+                });
+            }
+        }
+        Assertions.assertTrue(latch.await(LONG_TIMEOUT.getDuration(), LONG_TIMEOUT.getTimeUnit()));
+        Assertions.assertEquals(requestUris.length * n, queue.size());
+        for (final Result<Void> result : queue) {
+            if (result.isOK()) {
+                Assertions.assertEquals(HttpStatus.SC_OK, result.response.getCode());
+            }
         }
     }
 

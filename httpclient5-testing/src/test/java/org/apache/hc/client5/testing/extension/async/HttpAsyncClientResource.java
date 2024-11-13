@@ -61,6 +61,7 @@ public class HttpAsyncClientResource implements AfterEachCallback {
                             .setDefaultTlsConfig(TlsConfig.custom()
                                     .setVersionPolicy(versionPolicy)
                                     .build())
+                            .setMessageMultiplexing(true)
                             .build());
         } catch (final CertificateException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException ex) {
             throw new IllegalStateException(ex);

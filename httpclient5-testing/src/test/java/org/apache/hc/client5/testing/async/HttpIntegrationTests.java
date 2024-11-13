@@ -213,4 +213,24 @@ class HttpIntegrationTests {
 
     }
 
+    @Nested
+    @DisplayName("HTTP message multiplexing (HTTP/2)")
+    class RequestMultiplexing extends TestHttpAsyncRequestMultiplexing {
+
+        public RequestMultiplexing() {
+            super(URIScheme.HTTP);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("HTTP message multiplexing (HTTP/2, TLS)")
+    class RequestMultiplexingTls extends TestHttpAsyncRequestMultiplexing {
+
+        public RequestMultiplexingTls() {
+            super(URIScheme.HTTPS);
+        }
+
+    }
+
 }

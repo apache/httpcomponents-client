@@ -73,6 +73,10 @@ public interface TestAsyncClientBuilder {
         throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
     }
 
+    default TestAsyncClientBuilder useMessageMultiplexing() {
+        throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
+    }
+
     default TestAsyncClientBuilder setHttp1Config(Http1Config http1Config) {
         throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
     }
