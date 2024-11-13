@@ -98,6 +98,11 @@ final class H2OnlyTestClientBuilder implements TestAsyncClientBuilder {
     }
 
     @Override
+    public TestAsyncClientBuilder useMessageMultiplexing() {
+        return this;
+    }
+
+    @Override
     public TestAsyncClientBuilder setH2Config(final H2Config h2Config) {
         this.h2Config = h2Config;
         return this;
