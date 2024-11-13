@@ -78,6 +78,12 @@ final class MinimalTestClientBuilder implements TestAsyncClientBuilder {
     }
 
     @Override
+    public TestAsyncClientBuilder useMessageMultiplexing() {
+        this.connectionManagerBuilder.setMessageMultiplexing(true);
+        return this;
+    }
+
+    @Override
     public TestAsyncClientBuilder setHttp1Config(final Http1Config http1Config) {
         this.http1Config = http1Config;
         return this;

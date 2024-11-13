@@ -160,7 +160,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
         this(new DefaultAsyncClientConnectionOperator(tlsStrategyLookup, schemePortResolver, dnsResolver),
-                poolConcurrencyPolicy, poolReusePolicy, timeToLive);
+                poolConcurrencyPolicy, poolReusePolicy, timeToLive, false);
     }
 
     @Internal
@@ -168,11 +168,13 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             final AsyncClientConnectionOperator connectionOperator,
             final PoolConcurrencyPolicy poolConcurrencyPolicy,
             final PoolReusePolicy poolReusePolicy,
-            final TimeValue timeToLive) {
+            final TimeValue timeToLive,
+            final boolean messageMultiplexing) {
         this.connectionOperator = Args.notNull(connectionOperator, "Connection operator");
+        final ManagedConnPool<HttpRoute, ManagedAsyncClientConnection> managedConnPool;
         switch (poolConcurrencyPolicy != null ? poolConcurrencyPolicy : PoolConcurrencyPolicy.STRICT) {
             case STRICT:
-                this.pool = new StrictConnPool<HttpRoute, ManagedAsyncClientConnection>(
+                managedConnPool = new StrictConnPool<HttpRoute, ManagedAsyncClientConnection>(
                         DEFAULT_MAX_CONNECTIONS_PER_ROUTE,
                         DEFAULT_MAX_TOTAL_CONNECTIONS,
                         timeToLive,
@@ -187,7 +189,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 };
                 break;
             case LAX:
-                this.pool = new LaxConnPool<HttpRoute, ManagedAsyncClientConnection>(
+                managedConnPool = new LaxConnPool<HttpRoute, ManagedAsyncClientConnection>(
                         DEFAULT_MAX_CONNECTIONS_PER_ROUTE,
                         timeToLive,
                         poolReusePolicy,
@@ -203,6 +205,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             default:
                 throw new IllegalArgumentException("Unexpected PoolConcurrencyPolicy value: " + poolConcurrencyPolicy);
         }
+        this.pool = messageMultiplexing ? new H2SharingConnPool<>(managedConnPool) : managedConnPool;
         this.closed = new AtomicBoolean(false);
     }
 
