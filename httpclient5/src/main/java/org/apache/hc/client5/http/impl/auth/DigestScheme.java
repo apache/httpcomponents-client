@@ -242,7 +242,7 @@ public class DigestScheme implements AuthScheme, Serializable {
     }
 
     @Override
-    public String generateAuthResponse(
+            public String generateAuthResponse(
             final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
@@ -315,15 +315,15 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
 
         final Charset charset = AuthSchemeSupport.parseCharset(paramMap.get("charset"), defaultCharset);
-        String digAlg = algorithm;
+
         // If an algorithm is not specified, default to MD5.
-        if (digAlg == null || digAlg.equalsIgnoreCase("MD5-sess")) {
-            digAlg = "MD5";
-        }
+
+        DigestAlgorithm digAlg = null;
 
         final MessageDigest digester;
         try {
-            digester = createMessageDigest(digAlg);
+            digAlg = DigestAlgorithm.fromString(algorithm == null ? "MD5" : algorithm);
+            digester = createMessageDigest(digAlg.getBaseAlgorithm());
         } catch (final UnsupportedDigestAlgorithmException ex) {
             throw new AuthenticationException("Unsupported digest algorithm: " + digAlg);
         }
@@ -343,7 +343,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         final String nc = sb.toString();
 
         if (cnonce == null) {
-            cnonce = formatHex(createCnonce());
+            cnonce = formatHex(createCnonce(digAlg));
         }
 
         if (buffer == null) {
@@ -378,7 +378,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
 
         // 3.2.2.2: Calculating digest
-        if ("MD5-sess".equalsIgnoreCase(algorithm)) {
+        if (digAlg.isSessionBased()) {
             // H( unq(username-value) ":" unq(realm-value) ":" passwd )
             //      ":" unq(nonce-value)
             //      ":" unq(cnonce-value)
@@ -517,10 +517,15 @@ public class DigestScheme implements AuthScheme, Serializable {
     }
 
     /**
-     * Encodes the 128 bit (16 bytes) MD5 digest into a 32 characters long string.
+     * Encodes a byte array digest into a hexadecimal string.
+     * <p>
+     * This method supports digests of various lengths, such as 16 bytes (128-bit) for MD5,
+     * 32 bytes (256-bit) for SHA-256, and SHA-512/256. Each byte is converted to two
+     * hexadecimal characters, so the resulting string length is twice the byte array length.
+     * </p>
      *
-     * @param binaryData array containing the digest
-     * @return encoded MD5, or {@code null} if encoding failed
+     * @param binaryData the array containing the digest bytes
+     * @return encoded hexadecimal string, or {@code null} if encoding failed
      */
     static String formatHex(final byte[] binaryData) {
         final int n = binaryData.length;
@@ -531,21 +536,36 @@ public class DigestScheme implements AuthScheme, Serializable {
             buffer[i * 2] = HEXADECIMAL[high];
             buffer[(i * 2) + 1] = HEXADECIMAL[low];
         }
-
         return new String(buffer);
     }
 
+
     /**
-     * Creates a random cnonce value based on the current time.
+     * Creates a random cnonce value based on the specified algorithm's expected entropy.
+     * Adjusts the length of the byte array based on the algorithm to ensure sufficient entropy.
      *
-     * @return The cnonce value as String.
+     * @param algorithm the algorithm for which the cnonce is being generated (e.g., "MD5", "SHA-256", "SHA-512-256").
+     * @return The cnonce value as a byte array.
+     * @since 5.5
      */
-    static byte[] createCnonce() {
+    static byte[] createCnonce(final DigestAlgorithm algorithm) {
         final SecureRandom rnd = new SecureRandom();
-        final byte[] tmp = new byte[8];
+        final int length;
+        switch (algorithm.name().toUpperCase()) {
+            case "SHA-256":
+            case "SHA-512/256":
+                length = 32;
+                break;
+            case "MD5":
+            default:
+                length = 16;
+                break;
+        }
+        final byte[] tmp = new byte[length];
         rnd.nextBytes(tmp);
         return tmp;
     }
+
 
     private void writeObject(final ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
@@ -601,4 +621,102 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
         return false;
     }
+
+    /**
+     * Enum representing supported digest algorithms for HTTP Digest Authentication,
+     * including session-based variants.
+     */
+    private enum DigestAlgorithm {
+
+        /**
+         * MD5 digest algorithm.
+         */
+        MD5("MD5", false),
+
+        /**
+         * MD5 digest algorithm with session-based variant.
+         */
+        MD5_SESS("MD5", true),
+
+        /**
+         * SHA-256 digest algorithm.
+         */
+        SHA_256("SHA-256", false),
+
+        /**
+         * SHA-256 digest algorithm with session-based variant.
+         */
+        SHA_256_SESS("SHA-256", true),
+
+        /**
+         * SHA-512/256 digest algorithm.
+         */
+        SHA_512_256("SHA-512/256", false),
+
+        /**
+         * SHA-512/256 digest algorithm with session-based variant.
+         */
+        SHA_512_256_SESS("SHA-512/256", true);
+
+        private final String baseAlgorithm;
+        private final boolean sessionBased;
+
+        /**
+         * Constructor for {@code DigestAlgorithm}.
+         *
+         * @param baseAlgorithm the base name of the algorithm, e.g., "MD5" or "SHA-256"
+         * @param sessionBased indicates if the algorithm is session-based (i.e., includes the "-sess" suffix)
+         */
+        DigestAlgorithm(final String baseAlgorithm, final boolean sessionBased) {
+            this.baseAlgorithm = baseAlgorithm;
+            this.sessionBased = sessionBased;
+        }
+
+        /**
+         * Retrieves the base algorithm name without session suffix.
+         *
+         * @return the base algorithm name
+         */
+        private String getBaseAlgorithm() {
+            return baseAlgorithm;
+        }
+
+        /**
+         * Checks if the algorithm is session-based.
+         *
+         * @return {@code true} if the algorithm includes the "-sess" suffix, otherwise {@code false}
+         */
+        private boolean isSessionBased() {
+            return sessionBased;
+        }
+
+        /**
+         * Maps a string representation of an algorithm to the corresponding enum constant.
+         *
+         * @param algorithm the algorithm name, e.g., "SHA-256" or "SHA-512-256-sess"
+         * @return the corresponding {@code DigestAlgorithm} constant
+         * @throws UnsupportedDigestAlgorithmException if the algorithm is unsupported
+         */
+        private static DigestAlgorithm fromString(final String algorithm) {
+            switch (algorithm.toUpperCase(Locale.ROOT)) {
+                case "MD5":
+                    return MD5;
+                case "MD5-SESS":
+                    return MD5_SESS;
+                case "SHA-256":
+                    return SHA_256;
+                case "SHA-256-SESS":
+                    return SHA_256_SESS;
+                case "SHA-512/256":
+                case "SHA-512-256":
+                    return SHA_512_256;
+                case "SHA-512-256-SESS":
+                    return SHA_512_256_SESS;
+                default:
+                    throw new UnsupportedDigestAlgorithmException("Unsupported digest algorithm: " + algorithm);
+            }
+        }
+    }
+
+
 }

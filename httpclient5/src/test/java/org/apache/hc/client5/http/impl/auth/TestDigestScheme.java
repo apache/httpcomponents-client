@@ -178,14 +178,9 @@ class TestDigestScheme {
         authscheme.processChallenge(authChallenge, null);
 
         Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
-        final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
-        final Map<String, String> table = parseAuthResponse(authResponse);
-        Assertions.assertEquals("username", table.get("username"));
-        Assertions.assertEquals("realm1", table.get("realm"));
-        Assertions.assertEquals("/", table.get("uri"));
-        Assertions.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
-        Assertions.assertEquals("8769e82e4e28ecc040b969562b9050580c6d186d", table.get("response"));
+        Assertions.assertThrows(AuthenticationException.class, () ->
+                authscheme.generateAuthResponse(host, request, null), "Expected UnsupportedDigestAlgorithmException for unsupported 'SHA' algorithm");
     }
 
     @Test
@@ -985,6 +980,184 @@ class TestDigestScheme {
         // Verify that the context does not contain any `nextNonce` value set
         Assertions.assertNull(context.getAttribute("auth-nextnonce"), "The context should not contain a nextNonce attribute.");
     }
+
+
+    @Test
+    void testDigestAuthenticationWithSHA256() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
+
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", algorithm=SHA-256";
+        final AuthChallenge authChallenge = parse(challenge);
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge, null);
+
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
+
+        final Map<String, String> table = parseAuthResponse(authResponse);
+        Assertions.assertEquals("username", table.get("username"));
+        Assertions.assertEquals("realm1", table.get("realm"));
+        Assertions.assertEquals("/", table.get("uri"));
+        Assertions.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
+        Assertions.assertEquals("SHA-256", table.get("algorithm"));
+        Assertions.assertNotNull(table.get("response"));
+
+    }
+
+    @Test
+    void testDigestAuthenticationWithSHA512_256() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
+
+            final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", algorithm=SHA-512-256";
+        final AuthChallenge authChallenge = parse(challenge);
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge, null);
+
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
+
+        final Map<String, String> table = parseAuthResponse(authResponse);
+        Assertions.assertEquals("username", table.get("username"));
+        Assertions.assertEquals("realm1", table.get("realm"));
+        Assertions.assertEquals("/", table.get("uri"));
+        Assertions.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
+        Assertions.assertEquals("SHA-512-256", table.get("algorithm"));
+        Assertions.assertNotNull(table.get("response"));
+    }
+
+    @Test
+    void testDigestSHA256SessA1AndCnonceConsistency() throws Exception {
+        final HttpHost host = new HttpHost("somehost", 80);
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "subnet.domain.com", null), "username", "password".toCharArray())
+                .build();
+
+        final String challenge1 = StandardAuthScheme.DIGEST + " qop=\"auth\", algorithm=SHA-256-sess, nonce=\"1234567890abcdef\", " +
+                "charset=utf-8, realm=\"subnet.domain.com\"";
+        final AuthChallenge authChallenge1 = parse(challenge1);
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge1, null);
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse1 = authscheme.generateAuthResponse(host, request, null);
+
+        final Map<String, String> table1 = parseAuthResponse(authResponse1);
+        Assertions.assertEquals("00000001", table1.get("nc"));
+        final String cnonce1 = authscheme.getCnonce();
+        final String sessionKey1 = authscheme.getA1();
+
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse2 = authscheme.generateAuthResponse(host, request, null);
+        final Map<String, String> table2 = parseAuthResponse(authResponse2);
+        Assertions.assertEquals("00000002", table2.get("nc"));
+        final String cnonce2 = authscheme.getCnonce();
+        final String sessionKey2 = authscheme.getA1();
+
+        Assertions.assertEquals(cnonce1, cnonce2);
+        Assertions.assertEquals(sessionKey1, sessionKey2);
+
+        final String challenge2 = StandardAuthScheme.DIGEST + " qop=\"auth\", algorithm=SHA-256-sess, nonce=\"1234567890abcdef\", " +
+                "charset=utf-8, realm=\"subnet.domain.com\"";
+        final AuthChallenge authChallenge2 = parse(challenge2);
+        authscheme.processChallenge(authChallenge2, null);
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse3 = authscheme.generateAuthResponse(host, request, null);
+        final Map<String, String> table3 = parseAuthResponse(authResponse3);
+        Assertions.assertEquals("00000003", table3.get("nc"));
+
+        final String cnonce3 = authscheme.getCnonce();
+        final String sessionKey3 = authscheme.getA1();
+
+        Assertions.assertEquals(cnonce1, cnonce3);
+        Assertions.assertEquals(sessionKey1, sessionKey3);
+
+        final String challenge3 = StandardAuthScheme.DIGEST + " qop=\"auth\", algorithm=SHA-256-sess, nonce=\"fedcba0987654321\", " +
+                "charset=utf-8, realm=\"subnet.domain.com\"";
+        final AuthChallenge authChallenge3 = parse(challenge3);
+        authscheme.processChallenge(authChallenge3, null);
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse4 = authscheme.generateAuthResponse(host, request, null);
+        final Map<String, String> table4 = parseAuthResponse(authResponse4);
+        Assertions.assertEquals("00000001", table4.get("nc"));
+
+        final String cnonce4 = authscheme.getCnonce();
+        final String sessionKey4 = authscheme.getA1();
+
+        Assertions.assertNotEquals(cnonce1, cnonce4);
+        Assertions.assertNotEquals(sessionKey1, sessionKey4);
+    }
+
+
+    @Test
+    void testDigestSHA512256SessA1AndCnonceConsistency() throws Exception {
+        final HttpHost host = new HttpHost("somehost", 80);
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "subnet.domain.com", null), "username", "password".toCharArray())
+                .build();
+
+        final String challenge1 = StandardAuthScheme.DIGEST + " qop=\"auth\", algorithm=SHA-512-256-sess, nonce=\"1234567890abcdef\", " +
+                "charset=utf-8, realm=\"subnet.domain.com\"";
+        final AuthChallenge authChallenge1 = parse(challenge1);
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge1, null);
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse1 = authscheme.generateAuthResponse(host, request, null);
+
+        final Map<String, String> table1 = parseAuthResponse(authResponse1);
+        Assertions.assertEquals("00000001", table1.get("nc"));
+        final String cnonce1 = authscheme.getCnonce();
+        final String sessionKey1 = authscheme.getA1();
+
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse2 = authscheme.generateAuthResponse(host, request, null);
+        final Map<String, String> table2 = parseAuthResponse(authResponse2);
+        Assertions.assertEquals("00000002", table2.get("nc"));
+        final String cnonce2 = authscheme.getCnonce();
+        final String sessionKey2 = authscheme.getA1();
+
+        Assertions.assertEquals(cnonce1, cnonce2);
+        Assertions.assertEquals(sessionKey1, sessionKey2);
+
+        final String challenge2 = StandardAuthScheme.DIGEST + " qop=\"auth\", algorithm=SHA-512-256-sess, nonce=\"1234567890abcdef\", " +
+                "charset=utf-8, realm=\"subnet.domain.com\"";
+        final AuthChallenge authChallenge2 = parse(challenge2);
+        authscheme.processChallenge(authChallenge2, null);
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse3 = authscheme.generateAuthResponse(host, request, null);
+        final Map<String, String> table3 = parseAuthResponse(authResponse3);
+        Assertions.assertEquals("00000003", table3.get("nc"));
+
+        final String cnonce3 = authscheme.getCnonce();
+        final String sessionKey3 = authscheme.getA1();
+
+        Assertions.assertEquals(cnonce1, cnonce3);
+        Assertions.assertEquals(sessionKey1, sessionKey3);
+
+        final String challenge3 = StandardAuthScheme.DIGEST + " qop=\"auth\", algorithm=SHA-512-256-sess, nonce=\"fedcba0987654321\", " +
+                "charset=utf-8, realm=\"subnet.domain.com\"";
+        final AuthChallenge authChallenge3 = parse(challenge3);
+        authscheme.processChallenge(authChallenge3, null);
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse4 = authscheme.generateAuthResponse(host, request, null);
+        final Map<String, String> table4 = parseAuthResponse(authResponse4);
+        Assertions.assertEquals("00000001", table4.get("nc"));
+
+        final String cnonce4 = authscheme.getCnonce();
+        final String sessionKey4 = authscheme.getA1();
+
+        Assertions.assertNotEquals(cnonce1, cnonce4);
+        Assertions.assertNotEquals(sessionKey1, sessionKey4);
+    }
+
 
 
 }
