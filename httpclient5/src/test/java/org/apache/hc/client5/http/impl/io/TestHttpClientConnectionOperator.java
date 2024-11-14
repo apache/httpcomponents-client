@@ -32,6 +32,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLSocket;
@@ -88,9 +91,14 @@ class TestHttpClientConnectionOperator {
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
         final InetAddress ip1 = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
         final InetAddress ip2 = InetAddress.getByAddress(new byte[] {127, 0, 0, 2});
+        final int port = 80;
+        final List<InetSocketAddress> resolvedAddresses = Arrays.asList(
+                new InetSocketAddress(ip1, port),
+                new InetSocketAddress(ip2, port)
+        );
+        Mockito.when(dnsResolver.resolve("somehost", port)).thenReturn(resolvedAddresses);
 
-        Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
-        Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(80);
+        Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(port);
         Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
 
         final SocketConfig socketConfig = SocketConfig.custom()
@@ -110,7 +118,7 @@ class TestHttpClientConnectionOperator {
         Mockito.verify(socket).setTcpNoDelay(true);
         Mockito.verify(socket).bind(localAddress);
 
-        Mockito.verify(socket).connect(new InetSocketAddress(ip1, 80), 123);
+        Mockito.verify(socket).connect(new InetSocketAddress(ip1, port), 123);
         Mockito.verify(conn, Mockito.times(2)).bind(socket);
     }
 
@@ -121,14 +129,20 @@ class TestHttpClientConnectionOperator {
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
         final InetAddress ip1 = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
         final InetAddress ip2 = InetAddress.getByAddress(new byte[] {127, 0, 0, 2});
+        final int port = 443;
 
         final TlsConfig tlsConfig = TlsConfig.custom()
                 .setHandshakeTimeout(Timeout.ofMilliseconds(345))
                 .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_1)
                 .build();
 
-        Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
-        Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(443);
+        final List<InetSocketAddress> resolvedAddresses = Arrays.asList(
+                new InetSocketAddress(ip1, port),
+                new InetSocketAddress(ip2, port)
+        );
+        Mockito.when(dnsResolver.resolve("somehost", port)).thenReturn(resolvedAddresses);
+
+        Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(port);
         Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
 
         Mockito.when(tlsSocketStrategyLookup.lookup("https")).thenReturn(tlsSocketStrategy);
@@ -144,27 +158,32 @@ class TestHttpClientConnectionOperator {
         connectionOperator.connect(conn, host, null, localAddress,
                 Timeout.ofMilliseconds(123), SocketConfig.DEFAULT, tlsConfig, context);
 
-        Mockito.verify(socket).connect(new InetSocketAddress(ip1, 443), 123);
+        Mockito.verify(socket).connect(new InetSocketAddress(ip1, port), 123);
         Mockito.verify(conn, Mockito.times(2)).bind(socket);
         Mockito.verify(tlsSocketStrategy).upgrade(socket, "somehost", -1, tlsConfig, context);
         Mockito.verify(conn, Mockito.times(1)).bind(upgradedSocket, socket);
     }
 
+
     @Test
     void testConnectTimeout() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final HttpHost host = new HttpHost("somehost");
+        final int port = 80;
         final InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
         final InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
-
-        Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
-        Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
+        final List<InetSocketAddress> resolvedAddresses = Arrays.asList(
+                new InetSocketAddress(ip1, port),
+                new InetSocketAddress(ip2, port)
+        );
+        Mockito.when(dnsResolver.resolve("somehost", port)).thenReturn(resolvedAddresses);
+        Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(port);
         Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
         Mockito.doThrow(new SocketTimeoutException()).when(socket).connect(Mockito.any(), Mockito.anyInt());
-
         Assertions.assertThrows(ConnectTimeoutException.class, () ->
                 connectionOperator.connect(
-                        conn, host, null, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context));
+                        conn, host, null, new InetSocketAddress(InetAddress.getLoopbackAddress(), 0),
+                        Timeout.ofMilliseconds(1000), SocketConfig.DEFAULT, null, context));
     }
 
     @Test
@@ -173,9 +192,14 @@ class TestHttpClientConnectionOperator {
         final HttpHost host = new HttpHost("somehost");
         final InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
         final InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
+        final int port = 80;
+        final List<InetSocketAddress> resolvedAddresses = Arrays.asList(
+                new InetSocketAddress(ip1, port),
+                new InetSocketAddress(ip2, port)
+        );
+        Mockito.when(dnsResolver.resolve("somehost", port)).thenReturn(resolvedAddresses);
 
-        Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
-        Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
+        Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(port);
         Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
         Mockito.doThrow(new ConnectException()).when(socket).connect(Mockito.any(), Mockito.anyInt());
 
@@ -189,14 +213,14 @@ class TestHttpClientConnectionOperator {
         final HttpClientContext context = HttpClientContext.create();
         final HttpHost host = new HttpHost("somehost");
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
-        final InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
-        final InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
+        final InetSocketAddress ipAddress1 = new InetSocketAddress(InetAddress.getByAddress(new byte[] {10, 0, 0, 1}), 80);
+        final InetSocketAddress ipAddress2 = new InetSocketAddress(InetAddress.getByAddress(new byte[] {10, 0, 0, 2}), 80);
 
-        Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
+        Mockito.when(dnsResolver.resolve("somehost", 80)).thenReturn(Arrays.asList(ipAddress1, ipAddress2));
         Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(80);
         Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
         Mockito.doThrow(new ConnectException()).when(socket).connect(
-                Mockito.eq(new InetSocketAddress(ip1, 80)),
+                Mockito.eq(ipAddress1),
                 Mockito.anyInt());
 
         final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
@@ -206,7 +230,7 @@ class TestHttpClientConnectionOperator {
                 Timeout.ofMilliseconds(123), SocketConfig.DEFAULT, tlsConfig, context);
 
         Mockito.verify(socket, Mockito.times(2)).bind(localAddress);
-        Mockito.verify(socket).connect(new InetSocketAddress(ip2, 80), 123);
+        Mockito.verify(socket).connect(ipAddress2, 123);
         Mockito.verify(conn, Mockito.times(3)).bind(socket);
 
     }
@@ -229,7 +253,7 @@ class TestHttpClientConnectionOperator {
 
         Mockito.verify(socket).bind(localAddress);
         Mockito.verify(socket).connect(new InetSocketAddress(ip, 80), 123);
-        Mockito.verify(dnsResolver, Mockito.never()).resolve(Mockito.anyString());
+        Mockito.verify(dnsResolver, Mockito.never()).resolve(Mockito.anyString(), Mockito.anyInt());
         Mockito.verify(conn, Mockito.times(2)).bind(socket);
     }
 
@@ -279,4 +303,82 @@ class TestHttpClientConnectionOperator {
                 connectionOperator.upgrade(conn, host, context));
     }
 
+    @Test
+    void testConnectWithDisableDnsResolution() throws Exception {
+        final HttpClientContext context = HttpClientContext.create();
+        final HttpHost host = new HttpHost("someonion.onion");
+        final InetAddress local = InetAddress.getByAddress(new byte[]{127, 0, 0, 0});
+        final int port = 80;
+
+        final List<InetSocketAddress> resolvedAddresses = Collections.singletonList(
+                InetSocketAddress.createUnresolved(host.getHostName(), port)
+        );
+        Mockito.when(dnsResolver.resolve(host.getHostName(), port)).thenReturn(resolvedAddresses);
+
+        Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(port);
+        Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
+
+        final SocketConfig socketConfig = SocketConfig.custom()
+                .setSoKeepAlive(true)
+                .setSoReuseAddress(true)
+                .setSoTimeout(5000, TimeUnit.MILLISECONDS)
+                .setTcpNoDelay(true)
+                .setSoLinger(50, TimeUnit.MILLISECONDS)
+                .build();
+        final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
+        final InetSocketAddress remoteAddress = InetSocketAddress.createUnresolved(host.getHostName(), port);
+
+        connectionOperator.connect(conn, host, null, localAddress, Timeout.ofMilliseconds(123), socketConfig, null, context);
+
+        // Verify that the socket was created and attempted to connect without DNS resolution
+        Mockito.verify(socket).setKeepAlive(true);
+        Mockito.verify(socket).setReuseAddress(true);
+        Mockito.verify(socket).setSoTimeout(5000);
+        Mockito.verify(socket).setSoLinger(true, 50);
+        Mockito.verify(socket).setTcpNoDelay(true);
+        Mockito.verify(socket).bind(localAddress);
+
+        Mockito.verify(socket).connect(remoteAddress, 123);
+        Mockito.verify(conn, Mockito.times(2)).bind(socket);
+        Mockito.verify(dnsResolver, Mockito.never()).resolve(Mockito.anyString());
+    }
+
+    @Test
+    void testConnectWithDnsResolutionAndFallback() throws Exception {
+        final HttpClientContext context = HttpClientContext.create();
+        final HttpHost host = new HttpHost("fallbackhost.com");
+        final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
+        final int port = 8080;
+        final InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
+        final InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
+
+        // Update to match the new `resolve` implementation that returns a list of SocketAddress
+        final List<InetSocketAddress> resolvedAddresses = Arrays.asList(
+                new InetSocketAddress(ip1, port),
+                new InetSocketAddress(ip2, port)
+        );
+        Mockito.when(dnsResolver.resolve("fallbackhost.com", port)).thenReturn(resolvedAddresses);
+        Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(port);
+        Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
+
+        // Simulate failure to connect to the first resolved address
+        Mockito.doThrow(new ConnectException()).when(socket).connect(Mockito.eq(new InetSocketAddress(ip1, port)), Mockito.anyInt());
+
+        final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
+        final SocketConfig socketConfig = SocketConfig.custom()
+                .setSoKeepAlive(true)
+                .setSoReuseAddress(true)
+                .setSoTimeout(5000, TimeUnit.MILLISECONDS)
+                .setTcpNoDelay(true)
+                .setSoLinger(50, TimeUnit.MILLISECONDS)
+                .build();
+
+        // Connect using the updated connection operator
+        connectionOperator.connect(conn, host, null, localAddress, Timeout.ofMilliseconds(123), socketConfig, null, context);
+
+        // Verify fallback behavior after connection failure to the first address
+        Mockito.verify(socket, Mockito.times(2)).bind(localAddress);
+        Mockito.verify(socket).connect(new InetSocketAddress(ip2, port), 123);
+        Mockito.verify(conn, Mockito.times(3)).bind(socket);
+    }
 }

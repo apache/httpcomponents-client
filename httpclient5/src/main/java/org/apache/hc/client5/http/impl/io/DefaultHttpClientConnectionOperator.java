@@ -27,13 +27,12 @@
 package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.net.UnknownHostException;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import javax.net.ssl.SSLSocket;
 
@@ -154,43 +153,37 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final SocketConfig socketConfig,
             final Object attachment,
             final HttpContext context) throws IOException {
+
         Args.notNull(conn, "Connection");
         Args.notNull(endpointHost, "Host");
         Args.notNull(socketConfig, "Socket config");
         Args.notNull(context, "Context");
-        final InetAddress[] remoteAddresses;
-        if (endpointHost.getAddress() != null) {
-            remoteAddresses = new InetAddress[] { endpointHost.getAddress() };
-        } else {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} resolving remote address", endpointHost.getHostName());
-            }
-
-            remoteAddresses = this.dnsResolver.resolve(endpointHost.getHostName());
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} resolved to {}", endpointHost.getHostName(), remoteAddresses == null ? "null" : Arrays.asList(remoteAddresses));
-            }
-
-            if (remoteAddresses == null || remoteAddresses.length == 0) {
-              throw new UnknownHostException(endpointHost.getHostName());
-          }
-        }
 
         final Timeout soTimeout = socketConfig.getSoTimeout();
         final SocketAddress socksProxyAddress = socketConfig.getSocksProxyAddress();
         final Proxy socksProxy = socksProxyAddress != null ? new Proxy(Proxy.Type.SOCKS, socksProxyAddress) : null;
-        final int port = this.schemePortResolver.resolve(endpointHost.getSchemeName(), endpointHost);
-        for (int i = 0; i < remoteAddresses.length; i++) {
-            final InetAddress address = remoteAddresses[i];
-            final boolean last = i == remoteAddresses.length - 1;
-            final InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
+
+        final List<InetSocketAddress> remoteAddresses;
+        if (endpointHost.getAddress() != null) {
+            remoteAddresses = Collections.singletonList(
+                    new InetSocketAddress(endpointHost.getAddress(), this.schemePortResolver.resolve(endpointHost.getSchemeName(), endpointHost)));
+        } else {
+            final int port = this.schemePortResolver.resolve(endpointHost.getSchemeName(), endpointHost);
+            remoteAddresses = this.dnsResolver.resolve(endpointHost.getHostName(), port);
+        }
+        for (int i = 0; i < remoteAddresses.size(); i++) {
+            final InetSocketAddress remoteAddress = remoteAddresses.get(i);
+            final boolean last = i == remoteAddresses.size() - 1;
             onBeforeSocketConnect(context, endpointHost);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} connecting {}->{} ({})", endpointHost, localAddress, remoteAddress, connectTimeout);
             }
             final Socket socket = detachedSocketFactory.create(socksProxy);
             try {
+                // Always bind to the local address if it's provided.
+                if (localAddress != null) {
+                    socket.bind(localAddress);
+                }
                 conn.bind(socket);
                 if (soTimeout != null) {
                     socket.setSoTimeout(soTimeout.toMillisecondsIntBound());
@@ -209,16 +202,11 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 if (linger >= 0) {
                     socket.setSoLinger(true, linger);
                 }
-
-                if (localAddress != null) {
-                    socket.bind(localAddress);
-                }
                 socket.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisecondsIntBound() : 0);
                 conn.bind(socket);
                 onAfterSocketConnect(context, endpointHost);
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("{} {} connected {}->{}", ConnPoolSupport.getId(conn), endpointHost,
-                            conn.getLocalAddress(), conn.getRemoteAddress());
+                    LOG.debug("{} {} connected {}->{}", ConnPoolSupport.getId(conn), endpointHost, conn.getLocalAddress(), conn.getRemoteAddress());
                 }
                 conn.setSocketTimeout(soTimeout);
                 final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(endpointHost.getSchemeName()) : null;
@@ -245,7 +233,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} connection to {} failed ({}); terminating operation", endpointHost, remoteAddress, ex.getClass());
                     }
-                    throw ConnectExceptionSupport.enhance(ex, endpointHost, remoteAddresses);
+                    throw ConnectExceptionSupport.enhance(ex, endpointHost);
                 }
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} connection to {} failed ({}); retrying connection to the next address", endpointHost, remoteAddress, ex.getClass());

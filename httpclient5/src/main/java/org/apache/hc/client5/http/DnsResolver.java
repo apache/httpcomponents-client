@@ -27,7 +27,12 @@
 package org.apache.hc.client5.http;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -61,4 +66,20 @@ public interface DnsResolver {
      */
     String resolveCanonicalHostname(String host) throws UnknownHostException;
 
+    /**
+     * Returns a list of {@link InetSocketAddress} for the given host with the given port.
+     *
+     * @see InetSocketAddress
+     *
+     * @since 5.5
+     */
+    default List<InetSocketAddress> resolve(String host, int port) throws UnknownHostException {
+        final InetAddress[] inetAddresses = resolve(host);
+        if (inetAddresses == null) {
+            return Collections.singletonList(InetSocketAddress.createUnresolved(host, port));
+        }
+        return Arrays.stream(inetAddresses)
+                .map(e -> new InetSocketAddress(e, port))
+                .collect(Collectors.toList());
+    }
 }

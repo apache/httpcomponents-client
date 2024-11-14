@@ -32,7 +32,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -108,11 +108,11 @@ final class MultihomeIOSessionRequester {
             LOG.debug("{} resolving remote address", remoteEndpoint.getHostName());
         }
 
-        final InetAddress[] remoteAddresses;
+        final List<InetSocketAddress> remoteAddresses;
         try {
-            remoteAddresses = dnsResolver.resolve(remoteEndpoint.getHostName());
-            if (remoteAddresses == null || remoteAddresses.length == 0) {
-              throw new UnknownHostException(remoteEndpoint.getHostName());
+            remoteAddresses = dnsResolver.resolve(remoteEndpoint.getHostName(), remoteEndpoint.getPort());
+            if (remoteAddresses == null || remoteAddresses.isEmpty()) {
+                throw new UnknownHostException(remoteEndpoint.getHostName());
             }
         } catch (final UnknownHostException ex) {
             future.failed(ex);
@@ -120,7 +120,7 @@ final class MultihomeIOSessionRequester {
         }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{} resolved to {}", remoteEndpoint.getHostName(), Arrays.asList(remoteAddresses));
+            LOG.debug("{} resolved to {}", remoteEndpoint.getHostName(), remoteAddresses);
         }
 
         final Runnable runnable = new Runnable() {
@@ -129,7 +129,7 @@ final class MultihomeIOSessionRequester {
 
             void executeNext() {
                 final int index = attempt.getAndIncrement();
-                final InetSocketAddress remoteAddress = new InetSocketAddress(remoteAddresses[index], remoteEndpoint.getPort());
+                final InetSocketAddress remoteAddress = remoteAddresses.get(index);
 
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{}:{} connecting {}->{} ({})",
@@ -155,13 +155,17 @@ final class MultihomeIOSessionRequester {
 
                             @Override
                             public void failed(final Exception cause) {
-                                if (attempt.get() >= remoteAddresses.length) {
+                                if (attempt.get() >= remoteAddresses.size()) {
                                     if (LOG.isDebugEnabled()) {
                                         LOG.debug("{}:{} connection to {} failed ({}); terminating operation",
                                                 remoteEndpoint.getHostName(), remoteEndpoint.getPort(), remoteAddress, cause.getClass());
                                     }
                                     if (cause instanceof IOException) {
-                                        future.failed(ConnectExceptionSupport.enhance((IOException) cause, remoteEndpoint, remoteAddresses));
+                                        final InetAddress[] addresses = remoteAddresses.stream()
+                                                .filter(addr -> addr instanceof InetSocketAddress)
+                                                .map(addr -> ((InetSocketAddress) addr).getAddress())
+                                                .toArray(InetAddress[]::new);
+                                        future.failed(ConnectExceptionSupport.enhance((IOException) cause, remoteEndpoint, addresses));
                                     } else {
                                         future.failed(cause);
                                     }
