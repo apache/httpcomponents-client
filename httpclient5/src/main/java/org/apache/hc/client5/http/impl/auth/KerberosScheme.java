@@ -41,9 +41,10 @@ import org.ietf.jgss.Oid;
  *
  * @since 4.2
  *
- * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
- * supported. Consider using Basic or Bearer authentication with TLS instead.
+ * @deprecated Do not use. The Kerberos authentication scheme was never standardised.
+ * Use {@link MutualSpnegoScheme} or some other scheme instead.
  *
+ * @see MutualSpnegoScheme
  * @see BasicScheme
  * @see BearerScheme
  */
@@ -70,8 +71,8 @@ public class KerberosScheme extends GGSSchemeBase {
     }
 
     @Override
-    protected byte[] generateToken(final byte[] input, final String serviceName, final String authServer) throws GSSException {
-        return generateGSSToken(input, new Oid(KERBEROS_OID), serviceName, authServer);
+    protected byte[] generateToken(final byte[] input, final String gssServiceName, final String gssHostname) throws GSSException {
+        return generateGSSToken(input, new Oid(KERBEROS_OID), gssServiceName, gssHostname);
     }
 
     @Override
