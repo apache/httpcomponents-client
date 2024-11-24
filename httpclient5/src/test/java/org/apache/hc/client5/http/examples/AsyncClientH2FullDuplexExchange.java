@@ -40,6 +40,7 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
@@ -78,7 +79,12 @@ public class AsyncClientH2FullDuplexExchange {
 
         client.start();
 
-        final BasicHttpRequest request = BasicRequestBuilder.post("https://nghttp2.org/httpbin/post").build();
+        final HttpHost target = new HttpHost("https", "nghttp2.org");
+
+        final BasicHttpRequest request = BasicRequestBuilder.post()
+                .setHttpHost(target)
+                .setPath("/httpbin/post")
+                .build();
         final BasicRequestProducer requestProducer = new BasicRequestProducer(request,
                 new BasicAsyncEntityProducer("stuff", ContentType.TEXT_PLAIN));
         final BasicResponseConsumer<String> responseConsumer = new BasicResponseConsumer<>(
