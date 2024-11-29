@@ -72,6 +72,7 @@ import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.ScramSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
@@ -1077,6 +1078,7 @@ public class HttpClientBuilder {
                 .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
                 .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
                 .register(StandardAuthScheme.BEARER, BearerSchemeFactory.INSTANCE)
+                .register(StandardAuthScheme.SCRAM_SHA_256, ScramSchemeFactory.INSTANCE)
                 .build();
         }
         Lookup<CookieSpecFactory> cookieSpecRegistryCopy = this.cookieSpecRegistry;
