@@ -67,10 +67,11 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
     public static final DefaultAuthenticationStrategy INSTANCE = new DefaultAuthenticationStrategy();
 
     private static final List<String> DEFAULT_SCHEME_PRIORITY =
-        Collections.unmodifiableList(Arrays.asList(
-                StandardAuthScheme.BEARER,
-                StandardAuthScheme.DIGEST,
-                StandardAuthScheme.BASIC));
+            Collections.unmodifiableList(Arrays.asList(
+                    StandardAuthScheme.BEARER,
+                    StandardAuthScheme.SCRAM_SHA_256,
+                    StandardAuthScheme.DIGEST,
+                    StandardAuthScheme.BASIC));
 
     protected List<String> getSchemePriority() {
         return DEFAULT_SCHEME_PRIORITY;
