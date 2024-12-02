@@ -126,8 +126,8 @@ public class ClientConfiguration {
         };
         final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory = new DefaultHttpRequestWriterFactory();
 
-        // Create connection configuration
-        final CharCodingConfig connectionConfig = CharCodingConfig.custom()
+        // Create char coding configuration
+        final CharCodingConfig charCodingConfig = CharCodingConfig.custom()
                 .setMalformedInputAction(CodingErrorAction.IGNORE)
                 .setUnmappableInputAction(CodingErrorAction.IGNORE)
                 .setCharset(StandardCharsets.UTF_8)
@@ -138,7 +138,7 @@ public class ClientConfiguration {
         // configuration parameters HTTP connection factory can define message
         // parser / writer routines to be employed by individual connections.
         final HttpConnectionFactory<ManagedHttpClientConnection> connFactory = new ManagedHttpClientConnectionFactory(
-                h1Config, connectionConfig, requestWriterFactory, responseParserFactory);
+                h1Config, charCodingConfig, requestWriterFactory, responseParserFactory);
 
         // Client HTTP connection objects when fully initialized can be bound to
         // an arbitrary network socket. The process of network socket initialization,
