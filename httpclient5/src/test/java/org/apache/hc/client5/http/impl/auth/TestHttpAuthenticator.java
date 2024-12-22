@@ -38,6 +38,7 @@ import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
@@ -150,7 +151,7 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthentication() {
+    void testAuthentication() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -179,7 +180,7 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthenticationCredentialsForBasic() {
+    void testAuthenticationCredentialsForBasic() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response =
             new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
@@ -205,7 +206,7 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthenticationNoChallenges() {
+    void testAuthenticationNoChallenges() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
 
@@ -216,7 +217,7 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthenticationNoSupportedChallenges() {
+    void testAuthenticationNoSupportedChallenges() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "This realm=\"test\""));
@@ -229,7 +230,7 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthenticationNoCredentials() {
+    void testAuthenticationNoCredentials() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -242,7 +243,7 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthenticationFailed() {
+    void testAuthenticationFailed() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -260,7 +261,7 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthenticationFailedPreviously() {
+    void testAuthenticationFailedPreviously() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -277,7 +278,7 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthenticationFailure() {
+    void testAuthenticationFailure() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -295,7 +296,7 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthenticationHandshaking() {
+    void testAuthenticationHandshaking() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"test\""));
@@ -314,7 +315,7 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthenticationNoMatchingChallenge() {
+    void testAuthenticationNoMatchingChallenge() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"1234\""));
@@ -342,7 +343,7 @@ class TestHttpAuthenticator {
     }
 
     @Test
-    void testAuthenticationException() {
+    void testAuthenticationException() throws AuthenticationException, MalformedChallengeException {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "blah blah blah"));
