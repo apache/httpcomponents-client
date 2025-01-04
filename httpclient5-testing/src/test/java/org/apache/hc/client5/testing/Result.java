@@ -28,8 +28,6 @@ package org.apache.hc.client5.testing;
 
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.message.RequestLine;
-import org.apache.hc.core5.http.message.StatusLine;
 
 public final class Result<T> {
 
@@ -65,13 +63,13 @@ public final class Result<T> {
     @Override
     public String toString() {
         final StringBuilder buf = new StringBuilder();
-        buf.append(new RequestLine(request));
+        buf.append(request.getMethod()).append(" ").append(request.getRequestUri());
         buf.append(" -> ");
         if (exception != null) {
             buf.append("NOK: ").append(exception);
         } else {
             if (response != null) {
-                buf.append("OK: ").append(new StatusLine(response));
+                buf.append("OK: ").append(response.getCode());
             }
         }
         return buf.toString();

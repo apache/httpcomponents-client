@@ -50,8 +50,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
-import org.apache.hc.core5.http.message.RequestLine;
-import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -343,7 +341,8 @@ class BasicHttpCache implements HttpCache {
     @Override
     public void evictInvalidatedEntries(final HttpHost host, final HttpRequest request, final HttpResponse response) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Evict cache entries invalidated by exchange: {}; {} -> {}", host, new RequestLine(request), new StatusLine(response));
+            LOG.debug("Evict cache entries invalidated by exchange: {}; {} {} -> {}",
+                    host, request.getMethod(), request.getRequestUri(), response.getCode());
         }
         final int status = response.getCode();
         if (status >= HttpStatus.SC_SUCCESS && status < HttpStatus.SC_CLIENT_ERROR &&

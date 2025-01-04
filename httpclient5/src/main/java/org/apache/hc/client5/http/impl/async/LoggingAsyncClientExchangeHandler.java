@@ -34,8 +34,6 @@ import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.message.RequestLine;
-import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
@@ -70,7 +68,7 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
     public void produceRequest(final RequestChannel channel, final HttpContext context) throws HttpException, IOException {
         handler.produceRequest((request, entityDetails, context1) -> {
             if (log.isDebugEnabled()) {
-                log.debug("{} send request {}, {}", exchangeId, new RequestLine(request),
+                log.debug("{} send request {} {}, {}", exchangeId, request.getMethod(), request.getRequestUri(),
                         entityDetails != null ? "entity len " + entityDetails.getContentLength() : "null entity");
             }
             channel.sendRequest(request, entityDetails, context1);
@@ -126,7 +124,7 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
             final HttpResponse response,
             final HttpContext context) throws HttpException, IOException {
         if (log.isDebugEnabled()) {
-            log.debug("{}: information response {}", exchangeId, new StatusLine(response));
+            log.debug("{}: information response {}", exchangeId, response.getCode());
         }
         handler.consumeInformation(response, context);
     }
@@ -137,7 +135,7 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
             final EntityDetails entityDetails,
             final HttpContext context) throws HttpException, IOException {
         if (log.isDebugEnabled()) {
-            log.debug("{}: consume response {}, {}", exchangeId, new StatusLine(response), entityDetails != null ? "entity len " + entityDetails.getContentLength() : " null entity");
+            log.debug("{}: consume response {}, {}", exchangeId, response.getCode(), entityDetails != null ? "entity len " + entityDetails.getContentLength() : " null entity");
         }
         handler.consumeResponse(response, entityDetails, context);
     }

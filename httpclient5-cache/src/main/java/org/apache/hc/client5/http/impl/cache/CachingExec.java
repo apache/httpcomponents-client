@@ -65,7 +65,6 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
-import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.ByteArrayBuffer;
@@ -147,7 +146,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{} request via cache: {}", exchangeId, new RequestLine(request));
+            LOG.debug("{} request via cache: {} {}", exchangeId, request.getMethod(), request.getRequestUri());
         }
 
         context.setCacheResponseStatus(CacheResponseStatus.CACHE_MISS);
@@ -247,7 +246,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{} cache hit: {}", exchangeId, new RequestLine(request));
+            LOG.debug("{} cache hit: {} {}", exchangeId, request.getMethod(), request.getRequestUri());
         }
 
         context.setCacheResponseStatus(CacheResponseStatus.CACHE_HIT);
@@ -571,7 +570,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final String exchangeId = scope.exchangeId;
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{} cache miss: {}", exchangeId, new RequestLine(request));
+            LOG.debug("{} cache miss: {} {}", exchangeId, request.getMethod(), request.getRequestUri());
         }
         cacheMisses.getAndIncrement();
 
