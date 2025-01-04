@@ -47,7 +47,6 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
@@ -93,7 +92,7 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
         final AsyncExecRuntime execRuntime = scope.execRuntime;
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{} executing {}", exchangeId, new RequestLine(request));
+            LOG.debug("{} executing {} {}", exchangeId, request.getMethod(), request.getRequestUri());
         }
 
         final AsyncClientExchangeHandler internalExchangeHandler = new AsyncClientExchangeHandler() {

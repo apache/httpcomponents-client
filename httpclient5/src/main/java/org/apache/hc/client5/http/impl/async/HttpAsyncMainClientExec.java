@@ -55,7 +55,6 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
@@ -110,7 +109,7 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
         final AsyncExecRuntime execRuntime = scope.execRuntime;
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{} executing {}", exchangeId, new RequestLine(request));
+            LOG.debug("{} executing {} {}", exchangeId, request.getMethod(), request.getRequestUri());
         }
 
         final AtomicInteger messageCountDown = new AtomicInteger(2);

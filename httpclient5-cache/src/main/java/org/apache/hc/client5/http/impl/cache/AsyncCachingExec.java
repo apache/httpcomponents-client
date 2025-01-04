@@ -70,7 +70,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.impl.BasicEntityDetails;
-import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
@@ -242,7 +241,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         final CancellableDependency operation = scope.cancellableDependency;
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{} request via cache: {}", exchangeId, new RequestLine(request));
+            LOG.debug("{} request via cache: {} {}", exchangeId, request.getMethod(), request.getRequestUri());
         }
 
         context.setCacheResponseStatus(CacheResponseStatus.CACHE_MISS);
@@ -727,7 +726,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         final String exchangeId = scope.exchangeId;
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{} cache hit: {}", exchangeId, new RequestLine(request));
+            LOG.debug("{} cache hit: {} {}", exchangeId, request.getMethod(), request.getRequestUri());
         }
 
         context.setCacheResponseStatus(CacheResponseStatus.CACHE_HIT);
@@ -1150,7 +1149,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         final String exchangeId = scope.exchangeId;
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{} cache miss: {}", exchangeId, new RequestLine(request));
+            LOG.debug("{} cache miss: {} {}", exchangeId, request.getMethod(), request.getRequestUri());
         }
         cacheMisses.getAndIncrement();
 

@@ -51,7 +51,6 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Args;
@@ -109,7 +108,7 @@ public final class MainClientExec implements ExecChainHandler {
         final ExecRuntime execRuntime = scope.execRuntime;
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{} executing {}", exchangeId, new RequestLine(request));
+            LOG.debug("{} executing {} {}", exchangeId, request.getMethod(), request.getRequestUri());
         }
         try {
             // Run request protocol interceptors
