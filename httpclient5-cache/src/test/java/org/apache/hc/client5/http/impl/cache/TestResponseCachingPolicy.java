@@ -944,4 +944,60 @@ class TestResponseCachingPolicy {
 
         Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
+
+    @Test
+    void testPublicWithAuthorizationIsCacheable() {
+        request = new BasicHttpRequest("GET", "/resource");
+        request.setHeader(HttpHeaders.AUTHORIZATION, "Basic dXNlcjpwYXNzd2Q=");
+        response.setHeader("Cache-Control", "public");
+        responseCacheControl = ResponseCacheControl.builder()
+                .setCachePublic(true)
+                .build();
+
+        final boolean isCacheable = policy.isResponseCacheable(responseCacheControl, request, response);
+        Assertions.assertTrue(isCacheable,
+                "Response with public directive and Authorization header should be cacheable in shared cache.");
+    }
+
+    @Test
+    void testSMaxageWithAuthorizationIsCacheable() {
+        request = new BasicHttpRequest("GET", "/resource");
+        request.setHeader(HttpHeaders.AUTHORIZATION, "Basic dXNlcjpwYXNzd2Q=");
+        response.setHeader("Cache-Control", "s-maxage=60");
+        responseCacheControl = ResponseCacheControl.builder()
+                .setSharedMaxAge(60)
+                .build();
+
+        final boolean isCacheable = policy.isResponseCacheable(responseCacheControl, request, response);
+        Assertions.assertTrue(isCacheable,
+                "Response with s-maxage and Authorization header should be cacheable in shared cache.");
+    }
+
+    @Test
+    void testNoDirectivesWithAuthorizationNotCacheable() {
+        request = new BasicHttpRequest("GET", "/resource");
+        request.setHeader(HttpHeaders.AUTHORIZATION, "Basic dXNlcjpwYXNzd2Q=");
+        response.setHeader("Cache-Control", "");
+        responseCacheControl = ResponseCacheControl.builder()
+                .build();
+
+        final boolean isCacheable = policy.isResponseCacheable(responseCacheControl, request, response);
+        Assertions.assertFalse(isCacheable,
+                "Response without must-revalidate, public, or s-maxage should not be cacheable with Authorization header.");
+    }
+
+    @Test
+    void testMustRevalidateWithAuthorizationIsCacheable() {
+        request = new BasicHttpRequest("GET", "/resource");
+        request.setHeader(HttpHeaders.AUTHORIZATION, "Basic dXNlcjpwYXNzd2Q=");
+        response.setHeader("Cache-Control", "must-revalidate");
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMustRevalidate(true)
+                .build();
+
+        final boolean isCacheable = policy.isResponseCacheable(responseCacheControl, request, response);
+        Assertions.assertTrue(isCacheable,
+                "Response with must-revalidate and Authorization header should be cacheable in shared cache.");
+    }
+
 }
