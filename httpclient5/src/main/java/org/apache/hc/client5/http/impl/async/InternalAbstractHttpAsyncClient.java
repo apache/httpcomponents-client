@@ -362,7 +362,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                             }
 
                         });
-            }, context);
+            }, clientContext);
         } catch (final HttpException | IOException | IllegalStateException ex) {
             future.failed(ex);
         }

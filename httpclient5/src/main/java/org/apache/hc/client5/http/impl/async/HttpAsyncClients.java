@@ -33,9 +33,12 @@ import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.compat.ClassicToAsyncAdaptor;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.config.CharCodingConfig;
@@ -54,6 +57,7 @@ import org.apache.hc.core5.http2.protocol.H2RequestContent;
 import org.apache.hc.core5.http2.protocol.H2RequestTargetHost;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
+import org.apache.hc.core5.util.Timeout;
 import org.apache.hc.core5.util.VersionInfo;
 
 /**
@@ -347,6 +351,25 @@ public final class HttpAsyncClients {
             final Supplier<AsyncPushConsumer> supplier = requestRouter.resolve(request, context);
             return supplier != null ? supplier.get() : null;
         };
+    }
+
+    /**
+     * Creates an {@link CloseableHttpClient} facade backed by {@link CloseableHttpAsyncClient}
+     * built internally and acting as a compatibility bridge between the classic APIs based
+     * on the standard {@link java.io.InputStream} / {@link java.io.OutputStream} model
+     * and the underlying asynchronous message transport.
+     * <p>
+     * This feature is considered experimental and may be discontinued in the future.
+     *
+     * @param client async client
+     * @param operationTimeout maximum period an operation can block awaiting input / output.
+     *
+     * @since 5.5
+     */
+    @Experimental
+    public static CloseableHttpClient classic(final CloseableHttpAsyncClient client, final Timeout operationTimeout) {
+        client.start();
+        return new ClassicToAsyncAdaptor(client, operationTimeout);
     }
 
 }

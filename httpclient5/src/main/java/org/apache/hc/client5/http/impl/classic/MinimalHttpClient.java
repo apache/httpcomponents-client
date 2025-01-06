@@ -158,7 +158,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
             if (entity == null || !entity.isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
                 execRuntime.releaseEndpoint();
-                return new CloseableHttpResponse(response, null);
+                return new CloseableHttpResponse(response);
             }
             ResponseEntityProxy.enhance(response, execRuntime);
             return new CloseableHttpResponse(response, execRuntime);
