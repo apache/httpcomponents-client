@@ -26,8 +26,11 @@
  */
 package org.apache.hc.client5.http;
 
+import java.net.IDN;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+
+import org.apache.hc.core5.util.TextUtils;
 
 /**
  * DNS resolver that uses the default OS implementation for resolving host names.
@@ -44,8 +47,18 @@ public class SystemDefaultDnsResolver implements DnsResolver {
     @Override
     public InetAddress[] resolve(final String host) throws UnknownHostException {
         try {
+            String normalizedHost;
+            if (TextUtils.isAllASCII(host)) {
+                normalizedHost = host;
+            } else {
+                try {
+                    normalizedHost = IDN.toASCII(host);
+                } catch (final IllegalArgumentException e) {
+                    normalizedHost = host;  // Fall back to original hostname
+                }
+            }
             // Try resolving using the default resolver
-            return InetAddress.getAllByName(host);
+            return InetAddress.getAllByName(normalizedHost);
         } catch (final UnknownHostException e) {
             // If default resolver fails, try stripping the IPv6 zone ID and resolving again
             String strippedHost = null;
