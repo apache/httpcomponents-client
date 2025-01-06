@@ -471,4 +471,80 @@ class TestDefaultHostnameVerifier {
                         publicSuffixMatcher));
     }
 
+    @Test
+    void testMatchIdentity() {
+        // Test 1: IDN matching punycode
+        final String unicodeHost1 = "поиск-слов.рф";
+        final String punycodeHost1 = "xn----dtbqigoecuc.xn--p1ai";
+
+        // These should now match, thanks to IDN.toASCII():
+        Assertions.assertTrue(
+                DefaultHostnameVerifier.matchIdentity(unicodeHost1, punycodeHost1),
+                "Expected the Unicode host and its punycode to match"
+        );
+
+        // ‘example.com’ vs. an unrelated punycode domain should fail:
+        Assertions.assertFalse(
+                DefaultHostnameVerifier.matchIdentity("example.com", punycodeHost1),
+                "Expected mismatch between example.com and xn----dtbqigoecuc.xn--p1ai"
+        );
+
+        // Test 2: Unicode host and Unicode identity
+        final String unicodeHost2 = "пример.рф";
+        final String unicodeIdentity2 = "пример.рф";
+        Assertions.assertTrue(
+                DefaultHostnameVerifier.matchIdentity(unicodeHost2, unicodeIdentity2),
+                "Expected Unicode host and Unicode identity to match"
+        );
+
+        // Test 3: Punycode host and Unicode identity
+        final String unicodeHost3 = "пример.рф";
+        final String punycodeIdentity3 = "xn--e1afmkfd.xn--p1ai";
+        Assertions.assertTrue(
+                DefaultHostnameVerifier.matchIdentity(unicodeHost3, punycodeIdentity3),
+                "Expected Unicode host and punycode identity to match"
+        );
+
+        // Test 4: Wildcard matching in the left-most label
+        final String unicodeHost4 = "sub.пример.рф";
+        final String unicodeIdentity4 = "*.пример.рф";
+        Assertions.assertTrue(
+                DefaultHostnameVerifier.matchIdentity(unicodeHost4, unicodeIdentity4),
+                "Expected wildcard to match subdomain"
+        );
+
+        // Test 5: Invalid host
+        final String invalidHost = "invalid_host";
+        final String unicodeIdentity5 = "пример.рф";
+        Assertions.assertFalse(
+                DefaultHostnameVerifier.matchIdentity(invalidHost, unicodeIdentity5),
+                "Expected invalid host to not match"
+        );
+
+        // Test 6: Invalid identity
+        final String unicodeHost4b = "пример.рф";
+        final String invalidIdentity = "xn--invalid-punycode";
+        Assertions.assertFalse(
+                DefaultHostnameVerifier.matchIdentity(unicodeHost4b, invalidIdentity),
+                "Expected invalid identity to not match"
+        );
+
+        // Test 7: Mixed case comparison
+        final String unicodeHost5 = "ПрИмеР.рф";
+        final String unicodeIdentity6 = "пример.рф";
+        Assertions.assertTrue(
+                DefaultHostnameVerifier.matchIdentity(unicodeHost5, unicodeIdentity6),
+                "Expected case-insensitive Unicode comparison to match"
+        );
+
+
+        // Test 8: Wildcard in the middle label (per RFC 2818, should match)
+        final String unicodeHost6 = "sub.пример.рф";
+        final String unicodeIdentity8 = "sub.*.рф";
+        Assertions.assertTrue(
+                DefaultHostnameVerifier.matchIdentity(unicodeHost6, unicodeIdentity8),
+                "Expected wildcard in the middle label to match"
+        );
+    }
+
 }

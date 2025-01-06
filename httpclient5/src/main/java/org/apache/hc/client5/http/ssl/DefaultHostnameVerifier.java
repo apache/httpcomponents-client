@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.ssl;
 
+import java.net.IDN;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.cert.Certificate;
@@ -228,8 +229,18 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
                                          final PublicSuffixMatcher publicSuffixMatcher,
                                          final DomainType domainType,
                                          final boolean strict) {
+
+        final String normalizedIdentity;
+        try {
+            // Convert only the identity to its Unicode form
+            normalizedIdentity = IDN.toUnicode(identity);
+        } catch (final IllegalArgumentException e) {
+            return false;
+        }
+
+        // Public suffix check on the Unicode identity
         if (publicSuffixMatcher != null && host.contains(".")) {
-            if (publicSuffixMatcher.getDomainRoot(identity, domainType) == null) {
+            if (publicSuffixMatcher.getDomainRoot(normalizedIdentity, domainType) == null) {
                 return false;
             }
         }
@@ -239,10 +250,11 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
         // character * which is considered to match any single domain name
         // component or component fragment..."
         // Based on this statement presuming only singular wildcard is legal
-        final int asteriskIdx = identity.indexOf('*');
+        final int asteriskIdx = normalizedIdentity.indexOf('*');
         if (asteriskIdx != -1) {
-            final String prefix = identity.substring(0, asteriskIdx);
-            final String suffix = identity.substring(asteriskIdx + 1);
+            final String prefix = normalizedIdentity.substring(0, asteriskIdx);
+            final String suffix = normalizedIdentity.substring(asteriskIdx + 1);
+
             if (!prefix.isEmpty() && !host.startsWith(prefix)) {
                 return false;
             }
@@ -252,12 +264,16 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
             // Additional sanity checks on content selected by wildcard can be done here
             if (strict) {
                 final String remainder = host.substring(
-                        prefix.length(), host.length() - suffix.length());
+                        prefix.length(),
+                        host.length() - suffix.length()
+                );
                 return !remainder.contains(".");
             }
             return true;
         }
-        return host.equalsIgnoreCase(identity);
+
+        // Direct Unicode comparison
+        return host.equalsIgnoreCase(normalizedIdentity);
     }
 
     static boolean matchIdentity(final String host, final String identity,
