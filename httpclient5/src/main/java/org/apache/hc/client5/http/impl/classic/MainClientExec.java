@@ -170,7 +170,7 @@ public final class MainClientExec implements ExecChainHandler {
             if (entity == null || !entity.isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
                 execRuntime.releaseEndpoint();
-                return new CloseableHttpResponse(response, null);
+                return new CloseableHttpResponse(response);
             }
             return new CloseableHttpResponse(response, execRuntime);
         } catch (final ConnectionShutdownException ex) {

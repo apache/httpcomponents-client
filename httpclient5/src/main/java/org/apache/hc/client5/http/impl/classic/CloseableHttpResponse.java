@@ -50,7 +50,7 @@ import org.apache.hc.core5.util.Args;
 public final class CloseableHttpResponse implements ClassicHttpResponse, ModalCloseable {
 
     private final ClassicHttpResponse response;
-    private final ExecRuntime execRuntime;
+    private final CloseableDelegate closeableDelegate;
 
     /**
      * @since 5.4
@@ -60,14 +60,45 @@ public final class CloseableHttpResponse implements ClassicHttpResponse, ModalCl
         if (response == null) {
             return null;
         }
-        return response instanceof CloseableHttpResponse
-                        ? (CloseableHttpResponse) response
-                        : new CloseableHttpResponse(response, null);
+        return response instanceof CloseableHttpResponse ?
+                (CloseableHttpResponse) response :
+                new CloseableHttpResponse(response);
+    }
+
+    /**
+     * @since 5.5
+     */
+    @Internal
+    public static CloseableHttpResponse create(final ClassicHttpResponse response,
+                                               final CloseableDelegate closeableDelegate) {
+        if (response == null) {
+            return null;
+        }
+        return new CloseableHttpResponse(response, closeableDelegate);
+    }
+
+    CloseableHttpResponse(final ClassicHttpResponse response) {
+        this.response = Args.notNull(response, "Response");
+        this.closeableDelegate = null;
+    }
+
+    CloseableHttpResponse(final ClassicHttpResponse response, final CloseableDelegate closeableDelegate) {
+        this.response = Args.notNull(response, "Response");
+        this.closeableDelegate = closeableDelegate;
     }
 
     CloseableHttpResponse(final ClassicHttpResponse response, final ExecRuntime execRuntime) {
         this.response = Args.notNull(response, "Response");
-        this.execRuntime = execRuntime;
+        this.closeableDelegate = (closeable, closeMode) -> {
+            try {
+                if (closeMode == CloseMode.GRACEFUL) {
+                    response.close();
+                }
+                execRuntime.disconnectEndpoint();
+            } finally {
+                execRuntime.discardEndpoint();
+            }
+        };
     }
 
     @Override
@@ -201,15 +232,8 @@ public final class CloseableHttpResponse implements ClassicHttpResponse, ModalCl
     }
 
     private void doClose(final CloseMode closeMode) throws IOException {
-        if (execRuntime != null) {
-            try {
-                if (closeMode == CloseMode.GRACEFUL) {
-                    response.close();
-                }
-                execRuntime.disconnectEndpoint();
-            } finally {
-                execRuntime.discardEndpoint();
-            }
+        if (closeableDelegate != null) {
+            closeableDelegate.close(response, closeMode);
         } else {
             response.close();
         }
