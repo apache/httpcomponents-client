@@ -110,6 +110,14 @@ class TestRequestUpgrade {
     }
 
     @Test
+    void testDoUpgradeIfConnectionHeaderPresent() throws Exception {
+        final HttpRequest get = new BasicHttpRequest("GET", "/");
+        get.addHeader(HttpHeaders.CONNECTION, "keep-alive");
+        interceptor.process(get, null, context);
+        Assertions.assertFalse(get.containsHeader(HttpHeaders.UPGRADE));
+    }
+
+    @Test
     void testDoUpgradeNonSafeMethodsOrTrace() throws Exception {
         final HttpRequest post = new BasicHttpRequest("POST", "/");
         interceptor.process(post, null, context);
