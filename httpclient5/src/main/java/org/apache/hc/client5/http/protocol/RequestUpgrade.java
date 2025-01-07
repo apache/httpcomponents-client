@@ -67,7 +67,9 @@ public final class RequestUpgrade implements HttpRequestInterceptor {
         final RequestConfig requestConfig = clientContext.getRequestConfigOrDefault();
         if (requestConfig.isProtocolUpgradeEnabled()) {
             final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : clientContext.getProtocolVersion();
-            if (!request.containsHeader(HttpHeaders.UPGRADE) && version.getMajor() == 1 && version.getMinor() >= 1) {
+            if (!request.containsHeader(HttpHeaders.UPGRADE) &&
+                    !request.containsHeader(HttpHeaders.CONNECTION) &&
+                    version.getMajor() == 1 && version.getMinor() >= 1) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Connection is upgradable: protocol version = {}", version);
                 }
