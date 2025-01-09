@@ -145,7 +145,7 @@ class ResponseCachingPolicy {
         if (sharedCache) {
             if (request.containsHeader(HttpHeaders.AUTHORIZATION) &&
                     cacheControl.getSharedMaxAge() == -1 &&
-                    !cacheControl.isPublic()) {
+                    !(cacheControl.isPublic() || cacheControl.isMustRevalidate())) {
                 LOG.debug("Request contains private credentials");
                 return false;
             }
