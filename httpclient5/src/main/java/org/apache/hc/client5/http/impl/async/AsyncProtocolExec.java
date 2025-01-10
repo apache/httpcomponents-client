@@ -38,7 +38,9 @@ import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.auth.AuthExchange;
+import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
+import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.RequestSupport;
@@ -305,11 +307,12 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
             final HttpHost target,
             final String pathPrefix,
             final HttpResponse response,
-            final HttpClientContext context) {
+            final HttpClientContext context) throws AuthenticationException, MalformedChallengeException {
         final RequestConfig config = context.getRequestConfigOrDefault();
         if (config.isAuthenticationEnabled()) {
             final boolean targetAuthRequested = authenticator.isChallenged(
                     target, ChallengeType.TARGET, response, targetAuthExchange, context);
+            final boolean targetMutualAuthRequired = authenticator.isChallengeExpected(targetAuthExchange);
 
             if (authCacheKeeper != null) {
                 if (targetAuthRequested) {
@@ -321,6 +324,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
             final boolean proxyAuthRequested = authenticator.isChallenged(
                     proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
+            final boolean proxyMutualAuthRequired = authenticator.isChallengeExpected(proxyAuthExchange);
 
             if (authCacheKeeper != null) {
                 if (proxyAuthRequested) {
@@ -330,7 +334,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                 }
             }
 
-            if (targetAuthRequested) {
+            if (targetAuthRequested || targetMutualAuthRequired) {
                 final boolean updated = authenticator.updateAuthState(target, ChallengeType.TARGET, response,
                         targetAuthStrategy, targetAuthExchange, context);
 
@@ -340,7 +344,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
                 return updated;
             }
-            if (proxyAuthRequested) {
+            if (proxyAuthRequested || proxyMutualAuthRequired) {
                 final boolean updated = authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                         proxyAuthStrategy, proxyAuthExchange, context);
 

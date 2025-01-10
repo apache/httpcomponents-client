@@ -33,6 +33,7 @@ import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
@@ -156,6 +157,12 @@ final class StandardTestClientBuilder implements TestAsyncClientBuilder {
     @Override
     public TestAsyncClientBuilder setDefaultAuthSchemeRegistry(final Lookup<AuthSchemeFactory> authSchemeRegistry) {
         this.clientBuilder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
+        return this;
+    }
+
+    @Override
+    public TestAsyncClientBuilder setDefaultCredentialsProvider(final CredentialsProvider credentialsProvider) {
+        this.clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
         return this;
     }
 
