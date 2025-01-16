@@ -31,12 +31,28 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigInteger;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Principal;
+import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.net.ssl.SSLException;
 
@@ -546,6 +562,195 @@ class TestDefaultHostnameVerifier {
                 DefaultHostnameVerifier.matchIdentity(unicodeHost6, unicodeIdentity8),
                 "Expected wildcard in the middle label to match"
         );
+    }
+
+
+    @Test
+    void testSimulatedByteProperties() throws Exception {
+        // Simulated byte array for an IP address
+        final byte[] ipAsByteArray = {1, 1, 1, 1}; // 1.1.1.1 in byte form
+
+        final List<List<?>> entries = new ArrayList<>();
+        final List<Object> entry = new ArrayList<>();
+        entry.add(SubjectName.IP);
+        entry.add(ipAsByteArray);
+        entries.add(entry);
+
+        // Mocking the certificate behavior
+        final X509Certificate mockCert = generateX509Certificate(entries);
+
+        final List<SubjectName> result = DefaultHostnameVerifier.getSubjectAltNames(mockCert, -1);
+        Assertions.assertEquals(1, result.size(), "Should have one SubjectAltName");
+
+        final SubjectName sn = result.get(0);
+        Assertions.assertEquals(SubjectName.IP, sn.getType(), "Should be an IP type");
+        // Here, you'll need logic to convert byte array to string for assertion
+        Assertions.assertEquals("1.1.1.1", sn.getValue(), "IP address should match after conversion");
+    }
+
+    @Test
+    void testSimulatedBytePropertiesIPv6() throws Exception {
+        final byte[] ipv6AsByteArray = InetAddress.getByName("2001:db8:85a3::8a2e:370:7334").getAddress();
+        // IPv6 2001:db8:85a3::8a2e:370:7334
+
+        final List<List<?>> entries = new ArrayList<>();
+        final List<Object> entry = new ArrayList<>();
+        entry.add(SubjectName.IP);
+        entry.add(ipv6AsByteArray);
+        entries.add(entry);
+
+        // Mocking the certificate behavior
+        final X509Certificate mockCert = generateX509Certificate(entries);
+
+        final List<SubjectName> result = DefaultHostnameVerifier.getSubjectAltNames(mockCert, -1);
+        Assertions.assertEquals(1, result.size(), "Should have one SubjectAltName");
+
+        final SubjectName sn = result.get(0);
+        Assertions.assertEquals(SubjectName.IP, sn.getType(), "Should be an IP type");
+        // Here, you'll need logic to convert byte array to string for assertion
+        Assertions.assertEquals("2001:0db8:85a3:0000:0000:8a2e:0370:7334", sn.getValue(), "IP address should match after conversion");
+    }
+
+
+    private X509Certificate generateX509Certificate(final List<List<?>> entries) {
+        return new X509Certificate() {
+
+            @Override
+            public boolean hasUnsupportedCriticalExtension() {
+                return false;
+            }
+
+            @Override
+            public Set<String> getCriticalExtensionOIDs() {
+                return null;
+            }
+
+            @Override
+            public Set<String> getNonCriticalExtensionOIDs() {
+                return null;
+            }
+
+            @Override
+            public byte[] getExtensionValue(final String oid) {
+                return new byte[0];
+            }
+
+            @Override
+            public byte[] getEncoded() throws CertificateEncodingException {
+                return new byte[0];
+            }
+
+            @Override
+            public void verify(final PublicKey key) throws CertificateException, NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException, SignatureException {
+
+            }
+
+            @Override
+            public void verify(final PublicKey key, final String sigProvider) throws CertificateException, NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException, SignatureException {
+
+            }
+
+            @Override
+            public String toString() {
+                return "";
+            }
+
+            @Override
+            public PublicKey getPublicKey() {
+                return null;
+            }
+
+            @Override
+            public void checkValidity() throws CertificateExpiredException, CertificateNotYetValidException {
+
+            }
+
+            @Override
+            public void checkValidity(final Date date) throws CertificateExpiredException, CertificateNotYetValidException {
+
+            }
+
+            @Override
+            public int getVersion() {
+                return 0;
+            }
+
+            @Override
+            public BigInteger getSerialNumber() {
+                return null;
+            }
+
+            @Override
+            public Principal getIssuerDN() {
+                return null;
+            }
+
+            @Override
+            public Principal getSubjectDN() {
+                return null;
+            }
+
+            @Override
+            public Date getNotBefore() {
+                return null;
+            }
+
+            @Override
+            public Date getNotAfter() {
+                return null;
+            }
+
+            @Override
+            public byte[] getTBSCertificate() throws CertificateEncodingException {
+                return new byte[0];
+            }
+
+            @Override
+            public byte[] getSignature() {
+                return new byte[0];
+            }
+
+            @Override
+            public String getSigAlgName() {
+                return "";
+            }
+
+            @Override
+            public String getSigAlgOID() {
+                return "";
+            }
+
+            @Override
+            public byte[] getSigAlgParams() {
+                return new byte[0];
+            }
+
+            @Override
+            public boolean[] getIssuerUniqueID() {
+                return new boolean[0];
+            }
+
+            @Override
+            public boolean[] getSubjectUniqueID() {
+                return new boolean[0];
+            }
+
+            @Override
+            public boolean[] getKeyUsage() {
+                return new boolean[0];
+            }
+
+            @Override
+            public int getBasicConstraints() {
+                return 0;
+            }
+
+            @Override
+            public Collection<List<?>> getSubjectAlternativeNames() {
+                return entries;
+            }
+        };
+
     }
 
 }
