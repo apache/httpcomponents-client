@@ -33,6 +33,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.DnsResolver;
@@ -789,6 +790,97 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
      */
     public boolean isClosed() {
         return this.closed.get();
+    }
+
+
+    /**
+     * Performs a warm-up of connections to the specified target host asynchronously.
+     * This method initializes a number of connections to the target host as defined
+     * by the maximum connections per route configuration and ensures they are ready
+     * for use before actual requests are made.
+     *
+     * <p>The warm-up process helps in reducing the connection establishment time
+     * for subsequent requests by pre-establishing and validating connections.</p>
+     *
+     * @param host the target {@link HttpHost} for which connections are to be warmed up.
+     * @param timeout the timeout for each lease operation during the warm-up process.
+     * @param callback the {@link FutureCallback} to notify upon the completion of the warm-up process.
+     *                 The callback is triggered when all connections are warmed up, or if there are
+     *                 failures during the process.
+     * @since 5.5
+     */
+    public void warmUp(final HttpHost host, final Timeout timeout, final FutureCallback<Void> callback) {
+        final int count = pool.getMaxPerRoute(new HttpRoute(host));
+
+        if (count <= 0) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("No connections to warm up for route: {}", host);
+            }
+            if (callback != null) {
+                callback.completed(null);
+            }
+            return;
+        }
+
+        final AtomicInteger completedCount = new AtomicInteger(0);
+        final AtomicInteger successCount = new AtomicInteger(0);
+        final AtomicInteger failureCount = new AtomicInteger(0);
+
+        for (int i = 0; i < count; i++) {
+            pool.lease(new HttpRoute(host), null, timeout, new FutureCallback<PoolEntry<HttpRoute, ManagedAsyncClientConnection>>() {
+                @Override
+                public void completed(final PoolEntry<HttpRoute, ManagedAsyncClientConnection> result) {
+                    try {
+                        pool.release(result, true);
+                        successCount.incrementAndGet();
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Warm-up connection leased and released: {}", result.getRoute());
+                        }
+                    } catch (final Exception ex) {
+                        failureCount.incrementAndGet();
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Warm-up connection release failed: {}", ex.getMessage());
+                        }
+                    } finally {
+                        checkCompletion();
+                    }
+                }
+
+                @Override
+                public void failed(final Exception ex) {
+                    failureCount.incrementAndGet();
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Warm-up connection failed: {}", ex.getMessage());
+                    }
+                    checkCompletion();
+                }
+
+                @Override
+                public void cancelled() {
+                    failureCount.incrementAndGet();
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Warm-up connection cancelled.");
+                    }
+                    checkCompletion();
+                }
+
+                private void checkCompletion() {
+                    if (completedCount.incrementAndGet() == count) {
+                        if (callback != null) {
+                            if (failureCount.get() > 0) {
+                                callback.failed(new Exception("Warm-up failed for some connections. Successes: "
+                                        + successCount.get() + ", Failures: " + failureCount.get()));
+                            } else {
+                                callback.completed(null);
+                            }
+                        }
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Warm-up completed. Successes: {}, Failures: {}", successCount.get(), failureCount.get());
+                        }
+                    }
+                }
+            });
+        }
     }
 
 }

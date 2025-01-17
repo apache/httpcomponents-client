@@ -820,5 +820,60 @@ public class PoolingHttpClientConnectionManager
         return this.closed.get();
     }
 
+    /**
+     * Performs a warm-up of connections to the specified target host synchronously.
+     * This method initializes a number of connections to the target host as defined
+     * by the maximum connections per route configuration and ensures they are ready
+     * for use before actual requests are made.
+     *
+     * @param host the target {@link HttpHost} for which connections are to be warmed up.
+     * @param timeout the timeout for each lease operation during the warm-up process.
+     * @since 5.5
+     */
+    public void warmUp(final HttpHost host, final Timeout timeout) {
+        final int count = pool.getMaxPerRoute(new HttpRoute(host));
 
+        if (count <= 0) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("No connections to warm up for route: {}", host);
+            }
+            return;
+        }
+
+        int successCount = 0;
+        int failureCount = 0;
+
+        for (int i = 0; i < count; i++) {
+            try {
+                final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = pool.lease(
+                        new HttpRoute(host),
+                        null,
+                        timeout,
+                        null
+                ).get(timeout.getDuration(), timeout.getTimeUnit());
+
+                // Release the leased connection
+                pool.release(entry, true);
+                successCount++;
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Warm-up connection leased and released: {}", entry.getRoute());
+                }
+            } catch (final Exception ex) {
+                failureCount++;
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Warm-up connection failed: {}", ex.getMessage());
+                }
+            }
+        }
+
+        if (LOG.isInfoEnabled()) {
+            LOG.info("Warm-up completed. Successes: {}, Failures: {}", successCount, failureCount);
+        }
+
+        if (failureCount > 0) {
+            throw new IllegalStateException("Warm-up failed for some connections. Successes: "
+                    + successCount + ", Failures: " + failureCount);
+        }
+    }
 }

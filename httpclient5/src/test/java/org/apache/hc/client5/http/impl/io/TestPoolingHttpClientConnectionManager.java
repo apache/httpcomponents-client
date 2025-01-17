@@ -406,4 +406,46 @@ class TestPoolingHttpClientConnectionManager {
     }
 
 
+    @Test
+    void testWarmUp() throws Exception {
+        final HttpHost target = new HttpHost("localhost", 80);
+        final HttpRoute route = new HttpRoute(target);
+
+        // Create mock PoolEntry
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry1 =
+                new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECOND);
+        entry1.assignConnection(conn);
+
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry2 =
+                new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECOND);
+        entry2.assignConnection(conn);
+
+        // Mock the pool to return a max-per-route of 2
+        Mockito.when(pool.getMaxPerRoute(Mockito.eq(route))).thenReturn(2);
+
+        // Mock pool.lease() behavior to simulate leasing and returning futures
+        Mockito.when(pool.lease(
+                        Mockito.eq(route),
+                        Mockito.isNull(),
+                        Mockito.any(),
+                        Mockito.isNull()))
+                .thenReturn(future);
+
+        // Simulate `Future.get()` to return the mocked PoolEntry objects
+        Mockito.when(future.get(Mockito.anyLong(), Mockito.any())).thenReturn(entry1, entry2);
+
+        // Mock pool.release behavior
+        Mockito.doNothing().when(pool).release(Mockito.any(), Mockito.eq(true));
+
+        // Call the warm-up method synchronously
+        mgr.warmUp(target, Timeout.ofSeconds(10));
+
+        // Verify interactions with the pool
+        Mockito.verify(pool, Mockito.times(2)).lease(
+                Mockito.eq(route),
+                Mockito.isNull(),
+                Mockito.any(),
+                Mockito.isNull());
+        Mockito.verify(pool, Mockito.times(2)).release(Mockito.any(), Mockito.eq(true));
+    }
 }
