@@ -464,6 +464,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                         state.tunnelRefused = true;
                         entityConsumerRef.set(asyncExecCallback.handleResponse(response, entityDetails));
                     } else if (status == HttpStatus.SC_OK) {
+                        clientContext.setProtocolVersion(null);
                         asyncExecCallback.completed();
                     } else {
                         throw new HttpException("Unexpected response to CONNECT request: " + new StatusLine(response));
@@ -552,7 +553,6 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         final HttpClientContext clientContext = scope.clientContext;
         final EndpointInfo endpointInfo = execRuntime.getEndpointInfo();
         if (endpointInfo != null) {
-            clientContext.setProtocolVersion(endpointInfo.getProtocol());
             clientContext.setSSLSession(endpointInfo.getSslSession());
         }
         try {

@@ -193,7 +193,6 @@ public final class ConnectExec implements ExecChainHandler {
             }
             final EndpointInfo endpointInfo = execRuntime.getEndpointInfo();
             if (endpointInfo != null) {
-                context.setProtocolVersion(endpointInfo.getProtocol());
                 context.setSSLSession(endpointInfo.getSslSession());
             }
             return chain.proceed(request, scope);
@@ -286,7 +285,9 @@ public final class ConnectExec implements ExecChainHandler {
         }
 
         final int status = response.getCode();
-        if (status != HttpStatus.SC_OK) {
+        if (status == HttpStatus.SC_OK) {
+            context.setProtocolVersion(null);
+        } else {
             final HttpEntity entity = response.getEntity();
             if (entity != null) {
                 response.setEntity(new ByteArrayEntity(
