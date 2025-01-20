@@ -293,7 +293,7 @@ public final class ConnectExec implements ExecChainHandler {
                 response.setEntity(new ByteArrayEntity(
                         EntityUtils.toByteArray(entity, 4096),
                         ContentType.parseLenient(entity.getContentType())));
-                execRuntime.disconnectEndpoint();
+                execRuntime.discardEndpoint();
             }
             return response;
         }

@@ -218,7 +218,7 @@ class TestConnectExec {
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         exec.execute(request, scope, execChain);
-        Mockito.verify(execRuntime, Mockito.atLeastOnce()).disconnectEndpoint();
+        Mockito.verify(execRuntime, Mockito.atLeastOnce()).discardEndpoint();
     }
 
     @Test
