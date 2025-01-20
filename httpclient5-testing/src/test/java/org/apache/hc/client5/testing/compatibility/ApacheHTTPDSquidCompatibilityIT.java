@@ -30,8 +30,10 @@ import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.testing.compatibility.async.CachingHttpAsyncClientCompatibilityTest;
 import org.apache.hc.client5.testing.compatibility.async.HttpAsyncClientCompatibilityTest;
 import org.apache.hc.client5.testing.compatibility.async.HttpAsyncClientHttp1CompatibilityTest;
+import org.apache.hc.client5.testing.compatibility.async.HttpAsyncClientProxyCompatibilityTest;
 import org.apache.hc.client5.testing.compatibility.sync.CachingHttpClientCompatibilityTest;
 import org.apache.hc.client5.testing.compatibility.sync.HttpClientCompatibilityTest;
+import org.apache.hc.client5.testing.compatibility.sync.HttpClientProxyCompatibilityTest;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
@@ -319,6 +321,26 @@ class ApacheHTTPDSquidCompatibilityIT {
 
         public AsyncCachingHttp2Tls() throws Exception {
             super(HttpVersionPolicy.FORCE_HTTP_2, targetContainerTlsHost());
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Classic client: HTTP/1.1, connection via password protected proxy")
+    class HttpClientProxy extends HttpClientProxyCompatibilityTest {
+
+        public HttpClientProxy() throws Exception {
+            super(targetInternalTlsHost(), proxyPwProtectedContainerHost());
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Async client: HTTP/1.1, connection via password protected proxy")
+    class AsyncClientProxy extends HttpAsyncClientProxyCompatibilityTest {
+
+        public AsyncClientProxy() throws Exception {
+            super(targetInternalTlsHost(), proxyPwProtectedContainerHost());
         }
 
     }
