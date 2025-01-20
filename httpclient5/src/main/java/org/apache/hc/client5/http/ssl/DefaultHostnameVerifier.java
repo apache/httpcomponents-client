@@ -355,7 +355,14 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
                         if (o instanceof String) {
                             result.add(new SubjectName((String) o, type));
                         } else if (o instanceof byte[]) {
-                            // TODO ASN.1 DER encoded form
+                            final byte[] bytes = (byte[]) o;
+                            if (type == SubjectName.IP) {
+                                if (bytes.length == 4) {
+                                    result.add(new SubjectName(byteArrayToIp(bytes), type)); // IPv4
+                                } else if (bytes.length == 16) {
+                                    result.add(new SubjectName(byteArrayToIPv6(bytes), type)); // IPv6
+                                }
+                            }
                         }
                     }
                 }
@@ -380,4 +387,29 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
             return hostname;
         }
     }
+
+    private static String byteArrayToIp(final byte[] bytes) {
+        if (bytes.length != 4) {
+            throw new IllegalArgumentException("Invalid byte array length for IPv4 address");
+        }
+        return (bytes[0] & 0xFF) + "." +
+                (bytes[1] & 0xFF) + "." +
+                (bytes[2] & 0xFF) + "." +
+                (bytes[3] & 0xFF);
+    }
+
+    private static String byteArrayToIPv6(final byte[] bytes) {
+        if (bytes.length != 16) {
+            throw new IllegalArgumentException("Invalid byte array length for IPv6 address");
+        }
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < bytes.length; i += 2) {
+            sb.append(String.format("%02x%02x", bytes[i], bytes[i + 1]));
+            if (i < bytes.length - 2) {
+                sb.append(":");
+            }
+        }
+        return sb.toString();
+    }
+
 }
