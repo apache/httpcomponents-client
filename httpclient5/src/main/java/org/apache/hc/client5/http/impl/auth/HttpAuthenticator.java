@@ -228,7 +228,7 @@ public final class HttpAuthenticator {
      * @param authStrategy the authentication strategy.
      * @param authExchange the current authentication exchange state.
      * @param context the current execution context.
-     * @return {@code true} if the request needs-to be re-sent ,
+     * @return {@code true} if the request needs-to be re-sent,
      *   {@code false} if the authentication is complete (successful or not).
      *
      * @throws AuthenticationException if the AuthScheme throws one. In most cases this indicates a
@@ -428,7 +428,7 @@ public final class HttpAuthenticator {
                             request.addHeader(header);
                         }
                         break;
-                    } catch (final AuthenticationException ex ) {
+                    } catch (final AuthenticationException ex) {
                         if (LOG.isWarnEnabled()) {
                             LOG.warn("{} {} authentication error: {}", exchangeId, authScheme, ex.getMessage());
                         }
@@ -440,8 +440,8 @@ public final class HttpAuthenticator {
         default:
         }
         // This is the SUCCESS and HANDSHAKE states, same as the initial response.
-        // This only happens if the NEGOTIATE handshake requires multiple requests, which is
-        // defined in the RFC, but unlikely in practice.
+        // This only happens if the handshake requires multiple requests, which is
+        // unlikely in practice.
         if (authScheme != null) {
             try {
                 final String authResponse = authScheme.generateAuthResponse(host, request, context);

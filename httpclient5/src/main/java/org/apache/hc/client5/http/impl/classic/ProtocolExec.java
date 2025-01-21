@@ -191,7 +191,7 @@ public final class ProtocolExec implements ExecChainHandler {
                     authenticator.addAuthResponse(proxy, ChallengeType.PROXY, request, proxyAuthExchange, context);
                 }
 
-                //The is where the actual network communications happens (eventually)
+                // This is where the actual network communication happens (eventually)
                 final ClassicHttpResponse response = chain.proceed(request, scope);
 
                 if (Method.TRACE.isSame(request.getMethod())) {
