@@ -60,9 +60,8 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.2
  *
- * @deprecated Do not use. This class implements functionality for the old deprecated non mutual
- * authentication capable {@link SPNegoScheme} and {@link KerberosScheme} classes.
- * The new mutual authentication capable implementation is {@link MutualGSSSchemeBase}.
+ * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
+ * supported. Consider using Basic or Bearer authentication with TLS instead.
  */
 @Deprecated
 public abstract class GGSSchemeBase implements AuthScheme {

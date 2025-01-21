@@ -53,7 +53,7 @@ public interface AuthScheme2 extends AuthScheme {
      * AuthenticationException.
      *
      * This new methods signature makes it possible to process the token and throw an
-     * AuthenticationException immediately even when no response is sent (i.e. processing the mutual
+     * AuthenticationException immediately even when no response is sent (i.e. processing an SPNEGO or SCRAM mutual
      * authentication response)
      *
      * When {@link  isChallengeExpected} returns true, but no challenge was sent, then this method must
@@ -92,7 +92,7 @@ public interface AuthScheme2 extends AuthScheme {
      * The original AuthScheme interface only processes unauthorised responses.
      * This method indicates that non unauthorised responses are expected to contain challenges
      * and must be processed by the Scheme.
-     * This is required to implement the SPENGO RFC and Kerberos mutual authentication.
+     * This is required to implement the SPENGO RFC and Kerberos mutual authentication, and SCRAM.
      *
      * @return true if responses with non 401/407 response codes must be processed by the scheme.
      * @since 5.5

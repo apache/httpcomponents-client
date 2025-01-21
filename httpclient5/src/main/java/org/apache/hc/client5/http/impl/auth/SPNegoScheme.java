@@ -36,15 +36,15 @@ import org.ietf.jgss.Oid;
  * SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) authentication
  * scheme.
  * <p>
- * This class implements the old deprecated non mutual authentication capable SPNEGO implementation.
- * Use {@link MutualSpnegoScheme} instead.
+ * Please note this class is considered experimental and may be discontinued or removed
+ * in the future.
  * </p>
  *
  * @since 4.2
  *
- * @deprecated Use {@link MutualSpnegoScheme} or some other auth scheme instead.
+ * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
+ * supported. Consider using Basic or Bearer authentication with TLS instead.
  *
- * @see MutualSpnegoScheme
  * @see BasicScheme
  * @see BearerScheme
  */

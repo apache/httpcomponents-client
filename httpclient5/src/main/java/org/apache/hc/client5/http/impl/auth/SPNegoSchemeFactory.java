@@ -39,15 +39,15 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * {@link AuthSchemeFactory} implementation that creates and initializes
  * {@link SPNegoScheme} instances.
  * <p>
- * This factory creates the old deprecated non mutual authentication capable SPNEGO implementation.
- * Use {@link MutualSpnegoAuthFactory} instead.
+ * Please note this class is considered experimental and may be discontinued or removed
+ * in the future.
  * </p>
  *
  * @since 4.2
  *
- * @deprecated Use {@link MutualSpnegoAuthFactory} or some other auth scheme instead.
+ * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
+ * supported. Consider using Basic or Bearer authentication with TLS instead.
  *
- * @see MutualSpnegoAuthFactory
  * @see BasicSchemeFactory
  * @see BearerSchemeFactory
  */

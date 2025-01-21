@@ -37,7 +37,14 @@ import org.ietf.jgss.GSSCredential;
  * Kerberos specific {@link Credentials} representation based on {@link GSSCredential}.
  *
  * @since 4.4
+ *
+ * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
+ * supported. Consider using Basic or Bearer authentication with TLS instead.
+ *
+ * @see UsernamePasswordCredentials
+ * @see BearerToken
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class KerberosCredentials implements Credentials, Serializable {
 

@@ -35,7 +35,11 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  *
  *  @since 4.6
  *
+ * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
+ * supported. Consider using Basic or Bearer authentication with TLS instead.
+ *
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class KerberosConfig implements Cloneable {
 
@@ -49,28 +53,25 @@ public class KerberosConfig implements Cloneable {
 
     public static final KerberosConfig DEFAULT = new Builder().build();
 
-    private final Option stripPort; //Effective default is ENABLE
-    private final Option useCanonicalHostname; //Effective default is ENABLE
-    private final Option requestDelegCreds; //Effective default is DISABLE
-    private final Option requestMutualAuth; //Effective default is DISABLE
+    private final Option stripPort;
+    private final Option useCanonicalHostname;
+    private final Option requestDelegCreds;
 
     /**
      * Intended for CDI compatibility
     */
     protected KerberosConfig() {
-        this(Option.DEFAULT, Option.DEFAULT, Option.DEFAULT, Option.DEFAULT);
+        this(Option.DEFAULT, Option.DEFAULT, Option.DEFAULT);
     }
 
     KerberosConfig(
             final Option stripPort,
             final Option useCanonicalHostname,
-            final Option requestDelegCreds,
-            final Option requestMutualAuth) {
+            final Option requestDelegCreds) {
         super();
         this.stripPort = stripPort;
         this.useCanonicalHostname = useCanonicalHostname;
         this.requestDelegCreds = requestDelegCreds;
-        this.requestMutualAuth = requestMutualAuth;
     }
 
     public Option getStripPort() {
@@ -85,10 +86,6 @@ public class KerberosConfig implements Cloneable {
         return requestDelegCreds;
     }
 
-    public Option getRequestMutualAuth() {
-        return requestMutualAuth;
-    }
-
     @Override
     protected KerberosConfig clone() throws CloneNotSupportedException {
         return (KerberosConfig) super.clone();
@@ -101,7 +98,6 @@ public class KerberosConfig implements Cloneable {
         builder.append("stripPort=").append(stripPort);
         builder.append(", useCanonicalHostname=").append(useCanonicalHostname);
         builder.append(", requestDelegCreds=").append(requestDelegCreds);
-        builder.append(", requestMutualAuth=").append(requestMutualAuth);
         builder.append("]");
         return builder.toString();
     }
@@ -114,9 +110,7 @@ public class KerberosConfig implements Cloneable {
         return new Builder()
                 .setStripPort(config.getStripPort())
                 .setUseCanonicalHostname(config.getUseCanonicalHostname())
-                .setRequestDelegCreds(config.getRequestDelegCreds())
-                .setRequestMutualAuth(config.getRequestMutualAuth()
-                    );
+                .setRequestDelegCreds(config.getRequestDelegCreds());
     }
 
     public static class Builder {
@@ -124,14 +118,12 @@ public class KerberosConfig implements Cloneable {
         private Option stripPort;
         private Option useCanonicalHostname;
         private Option requestDelegCreds;
-        private Option requestMutualAuth;
 
         Builder() {
             super();
             this.stripPort = Option.DEFAULT;
             this.useCanonicalHostname = Option.DEFAULT;
             this.requestDelegCreds = Option.DEFAULT;
-            this.requestMutualAuth = Option.DEFAULT;
         }
 
         public Builder setStripPort(final Option stripPort) {
@@ -159,17 +151,11 @@ public class KerberosConfig implements Cloneable {
             return this;
         }
 
-        public Builder setRequestMutualAuth(final Option requestMutualAuth) {
-            this.requestMutualAuth = requestMutualAuth;
-            return this;
-        }
-
         public KerberosConfig build() {
             return new KerberosConfig(
                     stripPort,
                     useCanonicalHostname,
-                    requestDelegCreds,
-                    requestMutualAuth);
+                    requestDelegCreds);
         }
 
     }
