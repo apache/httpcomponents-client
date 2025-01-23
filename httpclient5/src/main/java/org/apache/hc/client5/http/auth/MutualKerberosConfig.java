@@ -31,66 +31,63 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
- *  Immutable class encapsulating Kerberos configuration options.
+ * Immutable class encapsulating Kerberos configuration options for MutualSpnegoScheme.
  *
- *  @since 4.6
+ * Unlike the deprecated {@link KerberosConfig}, this class uses explicit defaults, and
+ * primitive booleans.
  *
- * @deprecated Do not use. The old GGS based experimental authentication schemes are no longer
- * supported.
- * Use MutualSpnegoScheme, or consider using Basic or Bearer authentication with TLS instead.
- * @see org.apache.hc.client5.http.impl.auth.MutualSpnegoScheme
- * @see MutualKerberosConfig
+ * @since 5.5
+ *
  */
-@Deprecated
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class KerberosConfig implements Cloneable {
+public class MutualKerberosConfig implements Cloneable {
 
-    public enum Option {
 
-        DEFAULT,
-        ENABLE,
-        DISABLE
+    public static final MutualKerberosConfig DEFAULT = new Builder().build();
 
-    }
-
-    public static final KerberosConfig DEFAULT = new Builder().build();
-
-    private final Option stripPort;
-    private final Option useCanonicalHostname;
-    private final Option requestDelegCreds;
+    private final boolean stripPort;
+    private final boolean useCanonicalHostname;
+    private final boolean requestMutualAuth;
+    private final boolean requestDelegCreds;
 
     /**
      * Intended for CDI compatibility
     */
-    protected KerberosConfig() {
-        this(Option.DEFAULT, Option.DEFAULT, Option.DEFAULT);
+    protected MutualKerberosConfig() {
+        this(true, true, true, false);
     }
 
-    KerberosConfig(
-            final Option stripPort,
-            final Option useCanonicalHostname,
-            final Option requestDelegCreds) {
+    MutualKerberosConfig(
+            final boolean stripPort,
+            final boolean useCanonicalHostname,
+            final boolean requestMutualAuth,
+            final boolean requestDelegCreds) {
         super();
         this.stripPort = stripPort;
         this.useCanonicalHostname = useCanonicalHostname;
+        this.requestMutualAuth = requestMutualAuth;
         this.requestDelegCreds = requestDelegCreds;
     }
 
-    public Option getStripPort() {
+    public boolean isStripPort() {
         return stripPort;
     }
 
-    public Option getUseCanonicalHostname() {
+    public boolean isUseCanonicalHostname() {
         return useCanonicalHostname;
     }
 
-    public Option getRequestDelegCreds() {
+    public boolean isRequestDelegCreds() {
         return requestDelegCreds;
     }
 
+    public boolean isRequestMutualAuth() {
+        return requestMutualAuth;
+    }
+
     @Override
-    protected KerberosConfig clone() throws CloneNotSupportedException {
-        return (KerberosConfig) super.clone();
+    protected MutualKerberosConfig clone() throws CloneNotSupportedException {
+        return (MutualKerberosConfig) super.clone();
     }
 
     @Override
@@ -100,64 +97,61 @@ public class KerberosConfig implements Cloneable {
         builder.append("stripPort=").append(stripPort);
         builder.append(", useCanonicalHostname=").append(useCanonicalHostname);
         builder.append(", requestDelegCreds=").append(requestDelegCreds);
+        builder.append(", requestMutualAuth=").append(requestMutualAuth);
         builder.append("]");
         return builder.toString();
     }
 
-    public static KerberosConfig.Builder custom() {
+    public static MutualKerberosConfig.Builder custom() {
         return new Builder();
     }
 
-    public static KerberosConfig.Builder copy(final KerberosConfig config) {
+    public static MutualKerberosConfig.Builder copy(final MutualKerberosConfig config) {
         return new Builder()
-                .setStripPort(config.getStripPort())
-                .setUseCanonicalHostname(config.getUseCanonicalHostname())
-                .setRequestDelegCreds(config.getRequestDelegCreds());
+                .setStripPort(config.isStripPort())
+                .setUseCanonicalHostname(config.isUseCanonicalHostname())
+                .setRequestDelegCreds(config.isRequestDelegCreds())
+                .setRequestMutualAuth(config.isRequestMutualAuth());
     }
 
     public static class Builder {
 
-        private Option stripPort;
-        private Option useCanonicalHostname;
-        private Option requestDelegCreds;
+        private boolean stripPort = true;
+        private boolean useCanonicalHostname = true ;
+        private boolean requestMutualAuth = true;
+        private boolean requestDelegCreds = false;
 
         Builder() {
             super();
-            this.stripPort = Option.DEFAULT;
-            this.useCanonicalHostname = Option.DEFAULT;
-            this.requestDelegCreds = Option.DEFAULT;
         }
 
-        public Builder setStripPort(final Option stripPort) {
+        public Builder setStripPort(final boolean stripPort) {
             this.stripPort = stripPort;
             return this;
         }
 
-        public Builder setStripPort(final boolean stripPort) {
-            this.stripPort = stripPort ? Option.ENABLE : Option.DISABLE;
-            return this;
-        }
-
-        public Builder setUseCanonicalHostname(final Option useCanonicalHostname) {
+        public Builder setUseCanonicalHostname(final boolean useCanonicalHostname) {
             this.useCanonicalHostname = useCanonicalHostname;
             return this;
         }
 
-        public Builder setUseCanonicalHostname(final boolean useCanonicalHostname) {
-            this.useCanonicalHostname = useCanonicalHostname ? Option.ENABLE : Option.DISABLE;
+        public Builder setRequestMutualAuth(final boolean requestMutualAuth) {
+            this.requestMutualAuth = requestMutualAuth;
             return this;
         }
 
-        public Builder setRequestDelegCreds(final Option requestDelegCreds) {
-            this.requestDelegCreds = requestDelegCreds;
+        public Builder setRequestDelegCreds(final boolean requuestDelegCreds) {
+            this.requestDelegCreds = requuestDelegCreds;
             return this;
         }
 
-        public KerberosConfig build() {
-            return new KerberosConfig(
+        public MutualKerberosConfig build() {
+            return new MutualKerberosConfig(
                     stripPort,
                     useCanonicalHostname,
-                    requestDelegCreds);
+                    requestMutualAuth,
+                    requestDelegCreds
+                    );
         }
 
     }

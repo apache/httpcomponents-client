@@ -27,58 +27,50 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import org.apache.hc.client5.http.DnsResolver;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.SystemDefaultDnsResolver;
+import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
+import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Experimental;
-import org.ietf.jgss.GSSException;
-import org.ietf.jgss.Oid;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
- * SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) authentication
- * scheme.
+ * {@link AuthSchemeFactory} implementation that creates and initialises
+ * {@link MutualSpnegoScheme} instances.
  * <p>
- * Please note this class is considered experimental and may be discontinued or removed
- * in the future.
+ * This replaces the old deprecated {@link SPNegoSchemeFactory}
  * </p>
  *
- * @since 4.2
+ * @since 5.5
  *
- * @deprecated Do not use. The old GGS based experimental authentication schemes are no longer
- * supported. Use MutualSpnegoScheme, or consider using Basic or Bearer authentication with TLS
- * instead.
- * @see MutualSpnegoScheme
- * @see BasicScheme
- * @see BearerScheme
+ * @see SPNegoSchemeFactory
  */
-@Deprecated
+@Contract(threading = ThreadingBehavior.STATELESS)
 @Experimental
-public class SPNegoScheme extends GGSSchemeBase {
+public class MutualSpnegoSchemeFactory implements AuthSchemeFactory {
 
-    private static final String SPNEGO_OID = "1.3.6.1.5.5.2";
+    /**
+     * Singleton instance for the default configuration.
+     */
+    public static final MutualSpnegoSchemeFactory DEFAULT = new MutualSpnegoSchemeFactory(org.apache.hc.client5.http.auth.MutualKerberosConfig.DEFAULT,
+            SystemDefaultDnsResolver.INSTANCE);
+
+    private final org.apache.hc.client5.http.auth.MutualKerberosConfig config;
+    private final DnsResolver dnsResolver;
 
     /**
      * @since 5.0
      */
-    public SPNegoScheme(final org.apache.hc.client5.http.auth.KerberosConfig config, final DnsResolver dnsResolver) {
-        super(config, dnsResolver);
-    }
-
-    public SPNegoScheme() {
+    public MutualSpnegoSchemeFactory(final org.apache.hc.client5.http.auth.MutualKerberosConfig config, final DnsResolver dnsResolver) {
         super();
+        this.config = config;
+        this.dnsResolver = dnsResolver;
     }
 
     @Override
-    public String getName() {
-        return StandardAuthScheme.SPNEGO;
-    }
-
-    @Override
-    protected byte[] generateToken(final byte[] input, final String serviceName, final String authServer) throws GSSException {
-        return generateGSSToken(input, new Oid(SPNEGO_OID), serviceName, authServer);
-    }
-
-    @Override
-    public boolean isConnectionBased() {
-        return true;
+    public AuthScheme create(final HttpContext context) {
+        return new MutualSpnegoScheme(this.config, this.dnsResolver);
     }
 
 }
