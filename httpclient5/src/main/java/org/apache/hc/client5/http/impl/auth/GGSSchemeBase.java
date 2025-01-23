@@ -61,7 +61,11 @@ import org.slf4j.LoggerFactory;
  * @since 4.2
  *
  * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
- * supported. Consider using Basic or Bearer authentication with TLS instead.
+ * supported. Use MutualSpnegoScheme, or consider using Basic or Bearer authentication with TLS
+ * instead.
+ * @see MutualSpnegoScheme
+ * @see BasicScheme
+ * @see BearerScheme
  */
 @Deprecated
 public abstract class GGSSchemeBase implements AuthScheme {
