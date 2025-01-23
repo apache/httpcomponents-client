@@ -38,13 +38,12 @@ import org.ietf.jgss.GSSCredential;
  *
  * @since 4.4
  *
- * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
- * supported. Consider using Basic or Bearer authentication with TLS instead.
  *
- * @see UsernamePasswordCredentials
- * @see BearerToken
+ * Optionally used both by {@link org.apache.hc.client5.http.impl.auth.MutualSpnegoScheme}
+ * and the old deprecated GGS based experimental authentication schemes.
+ *
+ * @see org.apache.hc.client5.http.impl.auth.MutualSpnegoScheme
  */
-@Deprecated
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class KerberosCredentials implements Credentials, Serializable {
 
