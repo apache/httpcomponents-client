@@ -60,7 +60,7 @@ public class MutualSpnegoSchemeFactory implements AuthSchemeFactory {
     private final DnsResolver dnsResolver;
 
     /**
-     * @since 5.0
+     * @since 5.5
      */
     public MutualSpnegoSchemeFactory(final org.apache.hc.client5.http.auth.MutualKerberosConfig config, final DnsResolver dnsResolver) {
         super();
