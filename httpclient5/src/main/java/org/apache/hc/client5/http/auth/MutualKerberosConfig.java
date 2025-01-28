@@ -36,6 +36,9 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  * Unlike the deprecated {@link KerberosConfig}, this class uses explicit defaults, and
  * primitive booleans.
  *
+ * Compared to {@link KerberosConfig} stripPort has been changed toAddPort, and the default is now
+ * false (same effect). The default for useCanonicalHostname has been changed to false from true.
+ *
  * @since 5.5
  *
  */
@@ -45,7 +48,7 @@ public class MutualKerberosConfig implements Cloneable {
 
     public static final MutualKerberosConfig DEFAULT = new Builder().build();
 
-    private final boolean stripPort;
+    private final boolean addPort;
     private final boolean useCanonicalHostname;
     private final boolean requestMutualAuth;
     private final boolean requestDelegCreds;
@@ -54,7 +57,7 @@ public class MutualKerberosConfig implements Cloneable {
      * Intended for CDI compatibility
     */
     protected MutualKerberosConfig() {
-        this(true, true, true, false);
+        this(false, false, true, false);
     }
 
     MutualKerberosConfig(
@@ -63,14 +66,14 @@ public class MutualKerberosConfig implements Cloneable {
             final boolean requestMutualAuth,
             final boolean requestDelegCreds) {
         super();
-        this.stripPort = stripPort;
+        this.addPort = stripPort;
         this.useCanonicalHostname = useCanonicalHostname;
         this.requestMutualAuth = requestMutualAuth;
         this.requestDelegCreds = requestDelegCreds;
     }
 
-    public boolean isStripPort() {
-        return stripPort;
+    public boolean isAddPort() {
+        return addPort;
     }
 
     public boolean isUseCanonicalHostname() {
@@ -94,7 +97,7 @@ public class MutualKerberosConfig implements Cloneable {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("[");
-        builder.append("stripPort=").append(stripPort);
+        builder.append("addPort=").append(addPort);
         builder.append(", useCanonicalHostname=").append(useCanonicalHostname);
         builder.append(", requestDelegCreds=").append(requestDelegCreds);
         builder.append(", requestMutualAuth=").append(requestMutualAuth);
@@ -108,7 +111,7 @@ public class MutualKerberosConfig implements Cloneable {
 
     public static MutualKerberosConfig.Builder copy(final MutualKerberosConfig config) {
         return new Builder()
-                .setStripPort(config.isStripPort())
+                .setAddPort(config.isAddPort())
                 .setUseCanonicalHostname(config.isUseCanonicalHostname())
                 .setRequestDelegCreds(config.isRequestDelegCreds())
                 .setRequestMutualAuth(config.isRequestMutualAuth());
@@ -116,8 +119,8 @@ public class MutualKerberosConfig implements Cloneable {
 
     public static class Builder {
 
-        private boolean stripPort = true;
-        private boolean useCanonicalHostname = true ;
+        private boolean addPort = false;
+        private boolean useCanonicalHostname = false;
         private boolean requestMutualAuth = true;
         private boolean requestDelegCreds = false;
 
@@ -125,8 +128,8 @@ public class MutualKerberosConfig implements Cloneable {
             super();
         }
 
-        public Builder setStripPort(final boolean stripPort) {
-            this.stripPort = stripPort;
+        public Builder setAddPort(final boolean addPort) {
+            this.addPort = addPort;
             return this;
         }
 
@@ -147,7 +150,7 @@ public class MutualKerberosConfig implements Cloneable {
 
         public MutualKerberosConfig build() {
             return new MutualKerberosConfig(
-                    stripPort,
+                    addPort,
                     useCanonicalHostname,
                     requestMutualAuth,
                     requestDelegCreds
