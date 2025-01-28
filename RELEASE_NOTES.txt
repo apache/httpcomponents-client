@@ -1,4 +1,51 @@
-﻿Release 5.4.1
+﻿Release 5.4.2
+------------------
+
+This is a maintenance release that upgrades HttpCore to version 5.3.3 and fixes several
+regressions reported since the last release. One of the regressions could cause connection
+leaks and eventual connection pool exhaustion in case of proxy authentication
+failure when establishing a tunnel via the proxy.
+
+
+Change Log
+-------------------
+
+* Upgraded HttpCore to version 5.3.3
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Improved internal state representation of the internal async execution runtime in order
+  to prevent potential race conditions.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2357, regression: Classic HttpClient fails to release connection in case of a proxy
+  authentication failure.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2355, regression: Reset protocol version in the execution context on a 200
+  response to CONNECT request.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2354: ResponseCachingPolicy to allow caching of responses with "must-revalidate"
+  in shared caches with Authorization headers. The change aligns with RFC 9111 Section 5.2.2.2
+  (#609).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Do not add `Upgrade` header if `Connection` header already present (the caller manually
+  manages connection state).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Avoid logging HTTP message version where it can be a hint, not an actual protocol version
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* IDN encode hostnames with Unicode characters prior to DNS resolution (#608).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2353: Fixed rejection of certificates with IDN encoded identities. (#607)
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+
+
+Release 5.4.1
 ------------------
 
 This is a maintenance release that upgrades HttpCore to version 5.3.1 and fixes several defects found since
