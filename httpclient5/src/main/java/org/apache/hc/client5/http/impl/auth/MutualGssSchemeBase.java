@@ -153,10 +153,10 @@ public abstract class MutualGssSchemeBase implements AuthScheme {
             } catch (final UnknownHostException ignore) {
             }
         }
-        if (config.isStripPort()) {
-            gssHostname = hostname;
-        } else {
+        if (config.isAddPort()) {
             gssHostname = hostname + ":" + host.getPort();
+        } else {
+            gssHostname = hostname;
         }
 
         if (LOG.isDebugEnabled()) {
