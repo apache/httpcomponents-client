@@ -91,9 +91,8 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             return;
         }
 
-        final Header cookieHeader = request.getHeader(HttpHeaders.COOKIE);
         // Check if a Cookie header is already present
-        if (cookieHeader != null) {
+        if (request.containsHeader(HttpHeaders.COOKIE)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Skipping cookie addition, Cookie header already present in the request");
             }
