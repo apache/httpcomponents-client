@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.fluent;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScope;
@@ -36,15 +37,21 @@ import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.compat.ClassicToAsyncAdaptor;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Executor for {@link Request}s.
@@ -56,30 +63,82 @@ import org.apache.hc.core5.util.TimeValue;
  */
 public class Executor {
 
-    final static CloseableHttpClient CLIENT;
+    private static final ReentrantLock LOCK = new ReentrantLock();
+    private static volatile CloseableHttpClient CLIENT;
+    private static volatile CloseableHttpClient ASYNC_CLIENT;
 
-    static {
-        CLIENT = HttpClientBuilder.create()
-                .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
-                        .useSystemProperties()
-                        .setMaxConnPerRoute(100)
-                        .setMaxConnTotal(200)
-                        .setDefaultConnectionConfig(ConnectionConfig.custom()
-                                .setValidateAfterInactivity(TimeValue.ofSeconds(10))
+    static CloseableHttpClient GET_CLASSIC_CLIENT() {
+        final CloseableHttpClient client = CLIENT;
+        if (client != null) {
+            return client;
+        }
+        LOCK.lock();
+        try {
+            if (CLIENT == null) {
+                CLIENT = HttpClientBuilder.create()
+                        .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+                                .useSystemProperties()
+                                .setMaxConnPerRoute(100)
+                                .setMaxConnTotal(200)
+                                .setDefaultConnectionConfig(ConnectionConfig.custom()
+                                        .setValidateAfterInactivity(TimeValue.ofSeconds(10))
+                                        .build())
                                 .build())
-                        .build())
-                .useSystemProperties()
-                .evictExpiredConnections()
-                .evictIdleConnections(TimeValue.ofMinutes(1))
-                .build();
+                        .useSystemProperties()
+                        .evictExpiredConnections()
+                        .evictIdleConnections(TimeValue.ofMinutes(1))
+                        .build();
+            }
+            return CLIENT;
+        } finally {
+            LOCK.unlock();
+        }
+    }
+
+    static CloseableHttpClient GET_ASYNC_CLIENT() {
+        final CloseableHttpClient client = ASYNC_CLIENT;
+        if (client != null) {
+            return client;
+        }
+        LOCK.lock();
+        try {
+            if (ASYNC_CLIENT == null) {
+                ASYNC_CLIENT = new ClassicToAsyncAdaptor(HttpAsyncClientBuilder.create()
+                        .setConnectionManager(PoolingAsyncClientConnectionManagerBuilder.create()
+                                .useSystemProperties()
+                                .setMaxConnPerRoute(100)
+                                .setMaxConnTotal(200)
+                                .setMessageMultiplexing(true)
+                                .setDefaultConnectionConfig(ConnectionConfig.custom()
+                                        .setValidateAfterInactivity(TimeValue.ofSeconds(10))
+                                        .build())
+                                .build())
+                        .useSystemProperties()
+                        .evictExpiredConnections()
+                        .evictIdleConnections(TimeValue.ofMinutes(1))
+                        .build(), Timeout.ofMinutes(5));
+            }
+            return ASYNC_CLIENT;
+        } finally {
+            LOCK.unlock();
+        }
     }
 
     public static Executor newInstance() {
-        return new Executor(CLIENT);
+        return new Executor(GET_CLASSIC_CLIENT());
     }
 
     public static Executor newInstance(final CloseableHttpClient httpclient) {
-        return new Executor(httpclient != null ? httpclient : CLIENT);
+        return new Executor(httpclient != null ? httpclient : GET_CLASSIC_CLIENT());
+    }
+
+    /**
+     * This feature is considered experimental and may be discontinued in the future.
+     * @since 5.5
+     */
+    @Experimental
+    public static Executor newInstance(final CloseableHttpAsyncClient httpclient) {
+        return new Executor(httpclient != null ? new ClassicToAsyncAdaptor(httpclient, Timeout.ofMinutes(5)) : GET_ASYNC_CLIENT());
     }
 
     private final CloseableHttpClient httpclient;
