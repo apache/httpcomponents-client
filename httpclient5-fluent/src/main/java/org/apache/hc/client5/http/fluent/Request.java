@@ -47,6 +47,7 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
@@ -202,7 +203,20 @@ public class Request {
     }
 
     public Response execute() throws IOException {
-        return execute(Executor.CLIENT);
+        return execute(Executor.GET_CLASSIC_CLIENT());
+    }
+
+    /**
+     * Execute the request using an HTTP/2 capable engine. The exact protocol version
+     * will still have to be negotiated by individual connections.
+     * <p>
+     * This feature is considered experimental and may be discontinued in the future.
+     *
+     * @since 5.5
+     */
+    @Experimental
+    public Response executeHttp2() throws IOException {
+        return execute(Executor.GET_ASYNC_CLIENT());
     }
 
     public Response execute(final CloseableHttpClient client) throws IOException {
