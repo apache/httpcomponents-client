@@ -1,4 +1,82 @@
-﻿Release 5.4
+﻿Release 5.5 ALPHA1
+------------------
+
+This is the first ALPHA release in the 5.5 release series. It adds several experimental
+features and improvements such as request multiplexing over a shared HTTP/2 connection
+and the Classic API facade acting as a compatibility bridge between classic I/O client
+services and the asynchronous message transport used internally.
+
+
+Notable changes and features included in the 5.5 series:
+
+* Improved conformance to RFC 7616 (HTTP Digest Access Authentication).
+
+* The connection pool implementation acts as a caching facade in front of a standard
+  managed connection pool and shares already leased connections to multiplex message
+  exchanges over active HTTP/2 connections. Experimental.
+
+* Extended Auth API and improved authentication protocol logic to support mutual
+  authentication.
+
+* The Classic API facade acting as a compatibility bridge between the classic I/O client
+  services (based on the standard InputStream / OutputStream model) and the asynchronous
+  message transport used internally. Experimental.
+
+* HTTP/2 support for the Fluent Facade (via Classic API facade). Experimental.
+
+
+Change Log
+-------------------
+
+* Async transport can now be used internally by the Fluent Facade.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Classic over async bridge.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2356: Extended Auth APIs and authentication protocol logic to support mutual
+  authentication.
+  Contributed by Istvan Toth <stoty at apache.org>
+
+* Decode Subject Alternative Names for IP, DNS, and binary data (#610).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Do not add `Upgrade` header if `Connection` header is already present (the caller manually
+  manages connection state).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Avoid logging the HTTP message version where it can be a hint, not a protocol version.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Experimental connections pool implementation that acts as a caching facade in front of
+  a standard ManagedConnPool and shares already leased connections to multiplex message
+  exchanges over active HTTP/2 connections.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2350 - Refactored the connect method in DefaultHttpClientConnectionOperator
+  to enhance flexibility in address resolution, specifically allowing for direct handling
+  of unresolved addresses (#598).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Enhanced DigestScheme for RFC 7616 Compliance and Expanded Hash Algorithm Support (#597).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Added request interceptor to check the `Authentication-Info` header in HTTP Digest Access
+  Authentication (#596).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Added client-side `rspauth` value for Digest auth, verifying server knowledge of shared
+  secret per RFC 7616. (#594).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Corrected method chaining in ClientTlsStrategyBuilder.
+  Contributed by Osip Fatkullin <osip.fatkullin at gmail.com>
+
+* HTTPCLIENT-2337: Sanitize X500Principal Logging in ClientTlsStrategy classes (#581).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+
+Release 5.4
 ------------------
 
 This is the first GA release in the 5.4 release series. This release finalizes the 5.4 APIs,
