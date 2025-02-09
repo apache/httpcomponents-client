@@ -99,7 +99,7 @@ class TestHttpClientConnectionOperator {
         Mockito.when(dnsResolver.resolve("somehost", port)).thenReturn(resolvedAddresses);
 
         Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(port);
-        Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
+        Mockito.when(detachedSocketFactory.create(Mockito.any(), Mockito.any())).thenReturn(socket);
 
         final SocketConfig socketConfig = SocketConfig.custom()
             .setSoKeepAlive(true)
@@ -143,7 +143,7 @@ class TestHttpClientConnectionOperator {
         Mockito.when(dnsResolver.resolve("somehost", port)).thenReturn(resolvedAddresses);
 
         Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(port);
-        Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
+        Mockito.when(detachedSocketFactory.create(Mockito.any(), Mockito.any())).thenReturn(socket);
 
         Mockito.when(tlsSocketStrategyLookup.lookup("https")).thenReturn(tlsSocketStrategy);
         final SSLSocket upgradedSocket = Mockito.mock(SSLSocket.class);
@@ -178,7 +178,7 @@ class TestHttpClientConnectionOperator {
         );
         Mockito.when(dnsResolver.resolve("somehost", port)).thenReturn(resolvedAddresses);
         Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(port);
-        Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
+        Mockito.when(detachedSocketFactory.create(Mockito.any(), Mockito.any())).thenReturn(socket);
         Mockito.doThrow(new SocketTimeoutException()).when(socket).connect(Mockito.any(), Mockito.anyInt());
         Assertions.assertThrows(ConnectTimeoutException.class, () ->
                 connectionOperator.connect(
@@ -200,7 +200,7 @@ class TestHttpClientConnectionOperator {
         Mockito.when(dnsResolver.resolve("somehost", port)).thenReturn(resolvedAddresses);
 
         Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(port);
-        Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
+        Mockito.when(detachedSocketFactory.create(Mockito.any(), Mockito.any())).thenReturn(socket);
         Mockito.doThrow(new ConnectException()).when(socket).connect(Mockito.any(), Mockito.anyInt());
 
         Assertions.assertThrows(HttpHostConnectException.class, () ->
@@ -218,7 +218,7 @@ class TestHttpClientConnectionOperator {
 
         Mockito.when(dnsResolver.resolve("somehost", 80)).thenReturn(Arrays.asList(ipAddress1, ipAddress2));
         Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(80);
-        Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
+        Mockito.when(detachedSocketFactory.create(Mockito.any(), Mockito.any())).thenReturn(socket);
         Mockito.doThrow(new ConnectException()).when(socket).connect(
                 Mockito.eq(ipAddress1),
                 Mockito.anyInt());
@@ -243,7 +243,7 @@ class TestHttpClientConnectionOperator {
         final HttpHost host = new HttpHost(ip);
 
         Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(80);
-        Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
+        Mockito.when(detachedSocketFactory.create(Mockito.any(), Mockito.any())).thenReturn(socket);
 
         final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
         final TlsConfig tlsConfig = TlsConfig.custom()
@@ -316,7 +316,7 @@ class TestHttpClientConnectionOperator {
         Mockito.when(dnsResolver.resolve(host.getHostName(), port)).thenReturn(resolvedAddresses);
 
         Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(port);
-        Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
+        Mockito.when(detachedSocketFactory.create(Mockito.any(), Mockito.any())).thenReturn(socket);
 
         final SocketConfig socketConfig = SocketConfig.custom()
                 .setSoKeepAlive(true)
@@ -359,7 +359,7 @@ class TestHttpClientConnectionOperator {
         );
         Mockito.when(dnsResolver.resolve("fallbackhost.com", port)).thenReturn(resolvedAddresses);
         Mockito.when(schemePortResolver.resolve(host.getSchemeName(), host)).thenReturn(port);
-        Mockito.when(detachedSocketFactory.create(Mockito.any())).thenReturn(socket);
+        Mockito.when(detachedSocketFactory.create(Mockito.any(), Mockito.any())).thenReturn(socket);
 
         // Simulate failure to connect to the first resolved address
         Mockito.doThrow(new ConnectException()).when(socket).connect(Mockito.eq(new InetSocketAddress(ip1, port)), Mockito.anyInt());

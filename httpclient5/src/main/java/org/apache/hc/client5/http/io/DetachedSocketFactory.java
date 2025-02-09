@@ -44,4 +44,11 @@ public interface DetachedSocketFactory {
 
     Socket create(Proxy proxy) throws IOException;
 
+    /**
+     * @since 5.5
+     */
+    default Socket create(String schemeName, Proxy proxy) throws IOException {
+        return create(proxy);
+    }
+
 }

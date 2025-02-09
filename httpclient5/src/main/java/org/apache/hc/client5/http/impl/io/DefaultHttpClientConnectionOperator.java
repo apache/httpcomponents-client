@@ -178,7 +178,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} connecting {}->{} ({})", endpointHost, localAddress, remoteAddress, connectTimeout);
             }
-            final Socket socket = detachedSocketFactory.create(socksProxy);
+            final Socket socket = detachedSocketFactory.create(endpointHost.getSchemeName(), socksProxy);
             try {
                 // Always bind to the local address if it's provided.
                 if (localAddress != null) {
