@@ -283,7 +283,7 @@ public class AuthenticationHandler {
                             LOG.debug("{} Processing authentication challenge {}", exchangeId, challenge);
                         }
                         try {
-                            authScheme.processChallenge(host, challenge, clientContext, challenged);
+                            authScheme.processChallenge(host, challenged, challenge, clientContext);
                         } catch (final AuthenticationException | MalformedChallengeException ex) {
                             if (LOG.isWarnEnabled()) {
                                 LOG.warn("Exception processing challenge {}", exchangeId, ex);
@@ -340,7 +340,7 @@ public class AuthenticationHandler {
             try {
                 final String schemeName = authScheme.getName();
                 final AuthChallenge challenge = challengeMap.get(schemeName.toLowerCase(Locale.ROOT));
-                authScheme.processChallenge(host, challenge, clientContext, challenged);
+                authScheme.processChallenge(host, challenged, challenge, clientContext);
                 if (authScheme.isResponseReady(host, credsProvider, clientContext)) {
                     authOptions.add(authScheme);
                 }

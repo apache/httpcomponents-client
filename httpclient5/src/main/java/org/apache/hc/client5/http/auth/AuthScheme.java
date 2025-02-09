@@ -113,7 +113,7 @@ public interface AuthScheme {
      * when dealing with sequential challenges
      * <p>
      * Please note auth schemes that perform mutual authentication must implement
-     * {@link #processChallenge(HttpHost, AuthChallenge, HttpContext, boolean)} and
+     * {@link #processChallenge(HttpHost, boolean, AuthChallenge, HttpContext)} and
      * {@link #isChallengeExpected()} instead.
      *
      * @param authChallenge the auth challenge
@@ -121,7 +121,7 @@ public interface AuthScheme {
      * @throws MalformedChallengeException in case the auth challenge is incomplete,
      * malformed or otherwise invalid.
      *
-     * @see #processChallenge(HttpHost, AuthChallenge, HttpContext, boolean)
+     * @see #processChallenge(HttpHost, boolean, AuthChallenge, HttpContext)
      *
      * @since 5.0
      */
@@ -150,9 +150,9 @@ public interface AuthScheme {
      * must be called with a null {@link AuthChallenge} so that the scheme can handle this situation.
      *
      * @param host HTTP host
+     * @param challenged true if the response was unauthorised (401/407)
      * @param authChallenge the auth challenge or null if no challenge was received
      * @param context HTTP context
-     * @param challenged true if the response was unauthorised (401/407)
      *
      * @throws MalformedChallengeException in case the auth challenge is incomplete,
      * @throws AuthenticationException in case the authentication process is unsuccessful.
@@ -161,9 +161,9 @@ public interface AuthScheme {
      */
     default void processChallenge(
             HttpHost host,
+            boolean challenged,
             AuthChallenge authChallenge,
-            HttpContext context,
-            boolean challenged) throws MalformedChallengeException, AuthenticationException {
+            HttpContext context) throws MalformedChallengeException, AuthenticationException {
         processChallenge(authChallenge, context);
     }
 
