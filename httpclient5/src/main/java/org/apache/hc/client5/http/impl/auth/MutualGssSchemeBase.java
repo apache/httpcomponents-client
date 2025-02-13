@@ -128,9 +128,10 @@ public abstract class MutualGssSchemeBase implements AuthScheme {
     @Override
     public void processChallenge(
             final HttpHost host,
+            final boolean challenged,
             final AuthChallenge authChallenge,
-            final HttpContext context,
-            final boolean challenged) throws AuthenticationException {
+            final HttpContext context
+            ) throws AuthenticationException {
 
         if (challengesLeft-- <= 0 ) {
             if (LOG.isDebugEnabled()) {
@@ -165,6 +166,7 @@ public abstract class MutualGssSchemeBase implements AuthScheme {
             LOG.debug("{} GSS init {}", exchangeId, gssHostname);
         }
         try {
+            setGssCredential(HttpClientContext.cast(context).getCredentialsProvider(), host, context);
             queuedToken = generateToken(challengeToken, KERBEROS_SCHEME, gssHostname);
             switch (state) {
             case UNINITIATED:
@@ -298,14 +300,25 @@ public abstract class MutualGssSchemeBase implements AuthScheme {
         Args.notNull(host, "Auth host");
         Args.notNull(credentialsProvider, "CredentialsProvider");
 
-        final Credentials credentials = credentialsProvider.getCredentials(
-                new AuthScope(host, null, getName()), context);
+        setGssCredential(credentialsProvider, host, context);
+        return true;
+    }
+
+    protected void setGssCredential(final CredentialsProvider credentialsProvider,
+            final HttpHost host,
+            final HttpContext context) {
+        if (this.gssCredential != null) {
+            return;
+        }
+        final Credentials credentials =
+                credentialsProvider.getCredentials(new AuthScope(host, null, getName()), context);
         if (credentials instanceof org.apache.hc.client5.http.auth.KerberosCredentials) {
-            this.gssCredential = ((org.apache.hc.client5.http.auth.KerberosCredentials) credentials).getGSSCredential();
+            this.gssCredential =
+                    ((org.apache.hc.client5.http.auth.KerberosCredentials) credentials)
+                            .getGSSCredential();
         } else {
             this.gssCredential = null;
         }
-        return true;
     }
 
     @Override

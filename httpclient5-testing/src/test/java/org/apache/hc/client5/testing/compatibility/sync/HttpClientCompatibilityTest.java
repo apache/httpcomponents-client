@@ -26,6 +26,11 @@
  */
 package org.apache.hc.client5.testing.compatibility.sync;
 
+
+import java.util.concurrent.Callable;
+
+import javax.security.auth.Subject;
+
 import org.apache.hc.client5.http.ContextBuilder;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -36,7 +41,11 @@ import org.apache.hc.client5.http.classic.methods.HttpOptions;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.testing.compatibility.spnego.SpnegoAuthenticationStrategy;
+import org.apache.hc.client5.testing.compatibility.spnego.SpnegoTestUtil;
+import org.apache.hc.client5.testing.compatibility.spnego.UseJaasCredentials;
 import org.apache.hc.client5.testing.extension.sync.HttpClientResource;
+import org.apache.hc.client5.testing.util.SecurityUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -45,6 +54,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -53,13 +63,22 @@ public abstract class HttpClientCompatibilityTest {
     private final HttpHost target;
     @RegisterExtension
     private final HttpClientResource clientResource;
+    private final HttpClientResource spnegoClientResource;
     private final CredentialsStore credentialsProvider;
+    private final Subject spnegoSubject;
 
     public HttpClientCompatibilityTest(final HttpHost target, final HttpHost proxy, final Credentials proxyCreds) throws Exception {
+        this(target, proxy, proxyCreds, null);
+    }
+
+    public HttpClientCompatibilityTest(final HttpHost target, final HttpHost proxy, final Credentials proxyCreds, final Subject spnegoSubject) throws Exception {
         this.target = target;
         this.clientResource = new HttpClientResource();
         this.clientResource.configure(builder -> builder.setProxy(proxy));
+        this.spnegoClientResource = new HttpClientResource();
+        this.spnegoClientResource.configure(builder -> builder.setProxy(proxy).setTargetAuthenticationStrategy(new SpnegoAuthenticationStrategy()).setDefaultAuthSchemeRegistry(SpnegoTestUtil.getSpnegoSchemeRegistry()));
         this.credentialsProvider = new BasicCredentialsProvider();
+        this.spnegoSubject = spnegoSubject;
         if (proxy != null && proxyCreds != null) {
             this.addCredentials(new AuthScope(proxy), proxyCreds);
         }
@@ -67,6 +86,10 @@ public abstract class HttpClientCompatibilityTest {
 
     CloseableHttpClient client() {
         return clientResource.client();
+    }
+
+    CloseableHttpClient spnegoClient() {
+        return spnegoClientResource.client();
     }
 
     HttpClientContext context() {
@@ -185,4 +208,39 @@ public abstract class HttpClientCompatibilityTest {
         }
     }
 
+    @Test
+    void test_spnego_correct_target_credentials_implicit() throws Exception {
+        Assumptions.assumeFalse(spnegoSubject == null);
+        addCredentials(new AuthScope(target), new UseJaasCredentials());
+        final CloseableHttpClient client = spnegoClient();
+        final HttpClientContext context = context();
+
+        final ClassicHttpRequest request = new HttpGet("/private_spnego/big-secret.txt");
+        try (ClassicHttpResponse response =
+                SecurityUtils.callAs(spnegoSubject, new Callable<ClassicHttpResponse>() {
+                    @Override
+                    public ClassicHttpResponse call() throws Exception {
+                        return client.executeOpen(target, request, context);
+                    }
+                });) {
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            EntityUtils.consume(response.getEntity());
+        }
+    }
+
+    @Test
+    void test_spnego_correct_target_credentials() throws Exception {
+        Assumptions.assumeFalse(spnegoSubject == null);
+        addCredentials(
+            new AuthScope(target),
+            SpnegoTestUtil.createCredentials(spnegoSubject));
+        final CloseableHttpClient client = spnegoClient();
+        final HttpClientContext context = context();
+
+        final ClassicHttpRequest request = new HttpGet("/private_spnego/big-secret.txt");
+        try (ClassicHttpResponse response = client.executeOpen(target, request, context)) {
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            EntityUtils.consume(response.getEntity());
+        }
+    }
 }
