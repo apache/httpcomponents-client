@@ -26,11 +26,20 @@
  */
 package org.apache.hc.client5.testing.compatibility;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.stream.Stream;
+
+import javax.security.auth.Subject;
+
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.testing.compatibility.async.CachingHttpAsyncClientCompatibilityTest;
 import org.apache.hc.client5.testing.compatibility.async.HttpAsyncClientCompatibilityTest;
 import org.apache.hc.client5.testing.compatibility.async.HttpAsyncClientHttp1CompatibilityTest;
 import org.apache.hc.client5.testing.compatibility.async.HttpAsyncClientProxyCompatibilityTest;
+import org.apache.hc.client5.testing.compatibility.spnego.SpnegoTestUtil;
 import org.apache.hc.client5.testing.compatibility.sync.CachingHttpClientCompatibilityTest;
 import org.apache.hc.client5.testing.compatibility.sync.HttpClientCompatibilityTest;
 import org.apache.hc.client5.testing.compatibility.sync.HttpClientProxyCompatibilityTest;
@@ -38,6 +47,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.testcontainers.containers.GenericContainer;
@@ -49,10 +59,23 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class ApacheHTTPDSquidCompatibilityIT {
 
     private static Network NETWORK = Network.newNetwork();
+    private static final Path KEYTAB_DIR = SpnegoTestUtil.createKeytabDir();
+
     @Container
-    static final GenericContainer<?> HTTPD_CONTAINER = ContainerImages.apacheHttpD(NETWORK);
+    static final GenericContainer<?> KDC = ContainerImages.KDC(NETWORK, KEYTAB_DIR);
+    @Container
+    static final GenericContainer<?> HTTPD_CONTAINER = ContainerImages.apacheHttpD(NETWORK, KEYTAB_DIR);
     @Container
     static final GenericContainer<?> SQUID = ContainerImages.squid(NETWORK);
+
+    private static Path KRB5_CONF_PATH;
+    private static Subject spnegoSubject;
+
+    @BeforeAll
+    static void init() throws IOException {
+        KRB5_CONF_PATH = SpnegoTestUtil.prepareKrb5Conf(KDC.getHost() + ":" + KDC.getMappedPort(ContainerImages.KDC_PORT));
+        spnegoSubject = SpnegoTestUtil.loginFromKeytab("testclient", KEYTAB_DIR.resolve("testclient.keytab"));
+    }
 
     static HttpHost targetContainerHost() {
         return new HttpHost(URIScheme.HTTP.id, HTTPD_CONTAINER.getHost(), HTTPD_CONTAINER.getMappedPort(ContainerImages.HTTP_PORT));
@@ -82,7 +105,20 @@ class ApacheHTTPDSquidCompatibilityIT {
     static void cleanup() {
         SQUID.close();
         HTTPD_CONTAINER.close();
+        KDC.close();
         NETWORK.close();
+        try {
+            Files.delete(KRB5_CONF_PATH);
+            Files.delete(KRB5_CONF_PATH.getParent());
+            try ( Stream<Path> dirStream = Files.walk(KEYTAB_DIR)) {
+                dirStream
+                    .filter(Files::isRegularFile)
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+            }
+        } catch (final IOException e) {
+            //We leave some files around in tmp
+        }
     }
 
     @Nested
@@ -90,7 +126,7 @@ class ApacheHTTPDSquidCompatibilityIT {
     class ClassicDirectHttp extends HttpClientCompatibilityTest {
 
         public ClassicDirectHttp() throws Exception {
-            super(targetContainerHost(), null, null);
+            super(targetContainerHost(), null, null, spnegoSubject);
         }
 
     }
@@ -120,7 +156,7 @@ class ApacheHTTPDSquidCompatibilityIT {
     class ClassicDirectHttpTls extends HttpClientCompatibilityTest {
 
         public ClassicDirectHttpTls() throws Exception {
-            super(targetContainerTlsHost(), null, null);
+            super(targetContainerTlsHost(), null, null, spnegoSubject);
         }
 
     }
@@ -150,7 +186,7 @@ class ApacheHTTPDSquidCompatibilityIT {
     class AsyncDirectHttp1 extends HttpAsyncClientHttp1CompatibilityTest {
 
         public AsyncDirectHttp1() throws Exception {
-            super(targetContainerHost(), null, null);
+            super(targetContainerHost(), null, null, ApacheHTTPDSquidCompatibilityIT.spnegoSubject);
         }
 
     }
@@ -180,7 +216,7 @@ class ApacheHTTPDSquidCompatibilityIT {
     class AsyncDirectHttp1Tls extends HttpAsyncClientHttp1CompatibilityTest {
 
         public AsyncDirectHttp1Tls() throws Exception {
-            super(targetContainerTlsHost(), null, null);
+            super(targetContainerTlsHost(), null, null, ApacheHTTPDSquidCompatibilityIT.spnegoSubject);
         }
 
     }
@@ -210,7 +246,7 @@ class ApacheHTTPDSquidCompatibilityIT {
     class AsyncDirectHttp2 extends HttpAsyncClientCompatibilityTest {
 
         public AsyncDirectHttp2() throws Exception {
-            super(HttpVersionPolicy.FORCE_HTTP_2, targetContainerHost(), null, null);
+            super(HttpVersionPolicy.FORCE_HTTP_2, targetContainerHost(), null, null, ApacheHTTPDSquidCompatibilityIT.spnegoSubject);
         }
 
     }
@@ -220,7 +256,7 @@ class ApacheHTTPDSquidCompatibilityIT {
     class AsyncDirectHttp2Tls extends HttpAsyncClientCompatibilityTest {
 
         public AsyncDirectHttp2Tls() throws Exception {
-            super(HttpVersionPolicy.FORCE_HTTP_2, targetContainerTlsHost(), null, null);
+            super(HttpVersionPolicy.FORCE_HTTP_2, targetContainerTlsHost(), null, null, ApacheHTTPDSquidCompatibilityIT.spnegoSubject);
         }
 
     }

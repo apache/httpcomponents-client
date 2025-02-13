@@ -26,10 +26,15 @@
  */
 package org.apache.hc.client5.testing.compatibility.async;
 
+import static org.junit.Assume.assumeNotNull;
+
 import java.util.Queue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
+
+import javax.security.auth.Subject;
 
 import org.apache.hc.client5.http.ContextBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
@@ -42,7 +47,11 @@ import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.Result;
+import org.apache.hc.client5.testing.compatibility.spnego.SpnegoAuthenticationStrategy;
+import org.apache.hc.client5.testing.compatibility.spnego.SpnegoTestUtil;
+import org.apache.hc.client5.testing.compatibility.spnego.UseJaasCredentials;
 import org.apache.hc.client5.testing.extension.async.HttpAsyncClientResource;
+import org.apache.hc.client5.testing.util.SecurityUtils;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
@@ -51,6 +60,7 @@ import org.apache.hc.core5.http.RequestNotExecutedException;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -63,25 +73,43 @@ public abstract class HttpAsyncClientCompatibilityTest {
     private final HttpHost target;
     @RegisterExtension
     private final HttpAsyncClientResource clientResource;
+    private final HttpAsyncClientResource spnegoClientResource;
     private final BasicCredentialsProvider credentialsProvider;
+    protected final Subject spnegoSubject;
 
     public HttpAsyncClientCompatibilityTest(
             final HttpVersionPolicy versionPolicy,
             final HttpHost target,
             final HttpHost proxy,
             final Credentials proxyCreds) throws Exception {
+        this(versionPolicy, target, proxy, proxyCreds, null);
+    }
+
+    public HttpAsyncClientCompatibilityTest(
+            final HttpVersionPolicy versionPolicy,
+            final HttpHost target,
+            final HttpHost proxy,
+            final Credentials proxyCreds,
+            final Subject spnegoSubject) throws Exception {
         this.versionPolicy = versionPolicy;
         this.target = target;
         this.clientResource = new HttpAsyncClientResource(versionPolicy);
+        this.spnegoClientResource = new HttpAsyncClientResource(versionPolicy);
         this.clientResource.configure(builder -> builder.setProxy(proxy));
+        this.spnegoClientResource.configure(builder -> builder.setProxy(proxy).setTargetAuthenticationStrategy(new SpnegoAuthenticationStrategy()).setDefaultAuthSchemeRegistry(SpnegoTestUtil.getSpnegoSchemeRegistry()));
         this.credentialsProvider = new BasicCredentialsProvider();
         if (proxy != null && proxyCreds != null) {
             this.credentialsProvider.setCredentials(new AuthScope(proxy), proxyCreds);
         }
+        this.spnegoSubject = spnegoSubject;
     }
 
     CloseableHttpAsyncClient client() {
         return clientResource.client();
+    }
+
+    CloseableHttpAsyncClient spnegoClient() {
+        return spnegoClientResource.client();
     }
 
     HttpClientContext context() {
@@ -228,4 +256,52 @@ public abstract class HttpAsyncClientCompatibilityTest {
         assertProtocolVersion(context);
     }
 
+    // This does not work.
+    // Looks like by the time the SPNEGO negotiations happens, we're in another thread,
+    // and Subject is no longer set. We could save the subject somewhere, or just document this.
+    @Disabled
+    @Test
+    void test_spnego_auth_success_implicit() throws Exception {
+        assumeNotNull(spnegoSubject);
+        addCredentials(
+                new AuthScope(target),
+                new UseJaasCredentials());
+        final CloseableHttpAsyncClient client = spnegoClient();
+        final HttpClientContext context = context();
+        final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
+                .setHttpHost(target)
+                .setPath("/private_spnego/big-secret.txt")
+                .build();
+
+        final Future<SimpleHttpResponse> future = SecurityUtils.callAs(spnegoSubject, new Callable<Future<SimpleHttpResponse>>() {
+            @Override
+            public Future<SimpleHttpResponse> call() throws Exception {
+                return client.execute(httpGetSecret, context, null);
+            }
+        });
+
+        final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        assertProtocolVersion(context);
+    }
+
+    @Test
+    void test_spnego_auth_success() throws Exception {
+        assumeNotNull(spnegoSubject);
+        addCredentials(
+                new AuthScope(target),
+                SpnegoTestUtil.createCredentials(spnegoSubject));
+        final CloseableHttpAsyncClient client = spnegoClient();
+        final HttpClientContext context = context();
+        final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
+                .setHttpHost(target)
+                .setPath("/private_spnego/big-secret.txt")
+                .build();
+
+        final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
+
+        final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        assertProtocolVersion(context);
+    }
 }
