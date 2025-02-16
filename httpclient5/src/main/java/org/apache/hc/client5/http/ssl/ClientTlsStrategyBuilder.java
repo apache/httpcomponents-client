@@ -39,13 +39,13 @@ import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.ssl.SSLContexts;
 
 /**
- * Builder for client {@link TlsStrategy} instances.
+ * Builder for client TLS strategy instances.
  * <p>
  * When a particular component is not explicitly set this class will
  * use its default implementation. System properties will be taken
  * into account when configuring the default implementations when
  * {@link #useSystemProperties()} method is called prior to calling
- * {@link #build()}.
+ * {@link #buildAsync()} or {@link #buildClassic()}.
  * </p>
  * <ul>
  *  <li>ssl.TrustManagerFactory.algorithm</li>
@@ -183,7 +183,29 @@ public class ClientTlsStrategyBuilder {
         return this;
     }
 
+    /**
+     * @deprecated Use {@link #buildAsync()} or {@link #buildClassic()}.
+     */
+    @Deprecated
     public TlsStrategy build() {
+        return buildImpl();
+    }
+
+    /**
+     * @since 5.5
+     */
+    public TlsStrategy buildAsync() {
+        return buildImpl();
+    }
+
+    /**
+     * @since 5.5
+     */
+    public TlsSocketStrategy buildClassic() {
+        return buildImpl();
+    }
+
+    private DefaultClientTlsStrategy buildImpl() {
         final SSLContext sslContextCopy;
         if (sslContext != null) {
             sslContextCopy = sslContext;
