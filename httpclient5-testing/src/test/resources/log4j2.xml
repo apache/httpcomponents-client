@@ -15,17 +15,15 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-<Configuration status="INFO" name="XMLConfigTest">
+<Configuration status="WARN" name="XMLConfigTest">
   <Appenders>
     <Console name="STDOUT">
       <PatternLayout pattern="%d %-5level [%t][%logger]%notEmpty{[%markerSimpleName]} %msg%n%xThrowable" />
     </Console>
   </Appenders>
   <Loggers>
-    <Root level="info">
+    <Root level="fatal">
       <AppenderRef ref="STDOUT" />
-      <Logger name="com.github.dockerjava" level="debug"/>
-      <Logger name="org.testcontainers" level="debug"/>
     </Root>
   </Loggers>
 </Configuration>
