@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
@@ -45,9 +46,14 @@ import javax.security.auth.login.Configuration;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 
+import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.KerberosCredentials;
+import org.apache.hc.client5.http.auth.MutualKerberosConfig;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.MutualSpnegoSchemeFactory;
 import org.apache.hc.client5.testing.compatibility.ContainerImages;
 import org.apache.hc.client5.testing.util.SecurityUtils;
@@ -59,18 +65,25 @@ import org.ietf.jgss.GSSManager;
 
 public class SpnegoTestUtil {
 
+    static private final MutualKerberosConfig NO_MUTUAL_KERBEROS_CONFIG =
+            MutualKerberosConfig.custom().setRequestMutualAuth(false).build();
+    static private final MutualSpnegoSchemeFactory NO_MUTUAL_SCHEME_FACTORY =
+            new MutualSpnegoSchemeFactory(NO_MUTUAL_KERBEROS_CONFIG, SystemDefaultDnsResolver.INSTANCE);
+
     public static KerberosCredentials createCredentials(final Subject subject) {
         return SecurityUtils.callAs(subject, new Callable<KerberosCredentials>() {
             @Override
             public KerberosCredentials call() throws Exception {
-                return new KerberosCredentials(GSSManager.getInstance().createCredential(GSSCredential.INITIATE_ONLY));
+                return new KerberosCredentials(
+                    GSSManager.getInstance().createCredential(GSSCredential.INITIATE_ONLY));
             }
         });
     }
 
     public static Path createKeytabDir() {
         try {
-            return Files.createTempDirectory("keytabs");
+            return Files.createTempDirectory("keytabs",
+                PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("r-xr-xr-x")));
         } catch (final IOException e) {
             return Paths.get("/tmp/keytabs");
         }
@@ -78,7 +91,21 @@ public class SpnegoTestUtil {
 
     public static Registry<AuthSchemeFactory> getSpnegoSchemeRegistry() {
         return RegistryBuilder.<AuthSchemeFactory>create()
+                .register(StandardAuthScheme.BEARER, BearerSchemeFactory.INSTANCE)
+                .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
+                .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
                 .register(StandardAuthScheme.SPNEGO, MutualSpnegoSchemeFactory.DEFAULT)
+                // register other schemes as needed
+                .build();
+    }
+
+    //Squid does not support mutual auth
+    public static Registry<AuthSchemeFactory> getSpnegoSchemeRegistryNoMutual() {
+        return RegistryBuilder.<AuthSchemeFactory>create()
+                .register(StandardAuthScheme.BEARER, BearerSchemeFactory.INSTANCE)
+                .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
+                .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
+                .register(StandardAuthScheme.SPNEGO, NO_MUTUAL_SCHEME_FACTORY)
                 // register other schemes as needed
                 .build();
     }

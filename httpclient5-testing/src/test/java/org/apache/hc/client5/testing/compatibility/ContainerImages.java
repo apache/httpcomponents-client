@@ -65,13 +65,12 @@ public final class ContainerImages {
         return builder.toByteArray();
     }
 
-    public static GenericContainer<?> apacheHttpD(final Network network, final Path keytabsHostPath) {
+    public static GenericContainer<?> apacheHttpD(final Network network, final Path keytabsHostPath, final GenericContainer dependsOn) {
         return new GenericContainer<>(new ImageFromDockerfile()
                 .withFileFromClasspath("server-cert.pem", "docker/server-cert.pem")
                 .withFileFromClasspath("server-key.pem", "docker/server-key.pem")
                 .withFileFromClasspath("httpd.conf", "docker/httpd/httpd.conf")
                 .withFileFromClasspath("httpd-ssl.conf", "docker/httpd/httpd-ssl.conf")
-                .withFileFromClasspath("start.sh", "docker/httpd/start.sh")
                 .withFileFromClasspath("krb5.conf", "docker/kdc/krb5.conf")
                 .withFileFromTransferable("111", Transferable.of(randomData(10240)))
                 .withFileFromTransferable("222", Transferable.of(randomData(10240)))
@@ -92,7 +91,6 @@ public final class ContainerImages {
                                 .copy("111", "${www_dir}/")
                                 .copy("222", "${www_dir}/")
                                 .copy("333", "${www_dir}/")
-                                .copy("start.sh", "/usr/local/bin/")
                                 .run("mkdir -p ${private_dir}")
                                 .run("mkdir -p ${private_spnego_dir}")
                                 //# user: testuser; pwd: nopassword
@@ -111,28 +109,32 @@ public final class ContainerImages {
                                 .run("cd src/mod_auth_gssapi-1.6.5;"
                                         + " autoreconf -fi; ./configure; make; make install")
                                 .copy("krb5.conf", "/etc/krb5.conf")
-                                .cmd("/bin/sh", "/usr/local/bin/start.sh")
                                 .build()))
                 .withNetwork(network)
                 .withNetworkAliases(WEB_SERVER)
                 .withFileSystemBind(keytabsHostPath.toString(), "/keytabs")
+                .dependsOn(dependsOn)
                 .withLogConsumer(new Slf4jLogConsumer(LOG))
                 .withExposedPorts(HTTP_PORT, HTTPS_PORT);
     }
 
-    public static GenericContainer<?> squid(final Network network) {
+    public static GenericContainer<?> squid(final Network network, final Path keytabsHostPath, final GenericContainer dependsOn) {
         return new GenericContainer<>(new ImageFromDockerfile()
                 .withFileFromClasspath("squid.conf", "docker/squid/squid.conf")
+                .withFileFromClasspath("krb5.conf", "docker/kdc/krb5.conf")
                 .withDockerfileFromBuilder(builder ->
                         builder
                                 .from("ubuntu/squid:5.2-22.04_beta")
                                 .env("conf_dir", "/etc/squid")
                                 .copy("squid.conf", "${conf_dir}/")
+                                .copy("krb5.conf", "/etc/krb5.conf")
                                 //# user: squid; pwd: nopassword
                                 .run("echo \"squid:\\$apr1\\$.5saX63T\\$cMSoCJPqEfUw9br6zBdSO0\" > ${conf_dir}/htpasswd")
                                 .build()))
                 .withNetwork(network)
                 .withNetworkAliases(PROXY)
+                .dependsOn(dependsOn)
+                .withFileSystemBind(keytabsHostPath.toString(), "/keytabs")
                 .withLogConsumer(new Slf4jLogConsumer(LOG))
                 .withExposedPorts(PROXY_PORT, PROXY_PW_PROTECTED_PORT);
 

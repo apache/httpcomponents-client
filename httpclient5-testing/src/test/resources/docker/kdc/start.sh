@@ -25,8 +25,8 @@ echo testclient:testclient | chpasswd
 kadmin.local addprinc -pw HTTP HTTP/localhost@EXAMPLE.ORG
 kadmin.local addprinc -pw testclient testclient@EXAMPLE.ORG
 kadmin.local addprinc -pw testpwclient testpwclient@EXAMPLE.ORG
-rm /keytabs/testclient.keytab
-rm /keytabs/HTTP.keytab
+rm -f /keytabs/testclient.keytab
+rm -f /keytabs/HTTP.keytab
 kadmin.local ktadd -k /keytabs/testclient.keytab testclient@EXAMPLE.ORG 
 kadmin.local ktadd -k /keytabs/HTTP.keytab HTTP/localhost@EXAMPLE.ORG
 chmod 666 /keytabs/testclient.keytab
