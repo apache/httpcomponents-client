@@ -24,54 +24,21 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.auth;
+package org.apache.hc.client5.testing.compatibility.spnego;
 
-import java.io.Serializable;
 import java.security.Principal;
 
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.ietf.jgss.GSSCredential;
+import org.apache.hc.client5.http.auth.Credentials;
 
-/**
- * Kerberos specific {@link Credentials} representation based on {@link GSSCredential}.
- *
- * @since 4.4
- *
- *
- * Optionally used both by {@link org.apache.hc.client5.http.impl.auth.MutualSpnegoScheme}
- * and the old deprecated GGS based experimental authentication schemes.
- *
- * @see org.apache.hc.client5.http.impl.auth.MutualSpnegoScheme
- */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class KerberosCredentials implements Credentials, Serializable {
-
-    private static final long serialVersionUID = 487421613855550713L;
-
-    /** GSSCredential  */
-    private final GSSCredential gssCredential;
-
-    /**
-     * Constructor with GSSCredential argument
-     *
-     * @param gssCredential
-     */
-    public KerberosCredentials(final GSSCredential gssCredential) {
-        this.gssCredential = gssCredential;
-    }
-
-    public GSSCredential getGSSCredential() {
-        return gssCredential;
-    }
+public class UseJaasCredentials implements Credentials {
 
     @Override
-    public Principal getUserPrincipal() {
+    public char[] getPassword() {
         return null;
     }
 
     @Override
-    public char[] getPassword() {
+    public Principal getUserPrincipal() {
         return null;
     }
 

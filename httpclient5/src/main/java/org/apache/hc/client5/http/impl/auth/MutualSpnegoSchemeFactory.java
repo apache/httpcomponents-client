@@ -36,40 +36,33 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
- * {@link AuthSchemeFactory} implementation that creates and initializes
- * {@link SPNegoScheme} instances.
+ * {@link AuthSchemeFactory} implementation that creates and initialises
+ * {@link MutualSpnegoScheme} instances.
  * <p>
- * Please note this class is considered experimental and may be discontinued or removed
- * in the future.
+ * This replaces the old deprecated {@link SPNegoSchemeFactory}
  * </p>
  *
- * @since 4.2
+ * @since 5.5
  *
- * @deprecated Do not use. The old GGS based experimental authentication schemes are no longer
- * supported. Use MutualSpnegoScheme, or consider using Basic or Bearer authentication with TLS
- * instead.
- * @see MutualSpnegoSchemeFactory
- * @see BasicSchemeFactory
- * @see BearerSchemeFactory
+ * @see SPNegoSchemeFactory
  */
-@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
 @Experimental
-public class SPNegoSchemeFactory implements AuthSchemeFactory {
+public class MutualSpnegoSchemeFactory implements AuthSchemeFactory {
 
     /**
      * Singleton instance for the default configuration.
      */
-    public static final SPNegoSchemeFactory DEFAULT = new SPNegoSchemeFactory(org.apache.hc.client5.http.auth.KerberosConfig.DEFAULT,
+    public static final MutualSpnegoSchemeFactory DEFAULT = new MutualSpnegoSchemeFactory(org.apache.hc.client5.http.auth.MutualKerberosConfig.DEFAULT,
             SystemDefaultDnsResolver.INSTANCE);
 
-    private final org.apache.hc.client5.http.auth.KerberosConfig config;
+    private final org.apache.hc.client5.http.auth.MutualKerberosConfig config;
     private final DnsResolver dnsResolver;
 
     /**
-     * @since 5.0
+     * @since 5.5
      */
-    public SPNegoSchemeFactory(final org.apache.hc.client5.http.auth.KerberosConfig config, final DnsResolver dnsResolver) {
+    public MutualSpnegoSchemeFactory(final org.apache.hc.client5.http.auth.MutualKerberosConfig config, final DnsResolver dnsResolver) {
         super();
         this.config = config;
         this.dnsResolver = dnsResolver;
@@ -77,7 +70,7 @@ public class SPNegoSchemeFactory implements AuthSchemeFactory {
 
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new SPNegoScheme(this.config, this.dnsResolver);
+        return new MutualSpnegoScheme(this.config, this.dnsResolver);
     }
 
 }
