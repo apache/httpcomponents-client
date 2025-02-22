@@ -37,10 +37,11 @@ public class SpnegoAuthenticationStrategy extends DefaultAuthenticationStrategy 
 
     private static final List<String> SPNEGO_SCHEME_PRIORITY =
             Collections.unmodifiableList(
-                Arrays.asList(StandardAuthScheme.SPNEGO,
+                Arrays.asList(
                     StandardAuthScheme.BEARER,
                     StandardAuthScheme.DIGEST,
-                    StandardAuthScheme.BASIC));
+                    StandardAuthScheme.BASIC,
+                    StandardAuthScheme.SPNEGO));
 
     @Override
     protected final List<String> getSchemePriority() {

@@ -26,21 +26,15 @@
  */
 package org.apache.hc.client5.testing.compatibility.async;
 
-import static org.junit.Assume.assumeNotNull;
-
 import java.util.concurrent.Future;
-
-import javax.security.auth.Subject;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
-import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.testing.compatibility.spnego.SpnegoTestUtil;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -51,36 +45,26 @@ import org.junit.jupiter.api.Test;
 
 public abstract class HttpAsyncClientHttp1CompatibilityTest extends HttpAsyncClientCompatibilityTest {
 
-    private final HttpHost target;
 
     public HttpAsyncClientHttp1CompatibilityTest(
             final HttpHost target,
+            final Credentials targetCreds,
             final HttpHost proxy,
             final Credentials proxyCreds) throws Exception {
-        super(HttpVersionPolicy.FORCE_HTTP_1, target, proxy, proxyCreds, null);
-        this.target = target;
-    }
-
-    public HttpAsyncClientHttp1CompatibilityTest(
-            final HttpHost target,
-            final HttpHost proxy,
-            final Credentials proxyCreds,
-            final Subject spnegoSubject) throws Exception {
-        super(HttpVersionPolicy.FORCE_HTTP_1, target, proxy, proxyCreds, spnegoSubject);
-        this.target = target;
+        super(HttpVersionPolicy.FORCE_HTTP_1, target, targetCreds, proxy, proxyCreds);
     }
 
     @Test
     void test_auth_success_no_keep_alive() throws Exception {
-        addCredentials(
+        setCredentials(
                 new AuthScope(target),
-                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
+                targetCreds);
         final CloseableHttpAsyncClient client = client();
         final HttpClientContext context = context();
 
         final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
                 .setHttpHost(target)
-                .setPath("/private/big-secret.txt")
+                .setPath(secretPath)
                 .addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE)
                 .build();
         final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
@@ -89,24 +73,4 @@ public abstract class HttpAsyncClientHttp1CompatibilityTest extends HttpAsyncCli
         assertProtocolVersion(context);
     }
 
-    @Test
-    void test_spnego_auth_success_no_keep_alive() throws Exception {
-        assumeNotNull(spnegoSubject);
-        addCredentials(
-                new AuthScope(target),
-                SpnegoTestUtil.createCredentials(spnegoSubject));
-        final CloseableHttpAsyncClient client = spnegoClient();
-        final HttpClientContext context = context();
-        final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
-                .setHttpHost(target)
-                .setPath("/private_spnego/big-secret.txt")
-                .addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE)
-                .build();
-
-        final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
-
-        final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
-        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
-        assertProtocolVersion(context);
-    }
 }
