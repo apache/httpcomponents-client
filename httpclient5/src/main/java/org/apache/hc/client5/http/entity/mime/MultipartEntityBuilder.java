@@ -289,7 +289,7 @@ import org.apache.hc.core5.util.Args;
                     if (charsetCopy == null) {
                         charsetCopy = StandardCharsets.UTF_8;
                     }
-                    form = new HttpRFC7578Multipart(charsetCopy, boundaryCopy, multipartPartsCopy, preamble, epilogue);
+                    form = new HttpRFC7578Multipart(charsetCopy, boundaryCopy, multipartPartsCopy, preamble, epilogue, modeCopy);
                 } else {
                     form = new HttpRFC6532Multipart(charsetCopy, boundaryCopy, multipartPartsCopy, preamble, epilogue);
                 }

@@ -27,12 +27,15 @@
 
 package org.apache.hc.client5.http.entity.mime;
 
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.net.PercentCodec;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 
@@ -47,22 +50,52 @@ public class FormBodyPartBuilder {
     private ContentBody body;
     private final Header header;
 
+    /**
+     * The multipart mode determining how filenames are encoded in the {@code Content-Disposition}
+     * header, defaults to {@link HttpMultipartMode#STRICT}.
+     *
+     * @since 5.5
+     */
+    private HttpMultipartMode mode;
+
+    /**
+     * Encoder used to check if strings can be encoded in ISO-8859-1, supporting filename
+     * compatibility determinations in multipart form data.
+     */
+    private CharsetEncoder iso8859_1Encoder;
+
+    /**
+     * Creates a new builder instance with the specified name, content body, and multipart mode.
+     *
+     * @param name the name of the form field
+     * @param body the content body of the part
+     * @param mode the {@link HttpMultipartMode} to use, determining filename encoding behavior;
+     *
+     * @return a new {@code FormBodyPartBuilder} instance
+     * @since 5.5
+     */
+    public static FormBodyPartBuilder create(final String name, final ContentBody body, final HttpMultipartMode mode) {
+        return new FormBodyPartBuilder(name, body, mode);
+    }
+
     public static FormBodyPartBuilder create(final String name, final ContentBody body) {
-        return new FormBodyPartBuilder(name, body);
+        return new FormBodyPartBuilder(name, body, HttpMultipartMode.STRICT);
     }
 
     public static FormBodyPartBuilder create() {
         return new FormBodyPartBuilder();
     }
 
-    FormBodyPartBuilder(final String name, final ContentBody body) {
+    FormBodyPartBuilder(final String name, final ContentBody body, final HttpMultipartMode mode) {
         this();
         this.name = name;
         this.body = body;
+        this.mode = mode != null ? mode : HttpMultipartMode.STRICT;
     }
 
     FormBodyPartBuilder() {
         this.header = new Header();
+        this.mode = HttpMultipartMode.STRICT;
     }
 
     public FormBodyPartBuilder setName(final String name) {
@@ -102,6 +135,35 @@ public class FormBodyPartBuilder {
         return this;
     }
 
+    /**
+     * Determines whether the given string can be encoded in ISO-8859-1 without loss of data.
+     * This is used to decide whether the {@code filename} parameter can be used as-is or if
+     * the {@code filename*} parameter is needed for non-ISO-8859-1 characters.
+     *
+     * @param input the string to check, must not be {@code null}
+     * @return {@code true} if the string can be encoded in ISO-8859-1, {@code false} otherwise
+     * @since 5.5
+     */
+    private boolean canEncodeToISO8859_1(final String input) {
+        if (iso8859_1Encoder == null) {
+            iso8859_1Encoder = StandardCharsets.ISO_8859_1.newEncoder();
+        }
+        return iso8859_1Encoder.canEncode(input);
+    }
+
+    /**
+     * Encodes the given filename according to RFC 5987, prefixing it with {@code UTF-8''} and
+     * applying percent-encoding to non-ASCII characters. This is used for the {@code filename*}
+     * parameter in the {@code Content-Disposition} header when non-ISO-8859-1 characters are present.
+     *
+     * @param filename the filename to encode, must not be {@code null}
+     * @return the RFC 5987-encoded string, e.g., {@code UTF-8''example%20text}
+     * @since 5.5
+     */
+    private static String encodeRFC5987(final String filename) {
+        return "UTF-8''" + PercentCodec.RFC5987.encode(filename);
+    }
+
     public FormBodyPart build() {
         Asserts.notBlank(this.name, "Name");
         Asserts.notNull(this.body, "Content body");
@@ -114,7 +176,12 @@ public class FormBodyPartBuilder {
             final List<NameValuePair> fieldParameters = new ArrayList<>();
             fieldParameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, this.name));
             if (this.body.getFilename() != null) {
-                fieldParameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME, this.body.getFilename()));
+                final String filename = this.body.getFilename();
+                fieldParameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME, filename));
+                // Add filename* only if non-ISO-8859-1 and not in LEGACY mode
+                if (mode != HttpMultipartMode.LEGACY && !canEncodeToISO8859_1(filename)) {
+                    fieldParameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME_START, encodeRFC5987(filename)));
+                }
             }
             headerCopy.addField(new MimeField(MimeConsts.CONTENT_DISPOSITION, "form-data", fieldParameters));
         }
@@ -139,5 +206,4 @@ public class FormBodyPartBuilder {
         }
         return new FormBodyPart(this.name, this.body, headerCopy);
     }
-
 }
