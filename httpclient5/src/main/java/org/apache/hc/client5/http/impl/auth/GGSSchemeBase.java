@@ -186,8 +186,8 @@ public abstract class GGSSchemeBase implements AuthScheme {
 
         final Credentials credentials = credentialsProvider.getCredentials(
                 new AuthScope(host, null, getName()), context);
-        if (credentials instanceof org.apache.hc.client5.http.auth.KerberosCredentials) {
-            this.gssCredential = ((org.apache.hc.client5.http.auth.KerberosCredentials) credentials).getGSSCredential();
+        if (credentials instanceof org.apache.hc.client5.http.auth.gss.GssCredentials) {
+            this.gssCredential = ((org.apache.hc.client5.http.auth.gss.GssCredentials) credentials).getGSSCredential();
         } else {
             this.gssCredential = null;
         }

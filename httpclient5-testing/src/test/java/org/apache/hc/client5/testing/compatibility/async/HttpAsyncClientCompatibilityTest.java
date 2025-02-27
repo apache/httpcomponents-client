@@ -37,8 +37,8 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
-import org.apache.hc.client5.http.auth.KerberosCredentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.auth.gss.GssCredentials;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -83,7 +83,7 @@ public abstract class HttpAsyncClientCompatibilityTest {
         this.clientResource = new HttpAsyncClientResource(versionPolicy);
         if (targetCreds != null) {
             //this.setCredentials(new AuthScope(target), targetCreds);
-            if (targetCreds instanceof KerberosCredentials) {
+            if (targetCreds instanceof GssCredentials) {
                 secretPath = "/private_spnego/big-secret.txt";
                 this.clientResource.configure(builder -> builder
                     .setTargetAuthenticationStrategy(new SpnegoAuthenticationStrategy())
@@ -94,7 +94,7 @@ public abstract class HttpAsyncClientCompatibilityTest {
             this.clientResource.configure(builder -> builder.setProxy(proxy));
             if (proxyCreds != null) {
                 this.setCredentials(new AuthScope(proxy), proxyCreds);
-                if (proxyCreds instanceof KerberosCredentials) {
+                if (proxyCreds instanceof GssCredentials) {
                     // We disable Mutual Auth, because Squid does not support it.
                     // There is no way to set separate scheme registry for target/proxy,
                     // but that's not a problem as SPNEGO cannot be proxied anyway.
