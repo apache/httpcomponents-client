@@ -48,9 +48,9 @@ import javax.security.auth.login.LoginException;
 
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.KerberosCredentials;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.gss.GssConfig;
+import org.apache.hc.client5.http.auth.gss.GssCredentials;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
@@ -70,11 +70,11 @@ public class SpnegoTestUtil {
     static private final SpnegoSchemeFactory NO_MUTUAL_SCHEME_FACTORY =
             new SpnegoSchemeFactory(NO_MUTUAL_KERBEROS_CONFIG, SystemDefaultDnsResolver.INSTANCE);
 
-    public static KerberosCredentials createCredentials(final Subject subject) {
-        return SecurityUtils.callAs(subject, new Callable<KerberosCredentials>() {
+    public static GssCredentials createCredentials(final Subject subject) {
+        return SecurityUtils.callAs(subject, new Callable<GssCredentials>() {
             @Override
-            public KerberosCredentials call() throws Exception {
-                return new KerberosCredentials(
+            public GssCredentials call() throws Exception {
+                return new GssCredentials(
                     GSSManager.getInstance().createCredential(GSSCredential.INITIATE_ONLY));
             }
         });
