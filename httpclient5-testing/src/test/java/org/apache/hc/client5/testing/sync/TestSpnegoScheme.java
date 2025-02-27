@@ -43,12 +43,12 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
-import org.apache.hc.client5.http.auth.MutualKerberosConfig;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.auth.gss.GssConfig;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
-import org.apache.hc.client5.http.impl.auth.MutualSpnegoScheme;
+import org.apache.hc.client5.http.impl.auth.gss.SpnegoScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.Base64;
 import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
@@ -77,11 +77,11 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 /**
- * Tests for {@link SPNegoScheme}.
+ * Tests for {@link org.apache.hc.client5.http.impl.auth.gss.SpnegoScheme}.
  */
-public class TestMutualSpnegoScheme extends AbstractIntegrationTestBase {
+public class TestSpnegoScheme extends AbstractIntegrationTestBase {
 
-    protected TestMutualSpnegoScheme() {
+    protected TestSpnegoScheme() {
         super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
     }
 
@@ -103,7 +103,7 @@ public class TestMutualSpnegoScheme extends AbstractIntegrationTestBase {
     private static final byte[] BAD_MUTUAL_AUTH_TOKEN_BYTES = BAD_MUTUAL_AUTH_TOKEN.getBytes(StandardCharsets.UTF_8);
     private static final byte[] BAD_MUTUAL_AUTH_TOKEN_B64_BYTES = Base64.encodeBase64(BAD_MUTUAL_AUTH_TOKEN_BYTES);
 
-    static MutualKerberosConfig MUTUAL_KERBEROS_CONFIG = MutualKerberosConfig.DEFAULT;
+    static GssConfig MUTUAL_KERBEROS_CONFIG = GssConfig.DEFAULT;
 
     private static class SpnegoAuthenticationStrategy extends DefaultAuthenticationStrategy {
 
@@ -146,13 +146,13 @@ public class TestMutualSpnegoScheme extends AbstractIntegrationTestBase {
     /**
      * This service implements a normal mutualAuth flow
      */
-    private static class SPNEGOMutualService implements HttpRequestHandler {
+    private static class SpnegoService implements HttpRequestHandler {
 
         int callCount = 1;
         final boolean sendMutualToken;
         final byte[] encodedMutualAuthToken;
 
-        SPNEGOMutualService (final boolean sendMutualToken, final byte[] encodedMutualAuthToken) {
+        SpnegoService (final boolean sendMutualToken, final byte[] encodedMutualAuthToken) {
             this.sendMutualToken = sendMutualToken;
             this.encodedMutualAuthToken = encodedMutualAuthToken;
         }
@@ -190,14 +190,14 @@ public class TestMutualSpnegoScheme extends AbstractIntegrationTestBase {
      * Kerberos configuration.
      *
      */
-    private static class NegotiateSchemeWithMockGssManager extends MutualSpnegoScheme {
+    private static class NegotiateSchemeWithMockGssManager extends SpnegoScheme {
 
         final GSSManager manager = Mockito.mock(GSSManager.class);
         final GSSName name = Mockito.mock(GSSName.class);
         final GSSContext context = Mockito.mock(GSSContext.class);
 
         NegotiateSchemeWithMockGssManager() throws Exception {
-            super(MutualKerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE);
+            super(GssConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE);
             Mockito.when(context.initSecContext(
                     ArgumentMatchers.any(), ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt()))
                     .thenReturn("12345678".getBytes());
@@ -217,7 +217,7 @@ public class TestMutualSpnegoScheme extends AbstractIntegrationTestBase {
 
     }
 
-    private static class MutualNegotiateSchemeWithMockGssManager extends MutualSpnegoScheme {
+    private static class MutualNegotiateSchemeWithMockGssManager extends SpnegoScheme {
 
         final GSSManager manager = Mockito.mock(GSSManager.class);
         final GSSName name = Mockito.mock(GSSName.class);
@@ -354,7 +354,7 @@ public class TestMutualSpnegoScheme extends AbstractIntegrationTestBase {
     @Test
     void testMutualSuccess() throws Exception {
         configureServer(t -> {
-            t.register("*", new SPNEGOMutualService(true, GOOD_MUTUAL_AUTH_TOKEN_B64_BYTES));
+            t.register("*", new SpnegoService(true, GOOD_MUTUAL_AUTH_TOKEN_B64_BYTES));
         });
         final HttpHost target = startServer();
 
@@ -388,7 +388,7 @@ public class TestMutualSpnegoScheme extends AbstractIntegrationTestBase {
     @Test
     void testMutualFailureNoToken() throws Exception {
         configureServer(t -> {
-            t.register("*", new SPNEGOMutualService(false, null));
+            t.register("*", new SpnegoService(false, null));
         });
 
         final MutualNegotiateSchemeWithMockGssManager mockAuthScheme = new MutualNegotiateSchemeWithMockGssManager(false, false);
@@ -430,7 +430,7 @@ public class TestMutualSpnegoScheme extends AbstractIntegrationTestBase {
     @Test
     void testMutualFailureEstablishedStatusFalse() throws Exception {
         configureServer(t -> {
-            t.register("*", new SPNEGOMutualService(true, GOOD_MUTUAL_AUTH_TOKEN_B64_BYTES));
+            t.register("*", new SpnegoService(true, GOOD_MUTUAL_AUTH_TOKEN_B64_BYTES));
         });
 
         final MutualNegotiateSchemeWithMockGssManager mockAuthScheme = new MutualNegotiateSchemeWithMockGssManager(false, false);
@@ -471,7 +471,7 @@ public class TestMutualSpnegoScheme extends AbstractIntegrationTestBase {
     @Test
     void testMutualFailureMutualStatusFalse() throws Exception {
         configureServer(t -> {
-            t.register("*", new SPNEGOMutualService(true, GOOD_MUTUAL_AUTH_TOKEN_B64_BYTES));
+            t.register("*", new SpnegoService(true, GOOD_MUTUAL_AUTH_TOKEN_B64_BYTES));
         });
 
         final MutualNegotiateSchemeWithMockGssManager mockAuthScheme = new MutualNegotiateSchemeWithMockGssManager(true, false);
@@ -512,7 +512,7 @@ public class TestMutualSpnegoScheme extends AbstractIntegrationTestBase {
     @Test
     void testMutualFailureBadToken() throws Exception {
         configureServer(t -> {
-            t.register("*", new SPNEGOMutualService(true, BAD_MUTUAL_AUTH_TOKEN_B64_BYTES));
+            t.register("*", new SpnegoService(true, BAD_MUTUAL_AUTH_TOKEN_B64_BYTES));
         });
 
         // We except that the initSecContent throws an exception, so the status is irrelevant

@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.auth;
+package org.apache.hc.client5.http.impl.auth.gss;
 
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
@@ -37,9 +37,9 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * {@link AuthSchemeFactory} implementation that creates and initialises
- * {@link MutualSpnegoScheme} instances.
+ * {@link SpnegoScheme} instances.
  * <p>
- * This replaces the old deprecated {@link SPNegoSchemeFactory}
+ * This replaces the old deprecated {@link org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory}
  * </p>
  *
  * @since 5.5
@@ -48,21 +48,21 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
 @Experimental
-public class MutualSpnegoSchemeFactory implements AuthSchemeFactory {
+public class SpnegoSchemeFactory implements AuthSchemeFactory {
 
     /**
      * Singleton instance for the default configuration.
      */
-    public static final MutualSpnegoSchemeFactory DEFAULT = new MutualSpnegoSchemeFactory(org.apache.hc.client5.http.auth.MutualKerberosConfig.DEFAULT,
+    public static final SpnegoSchemeFactory DEFAULT = new SpnegoSchemeFactory(org.apache.hc.client5.http.auth.gss.GssConfig.DEFAULT,
             SystemDefaultDnsResolver.INSTANCE);
 
-    private final org.apache.hc.client5.http.auth.MutualKerberosConfig config;
+    private final org.apache.hc.client5.http.auth.gss.GssConfig config;
     private final DnsResolver dnsResolver;
 
     /**
      * @since 5.5
      */
-    public MutualSpnegoSchemeFactory(final org.apache.hc.client5.http.auth.MutualKerberosConfig config, final DnsResolver dnsResolver) {
+    public SpnegoSchemeFactory(final org.apache.hc.client5.http.auth.gss.GssConfig config, final DnsResolver dnsResolver) {
         super();
         this.config = config;
         this.dnsResolver = dnsResolver;
@@ -70,7 +70,7 @@ public class MutualSpnegoSchemeFactory implements AuthSchemeFactory {
 
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new MutualSpnegoScheme(this.config, this.dnsResolver);
+        return new SpnegoScheme(this.config, this.dnsResolver);
     }
 
 }

@@ -46,9 +46,9 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * @since 4.2
  *
  * @deprecated Do not use. The old GGS based experimental authentication schemes are no longer
- * supported. Use MutualSpnegoScheme, or consider using Basic or Bearer authentication with TLS
- * instead.
- * @see MutualSpnegoSchemeFactory
+ * supported. Use org.apache.hc.client5.http.impl.auth.gss.SpnegoSchemeFactory, or consider using
+ * Basic or Bearer authentication with TLS instead.
+ * @see org.apache.hc.client5.http.impl.auth.gss.SpnegoSchemeFactory
  * @see BasicSchemeFactory
  * @see BearerSchemeFactory
  */

@@ -39,10 +39,10 @@ import org.ietf.jgss.GSSCredential;
  * @since 4.4
  *
  *
- * Optionally used both by {@link org.apache.hc.client5.http.impl.auth.MutualSpnegoScheme}
+ * Optionally used both by {@link org.apache.hc.client5.http.impl.auth.gss.SpnegoScheme}
  * and the old deprecated GGS based experimental authentication schemes.
  *
- * @see org.apache.hc.client5.http.impl.auth.MutualSpnegoScheme
+ * @see org.apache.hc.client5.http.impl.auth.gss.SpnegoScheme
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class KerberosCredentials implements Credentials, Serializable {

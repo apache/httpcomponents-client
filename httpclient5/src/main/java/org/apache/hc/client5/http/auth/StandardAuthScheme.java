@@ -67,7 +67,7 @@ public final class StandardAuthScheme {
     /**
      * SPNEGO authentication scheme as defined in RFC 4559 and RFC 4178.
      *
-     * Use {@link org.apache.hc.client5.http.impl.auth.MutualSpnegoScheme} instead of the old
+     * Use {@link org.apache.hc.client5.http.impl.auth.gss.SpnegoScheme} instead of the old
      * deprecated {@link org.apache.hc.client5.http.impl.auth.SPNegoScheme}
      */
     public static final String SPNEGO = "Negotiate";

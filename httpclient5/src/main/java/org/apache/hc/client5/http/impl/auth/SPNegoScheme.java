@@ -43,9 +43,9 @@ import org.ietf.jgss.Oid;
  * @since 4.2
  *
  * @deprecated Do not use. The old GGS based experimental authentication schemes are no longer
- * supported. Use MutualSpnegoScheme, or consider using Basic or Bearer authentication with TLS
- * instead.
- * @see MutualSpnegoScheme
+ * supported. Use org.apache.hc.client5.http.impl.auth.gss.SpnegoScheme, or consider using Basic or
+ * Bearer authentication with TLS instead.
+ * @see org.apache.hc.client5.http.impl.auth.gss.SpnegoScheme
  * @see BasicScheme
  * @see BearerScheme
  */
