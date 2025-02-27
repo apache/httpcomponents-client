@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.auth;
+package org.apache.hc.client5.http.impl.auth.gss;
 
 import java.net.UnknownHostException;
 import java.security.Principal;
@@ -39,7 +39,7 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.InvalidCredentialsException;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
-import org.apache.hc.client5.http.auth.MutualKerberosConfig;
+import org.apache.hc.client5.http.auth.gss.GssConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.Base64;
 import org.apache.hc.core5.http.HttpHost;
@@ -59,13 +59,14 @@ import org.slf4j.LoggerFactory;
  * Common behaviour for the new mutual authentication capable {@code GSS} based authentication
  * schemes.
  *
- * This class is derived from the old {@link GGSSchemeBase} class, which was deprecated in 5.3.
+ * This class is derived from the old {@link org.apache.hc.client5.http.impl.auth.GGSSchemeBase}
+ * class, which was deprecated in 5.3.
  *
  * @since 5.5
  *
  * @see GGSSchemeBase
  */
-public abstract class MutualGssSchemeBase implements AuthScheme {
+public abstract class GssSchemeBase implements AuthScheme {
 
     enum State {
         UNINITIATED,
@@ -75,14 +76,14 @@ public abstract class MutualGssSchemeBase implements AuthScheme {
         FAILED,
     }
 
-    private static final Logger LOG = LoggerFactory.getLogger(MutualGssSchemeBase.class);
+    private static final Logger LOG = LoggerFactory.getLogger(GssSchemeBase.class);
     private static final String NO_TOKEN = "";
     private static final String KERBEROS_SCHEME = "HTTP";
 
     // The GSS spec does not specify how long the conversation can be. This should be plenty.
     // Realistically, we get one initial token, then one maybe one more for mutual authentication.
     private static final int MAX_GSS_CHALLENGES = 3;
-    private final MutualKerberosConfig config;
+    private final GssConfig config;
     private final DnsResolver dnsResolver;
     private final boolean mutualAuth;
     private int challengesLeft = MAX_GSS_CHALLENGES;
@@ -94,20 +95,20 @@ public abstract class MutualGssSchemeBase implements AuthScheme {
     private String challenge;
     private byte[] queuedToken = new byte[0];
 
-    MutualGssSchemeBase(final MutualKerberosConfig config, final DnsResolver dnsResolver) {
+    GssSchemeBase(final GssConfig config, final DnsResolver dnsResolver) {
         super();
-        this.config = config != null ? config : MutualKerberosConfig.DEFAULT;
+        this.config = config != null ? config : GssConfig.DEFAULT;
         this.dnsResolver = dnsResolver != null ? dnsResolver : SystemDefaultDnsResolver.INSTANCE;
         this.mutualAuth = config.isRequestMutualAuth();
         this.state = State.UNINITIATED;
     }
 
-    MutualGssSchemeBase(final MutualKerberosConfig config) {
+    GssSchemeBase(final GssConfig config) {
         this(config, SystemDefaultDnsResolver.INSTANCE);
     }
 
-    MutualGssSchemeBase() {
-        this(MutualKerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE);
+    GssSchemeBase() {
+        this(GssConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE);
     }
 
     @Override

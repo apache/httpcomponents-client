@@ -25,13 +25,14 @@
  *
  */
 
-package org.apache.hc.client5.http.auth;
+package org.apache.hc.client5.http.auth.gss;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
- * Immutable class encapsulating Kerberos configuration options for MutualSpnegoScheme.
+ * Immutable class encapsulating Kerberos configuration options for the new mutual auth capable
+ * SpnegoScheme.
  *
  * Unlike the deprecated {@link KerberosConfig}, this class uses explicit defaults, and
  * primitive booleans.
@@ -43,10 +44,10 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  *
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class MutualKerberosConfig implements Cloneable {
+public class GssConfig implements Cloneable {
 
 
-    public static final MutualKerberosConfig DEFAULT = new Builder().build();
+    public static final GssConfig DEFAULT = new Builder().build();
 
     private final boolean addPort;
     private final boolean useCanonicalHostname;
@@ -56,11 +57,11 @@ public class MutualKerberosConfig implements Cloneable {
     /**
      * Intended for CDI compatibility
     */
-    protected MutualKerberosConfig() {
+    protected GssConfig() {
         this(false, false, true, false);
     }
 
-    MutualKerberosConfig(
+    GssConfig(
             final boolean stripPort,
             final boolean useCanonicalHostname,
             final boolean requestMutualAuth,
@@ -89,8 +90,8 @@ public class MutualKerberosConfig implements Cloneable {
     }
 
     @Override
-    protected MutualKerberosConfig clone() throws CloneNotSupportedException {
-        return (MutualKerberosConfig) super.clone();
+    protected GssConfig clone() throws CloneNotSupportedException {
+        return (GssConfig) super.clone();
     }
 
     @Override
@@ -105,11 +106,11 @@ public class MutualKerberosConfig implements Cloneable {
         return builder.toString();
     }
 
-    public static MutualKerberosConfig.Builder custom() {
+    public static GssConfig.Builder custom() {
         return new Builder();
     }
 
-    public static MutualKerberosConfig.Builder copy(final MutualKerberosConfig config) {
+    public static GssConfig.Builder copy(final GssConfig config) {
         return new Builder()
                 .setAddPort(config.isAddPort())
                 .setUseCanonicalHostname(config.isUseCanonicalHostname())
@@ -148,8 +149,8 @@ public class MutualKerberosConfig implements Cloneable {
             return this;
         }
 
-        public MutualKerberosConfig build() {
-            return new MutualKerberosConfig(
+        public GssConfig build() {
+            return new GssConfig(
                     addPort,
                     useCanonicalHostname,
                     requestMutualAuth,

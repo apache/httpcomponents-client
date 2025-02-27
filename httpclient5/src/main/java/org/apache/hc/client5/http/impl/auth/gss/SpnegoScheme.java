@@ -24,11 +24,12 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.auth;
+package org.apache.hc.client5.http.impl.auth.gss;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.impl.auth.SPNegoScheme;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 
@@ -62,35 +63,35 @@ import org.ietf.jgss.Oid;
  *   }
  * }
  *
- * AuthenticationStrategy mutualStrategy = new SpnegoAuthenticationStrategy();
+ * AuthenticationStrategy spnegoStrategy = new SpnegoAuthenticationStrategy();
  *
- * AuthSchemeFactory mutualFactory = new MutualSpnegoSchemeFactory();
+ * AuthSchemeFactory spnegoFactory = new SpnegoSchemeFactory();
  * Registry<AuthSchemeFactory> mutualSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
- *     .register(StandardAuthScheme.SPNEGO, mutualFactory)
+ *     .register(StandardAuthScheme.SPNEGO, spnegoFactory)
  *     //register other schemes as needed
  *     .build();
  *
  * CloseableHttpClient mutualClient = HttpClientBuilder.create()
- *    .setTargetAuthenticationStrategy(mutualStrategy);
- *    .setDefaultAuthSchemeRegistry(mutualSchemeRegistry);
+ *    .setTargetAuthenticationStrategy(spnegoStrategy);
+ *    .setDefaultAuthSchemeRegistry(spnegoSchemeRegistry);
  *    .build();
  * }
  * </pre>
  *
  * @since 5.5
  */
-public class MutualSpnegoScheme extends MutualGssSchemeBase {
+public class SpnegoScheme extends GssSchemeBase {
 
     private static final String SPNEGO_OID = "1.3.6.1.5.5.2";
 
     /**
      * @since 5.0
      */
-    public MutualSpnegoScheme(final org.apache.hc.client5.http.auth.MutualKerberosConfig config, final DnsResolver dnsResolver) {
+    public SpnegoScheme(final org.apache.hc.client5.http.auth.gss.GssConfig config, final DnsResolver dnsResolver) {
         super(config, dnsResolver);
     }
 
-    public MutualSpnegoScheme() {
+    public SpnegoScheme() {
         super();
     }
 
