@@ -31,13 +31,13 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
- * Immutable class encapsulating Kerberos configuration options for the new mutual auth capable
+ * Immutable class encapsulating GSS configuration options for the new mutual auth capable
  * SpnegoScheme.
  *
  * Unlike the deprecated {@link KerberosConfig}, this class uses explicit defaults, and
  * primitive booleans.
  *
- * Compared to {@link KerberosConfig} stripPort has been changed toAddPort, and the default is now
+ * Compared to {@link KerberosConfig} stripPort has been changed to addPort, and the default is now
  * false (same effect). The default for useCanonicalHostname has been changed to false from true.
  *
  * @since 5.5
@@ -62,12 +62,12 @@ public class GssConfig implements Cloneable {
     }
 
     GssConfig(
-            final boolean stripPort,
+            final boolean addPort,
             final boolean useCanonicalHostname,
             final boolean requestMutualAuth,
             final boolean requestDelegCreds) {
         super();
-        this.addPort = stripPort;
+        this.addPort = addPort;
         this.useCanonicalHostname = useCanonicalHostname;
         this.requestMutualAuth = requestMutualAuth;
         this.requestDelegCreds = requestDelegCreds;
