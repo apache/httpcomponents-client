@@ -82,7 +82,15 @@ import org.ietf.jgss.Oid;
  */
 public class SpnegoScheme extends GssSchemeBase {
 
-    private static final String SPNEGO_OID = "1.3.6.1.5.5.2";
+    private static final String SPNEGO_OID_STRING = "1.3.6.1.5.5.2";
+    private static final Oid SPNEGO_OID;
+    static {
+        try {
+            SPNEGO_OID = new Oid(SPNEGO_OID_STRING);
+        } catch (final GSSException e) {
+            throw new IllegalStateException("Failed to create OID for SPNEGO mechanism", e);
+        }
+    }
 
     /**
      * @since 5.0
@@ -102,7 +110,7 @@ public class SpnegoScheme extends GssSchemeBase {
 
     @Override
     protected byte[] generateToken(final byte[] input, final String gssServiceName, final String gssHostname) throws GSSException {
-        return generateGSSToken(input, new Oid(SPNEGO_OID), gssServiceName, gssHostname);
+        return generateGSSToken(input, SPNEGO_OID, gssServiceName, gssHostname);
     }
 
     @Override
