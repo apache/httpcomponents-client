@@ -171,7 +171,7 @@ public abstract class GssSchemeBase implements AuthScheme {
             queuedToken = generateToken(challengeToken, KERBEROS_SCHEME, gssHostname);
             switch (state) {
             case UNINITIATED:
-                if (challenge != NO_TOKEN) {
+                if (challengeToken != null) {
                     if (LOG.isDebugEnabled()) {
                         final HttpClientContext clientContext = HttpClientContext.cast(context);
                         final String exchangeId = clientContext.getExchangeId();

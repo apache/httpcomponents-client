@@ -37,8 +37,7 @@ import org.ietf.jgss.GSSCredential;
  * @since 4.4
  *
  * The original KerberosCredentials class has been renamed to
- * org.apache.hc.client5.http.auth.gss.GssCredentials for the new Mutual capable SPNEGO Scheme.
- * This is an identical child class with the original name to maintain backwards compatibility.
+ * org.apache.hc.client5.http.auth.gss.GssCredentials.
  *
  * @deprecated Do not use. The old GGS based experimental authentication schemes are no longer
  * supported.
