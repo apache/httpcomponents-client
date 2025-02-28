@@ -56,6 +56,9 @@ public class SpnegoSchemeFactory implements AuthSchemeFactory {
     public static final SpnegoSchemeFactory DEFAULT = new SpnegoSchemeFactory(org.apache.hc.client5.http.auth.gss.GssConfig.DEFAULT,
             SystemDefaultDnsResolver.INSTANCE);
 
+    public static final SpnegoSchemeFactory LEGACY = new SpnegoSchemeFactory(org.apache.hc.client5.http.auth.gss.GssConfig.LEGACY,
+        SystemDefaultDnsResolver.INSTANCE);
+
     private final org.apache.hc.client5.http.auth.gss.GssConfig config;
     private final DnsResolver dnsResolver;
 

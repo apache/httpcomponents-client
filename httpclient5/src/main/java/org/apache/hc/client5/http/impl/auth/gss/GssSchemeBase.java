@@ -77,7 +77,6 @@ public abstract class GssSchemeBase implements AuthScheme {
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(GssSchemeBase.class);
-    private static final String NO_TOKEN = "";
     private static final String KERBEROS_SCHEME = "HTTP";
 
     // The GSS spec does not specify how long the conversation can be. This should be plenty.
@@ -86,6 +85,7 @@ public abstract class GssSchemeBase implements AuthScheme {
     private final GssConfig config;
     private final DnsResolver dnsResolver;
     private final boolean mutualAuth;
+    private final boolean ignoreMissingToken;
     private int challengesLeft = MAX_GSS_CHALLENGES;
 
     /** Authentication process state */
@@ -100,6 +100,7 @@ public abstract class GssSchemeBase implements AuthScheme {
         this.config = config != null ? config : GssConfig.DEFAULT;
         this.dnsResolver = dnsResolver != null ? dnsResolver : SystemDefaultDnsResolver.INSTANCE;
         this.mutualAuth = config.isRequestMutualAuth();
+        this.ignoreMissingToken = config.isIgnoreMissingToken();
         this.state = State.UNINITIATED;
     }
 
@@ -167,10 +168,10 @@ public abstract class GssSchemeBase implements AuthScheme {
             LOG.debug("{} GSS init {}", exchangeId, gssHostname);
         }
         try {
-            setGssCredential(HttpClientContext.cast(context).getCredentialsProvider(), host, context);
-            queuedToken = generateToken(challengeToken, KERBEROS_SCHEME, gssHostname);
             switch (state) {
             case UNINITIATED:
+                setGssCredential(HttpClientContext.cast(context).getCredentialsProvider(), host, context);
+                queuedToken = generateToken(challengeToken, KERBEROS_SCHEME, gssHostname);
                 if (challengeToken != null) {
                     if (LOG.isDebugEnabled()) {
                         final HttpClientContext clientContext = HttpClientContext.cast(context);
@@ -183,35 +184,54 @@ public abstract class GssSchemeBase implements AuthScheme {
                 state = State.TOKEN_READY;
                 break;
             case TOKEN_SENT:
+                if (challengeToken == null) {
+                    if (!challenged && ignoreMissingToken) {
+                        // Got a 200 without a challenge. Old non RFC compliant server.
+                        if (LOG.isDebugEnabled()) {
+                            final HttpClientContext clientContext = HttpClientContext.cast(context);
+                            final String exchangeId = clientContext.getExchangeId();
+                            LOG.debug("{} GSS Context is not established, but continuing because GssConfig.ignoreMissingToken is true.", exchangeId);
+                        }
+                        state = State.SUCCEEDED;
+                        break;
+                    } else {
+                        if (LOG.isDebugEnabled()) {
+                            final HttpClientContext clientContext = HttpClientContext.cast(context);
+                            final String exchangeId = clientContext.getExchangeId();
+                            LOG.debug("{} Did not receive required challenge and GssConfig.ignoreMissingToken is false.",
+                                exchangeId);
+                        }
+                        state = State.FAILED;
+                        throw new AuthenticationException(
+                                "Did not receive required challenge and GssConfig.ignoreMissingToken is false.");
+                    }
+                }
+                queuedToken = generateToken(challengeToken, KERBEROS_SCHEME, gssHostname);
                 if (challenged) {
                     state = State.TOKEN_READY;
-                } else if (mutualAuth) {
-                    // We should have received a valid mutualAuth token
-                    if (!gssContext.isEstablished()) {
-                        if (LOG.isDebugEnabled()) {
-                            final HttpClientContext clientContext =
-                                    HttpClientContext.cast(context);
-                            final String exchangeId = clientContext.getExchangeId();
-                            LOG.debug("{} GSSContext is not established ", exchangeId);
-                        }
-                        state = State.FAILED;
-                        // TODO should we have specific exception(s) for these ?
-                        throw new AuthenticationException(
-                                "requireMutualAuth is set but GSSContext is not established");
-                    } else if (!gssContext.getMutualAuthState()) {
-                        if (LOG.isDebugEnabled()) {
-                            final HttpClientContext clientContext =
-                                    HttpClientContext.cast(context);
-                            final String exchangeId = clientContext.getExchangeId();
-                            LOG.debug("{} requireMutualAuth is set but GSSAUthContext does not have"
-                                    + " mutualAuthState set", exchangeId);
-                        }
-                        state = State.FAILED;
-                        throw new AuthenticationException(
-                                "requireMutualAuth is set but GSSContext mutualAuthState is not set");
-                    } else {
-                        state = State.SUCCEEDED;
+                } else if (!gssContext.isEstablished()) {
+                    if (LOG.isDebugEnabled()) {
+                        final HttpClientContext clientContext = HttpClientContext.cast(context);
+                        final String exchangeId = clientContext.getExchangeId();
+                        LOG.debug("{} GSSContext is not established ", exchangeId);
                     }
+                    state = State.FAILED;
+                    // TODO should we have specific exception(s) for these ?
+                    throw new AuthenticationException(
+                            "requireMutualAuth is set but GSSContext is not established");
+                } else if (mutualAuth && !gssContext.getMutualAuthState()) {
+                    if (LOG.isDebugEnabled()) {
+                        final HttpClientContext clientContext = HttpClientContext.cast(context);
+                        final String exchangeId = clientContext.getExchangeId();
+                        LOG.debug("{} requireMutualAuth is set but GSSAUthContext does not have"
+                                + " mutualAuthState set",
+                            exchangeId);
+                    }
+                    state = State.FAILED;
+                    throw new AuthenticationException(
+                            "requireMutualAuth is set but GSSContext mutualAuthState is not set");
+                } else {
+                    state = State.SUCCEEDED;
                 }
                 break;
             default:
@@ -289,7 +309,7 @@ public abstract class GssSchemeBase implements AuthScheme {
 
     @Override
     public boolean isChallengeExpected() {
-        return state == State.TOKEN_SENT && mutualAuth;
+        return state == State.TOKEN_SENT;
     }
 
     @Override
@@ -301,7 +321,6 @@ public abstract class GssSchemeBase implements AuthScheme {
         Args.notNull(host, "Auth host");
         Args.notNull(credentialsProvider, "CredentialsProvider");
 
-        setGssCredential(credentialsProvider, host, context);
         return true;
     }
 
