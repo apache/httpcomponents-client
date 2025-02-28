@@ -420,7 +420,7 @@ public class TestSpnegoScheme extends AbstractIntegrationTestBase {
             Assertions.assertTrue(e.getCause() instanceof AuthenticationException);
         }
 
-        Mockito.verify(mockAuthScheme.context, Mockito.atLeastOnce()).isEstablished();
+        Mockito.verify(mockAuthScheme.context, Mockito.never()).isEstablished();
         Mockito.verify(mockAuthScheme.context, Mockito.never()).getMutualAuthState();
     }
 
