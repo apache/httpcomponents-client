@@ -87,7 +87,7 @@ public abstract class HttpAsyncClientCompatibilityTest {
                 secretPath = "/private_spnego/big-secret.txt";
                 this.clientResource.configure(builder -> builder
                     .setTargetAuthenticationStrategy(new SpnegoAuthenticationStrategy())
-                    .setDefaultAuthSchemeRegistry(SpnegoTestUtil.getSpnegoSchemeRegistry()));
+                    .setDefaultAuthSchemeRegistry(SpnegoTestUtil.getDefaultSpnegoSchemeRegistry()));
             }
         }
         if (proxy != null) {
@@ -100,7 +100,7 @@ public abstract class HttpAsyncClientCompatibilityTest {
                     // but that's not a problem as SPNEGO cannot be proxied anyway.
                     this.clientResource.configure(builder ->
                     builder.setProxyAuthenticationStrategy(new SpnegoAuthenticationStrategy())
-                    .setDefaultAuthSchemeRegistry(SpnegoTestUtil.getSpnegoSchemeRegistryNoMutual()));
+                    .setDefaultAuthSchemeRegistry(SpnegoTestUtil.getLegacySpnegoSchemeRegistry()));
                 }
             }
         }

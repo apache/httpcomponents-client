@@ -48,29 +48,34 @@ public class GssConfig implements Cloneable {
 
 
     public static final GssConfig DEFAULT = new Builder().build();
+    public static final GssConfig LEGACY =
+            new Builder().setIgnoreMissingToken(true).setRequestMutualAuth(false).build();
 
     private final boolean addPort;
     private final boolean useCanonicalHostname;
     private final boolean requestMutualAuth;
     private final boolean requestDelegCreds;
+    private final boolean ignoreMissingToken;
 
     /**
      * Intended for CDI compatibility
     */
     protected GssConfig() {
-        this(false, false, true, false);
+        this(false, false, true, false, false);
     }
 
     GssConfig(
             final boolean addPort,
             final boolean useCanonicalHostname,
             final boolean requestMutualAuth,
-            final boolean requestDelegCreds) {
+            final boolean requestDelegCreds,
+            final boolean ignoreMissingToken) {
         super();
         this.addPort = addPort;
         this.useCanonicalHostname = useCanonicalHostname;
         this.requestMutualAuth = requestMutualAuth;
         this.requestDelegCreds = requestDelegCreds;
+        this.ignoreMissingToken = ignoreMissingToken;
     }
 
     public boolean isAddPort() {
@@ -89,6 +94,10 @@ public class GssConfig implements Cloneable {
         return requestMutualAuth;
     }
 
+    public boolean isIgnoreMissingToken() {
+        return ignoreMissingToken;
+    }
+
     @Override
     protected GssConfig clone() throws CloneNotSupportedException {
         return (GssConfig) super.clone();
@@ -102,6 +111,7 @@ public class GssConfig implements Cloneable {
         builder.append(", useCanonicalHostname=").append(useCanonicalHostname);
         builder.append(", requestDelegCreds=").append(requestDelegCreds);
         builder.append(", requestMutualAuth=").append(requestMutualAuth);
+        builder.append(", ignoreMissingToken=").append(ignoreMissingToken);
         builder.append("]");
         return builder.toString();
     }
@@ -115,7 +125,8 @@ public class GssConfig implements Cloneable {
                 .setAddPort(config.isAddPort())
                 .setUseCanonicalHostname(config.isUseCanonicalHostname())
                 .setRequestDelegCreds(config.isRequestDelegCreds())
-                .setRequestMutualAuth(config.isRequestMutualAuth());
+                .setRequestMutualAuth(config.isRequestMutualAuth())
+                .setIgnoreMissingToken(config.isIgnoreMissingToken());
     }
 
     public static class Builder {
@@ -124,6 +135,8 @@ public class GssConfig implements Cloneable {
         private boolean useCanonicalHostname = false;
         private boolean requestMutualAuth = true;
         private boolean requestDelegCreds = false;
+        private boolean ignoreMissingToken = false;
+
 
         Builder() {
             super();
@@ -149,12 +162,21 @@ public class GssConfig implements Cloneable {
             return this;
         }
 
+        public Builder setIgnoreMissingToken(final boolean ignoreMissingToken) {
+            this.ignoreMissingToken = ignoreMissingToken;
+            return this;
+        }
+
         public GssConfig build() {
+            if (requestMutualAuth && ignoreMissingToken) {
+                throw new IllegalArgumentException("If requestMutualAuth is set then ignoreMissingToken must not be set");
+            }
             return new GssConfig(
                     addPort,
                     useCanonicalHostname,
                     requestMutualAuth,
-                    requestDelegCreds
+                    requestDelegCreds,
+                    ignoreMissingToken
                     );
         }
 
