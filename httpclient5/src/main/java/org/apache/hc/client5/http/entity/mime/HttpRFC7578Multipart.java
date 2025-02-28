@@ -40,6 +40,8 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
 
     private final List<MultipartPart> parts;
 
+    private final HttpMultipartMode mode;
+
     /**
      * Constructs a new instance of {@code HttpRFC7578Multipart} with the given charset, boundary, parts, preamble, and epilogue.
      *
@@ -54,9 +56,11 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
         final String boundary,
         final List<MultipartPart> parts,
         final String preamble,
-        final String epilogue) {
+        final String epilogue,
+        final HttpMultipartMode mode) {
         super(charset, boundary, preamble, epilogue);
         this.parts = parts;
+        this.mode = mode != null ? mode : HttpMultipartMode.STRICT; // Default to STRICT
     }
 
     /**
@@ -69,9 +73,11 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
     public HttpRFC7578Multipart(
             final Charset charset,
             final String boundary,
-            final List<MultipartPart> parts) {
-        this(charset,boundary,parts,null, null);
+            final List<MultipartPart> parts,
+            final HttpMultipartMode mode) {
+        this(charset,boundary,parts,null, null, mode);
     }
+
 
     @Override
     public List<MultipartPart> getParts() {
@@ -94,12 +100,17 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
                     writeBytes(name, out);
                     writeBytes("=\"", out);
                     if (value != null) {
-                        if (name.equalsIgnoreCase(MimeConsts.FIELD_PARAM_FILENAME) ||
-                                name.equalsIgnoreCase(MimeConsts.FIELD_PARAM_FILENAME_START)) {
-                            final String encodedValue = name.equalsIgnoreCase(MimeConsts.FIELD_PARAM_FILENAME_START) ?
-                                    "UTF-8''" + PercentCodec.RFC5987.encode(value) : PercentCodec.RFC5987.encode(value);
-                            final byte[] encodedBytes = encodedValue.getBytes(StandardCharsets.US_ASCII);
-                            out.write(encodedBytes);
+                        if (name.equalsIgnoreCase(MimeConsts.FIELD_PARAM_FILENAME_START)) {
+                            final String encodedValue = "UTF-8''" + PercentCodec.RFC5987.encode(value);
+                            writeBytes(encodedValue, StandardCharsets.US_ASCII, out);
+                        } else if (name.equalsIgnoreCase(MimeConsts.FIELD_PARAM_FILENAME)) {
+                            if (mode == HttpMultipartMode.EXTENDED) {
+                                final String encodedValue = PercentCodec.RFC5987.encode(value);
+                                writeBytes(encodedValue, StandardCharsets.US_ASCII, out);
+                            } else {
+                                // Default to ISO-8859-1 for RFC 7578 compliance in STRICT/LEGACY
+                                writeBytes(value, StandardCharsets.ISO_8859_1, out);
+                            }
                         } else {
                             writeBytes(value, out);
                         }

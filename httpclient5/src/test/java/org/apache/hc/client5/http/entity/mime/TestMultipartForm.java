@@ -295,11 +295,11 @@ class TestMultipartForm {
         @SuppressWarnings("resource")
         final FormBodyPart p1 = FormBodyPartBuilder.create(
                 "field1",
-                new InputStreamBody(new FileInputStream(tmpfile), s1 + ".tmp")).build();
+                new InputStreamBody(new FileInputStream(tmpfile), s1 + ".tmp"), HttpMultipartMode.LEGACY).build();
         @SuppressWarnings("resource")
         final FormBodyPart p2 = FormBodyPartBuilder.create(
                 "field2",
-                new InputStreamBody(new FileInputStream(tmpfile), s2 + ".tmp")).build();
+                new InputStreamBody(new FileInputStream(tmpfile), s2 + ".tmp"), HttpMultipartMode.LEGACY).build();
         final LegacyMultipart multipart = new LegacyMultipart(
                 StandardCharsets.UTF_8, "foo",
                 Arrays.asList(p1, p2));
