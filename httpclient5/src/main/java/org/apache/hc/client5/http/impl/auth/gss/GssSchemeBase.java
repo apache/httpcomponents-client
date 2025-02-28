@@ -84,7 +84,7 @@ public abstract class GssSchemeBase implements AuthScheme {
     private static final int MAX_GSS_CHALLENGES = 3;
     private final GssConfig config;
     private final DnsResolver dnsResolver;
-    private final boolean mutualAuth;
+    private final boolean requireMutualAuth;
     private final boolean ignoreMissingToken;
     private int challengesLeft = MAX_GSS_CHALLENGES;
 
@@ -99,7 +99,7 @@ public abstract class GssSchemeBase implements AuthScheme {
         super();
         this.config = config != null ? config : GssConfig.DEFAULT;
         this.dnsResolver = dnsResolver != null ? dnsResolver : SystemDefaultDnsResolver.INSTANCE;
-        this.mutualAuth = config.isRequestMutualAuth();
+        this.requireMutualAuth = config.isRequireMutualAuth();
         this.ignoreMissingToken = config.isIgnoreMissingToken();
         this.state = State.UNINITIATED;
     }
@@ -186,7 +186,7 @@ public abstract class GssSchemeBase implements AuthScheme {
             case TOKEN_SENT:
                 if (challengeToken == null) {
                     if (!challenged && ignoreMissingToken) {
-                        // Got a 200 without a challenge. Old non RFC compliant server.
+                        // Got a Non 401/407 code without a challenge. Old non RFC compliant server.
                         if (LOG.isDebugEnabled()) {
                             final HttpClientContext clientContext = HttpClientContext.cast(context);
                             final String exchangeId = clientContext.getExchangeId();
@@ -213,23 +213,32 @@ public abstract class GssSchemeBase implements AuthScheme {
                     if (LOG.isDebugEnabled()) {
                         final HttpClientContext clientContext = HttpClientContext.cast(context);
                         final String exchangeId = clientContext.getExchangeId();
-                        LOG.debug("{} GSSContext is not established ", exchangeId);
+                        LOG.debug("{} GSSContext is not established.", exchangeId);
                     }
                     state = State.FAILED;
                     // TODO should we have specific exception(s) for these ?
                     throw new AuthenticationException(
-                            "requireMutualAuth is set but GSSContext is not established");
-                } else if (mutualAuth && !gssContext.getMutualAuthState()) {
-                    if (LOG.isDebugEnabled()) {
-                        final HttpClientContext clientContext = HttpClientContext.cast(context);
-                        final String exchangeId = clientContext.getExchangeId();
-                        LOG.debug("{} requireMutualAuth is set but GSSAUthContext does not have"
-                                + " mutualAuthState set",
-                            exchangeId);
+                            "GSSContext is not established.");
+                } else if (!gssContext.getMutualAuthState()) {
+                    if (requireMutualAuth) {
+                        if (LOG.isDebugEnabled()) {
+                            final HttpClientContext clientContext = HttpClientContext.cast(context);
+                            final String exchangeId = clientContext.getExchangeId();
+                            LOG.debug("{} requireMutualAuth is true but GSSContext mutualAuthState is false",
+                                exchangeId);
+                        }
+                        state = State.FAILED;
+                        throw new AuthenticationException(
+                                "requireMutualAuth is true but GSSContext mutualAuthState is false");
+                    } else {
+                        if (LOG.isDebugEnabled()) {
+                            final HttpClientContext clientContext = HttpClientContext.cast(context);
+                            final String exchangeId = clientContext.getExchangeId();
+                            LOG.debug("{} GSSContext MutualAuthState is false, but continuing because GssConfig.requireMutualAuth is false.",
+                                exchangeId);
+                        }
+                        state = State.FAILED;
                     }
-                    state = State.FAILED;
-                    throw new AuthenticationException(
-                            "requireMutualAuth is set but GSSContext mutualAuthState is not set");
                 } else {
                     state = State.SUCCEEDED;
                 }
@@ -289,7 +298,7 @@ public abstract class GssSchemeBase implements AuthScheme {
             final GSSCredential gssCredential) throws GSSException {
         final GSSContext gssContext = manager.createContext(peerName.canonicalize(oid), oid, gssCredential,
                 GSSContext.DEFAULT_LIFETIME);
-        gssContext.requestMutualAuth(mutualAuth);
+        gssContext.requestMutualAuth(config.isRequestMutualAuth());
         gssContext.requestCredDeleg(config.isRequestDelegCreds());
         return gssContext;
     }
