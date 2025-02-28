@@ -29,13 +29,11 @@ package org.apache.hc.client5.http.entity.mime;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
@@ -45,23 +43,36 @@ import org.apache.hc.core5.util.Args;
 
 /**
  * Builder for multipart {@link HttpEntity}s.
+ * <p>
+ * This class constructs multipart entities with a default boundary of "httpclient_boundary_7k9p2m4x8n5j3q6t1r0vwyzabcdefghi"
+ * if none is explicitly set. The default boundary is a simple convenience and is not
+ * intended to be unique or secure. If a unique or secure boundary is required (e.g.,
+ * to avoid collisions with content or for security-sensitive applications), users must
+ * explicitly set their own boundary using {@link #setBoundary(String)}. For randomized
+ * or cryptographically secure boundaries, users should generate their own value using
+ * an appropriate random number generator or cryptographic library.
+ * </p>
  *
  * @since 5.0
  */
     public class MultipartEntityBuilder {
-
-    /**
-     * The pool of ASCII chars to be used for generating a multipart boundary.
-     */
-    private final static char[] MULTIPART_CHARS =
-            "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    .toCharArray();
 
     private ContentType contentType;
     private HttpMultipartMode mode = HttpMultipartMode.STRICT;
     private String boundary;
     private Charset charset;
     private List<MultipartPart> multipartParts;
+
+    /**
+     * The default boundary value used if none is explicitly set.
+     * <p>
+     * This is a fixed value ("httpclient_boundary_7k9p2m4x8n5j3q6t1r0vwyzabcdefghi") provided for convenience. It is not
+     * random or secure. Users requiring uniqueness or security must override this
+     * by calling {@link #setBoundary(String)} with their own value, potentially
+     * generated using a random number generator or cryptographic library.
+     * </p>
+     */
+    private static final String DEFAULT_BOUNDARY = "httpclient_boundary_7k9p2m4x8n5j3q6t1r0vwyzabcdefghi";
 
     /**
      * The preamble of the multipart message.
@@ -231,24 +242,13 @@ import org.apache.hc.core5.util.Args;
         return this;
     }
 
-    private String generateBoundary() {
-        final ThreadLocalRandom rand = ThreadLocalRandom.current();
-        final int count = rand.nextInt(30, 41); // a random size from 30 to 40
-        final CharBuffer buffer = CharBuffer.allocate(count);
-        while (buffer.hasRemaining()) {
-            buffer.put(MULTIPART_CHARS[rand.nextInt(MULTIPART_CHARS.length)]);
-        }
-        buffer.flip();
-        return buffer.toString();
-    }
-
     MultipartFormEntity buildEntity() {
         String boundaryCopy = boundary;
         if (boundaryCopy == null && contentType != null) {
             boundaryCopy = contentType.getParameter("boundary");
         }
         if (boundaryCopy == null) {
-            boundaryCopy = generateBoundary();
+            boundaryCopy = DEFAULT_BOUNDARY;
         }
         Charset charsetCopy = charset;
         if (charsetCopy == null && contentType != null) {
