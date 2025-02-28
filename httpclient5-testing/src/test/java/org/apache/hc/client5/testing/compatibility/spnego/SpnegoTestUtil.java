@@ -46,10 +46,8 @@ import javax.security.auth.login.Configuration;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 
-import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
-import org.apache.hc.client5.http.auth.gss.GssConfig;
 import org.apache.hc.client5.http.auth.gss.GssCredentials;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
@@ -64,11 +62,6 @@ import org.ietf.jgss.GSSManager;
 
 
 public class SpnegoTestUtil {
-
-    static private final GssConfig NO_MUTUAL_KERBEROS_CONFIG =
-            GssConfig.custom().setRequestMutualAuth(false).build();
-    static private final SpnegoSchemeFactory NO_MUTUAL_SCHEME_FACTORY =
-            new SpnegoSchemeFactory(NO_MUTUAL_KERBEROS_CONFIG, SystemDefaultDnsResolver.INSTANCE);
 
     public static GssCredentials createCredentials(final Subject subject) {
         return SecurityUtils.callAs(subject, new Callable<GssCredentials>() {
@@ -89,7 +82,7 @@ public class SpnegoTestUtil {
         }
     }
 
-    public static Registry<AuthSchemeFactory> getSpnegoSchemeRegistry() {
+    public static Registry<AuthSchemeFactory> getDefaultSpnegoSchemeRegistry() {
         return RegistryBuilder.<AuthSchemeFactory>create()
                 .register(StandardAuthScheme.BEARER, BearerSchemeFactory.INSTANCE)
                 .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
@@ -100,12 +93,12 @@ public class SpnegoTestUtil {
     }
 
     //Squid does not support mutual auth
-    public static Registry<AuthSchemeFactory> getSpnegoSchemeRegistryNoMutual() {
+    public static Registry<AuthSchemeFactory> getLegacySpnegoSchemeRegistry() {
         return RegistryBuilder.<AuthSchemeFactory>create()
                 .register(StandardAuthScheme.BEARER, BearerSchemeFactory.INSTANCE)
                 .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
                 .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
-                .register(StandardAuthScheme.SPNEGO, NO_MUTUAL_SCHEME_FACTORY)
+                .register(StandardAuthScheme.SPNEGO, SpnegoSchemeFactory.LEGACY)
                 // register other schemes as needed
                 .build();
     }
