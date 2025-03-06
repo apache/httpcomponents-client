@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.SAFE)
 public final class PublicSuffixMatcherLoader {
 
-    private static final String PUBLIC_SUFFIX_LIST = "org/publicsuffix/list/effective_tld_names.dat";
+    private static final String PUBLIC_SUFFIX_LIST = "/org/publicsuffix/list/effective_tld_names.dat";
 
     private static final Logger LOG = LoggerFactory.getLogger(PublicSuffixMatcherLoader.class);
 
