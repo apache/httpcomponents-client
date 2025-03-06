@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.psl;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -40,7 +39,6 @@ import org.junit.jupiter.api.Test;
 class TestPublicSuffixMatcher {
 
     private static final String SOURCE_FILE = "suffixlistmatcher.txt";
-    private static final String PUBLIC_SUFFIX_LIST_FILE = "org/publicsuffix/list/effective_tld_names.dat";
 
     private PublicSuffixMatcher matcher;
     private PublicSuffixMatcher pslMatcher;
@@ -60,9 +58,7 @@ class TestPublicSuffixMatcher {
             final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(new InputStreamReader(in, StandardCharsets.UTF_8));
             matcher = new PublicSuffixMatcher(lists);
         }
-        final URL publicSuffixListUrl = classLoader.getResource(PUBLIC_SUFFIX_LIST_FILE);
-        Assertions.assertNotNull(publicSuffixListUrl, PUBLIC_SUFFIX_LIST_FILE);
-        pslMatcher = PublicSuffixMatcherLoader.load(publicSuffixListUrl);
+        pslMatcher = PublicSuffixMatcherLoader.getDefault();
     }
 
     @Test

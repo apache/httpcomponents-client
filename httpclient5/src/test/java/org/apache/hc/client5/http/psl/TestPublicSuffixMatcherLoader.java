@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.psl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,10 @@ import org.junit.jupiter.api.Test;
 public class TestPublicSuffixMatcherLoader {
 
     @Test
-    public void testGetDefault() {
-        assertNotNull(PublicSuffixMatcherLoader.getDefault());
+    void testGetDefault() {
+        final PublicSuffixMatcher defaultMatcher = PublicSuffixMatcherLoader.getDefault();
+        assertNotNull(defaultMatcher);
+        // check for an expected-to-be-stable entry in the PUBLIC_SUFFIX_LIST
+        assertEquals("example.net", defaultMatcher.getDomainRoot("example.net", DomainType.ICANN));
     }
 }
