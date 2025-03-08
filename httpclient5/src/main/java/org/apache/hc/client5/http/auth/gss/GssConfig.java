@@ -32,7 +32,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Immutable class encapsulating GSS configuration options for the new mutual auth capable
- * SpnegoScheme.
+ * for the new {@link SpnegoScheme}.
  *
  * Unlike the deprecated {@link KerberosConfig}, this class uses explicit defaults, and
  * primitive booleans.
@@ -49,14 +49,14 @@ public class GssConfig implements Cloneable {
 
     public static final GssConfig DEFAULT = new Builder().build();
     public static final GssConfig LEGACY =
-            new Builder().setIgnoreMissingToken(true).setRequireMutualAuth(false).build();
+            new Builder().setIgnoreIncompleteSecurityContext(true).setRequireMutualAuth(false).build();
 
     private final boolean addPort;
     private final boolean useCanonicalHostname;
     private final boolean requestMutualAuth;
     private final boolean requireMutualAuth;
     private final boolean requestDelegCreds;
-    private final boolean ignoreMissingToken;
+    private final boolean ignoreIncompleteSecurityContext;
 
     /**
      * Intended for CDI compatibility
@@ -71,14 +71,14 @@ public class GssConfig implements Cloneable {
             final boolean requestMutualAuth,
             final boolean requireMutualAuth,
             final boolean requestDelegCreds,
-            final boolean ignoreMissingToken) {
+            final boolean ignoreIncompleteSecurityContext) {
         super();
         this.addPort = addPort;
         this.useCanonicalHostname = useCanonicalHostname;
         this.requestMutualAuth = requestMutualAuth;
         this.requireMutualAuth = requireMutualAuth;
         this.requestDelegCreds = requestDelegCreds;
-        this.ignoreMissingToken = ignoreMissingToken;
+        this.ignoreIncompleteSecurityContext = ignoreIncompleteSecurityContext;
     }
 
     public boolean isAddPort() {
@@ -101,8 +101,8 @@ public class GssConfig implements Cloneable {
         return requireMutualAuth;
     }
 
-    public boolean isIgnoreMissingToken() {
-        return ignoreMissingToken;
+    public boolean isIgnoreIncompleteSecurityContext() {
+        return ignoreIncompleteSecurityContext;
     }
 
     @Override
@@ -119,7 +119,7 @@ public class GssConfig implements Cloneable {
         builder.append(", requestDelegCreds=").append(requestDelegCreds);
         builder.append(", requestMutualAuth=").append(requestMutualAuth);
         builder.append(", requireMutualAuth=").append(requireMutualAuth);
-        builder.append(", ignoreMissingToken=").append(ignoreMissingToken);
+        builder.append(", ignoreIncompleteSecurityContext=").append(ignoreIncompleteSecurityContext);
         builder.append("]");
         return builder.toString();
     }
@@ -135,7 +135,7 @@ public class GssConfig implements Cloneable {
                 .setRequestDelegCreds(config.isRequestDelegCreds())
                 .setRequireMutualAuth(config.isRequireMutualAuth())
                 .setRequestMutualAuth(config.isRequestMutualAuth())
-                .setIgnoreMissingToken(config.isIgnoreMissingToken());
+                .setIgnoreIncompleteSecurityContext(config.isIgnoreIncompleteSecurityContext());
     }
 
     public static class Builder {
@@ -145,7 +145,7 @@ public class GssConfig implements Cloneable {
         private boolean requestMutualAuth = true;
         private boolean requireMutualAuth = true;
         private boolean requestDelegCreds = false;
-        private boolean ignoreMissingToken = false;
+        private boolean ignoreIncompleteSecurityContext = false;
 
 
         Builder() {
@@ -177,14 +177,14 @@ public class GssConfig implements Cloneable {
             return this;
         }
 
-        public Builder setIgnoreMissingToken(final boolean ignoreMissingToken) {
-            this.ignoreMissingToken = ignoreMissingToken;
+        public Builder setIgnoreIncompleteSecurityContext(final boolean ignoreIncompleteSecurityContext) {
+            this.ignoreIncompleteSecurityContext = ignoreIncompleteSecurityContext;
             return this;
         }
 
         public GssConfig build() {
-            if (requireMutualAuth && ignoreMissingToken) {
-                throw new IllegalArgumentException("If requireMutualAuth is set then ignoreMissingToken must not be set");
+            if (requireMutualAuth && ignoreIncompleteSecurityContext) {
+                throw new IllegalArgumentException("If requireMutualAuth is set then ignoreIncompleteSecurityContext must not be set");
             }
             if (requireMutualAuth && !requestMutualAuth) {
                 throw new IllegalArgumentException("If requireMutualAuth is set then requestMutualAuth must also be set");
@@ -195,7 +195,7 @@ public class GssConfig implements Cloneable {
                     requestMutualAuth,
                     requireMutualAuth,
                     requestDelegCreds,
-                    ignoreMissingToken
+                    ignoreIncompleteSecurityContext
                     );
         }
 
