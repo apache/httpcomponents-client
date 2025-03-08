@@ -77,15 +77,16 @@ public abstract class GssSchemeBase implements AuthScheme {
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(GssSchemeBase.class);
-    private static final String KERBEROS_SCHEME = "HTTP";
+    private static final String PEER_SERVICE_NAME = "HTTP";
 
     // The GSS spec does not specify how long the conversation can be. This should be plenty.
     // Realistically, we get one initial token, then one maybe one more for mutual authentication.
+    // TODO In the future this might need to be configurable with the upcoming IAKerb support
     private static final int MAX_GSS_CHALLENGES = 3;
     private final GssConfig config;
     private final DnsResolver dnsResolver;
     private final boolean requireMutualAuth;
-    private final boolean ignoreMissingToken;
+    private final boolean ignoreIncompleteSecurityContext;
     private int challengesLeft = MAX_GSS_CHALLENGES;
 
     /** Authentication process state */
@@ -100,8 +101,22 @@ public abstract class GssSchemeBase implements AuthScheme {
         this.config = config != null ? config : GssConfig.DEFAULT;
         this.dnsResolver = dnsResolver != null ? dnsResolver : SystemDefaultDnsResolver.INSTANCE;
         this.requireMutualAuth = config.isRequireMutualAuth();
-        this.ignoreMissingToken = config.isIgnoreMissingToken();
+        this.ignoreIncompleteSecurityContext = config.isIgnoreIncompleteSecurityContext();
         this.state = State.UNINITIATED;
+    }
+
+    private void dispose() {
+        // remove sensitive information from memory
+        // cleaning up the credential is the caller's job
+        try {
+            if (gssContext != null) {
+                gssContext.dispose();
+            }
+        } catch (final Exception e) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("Exception caught while calling gssContext.dispose()", e);
+            }
+        }
     }
 
     GssSchemeBase(final GssConfig config) {
@@ -136,17 +151,16 @@ public abstract class GssSchemeBase implements AuthScheme {
             ) throws AuthenticationException {
 
         if (challengesLeft-- <= 0 ) {
-            if (LOG.isDebugEnabled()) {
+            if (LOG.isWarnEnabled()) {
                 final HttpClientContext clientContext = HttpClientContext.cast(context);
                 final String exchangeId = clientContext.getExchangeId();
-                LOG.debug("{} GSS error: too many challenges received. Infinite loop ?", exchangeId);
+                LOG.warn("{} GSS error: too many challenges received. Infinite loop ?", exchangeId);
             }
-            // TODO: Should we throw an exception ? There is a test for this behaviour.
             state = State.FAILED;
             return;
         }
 
-        final byte[] challengeToken = Base64.decodeBase64(authChallenge == null ? null : authChallenge.getValue());
+        final byte[] challengeToken = (authChallenge == null) ? null : Base64.decodeBase64(authChallenge.getValue());
 
         final String gssHostname;
         String hostname = host.getHostName();
@@ -154,6 +168,11 @@ public abstract class GssSchemeBase implements AuthScheme {
             try {
                  hostname = dnsResolver.resolveCanonicalHostname(host.getHostName());
             } catch (final UnknownHostException ignore) {
+                if (LOG.isWarnEnabled()) {
+                    final HttpClientContext clientContext = HttpClientContext.cast(context);
+                    final String exchangeId = clientContext.getExchangeId();
+                    LOG.warn("{} Could not canonicalize hostname {}, using as is.", exchangeId, host.getHostName());
+                }
             }
         }
         if (config.isAddPort()) {
@@ -171,26 +190,26 @@ public abstract class GssSchemeBase implements AuthScheme {
             switch (state) {
             case UNINITIATED:
                 setGssCredential(HttpClientContext.cast(context).getCredentialsProvider(), host, context);
-                queuedToken = generateToken(challengeToken, KERBEROS_SCHEME, gssHostname);
-                if (challengeToken != null) {
+                if (challengeToken == null) {
+                    queuedToken = generateToken(challengeToken, PEER_SERVICE_NAME, gssHostname);
+                    state = State.TOKEN_READY;
+                } else {
                     if (LOG.isDebugEnabled()) {
                         final HttpClientContext clientContext = HttpClientContext.cast(context);
                         final String exchangeId = clientContext.getExchangeId();
                         LOG.debug("{} Internal GSS error: token received when none was sent yet: {}", exchangeId, challengeToken);
                     }
-                    // TODO Should we fail ? That would break existing tests that send a token
-                    // in the first response, which is against the RFC.
+                    state = State.FAILED;
                 }
-                state = State.TOKEN_READY;
                 break;
             case TOKEN_SENT:
                 if (challengeToken == null) {
-                    if (!challenged && ignoreMissingToken) {
+                    if (!challenged && ignoreIncompleteSecurityContext) {
                         // Got a Non 401/407 code without a challenge. Old non RFC compliant server.
-                        if (LOG.isDebugEnabled()) {
+                        if (LOG.isWarnEnabled()) {
                             final HttpClientContext clientContext = HttpClientContext.cast(context);
                             final String exchangeId = clientContext.getExchangeId();
-                            LOG.debug("{} GSS Context is not established, but continuing because GssConfig.ignoreMissingToken is true.", exchangeId);
+                            LOG.warn("{} GSS Context is not established, but continuing because GssConfig.ignoreIncompleteSecurityContext is true.", exchangeId);
                         }
                         state = State.SUCCEEDED;
                         break;
@@ -198,15 +217,15 @@ public abstract class GssSchemeBase implements AuthScheme {
                         if (LOG.isDebugEnabled()) {
                             final HttpClientContext clientContext = HttpClientContext.cast(context);
                             final String exchangeId = clientContext.getExchangeId();
-                            LOG.debug("{} Did not receive required challenge and GssConfig.ignoreMissingToken is false.",
+                            LOG.debug("{} Did not receive required challenge.",
                                 exchangeId);
                         }
                         state = State.FAILED;
                         throw new AuthenticationException(
-                                "Did not receive required challenge and GssConfig.ignoreMissingToken is false.");
+                                "Did not receive required challenge.");
                     }
                 }
-                queuedToken = generateToken(challengeToken, KERBEROS_SCHEME, gssHostname);
+                queuedToken = generateToken(challengeToken, PEER_SERVICE_NAME, gssHostname);
                 if (challenged) {
                     state = State.TOKEN_READY;
                 } else if (!gssContext.isEstablished()) {
@@ -237,16 +256,16 @@ public abstract class GssSchemeBase implements AuthScheme {
                             LOG.debug("{} GSSContext MutualAuthState is false, but continuing because GssConfig.requireMutualAuth is false.",
                                 exchangeId);
                         }
-                        state = State.FAILED;
+                        state = State.SUCCEEDED;
                     }
                 } else {
                     state = State.SUCCEEDED;
                 }
                 break;
             default:
+                final State prevState = state;
                 state = State.FAILED;
-                throw new IllegalStateException("Illegal state: " + state);
-
+                throw new IllegalStateException("Illegal state: " + prevState);
             }
         } catch (final GSSException gsse) {
             state = State.FAILED;
@@ -264,6 +283,10 @@ public abstract class GssSchemeBase implements AuthScheme {
             }
             // other error
             throw new AuthenticationException(gsse.getMessage(), gsse);
+        } finally {
+            if ((state == State.FAILED || state == State.SUCCEEDED) && gssContext != null) {
+                dispose();
+            }
         }
     }
 
@@ -336,9 +359,6 @@ public abstract class GssSchemeBase implements AuthScheme {
     protected void setGssCredential(final CredentialsProvider credentialsProvider,
             final HttpHost host,
             final HttpContext context) {
-        if (this.gssCredential != null) {
-            return;
-        }
         final Credentials credentials =
                 credentialsProvider.getCredentials(new AuthScope(host, null, getName()), context);
         if (credentials instanceof org.apache.hc.client5.http.auth.gss.GssCredentials) {

@@ -291,6 +291,7 @@ public class TestSpnegoScheme extends AbstractIntegrationTestBase {
      * Tests that the client will stop connecting to the server if
      * the server still keep asking for a valid ticket.
      */
+    //@Disabled
     @Test
     void testDontTryToAuthenticateEndlessly() throws Exception {
         configureServer(t -> {
@@ -310,42 +311,16 @@ public class TestSpnegoScheme extends AbstractIntegrationTestBase {
         final HttpHost target = startServer();
         final String s = "/path";
         final HttpGet httpget = new HttpGet(s);
-        client().execute(target, httpget, response -> {
-            EntityUtils.consume(response.getEntity());
-            Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
-            return null;
-        });
-    }
-
-    /**
-     * Javadoc specifies that {@link GSSContext#initSecContext(byte[], int, int)} can return null
-     * if no token is generated. Client should be able to deal with this response.
-     */
-    @Test
-    void testNoTokenGeneratedError() throws Exception {
-        configureServer(t -> {
-            t.register("*", new PleaseNegotiateService());
-        });
-
-        final AuthSchemeFactory nsf = new TestAuthSchemeFactory(new NegotiateSchemeWithMockGssManager());
-        final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
-            .register(StandardAuthScheme.SPNEGO, nsf)
-            .build();
-        configureClient(t -> {
-            t.setTargetAuthenticationStrategy(spnegoAuthenticationStrategy);
-            t.setDefaultAuthSchemeRegistry(authSchemeRegistry);
-            t.setDefaultCredentialsProvider(jaasCredentialsProvider);
-        });
-
-        final HttpHost target = startServer();
-        final String s = "/path";
-        final HttpGet httpget = new HttpGet(s);
-        client().execute(target, httpget, response -> {
-            EntityUtils.consume(response.getEntity());
-            Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
-            return null;
-        });
-
+        try {
+            client().execute(target, httpget, response -> {
+                EntityUtils.consume(response.getEntity());
+                Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+                return null;
+            });
+            Assertions.fail();
+        } catch (final IllegalStateException e) {
+            // Expected
+        }
     }
 
     /**

@@ -364,7 +364,7 @@ public class AuthenticationHandler {
 
     /**
      * Generates a response to the authentication challenge based on the actual {@link AuthExchange} state
-     * and adds it to the given {@link HttpRequest} message .
+     * and adds it to the given {@link HttpRequest} message.
      *
      * @param host the hostname of the opposite endpoint.
      * @param challengeType the challenge type (target or proxy).
