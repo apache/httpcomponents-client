@@ -37,8 +37,8 @@ import org.ietf.jgss.Oid;
  * SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) authentication
  * scheme.
  * <p>
- * This is the new mutual authentication capable Scheme which replaces the old deprecated non mutual
- * authentication capable {@link SPNegoScheme}
+ * This is the new mutual authentication capable Scheme which replaces the old deprecated
+ * {@link SPNegoScheme}
  * </p>
  *
  * <p>
@@ -115,7 +115,7 @@ public class SpnegoScheme extends GssSchemeBase {
 
     @Override
     public boolean isConnectionBased() {
-        return true;
+        return false;
     }
 
 }
