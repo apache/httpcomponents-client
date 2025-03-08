@@ -334,26 +334,25 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                 }
             }
 
+            boolean targetNeedsAuth = false;
+            boolean proxyNeedsAuth = false;
             if (targetAuthRequested || targetMutualAuthRequired) {
-                final boolean updated = authenticator.handleResponse(target, ChallengeType.TARGET, response,
+                targetNeedsAuth = authenticator.handleResponse(target, ChallengeType.TARGET, response,
                         targetAuthStrategy, targetAuthExchange, context);
 
                 if (authCacheKeeper != null) {
                     authCacheKeeper.updateOnResponse(target, pathPrefix, targetAuthExchange, context);
                 }
-
-                return updated;
             }
             if (proxyAuthRequested || proxyMutualAuthRequired) {
-                final boolean updated = authenticator.handleResponse(proxy, ChallengeType.PROXY, response,
+                proxyNeedsAuth = authenticator.handleResponse(proxy, ChallengeType.PROXY, response,
                         proxyAuthStrategy, proxyAuthExchange, context);
 
                 if (authCacheKeeper != null) {
                     authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);
                 }
-
-                return updated;
             }
+            return targetNeedsAuth || proxyNeedsAuth;
         }
         return false;
     }
