@@ -78,9 +78,7 @@ class TestMultipartFormHttpEntity {
         final String boundary = p1.getValue();
         Assertions.assertNotNull(boundary);
 
-        Assertions.assertTrue(boundary.length() >= 30);
-        Assertions.assertTrue(boundary.length() <= 40);
-
+        Assertions.assertEquals(52, boundary.length());
         final NameValuePair p2 = elem.getParameterByName("charset");
         Assertions.assertNull(p2);
     }

@@ -35,8 +35,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicHeaderValueParser;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.message.ParserCursor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -305,6 +308,38 @@ class TestMultipartEntityBuilder {
                 "\r\n" +
                 "hello \u00ce\u00ba\u00cf\u008c\u00cf\u0083\u00ce\u00bc\u00ce\u00b5!%\r\n" +
                 "--xxxxxxxxxxxxxxxxxxxxxxxx--\r\n", out.toString(StandardCharsets.ISO_8859_1.name()));
+    }
+
+    @Test
+    void testRandomBoundary() {
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
+                .withRandomBoundary()
+                .buildEntity();
+        final NameValuePair boundaryParam = extractBoundary(entity.getContentType());
+        final String boundary = boundaryParam.getValue();
+        Assertions.assertNotNull(boundary);
+        Assertions.assertEquals(56, boundary.length());
+        Assertions.assertTrue(boundary.startsWith("httpclient_boundary_"));
+        Assertions.assertTrue(boundary.substring(20).matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"));
+    }
+
+    @Test
+    void testExplicitBoundaryOverridesRandom() {
+        final String customBoundary = "my_custom_boundary";
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
+                .withRandomBoundary()
+                .setBoundary(customBoundary)
+                .buildEntity();
+        final NameValuePair boundaryParam = extractBoundary(entity.getContentType());
+        Assertions.assertEquals(customBoundary, boundaryParam.getValue());
+    }
+
+    private NameValuePair extractBoundary(final String contentType) {
+        final BasicHeaderValueParser parser = BasicHeaderValueParser.INSTANCE;
+        final ParserCursor cursor = new ParserCursor(0, contentType.length());
+        final HeaderElement elem = parser.parseHeaderElement(contentType, cursor);
+        Assertions.assertEquals("multipart/mixed", elem.getName());
+        return elem.getParameterByName("boundary");
     }
 
 }
