@@ -55,6 +55,11 @@ import org.slf4j.LoggerFactory;
  * is logged when no explicit boundary is set via {@link #setBoundary(String)}, encouraging
  * deliberate choice.
  * </p>
+ * <p>
+ * IMPORTANT: it is responsibility of the caller to validate / sanitize content of body
+ * parts, for instance, to ensure they do not contain the boundary value that can prevent
+ * the consumer of the entity from correctly parsing / processing the body parts.
+ * </p>
  *
  * @since 5.0
  */
