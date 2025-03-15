@@ -54,6 +54,7 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
@@ -133,7 +134,6 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                             throw new CircularRedirectException("Circular redirect to '" + redirectUri + "'");
                         }
                     }
-                    state.redirectLocations.add(redirectUri);
 
                     final AsyncExecChain.Scope currentScope = state.currentScope;
                     final HttpHost newTarget = URIUtils.extractHost(redirectUri);
@@ -165,16 +165,30 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                             redirectBuilder = BasicRequestBuilder.copy(currentScope.originalRequest);
                     }
                     redirectBuilder.setUri(redirectUri);
+                    final BasicHttpRequest redirect = redirectBuilder.build();
+
+                    final HttpRoute currentRoute = currentScope.route;
+                    final HttpHost currentHost = currentRoute.getTargetHost();
+
+                    if (!redirectStrategy.isRedirectAllowed(currentHost, newTarget, redirect, clientContext)) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} cannot redirect due to safety restrictions", exchangeId);
+                        }
+                        return asyncExecCallback.handleResponse(response, entityDetails);
+                    }
+
+                    state.redirectLocations.add(redirectUri);
+
                     state.reroute = false;
                     state.redirectURI = redirectUri;
-                    state.currentRequest = redirectBuilder.build();
+                    state.currentRequest = redirect;
 
-                    HttpRoute currentRoute = currentScope.route;
-                    if (!Objects.equals(currentRoute.getTargetHost(), newTarget)) {
-                        final HttpRoute newRoute = routePlanner.determineRoute(newTarget, clientContext);
+                    final HttpRoute newRoute;
+                    if (!Objects.equals(currentHost, newTarget)) {
+                        newRoute = routePlanner.determineRoute(newTarget, clientContext);
                         if (!Objects.equals(currentRoute, newRoute)) {
                             state.reroute = true;
-                            final AuthExchange targetAuthExchange = clientContext.getAuthExchange(currentRoute.getTargetHost());
+                            final AuthExchange targetAuthExchange = clientContext.getAuthExchange(currentHost);
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("{} resetting target auth state", exchangeId);
                             }
@@ -188,20 +202,21 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                                     proxyAuthExchange.reset();
                                 }
                             }
-                            currentRoute = newRoute;
                         }
+                    } else {
+                        newRoute = currentRoute;
                     }
                     state.currentScope = new AsyncExecChain.Scope(
                             scope.exchangeId,
-                            currentRoute,
-                            redirectBuilder.build(),
+                            newRoute,
+                            BasicRequestBuilder.copy(redirect).build(),
                             scope.cancellableDependency,
                             scope.clientContext,
                             scope.execRuntime,
                             scope.scheduler,
                             scope.execCount);
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{} redirecting to '{}' via {}", exchangeId, redirectUri, currentRoute);
+                        LOG.debug("{} redirecting to '{}' via {}", exchangeId, redirectUri, newRoute);
                     }
                     return null;
                 }

@@ -43,6 +43,7 @@ import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.client5.testing.OldPathRedirectResolver;
 import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
 import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
@@ -53,6 +54,7 @@ import org.apache.hc.client5.testing.redirect.Redirect;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -65,6 +67,8 @@ import org.apache.hc.core5.util.TimeValue;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegrationTestBase {
 
@@ -619,6 +623,57 @@ abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegrationTestBas
             Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             Assertions.assertEquals("/random/100", request.getRequestUri());
             Assertions.assertEquals(redirectTarget, new HttpHost(request.getScheme(), request.getAuthority()));
+        } finally {
+            secondServer.shutdown(TimeValue.ofSeconds(5));
+        }
+    }
+
+    @ParameterizedTest(name = "{displayName}; manually added header: {0}")
+    @ValueSource(strings = {HttpHeaders.AUTHORIZATION, HttpHeaders.COOKIE})
+    void testCrossSiteRedirectWithSensitiveHeaders(final String headerName) throws Exception {
+        final URIScheme scheme = scheme();
+        final TestAsyncServer secondServer = new TestAsyncServerBootstrap(scheme(), getServerProtocolLevel())
+                .register("/random/*", AsyncRandomHandler::new)
+                .build();
+        try {
+            final InetSocketAddress address2 = secondServer.start();
+
+            final HttpHost redirectTarget = new HttpHost(scheme.name(), "localhost", address2.getPort());
+
+            configureServer(bootstrap -> bootstrap
+                    .register("/random/*", AsyncRandomHandler::new)
+                    .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                            exchangeHandler,
+                            requestUri -> {
+                                final String path = requestUri.getPath();
+                                if (path.equals("/oldlocation")) {
+                                    final URI location = new URIBuilder(requestUri)
+                                            .setHttpHost(redirectTarget)
+                                            .setPath("/random/100")
+                                            .build();
+                                    return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, location.toString());
+                                }
+                                return null;
+                            })));
+            final HttpHost target = startServer();
+
+            final TestAsyncClient client = startClient();
+
+            final HttpClientContext context = HttpClientContext.create();
+            final Future<SimpleHttpResponse> future = client.execute(
+                    SimpleRequestBuilder.get()
+                            .setHttpHost(target)
+                            .setPath("/oldlocation")
+                            .setHeader(headerName, "custom header")
+                            .build(), context, null);
+            final HttpResponse response = future.get();
+            Assertions.assertNotNull(response);
+
+            Assertions.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getCode());
+
+            final RedirectLocations redirects = context.getRedirectLocations();
+            Assertions.assertNotNull(redirects);
+            Assertions.assertEquals(0, redirects.size());
         } finally {
             secondServer.shutdown(TimeValue.ofSeconds(5));
         }
