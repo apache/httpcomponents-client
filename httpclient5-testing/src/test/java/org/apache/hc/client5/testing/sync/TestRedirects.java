@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.ConnectException;
+import java.net.InetSocketAddress;
 import java.net.NoRouteToHostException;
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -58,6 +59,8 @@ import org.apache.hc.client5.testing.classic.RandomHandler;
 import org.apache.hc.client5.testing.classic.RedirectingDecorator;
 import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
 import org.apache.hc.client5.testing.extension.sync.TestClient;
+import org.apache.hc.client5.testing.extension.sync.TestServer;
+import org.apache.hc.client5.testing.extension.sync.TestServerBootstrap;
 import org.apache.hc.client5.testing.redirect.Redirect;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -73,13 +76,17 @@ import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.TimeValue;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Redirection test cases.
@@ -702,6 +709,56 @@ abstract class TestRedirects extends AbstractIntegrationTestBase {
                         .setPath("/random/50")
                         .build(),
                 reqWrapper.getUri());
+    }
+
+    @ParameterizedTest(name = "{displayName}; manually added header: {0}")
+    @ValueSource(strings = {HttpHeaders.AUTHORIZATION, HttpHeaders.COOKIE})
+    void testCrossSiteRedirectWithSensitiveHeaders(final String headerName) throws Exception {
+        final URIScheme scheme = scheme();
+        final TestServer secondServer = new TestServerBootstrap(scheme())
+                .register("/random/*", new RandomHandler())
+                .build();
+        try {
+            final InetSocketAddress address2 = secondServer.start();
+
+            final HttpHost redirectTarget = new HttpHost(scheme.name(), "localhost", address2.getPort());
+
+            configureServer(bootstrap -> bootstrap
+                    .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                            requestHandler,
+                            requestUri -> {
+                                final URI location = new URIBuilder(requestUri)
+                                        .setHttpHost(redirectTarget)
+                                        .setPath("/random/100")
+                                        .build();
+                                return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, location.toString());
+                            }))
+                    .register("/random/*", new RandomHandler())
+            );
+
+            final HttpHost target = startServer();
+
+            final TestClient client = client();
+            final HttpClientContext context = HttpClientContext.create();
+
+            client.execute(target,
+                    ClassicRequestBuilder.get()
+                            .setHttpHost(target)
+                            .setPath("/oldlocation")
+                            .setHeader(headerName, "custom header")
+                            .build(),
+                    context,
+                    response -> {
+                        Assertions.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getCode());
+                        EntityUtils.consume(response.getEntity());
+                        return null;
+                    });
+            final RedirectLocations redirects = context.getRedirectLocations();
+            Assertions.assertNotNull(redirects);
+            Assertions.assertEquals(0, redirects.size());
+        } finally {
+            secondServer.shutdown(CloseMode.GRACEFUL);
+        }
     }
 
 }

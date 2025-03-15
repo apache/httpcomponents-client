@@ -32,6 +32,7 @@ import java.net.URI;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -70,5 +71,23 @@ public interface RedirectStrategy {
             final HttpRequest request,
             final HttpResponse response,
             final HttpContext context) throws HttpException;
+
+    /**
+     * Determines if the given redirect should be executed or the redirect response
+     * should be returned to the caller without further processing.
+     * <p>
+     * It is legal for this method implementation to modify the redirect request
+     * in order to make it suitable for redirect execution.
+     * </p>
+     *
+     * @since 5.4
+     */
+    default boolean isRedirectAllowed(
+            HttpHost currentTarget,
+            HttpHost newTarget,
+            HttpRequest redirect,
+            HttpContext context) {
+        return true;
+    }
 
 }

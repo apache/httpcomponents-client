@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Iterator;
 import java.util.Locale;
 
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
@@ -38,6 +39,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
@@ -58,6 +60,25 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
      * Default instance of {@link DefaultRedirectStrategy}.
      */
     public static final DefaultRedirectStrategy INSTANCE = new DefaultRedirectStrategy();
+
+    @Override
+    public boolean isRedirectAllowed(
+            final HttpHost currentTarget,
+            final HttpHost newTarget,
+            final HttpRequest redirect,
+            final HttpContext context) {
+        if (!currentTarget.equals(newTarget)) {
+            for (final Iterator<Header> it = redirect.headerIterator(); it.hasNext(); ) {
+                final Header header = it.next();
+                if (header.isSensitive()
+                        || header.getName().equalsIgnoreCase(HttpHeaders.AUTHORIZATION)
+                        || header.getName().equalsIgnoreCase(HttpHeaders.COOKIE)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
     @Override
     public boolean isRedirected(

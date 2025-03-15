@@ -139,7 +139,6 @@ public final class RedirectExec implements ExecChainHandler {
                             throw new CircularRedirectException("Circular redirect to '" + redirectUri + "'");
                         }
                     }
-                    redirectLocations.add(redirectUri);
 
                     final int statusCode = response.getCode();
                     final ClassicRequestBuilder redirectBuilder;
@@ -163,21 +162,35 @@ public final class RedirectExec implements ExecChainHandler {
                             redirectBuilder = ClassicRequestBuilder.copy(currentScope.originalRequest);
                     }
                     redirectBuilder.setUri(redirectUri);
+                    final ClassicHttpRequest redirect = redirectBuilder.build();
 
-                    HttpRoute currentRoute = currentScope.route;
-                    if (!Objects.equals(currentRoute.getTargetHost(), newTarget)) {
-                        final HttpRoute newRoute = this.routePlanner.determineRoute(newTarget, context);
+                    final HttpRoute currentRoute = currentScope.route;
+                    final HttpHost currentHost = currentRoute.getTargetHost();
+
+                    if (!redirectStrategy.isRedirectAllowed(currentHost, newTarget, redirect, context)) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} cannot redirect due to safety restrictions", exchangeId);
+                        }
+                        return response;
+                    }
+
+                    redirectLocations.add(redirectUri);
+
+                    final HttpRoute newRoute;
+                    if (!Objects.equals(currentHost, newTarget)) {
+                        newRoute = this.routePlanner.determineRoute(newTarget, context);
                         if (!Objects.equals(currentRoute, newRoute)) {
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("{} new route required", exchangeId);
                             }
-                            final AuthExchange targetAuthExchange = context.getAuthExchange(currentRoute.getTargetHost());
+                            final AuthExchange targetAuthExchange = context.getAuthExchange(currentHost);
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("{} resetting target auth state", exchangeId);
                             }
                             targetAuthExchange.reset();
-                            if (currentRoute.getProxyHost() != null) {
-                                final AuthExchange proxyAuthExchange = context.getAuthExchange(currentRoute.getProxyHost());
+                            final HttpHost proxyHost = currentRoute.getProxyHost();
+                            if (proxyHost != null) {
+                                final AuthExchange proxyAuthExchange = context.getAuthExchange(proxyHost);
                                 if (proxyAuthExchange.isConnectionBased()) {
                                     if (LOG.isDebugEnabled()) {
                                         LOG.debug("{} resetting proxy auth state", exchangeId);
@@ -185,20 +198,21 @@ public final class RedirectExec implements ExecChainHandler {
                                     proxyAuthExchange.reset();
                                 }
                             }
-                            currentRoute = newRoute;
                         }
+                    } else {
+                        newRoute = currentRoute;
                     }
 
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{} redirecting to '{}' via {}", exchangeId, redirectUri, currentRoute);
+                        LOG.debug("{} redirecting to '{}' via {}", exchangeId, redirectUri, newRoute);
                     }
                     currentScope = new ExecChain.Scope(
                             scope.exchangeId,
-                            currentRoute,
-                            redirectBuilder.build(),
+                            newRoute,
+                            ClassicRequestBuilder.copy(redirect).build(),
                             scope.execRuntime,
                             scope.clientContext);
-                    currentRequest = redirectBuilder.build();
+                    currentRequest = redirect;
                     RequestEntityProxy.enhance(currentRequest);
 
                     EntityUtils.consume(response.getEntity());
