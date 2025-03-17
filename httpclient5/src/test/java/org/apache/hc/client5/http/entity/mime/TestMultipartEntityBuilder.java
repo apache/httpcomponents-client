@@ -313,9 +313,8 @@ class TestMultipartEntityBuilder {
     @Test
     void testRandomBoundary() {
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
-                .withRandomBoundary()
                 .buildEntity();
-        final NameValuePair boundaryParam = extractBoundary(entity.getContentType());
+        final NameValuePair boundaryParam = extractBoundary(entity.getContentType(), "multipart/mixed");
         final String boundary = boundaryParam.getValue();
         Assertions.assertNotNull(boundary);
         Assertions.assertEquals(56, boundary.length());
@@ -324,21 +323,43 @@ class TestMultipartEntityBuilder {
     }
 
     @Test
-    void testExplicitBoundaryOverridesRandom() {
-        final String customBoundary = "my_custom_boundary";
+    void testRandomBoundaryWriteTo() throws Exception {
+        final String helloWorld = "hello world";
+        final List<NameValuePair> parameters = new ArrayList<>();
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, "test"));
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME, helloWorld));
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
-                .withRandomBoundary()
-                .setBoundary(customBoundary)
+                .setStrictMode()
+                .addPart(new FormBodyPartBuilder()
+                        .setName("test")
+                        .setBody(new StringBody("hello world", ContentType.TEXT_PLAIN))
+                        .addField("Content-Disposition", "multipart/form-data", parameters)
+                        .build())
                 .buildEntity();
-        final NameValuePair boundaryParam = extractBoundary(entity.getContentType());
-        Assertions.assertEquals(customBoundary, boundaryParam.getValue());
+
+        final NameValuePair boundaryParam = extractBoundary(entity.getContentType(), "multipart/form-data");
+        final String boundary = boundaryParam.getValue();
+        Assertions.assertNotNull(boundary);
+        Assertions.assertEquals(56, boundary.length());
+        Assertions.assertTrue(boundary.startsWith("httpclient_boundary_"));
+        Assertions.assertTrue(boundary.substring(20).matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"));
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        entity.writeTo(out);
+        out.close();
+        Assertions.assertEquals("--" + boundary + "\r\n" +
+                "Content-Disposition: multipart/form-data; name=\"test\"; filename=\"hello world\"\r\n" +
+                "Content-Type: text/plain; charset=UTF-8\r\n" +
+                "\r\n" +
+                helloWorld + "\r\n" +
+                "--" + boundary + "--\r\n", out.toString(StandardCharsets.US_ASCII.name()));
     }
 
-    private NameValuePair extractBoundary(final String contentType) {
+    private NameValuePair extractBoundary(final String contentType, final String expectedName) {
         final BasicHeaderValueParser parser = BasicHeaderValueParser.INSTANCE;
         final ParserCursor cursor = new ParserCursor(0, contentType.length());
         final HeaderElement elem = parser.parseHeaderElement(contentType, cursor);
-        Assertions.assertEquals("multipart/mixed", elem.getName());
+        Assertions.assertEquals(expectedName, elem.getName());
         return elem.getParameterByName("boundary");
     }
 
