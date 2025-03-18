@@ -50,6 +50,12 @@ import org.slf4j.LoggerFactory;
  * This class constructs multipart entities with a boundary determined by either a random UUID
  * or an explicit boundary set via {@link #setBoundary(String)}.
  * </p>
+ * <p>
+ *  IMPORTANT: it is responsibility of the caller to validate / sanitize content of body
+ *  parts. For instance, when using an explicit boundary, it's the caller's responsibility to
+ *  ensure the body parts do not contain the boundary value, which can prevent the consumer of
+ *  the entity from correctly parsing / processing the body parts.
+ * </p>
  *
  * @since 5.0
  */
@@ -228,8 +234,8 @@ import org.slf4j.LoggerFactory;
      * Generates a random boundary using UUID. The UUID is a v4 random UUID generated from a cryptographically-secure
      * random source.
      * <p>
-     * A cryptographically-secure random number source is used to avoid security issues similar to
-     * CVE-2025-22150 (affecting the Node.JS ecosystem).
+     * A cryptographically-secure random number source is used to generate the UUID, to avoid a malicious actor crafting
+     * a body part that contains the boundary value to tamper with the entity structure.
      * </p>
      */
     private String getRandomBoundary() {
