@@ -848,7 +848,8 @@ public class H2AsyncClientBuilder {
                 HttpProcessorBuilder.create().build(),
                 (request, context) -> pushConsumerRegistry.get(request),
                 h2Config != null ? h2Config : H2Config.DEFAULT,
-                charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT);
+                charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT,
+                ioReactorExceptionCallback != null ? ioReactorExceptionCallback : LoggingExceptionCallback.INSTANCE);
         final DefaultConnectingIOReactor ioReactor = new DefaultConnectingIOReactor(
                 ioEventHandlerFactory,
                 ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,

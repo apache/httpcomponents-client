@@ -1065,7 +1065,8 @@ public class HttpAsyncClientBuilder {
                 h2Config != null ? h2Config : H2Config.DEFAULT,
                 h1Config != null ? h1Config : Http1Config.DEFAULT,
                 charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT,
-                reuseStrategyCopy);
+                reuseStrategyCopy,
+                ioReactorExceptionCallback != null ? ioReactorExceptionCallback : LoggingExceptionCallback.INSTANCE);
         final DefaultConnectingIOReactor ioReactor = new DefaultConnectingIOReactor(
                 ioEventHandlerFactory,
                 ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,

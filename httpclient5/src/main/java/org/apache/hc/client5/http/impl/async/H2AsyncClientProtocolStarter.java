@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.config.CharCodingConfig;
@@ -60,16 +61,19 @@ class H2AsyncClientProtocolStarter implements IOEventHandlerFactory {
     private final HandlerFactory<AsyncPushConsumer> exchangeHandlerFactory;
     private final H2Config h2Config;
     private final CharCodingConfig charCodingConfig;
+    private final Callback<Exception> exceptionCallback;
 
     H2AsyncClientProtocolStarter(
             final HttpProcessor httpProcessor,
             final HandlerFactory<AsyncPushConsumer> exchangeHandlerFactory,
             final H2Config h2Config,
-            final CharCodingConfig charCodingConfig) {
+            final CharCodingConfig charCodingConfig,
+            final Callback<Exception> exceptionCallback) {
         this.httpProcessor = Args.notNull(httpProcessor, "HTTP processor");
         this.exchangeHandlerFactory = exchangeHandlerFactory;
         this.h2Config = h2Config != null ? h2Config : H2Config.DEFAULT;
         this.charCodingConfig = charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT;
+        this.exceptionCallback = exceptionCallback;
     }
 
     @Override
@@ -163,7 +167,7 @@ class H2AsyncClientProtocolStarter implements IOEventHandlerFactory {
                         }
 
                     });
-            return new ClientH2PrefaceHandler(ioSession, http2StreamHandlerFactory, false);
+            return new ClientH2PrefaceHandler(ioSession, http2StreamHandlerFactory, false, exceptionCallback);
         }
         final ClientH2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientH2StreamMultiplexerFactory(
                 httpProcessor,
@@ -171,7 +175,7 @@ class H2AsyncClientProtocolStarter implements IOEventHandlerFactory {
                 h2Config,
                 charCodingConfig,
                 null);
-        return new ClientH2PrefaceHandler(ioSession, http2StreamHandlerFactory, false);
+        return new ClientH2PrefaceHandler(ioSession, http2StreamHandlerFactory, false, exceptionCallback);
    }
 
 }
