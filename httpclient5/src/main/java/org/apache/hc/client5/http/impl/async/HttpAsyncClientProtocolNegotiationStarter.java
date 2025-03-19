@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
+import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpConnection;
@@ -85,6 +86,7 @@ class HttpAsyncClientProtocolNegotiationStarter implements IOEventHandlerFactory
     private final ConnectionReuseStrategy http1ConnectionReuseStrategy;
     private final NHttpMessageParserFactory<HttpResponse> http1ResponseParserFactory;
     private final NHttpMessageWriterFactory<HttpRequest> http1RequestWriterFactory;
+    private final Callback<Exception> exceptionCallback;
 
     HttpAsyncClientProtocolNegotiationStarter(
             final HttpProcessor httpProcessor,
@@ -92,7 +94,8 @@ class HttpAsyncClientProtocolNegotiationStarter implements IOEventHandlerFactory
             final H2Config h2Config,
             final Http1Config h1Config,
             final CharCodingConfig charCodingConfig,
-            final ConnectionReuseStrategy connectionReuseStrategy) {
+            final ConnectionReuseStrategy connectionReuseStrategy,
+            final Callback<Exception> exceptionCallback) {
         this.httpProcessor = Args.notNull(httpProcessor, "HTTP processor");
         this.exchangeHandlerFactory = exchangeHandlerFactory;
         this.h2Config = h2Config != null ? h2Config : H2Config.DEFAULT;
@@ -101,6 +104,7 @@ class HttpAsyncClientProtocolNegotiationStarter implements IOEventHandlerFactory
         this.http1ConnectionReuseStrategy = connectionReuseStrategy != null ? connectionReuseStrategy : DefaultClientConnectionReuseStrategy.INSTANCE;
         this.http1ResponseParserFactory = new DefaultHttpResponseParserFactory(h1Config);
         this.http1RequestWriterFactory = DefaultHttpRequestWriterFactory.INSTANCE;
+        this.exceptionCallback = exceptionCallback;
     }
 
     @Override
@@ -257,12 +261,12 @@ class HttpAsyncClientProtocolNegotiationStarter implements IOEventHandlerFactory
         }
 
         ioSession.registerProtocol(ApplicationProtocol.HTTP_1_1.id, new ClientHttp1UpgradeHandler(http1StreamHandlerFactory));
-        ioSession.registerProtocol(ApplicationProtocol.HTTP_2.id, new ClientH2UpgradeHandler(http2StreamHandlerFactory));
+        ioSession.registerProtocol(ApplicationProtocol.HTTP_2.id, new ClientH2UpgradeHandler(http2StreamHandlerFactory, exceptionCallback));
 
         final HttpVersionPolicy versionPolicy = attachment instanceof HttpVersionPolicy ? (HttpVersionPolicy) attachment : HttpVersionPolicy.NEGOTIATE;
         switch (versionPolicy) {
             case FORCE_HTTP_2:
-                return new ClientH2PrefaceHandler(ioSession, http2StreamHandlerFactory, false);
+                return new ClientH2PrefaceHandler(ioSession, http2StreamHandlerFactory, false, exceptionCallback);
             case FORCE_HTTP_1:
                 return new ClientHttp1IOEventHandler(http1StreamHandlerFactory.create(ioSession));
             default:
