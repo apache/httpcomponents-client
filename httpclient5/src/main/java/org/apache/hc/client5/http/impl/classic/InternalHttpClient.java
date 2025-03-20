@@ -63,6 +63,7 @@ import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
+import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,8 +159,16 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
                 localcontext.setRequestConfig(config);
             }
             setupContext(localcontext);
+
+            final HttpHost resolvedTarget = target != null ? target : RoutingSupport.determineHost(request);
+            if (request.getScheme() == null) {
+                request.setScheme(resolvedTarget.getSchemeName());
+            }
+            if (request.getAuthority() == null) {
+                request.setAuthority(new URIAuthority(resolvedTarget));
+            }
             final HttpRoute route = determineRoute(
-                    target != null ? target : RoutingSupport.determineHost(request),
+                    resolvedTarget,
                     request,
                     localcontext);
             final String exchangeId = ExecSupport.getNextExchangeId();
