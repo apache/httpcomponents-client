@@ -75,6 +75,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
+import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
@@ -193,7 +194,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
     @Override
     protected <T> Future<T> doExecute(
-            final HttpHost httpHost,
+            final HttpHost target,
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
@@ -217,8 +218,15 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
                 setupContext(clientContext);
 
+                final HttpHost resolvedTarget = target != null ? target : RoutingSupport.determineHost(request);
+                if (request.getScheme() == null) {
+                    request.setScheme(resolvedTarget.getSchemeName());
+                }
+                if (request.getAuthority() == null) {
+                    request.setAuthority(new URIAuthority(resolvedTarget));
+                }
                 final HttpRoute route = determineRoute(
-                        httpHost != null ? httpHost : RoutingSupport.determineHost(request),
+                        resolvedTarget,
                         request,
                         clientContext);
                 final String exchangeId = ExecSupport.getNextExchangeId();
