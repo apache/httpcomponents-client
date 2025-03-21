@@ -9,6 +9,10 @@ Dependency updates:
 * Bump org.junit:junit-bom from 5.11.4 to 5.12.1 #623.
   Contributed by Gary Gregory <garydgregory at gmail.com>
 
+* Bump log4j.version from 2.23.1 to 2.24.3 #626.
+  Contributed by Gary Gregory <garydgregory at gmail.com>
+
+
 Release 5.5 ALPHA1
 ------------------
 
