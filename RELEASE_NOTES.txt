@@ -6,6 +6,9 @@ Dependency updates:
 * Bump testcontainers.version from 1.20.4 to 1.20.6 #622.
   Contributed by Gary Gregory <garydgregory at gmail.com>
 
+* Bump org.junit:junit-bom from 5.11.4 to 5.12.1 #623.
+  Contributed by Gary Gregory <garydgregory at gmail.com>
+
 Release 5.5 ALPHA1
 ------------------
 
