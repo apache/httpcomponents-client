@@ -29,13 +29,12 @@ package org.apache.hc.client5.http.entity.mime;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.UUID;
 
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
@@ -46,21 +45,15 @@ import org.apache.hc.core5.util.Args;
 /**
  * Builder for multipart {@link HttpEntity}s.
  * <p>
- * IMPORTANT: it is responsibility of the caller to validate / sanitize content of body
- * parts, for instance, to ensure they do not contain the boundary value that can prevent
- * the consumer of the entity from correctly parsing / processing the body parts.
+*  IMPORTANT: it is responsibility of the caller to validate / sanitize content of body
+*  parts. For instance, when using an explicit boundary, it's the caller's responsibility to
+*  ensure the body parts do not contain the boundary value, which can prevent the consumer of
+*  the entity from correctly parsing / processing the body parts.
  * </p>
  *
  * @since 5.0
  */
     public class MultipartEntityBuilder {
-
-    /**
-     * The pool of ASCII chars to be used for generating a multipart boundary.
-     */
-    private final static char[] MULTIPART_CHARS =
-            "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    .toCharArray();
 
     private ContentType contentType;
     private HttpMultipartMode mode = HttpMultipartMode.STRICT;
@@ -237,14 +230,7 @@ import org.apache.hc.core5.util.Args;
     }
 
     private String generateBoundary() {
-        final ThreadLocalRandom rand = ThreadLocalRandom.current();
-        final int count = rand.nextInt(30, 41); // a random size from 30 to 40
-        final CharBuffer buffer = CharBuffer.allocate(count);
-        while (buffer.hasRemaining()) {
-            buffer.put(MULTIPART_CHARS[rand.nextInt(MULTIPART_CHARS.length)]);
-        }
-        buffer.flip();
-        return buffer.toString();
+        return "httpclient_boundary_" + UUID.randomUUID();
     }
 
     MultipartFormEntity buildEntity() {
