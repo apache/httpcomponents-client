@@ -36,7 +36,6 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.StatusLine;
 
 /**
@@ -50,8 +49,7 @@ public class ClientMultipartFormPost {
             System.exit(1);
         }
         try (final CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            final HttpPost httppost = new HttpPost("http://localhost:8080" +
-                    "/servlets-examples/servlet/RequestInfoExample");
+            final HttpPost httppost = new HttpPost("http://httpbin.org/post");
 
             final FileBody bin = new FileBody(new File(args[0]));
             final StringBody comment = new StringBody("A binary file of some kind", ContentType.TEXT_PLAIN);
@@ -70,9 +68,9 @@ public class ClientMultipartFormPost {
                 System.out.println(httppost + "->" + new StatusLine(response));
                 final HttpEntity resEntity = response.getEntity();
                 if (resEntity != null) {
-                    System.out.println("Response content length: " + resEntity.getContentLength());
+                    resEntity.writeTo(System.out);
                 }
-                EntityUtils.consume(response.getEntity());
+                System.out.flush();
                 return null;
             });
         }
