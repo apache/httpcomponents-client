@@ -1,7 +1,36 @@
-﻿Release 5.4.2
+﻿Release 5.4.3
 ------------------
 
-This is a maintenance release that upgrades HttpCore to version 5.3.3 and fixes several
+This maintenance release upgrades HttpCore to version 5.3.4 and fixes a regression
+preventing the PublicSuffixMatcherLoader from finding the resource containing the Public
+Suffix List and causing the Public Suffix List to be empty by default.
+
+
+Change Log
+-------------------
+
+* MultipartEntityBuilder to include a random UUID in the boundary value by default.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2363: Ensure requests have a scheme and an authority populated before
+  they get committed to the execution pipeline.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Upgraded HttpCore to version 5.3.4.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fix PublicSuffixMatcherLoader#getDefault (#621).
+  Contributed by Joe Gallo <joegallo@gmail.com>
+
+* HTTPCLIENT-2361: HTTP protocol handler to tolerate multiple `Cookie` headers added
+  manually by the caller.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+Release 5.4.2
+------------------
+
+This maintenance release upgrades HttpCore to version 5.3.3 and fixes several
 regressions reported since the last release. One of the regressions could cause connection
 leaks and eventual connection pool exhaustion in case of proxy authentication
 failure when establishing a tunnel via the proxy.
@@ -48,7 +77,7 @@ Change Log
 Release 5.4.1
 ------------------
 
-This is a maintenance release that upgrades HttpCore to version 5.3.1 and fixes several defects found since
+This maintenance release upgrades HttpCore to version 5.3.1 and fixes several defects found since
 release 5.4.
 
 Change Log
