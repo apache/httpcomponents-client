@@ -76,7 +76,12 @@
     <rxjava.version>2.2.21</rxjava.version>
     <testcontainers.version>1.20.6</testcontainers.version>
     <api.comparison.version>5.3</api.comparison.version>
-    <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer</hc.animal-sniffer.signature.ignores>
+    <jetty.version>9.4.56.v20240826</jetty.version>
+    <kerby.version>2.1.0</kerby.version>
+    <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer,java.lang.invoke.MethodHandle</hc.animal-sniffer.signature.ignores>
+    
+    <test.tmp.dir>${project.build.directory}</test.tmp.dir>
+    
   </properties>
 
   <dependencyManagement>
@@ -192,6 +197,22 @@
         <artifactId>junit-jupiter</artifactId>
         <version>${testcontainers.version}</version>
       </dependency>
+
+      <dependency>
+        <groupId>org.apache.kerby</groupId>
+        <artifactId>kerb-core</artifactId>
+        <version>${kerby.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.kerby</groupId>
+        <artifactId>kerb-client</artifactId>
+        <version>${kerby.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.kerby</groupId>
+        <artifactId>kerb-simplekdc</artifactId>
+        <version>${kerby.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -270,6 +291,8 @@
         <groupId>com.github.siom79.japicmp</groupId>
         <artifactId>japicmp-maven-plugin</artifactId>
         <configuration>
+          <!-- Do not commit, only for running the CI! -->
+          <skip>true</skip>
           <oldVersion>
             <dependency>
               <groupId>${project.groupId}</groupId>
@@ -408,6 +431,8 @@
           </reportSet>
         </reportSets>
         <configuration>
+          <!-- Do not commit, only for running the CI! -->
+          <skip>true</skip>
           <oldVersion>
             <dependency>
               <groupId>${project.groupId}</groupId>
