@@ -34,8 +34,11 @@ import org.apache.hc.core5.http.HttpMessage;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.ProtocolVersionParser;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.ssl.TLS;
+import org.apache.hc.core5.util.CharArrayBuffer;
+import org.apache.hc.core5.util.Tokenizer;
 
 /**
  * Protocol switch handler.
@@ -45,31 +48,53 @@ import org.apache.hc.core5.http.ssl.TLS;
 @Internal
 public final class ProtocolSwitchStrategy {
 
-    enum ProtocolSwitch { FAILURE, TLS }
+    private static final ProtocolVersionParser PARSER = ProtocolVersionParser.INSTANCE;
 
     public ProtocolVersion switchProtocol(final HttpMessage response) throws ProtocolException {
         final Iterator<String> it = MessageSupport.iterateTokens(response, HttpHeaders.UPGRADE);
-
         ProtocolVersion tlsUpgrade = null;
+        ProtocolVersion httpUpgrade = null;
+
         while (it.hasNext()) {
-            final String token = it.next();
-            if (token.startsWith("TLS")) {
-                // TODO: Improve handling of HTTP protocol token once HttpVersion has a #parse method
-                try {
-                    tlsUpgrade = token.length() == 3 ? TLS.V_1_2.getVersion() : TLS.parse(token.replace("TLS/", "TLSv"));
-                } catch (final ParseException ex) {
-                    throw new ProtocolException("Invalid protocol: " + token);
+            final String token = it.next().trim();
+            try {
+                if (token.startsWith("TLS") || token.startsWith("HTTP/")) {
+                    final ProtocolVersion version = parseToken(token);
+                    if (token.startsWith("TLS")) {
+                        tlsUpgrade = version;
+                    } else {
+                        httpUpgrade = version;
+                    }
+                } else {
+                    throw new ProtocolException("Unsupported protocol: " + token);
                 }
-            } else if (token.equals("HTTP/1.1")) {
-                // TODO: Improve handling of HTTP protocol token once HttpVersion has a #parse method
-            } else {
-                throw new ProtocolException("Unsupported protocol: " + token);
+            } catch (final ParseException ex) {
+                if (token.startsWith("TLS")) {
+                    throw new ProtocolException("Invalid TLS protocol: " + token, ex);
+                } else if (token.startsWith("HTTP/")) {
+                    throw new ProtocolException("Invalid HTTP protocol: " + token, ex);
+                } else {
+                    throw new ProtocolException("Unsupported protocol: " + token, ex);
+                }
             }
         }
-        if (tlsUpgrade == null) {
+
+        if (tlsUpgrade != null) {
+            return tlsUpgrade;
+        } else if (httpUpgrade != null) {
+            return httpUpgrade;
+        } else {
             throw new ProtocolException("Invalid protocol switch response");
         }
-        return tlsUpgrade;
     }
 
+    private ProtocolVersion parseToken(final String token) throws ParseException {
+        if (token.equals("TLS")) {
+            return TLS.V_1_2.getVersion();
+        }
+        final CharArrayBuffer buffer = new CharArrayBuffer(token.length());
+        buffer.append(token);
+        final Tokenizer.Cursor cursor = new Tokenizer.Cursor(0, buffer.length());
+        return PARSER.parse(buffer, cursor, null);
+    }
 }
