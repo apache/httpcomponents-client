@@ -27,6 +27,8 @@
 xx
 lan
 appspot.com
+s3.amazonaws.com
+*.s3.amazonaws.com
 s3.eu-central-1.amazonaws.com
 *.compute.amazonaws.com
 *.compute-1.amazonaws.com
@@ -38,15 +40,18 @@ us-east-1.amazonaws.com
 
 // ===BEGIN ICANN DOMAINS===
 
-jp
-*.jp
-*.tokyo.jp
-!metro.tokyo.jp
-
 com
+*.foo.com
+*.jp
+*.hokkaido.jp
+*.tokyo.jp
+!pref.hokkaido.jp
+!metro.tokyo.jp
+// Hosts in .hokkaido.jp can't set cookies below level 4...
+// ...except hosts in pref.hokkaido.jp, which can set cookies at level 3.
+
 co.jp
 gov.uk
-*.foo.com
 
 // unicode
 no

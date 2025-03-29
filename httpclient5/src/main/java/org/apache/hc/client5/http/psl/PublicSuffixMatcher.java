@@ -137,6 +137,24 @@ public final class PublicSuffixMatcher {
         if (domain.startsWith(".")) {
             return null;
         }
+        final DomainRootInfo match = resolveDomainRoot(domain, expectedType);
+        return match != null ? match.root : null;
+    }
+
+    static final class DomainRootInfo {
+
+        final String root;
+        final String matchingKey;
+        final DomainType domainType;
+
+        DomainRootInfo(final String root, final String matchingKey, final DomainType domainType) {
+            this.root = root;
+            this.matchingKey = matchingKey;
+            this.domainType = domainType;
+        }
+    }
+
+    DomainRootInfo resolveDomainRoot(final String domain, final DomainType expectedType) {
         String segment = DnsUtils.normalize(domain);
         String result = null;
         while (segment != null) {
@@ -144,14 +162,11 @@ public final class PublicSuffixMatcher {
             final String key = IDN.toUnicode(segment);
             final DomainType exceptionRule = findEntry(exceptions, key);
             if (match(exceptionRule, expectedType)) {
-                return segment;
+                return new DomainRootInfo(segment, key, exceptionRule);
             }
             final DomainType domainRule = findEntry(rules, key);
             if (match(domainRule, expectedType)) {
-                // Prior to version 5.4 the result for "private" rules was different. However, the
-                // PSL algorithm doesn't have any rules changing the result based on "domain type"
-                // see https://github.com/publicsuffix/list/wiki/Format#formal-algorithm
-                return result;
+                return new DomainRootInfo(result, key, domainRule);
             }
 
             final int nextdot = segment.indexOf('.');
@@ -161,7 +176,7 @@ public final class PublicSuffixMatcher {
             final String wildcardKey = (nextSegment == null) ? "*" : "*." + IDN.toUnicode(nextSegment);
             final DomainType wildcardDomainRule = findEntry(rules, wildcardKey);
             if (match(wildcardDomainRule, expectedType)) {
-                return result;
+                return new DomainRootInfo(result, wildcardKey, wildcardDomainRule);
             }
 
             // If we're out of segments, and we're not looking for a specific type of entry,
@@ -169,7 +184,7 @@ public final class PublicSuffixMatcher {
             // This wildcard rule means any final segment in a domain is a public suffix,
             // so the current `result` is the desired public suffix plus 1
             if (nextSegment == null && (expectedType == null || expectedType == DomainType.UNKNOWN)) {
-                return result;
+                return new DomainRootInfo(result, null, null);
             }
 
             result = segment;
@@ -178,7 +193,7 @@ public final class PublicSuffixMatcher {
 
         // If no expectations then this result is good.
         if (expectedType == null || expectedType == DomainType.UNKNOWN) {
-            return result;
+            return new DomainRootInfo(result, null, null);
         }
 
         // If we did have expectations apparently there was no match
@@ -208,6 +223,42 @@ public final class PublicSuffixMatcher {
         final String domainRoot = getDomainRoot(
                 domain.startsWith(".") ? domain.substring(1) : domain, expectedType);
         return domainRoot == null;
+    }
+
+    /**
+     * Verifies if the given domain does not represent a public domain root and is
+     * allowed to set cookies, have an identity represented by a certificate, etc.
+     * <p>
+     * This method tolerates a leading dot in the domain name, for example '.example.com'
+     * which will be automatically stripped.
+     * </p>
+     *
+     * @since 5.5
+     */
+     public boolean verify(final String domain) {
+         if (domain == null) {
+             return false;
+         }
+         return verifyStrict(domain.startsWith(".") ? domain.substring(1) : domain);
+     }
+
+    /**
+     * Verifies if the given domain does not represent a public domain root and is
+     * allowed to set cookies, have an identity represented by a certificate, etc.
+     *
+     * @since 5.5
+     */
+    public boolean verifyStrict(final String domain) {
+        Args.notNull(domain, "Domain");
+        if (domain.startsWith(".")) {
+            return false;
+        }
+        final DomainRootInfo domainRootInfo = resolveDomainRoot(domain, null);
+        if (domainRootInfo == null) {
+            return false;
+        }
+        return domainRootInfo.root != null ||
+                domainRootInfo.domainType == DomainType.PRIVATE && domainRootInfo.matchingKey != null;
     }
 
 }
