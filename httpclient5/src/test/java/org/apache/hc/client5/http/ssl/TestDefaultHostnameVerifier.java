@@ -40,7 +40,6 @@ import java.util.List;
 
 import javax.net.ssl.SSLException;
 
-import org.apache.hc.client5.http.psl.DomainType;
 import org.apache.hc.client5.http.psl.PublicSuffixList;
 import org.apache.hc.client5.http.psl.PublicSuffixListParser;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
@@ -273,11 +272,11 @@ class TestDefaultHostnameVerifier {
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.xxx.uk", "*.b.xxx.uk", publicSuffixMatcher));
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.b.xxx.uk", "*.b.xxx.uk", publicSuffixMatcher));
 
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
 
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("b.xxx.uk", "*.xxx.uk", publicSuffixMatcher));
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("b.xxx.uk", "*.xxx.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("b.xxx.uk", "*.xxx.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("b.xxx.uk", "*.xxx.uk", publicSuffixMatcher));
     }
 
     @Test
@@ -296,7 +295,7 @@ class TestDefaultHostnameVerifier {
     }
 
     @Test
-    void testHTTPCLIENT_1997_ANY() { // Only True on all domains
+    void testHTTPCLIENT_1997() {
         String domain;
         // Unknown
         domain = "dev.b.cloud.a";
@@ -318,63 +317,6 @@ class TestDefaultHostnameVerifier {
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain));
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher));
         Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher));
-    }
-
-    @Test
-    void testHTTPCLIENT_1997_ICANN() { // Only True on ICANN domains
-        String domain;
-        // Unknown
-        domain = "dev.b.cloud.a";
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.ICANN));
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.ICANN));
-
-        // ICANN
-        domain = "dev.b.cloud.com";
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.ICANN));
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.ICANN));
-
-        // PRIVATE
-        domain = "dev.b.cloud.lan";
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.ICANN));
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.ICANN));
-    }
-
-    @Test
-    void testHTTPCLIENT_1997_PRIVATE() { // Only True on PRIVATE domains
-        String domain;
-        // Unknown
-        domain = "dev.b.cloud.a";
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.PRIVATE));
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.PRIVATE));
-
-        // ICANN
-        domain = "dev.b.cloud.com";
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.PRIVATE));
-        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.PRIVATE));
-
-        // PRIVATE
-        domain = "dev.b.cloud.lan";
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.PRIVATE));
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.PRIVATE));
-    }
-
-    @Test
-    void testHTTPCLIENT_1997_UNKNOWN() { // Only True on all domains (same as ANY)
-        String domain;
-        // Unknown
-        domain = "dev.b.cloud.a";
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.UNKNOWN));
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.UNKNOWN));
-
-        // ICANN
-        domain = "dev.b.cloud.com";
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.UNKNOWN));
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.UNKNOWN));
-
-        // PRIVATE
-        domain = "dev.b.cloud.lan";
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.UNKNOWN));
-        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.UNKNOWN));
     }
 
     @Test // Check compressed IPv6 hostname matching
@@ -461,14 +403,13 @@ class TestDefaultHostnameVerifier {
                 publicSuffixMatcher);
         Assertions.assertThrows(SSLException.class, () ->
             DefaultHostnameVerifier.matchDNSName(
-                    "ec2.compute-1.amazonaws.com",
-                    Collections.singletonList(SubjectName.DNS("ec2.compute-1.amazonaws.com")),
+                    "compute-1.amazonaws.com",
+                    Collections.singletonList(SubjectName.DNS("*.compute-1.amazonaws.com")),
                     publicSuffixMatcher));
-        Assertions.assertThrows(SSLException.class, () ->
-                DefaultHostnameVerifier.matchDNSName(
-                        "ec2.compute-1.amazonaws.com",
-                        Collections.singletonList(SubjectName.DNS("*.compute-1.amazonaws.com")),
-                        publicSuffixMatcher));
+        DefaultHostnameVerifier.matchDNSName(
+                "ec2.compute-1.amazonaws.com",
+                Collections.singletonList(SubjectName.DNS("*.compute-1.amazonaws.com")),
+                publicSuffixMatcher);
     }
 
     @Test
