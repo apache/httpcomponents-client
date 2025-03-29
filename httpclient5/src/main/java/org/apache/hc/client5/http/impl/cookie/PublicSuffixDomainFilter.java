@@ -39,6 +39,8 @@ import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Wraps a {@link org.apache.hc.client5.http.cookie.CookieAttributeHandler} and leverages
@@ -53,6 +55,8 @@ import org.apache.hc.core5.util.Args;
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PublicSuffixDomainFilter.class);
 
     private final CommonCookieAttributeHandler handler;
     private final PublicSuffixMatcher publicSuffixMatcher;
@@ -84,6 +88,17 @@ public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
         this.localDomainMap = createLocalDomainMap();
     }
 
+    private boolean verifyHost(final String host) {
+        if (this.publicSuffixMatcher.verify(host)) {
+            return true;
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Public Suffix List verification failed for host '{}'", host);
+            }
+            return false;
+        }
+    }
+
     /**
      * Never matches if the cookie's domain is from the blacklist.
      */
@@ -97,13 +112,13 @@ public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
         if (i >= 0) {
             final String domain = host.substring(i);
             if (!this.localDomainMap.containsKey(domain)) {
-                if (this.publicSuffixMatcher.matches(host)) {
+                if (!verifyHost(host)) {
                     return false;
                 }
             }
         } else {
             if (!host.equalsIgnoreCase(origin.getHost())) {
-                if (this.publicSuffixMatcher.matches(host)) {
+                if (!verifyHost(host)) {
                     return false;
                 }
             }
