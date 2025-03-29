@@ -44,7 +44,6 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.security.auth.x500.X500Principal;
 
-import org.apache.hc.client5.http.psl.DomainType;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
 import org.apache.hc.client5.http.utils.DnsUtils;
 import org.apache.hc.core5.annotation.Contract;
@@ -227,7 +226,6 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
 
     private static boolean matchIdentity(final String host, final String identity,
                                          final PublicSuffixMatcher publicSuffixMatcher,
-                                         final DomainType domainType,
                                          final boolean strict) {
 
         final String normalizedIdentity;
@@ -240,7 +238,10 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
 
         // Public suffix check on the Unicode identity
         if (publicSuffixMatcher != null && host.contains(".")) {
-            if (publicSuffixMatcher.getDomainRoot(normalizedIdentity, domainType) == null) {
+            if (!publicSuffixMatcher.verifyStrict(normalizedIdentity)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Public Suffix List verification failed for identity '{}'", identity);
+                }
                 return false;
             }
         }
@@ -278,32 +279,20 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
 
     static boolean matchIdentity(final String host, final String identity,
                                  final PublicSuffixMatcher publicSuffixMatcher) {
-        return matchIdentity(host, identity, publicSuffixMatcher, null, false);
+        return matchIdentity(host, identity, publicSuffixMatcher, false);
     }
 
     static boolean matchIdentity(final String host, final String identity) {
-        return matchIdentity(host, identity, null, null, false);
+        return matchIdentity(host, identity, null, false);
     }
 
     static boolean matchIdentityStrict(final String host, final String identity,
                                        final PublicSuffixMatcher publicSuffixMatcher) {
-        return matchIdentity(host, identity, publicSuffixMatcher, null, true);
+        return matchIdentity(host, identity, publicSuffixMatcher, true);
     }
 
     static boolean matchIdentityStrict(final String host, final String identity) {
-        return matchIdentity(host, identity, null, null, true);
-    }
-
-    static boolean matchIdentity(final String host, final String identity,
-                                 final PublicSuffixMatcher publicSuffixMatcher,
-                                 final DomainType domainType) {
-        return matchIdentity(host, identity, publicSuffixMatcher, domainType, false);
-    }
-
-    static boolean matchIdentityStrict(final String host, final String identity,
-                                       final PublicSuffixMatcher publicSuffixMatcher,
-                                       final DomainType domainType) {
-        return matchIdentity(host, identity, publicSuffixMatcher, domainType, true);
+        return matchIdentity(host, identity, null, true);
     }
 
     static String extractCN(final String subjectPrincipal) throws SSLException {
