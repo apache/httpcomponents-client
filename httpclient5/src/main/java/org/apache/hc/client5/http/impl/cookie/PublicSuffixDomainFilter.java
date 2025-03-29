@@ -97,13 +97,13 @@ public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
         if (i >= 0) {
             final String domain = host.substring(i);
             if (!this.localDomainMap.containsKey(domain)) {
-                if (this.publicSuffixMatcher.matches(host)) {
+                if (!this.publicSuffixMatcher.verify(host)) {
                     return false;
                 }
             }
         } else {
             if (!host.equalsIgnoreCase(origin.getHost())) {
-                if (this.publicSuffixMatcher.matches(host)) {
+                if (!this.publicSuffixMatcher.verify(host)) {
                     return false;
                 }
             }
