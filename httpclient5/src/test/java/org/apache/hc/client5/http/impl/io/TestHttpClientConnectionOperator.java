@@ -276,7 +276,7 @@ class TestHttpClientConnectionOperator {
 
         connectionOperator.upgrade(conn, host, null, Timeout.ofMilliseconds(345), context);
 
-        Mockito.verify(conn).bind(upgradedSocket);
+        Mockito.verify(conn).bind(Mockito.eq(upgradedSocket), Mockito.any());
     }
 
     @Test

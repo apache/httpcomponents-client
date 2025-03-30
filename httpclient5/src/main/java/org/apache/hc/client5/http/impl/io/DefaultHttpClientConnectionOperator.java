@@ -270,7 +270,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 LOG.debug("{} upgrading to TLS {}:{}", ConnPoolSupport.getId(conn), tlsName.getHostName(), tlsName.getPort());
             }
             final SSLSocket upgradedSocket = tlsSocketStrategy.upgrade(socket, tlsName.getHostName(), tlsName.getPort(), attachment, context);
-            conn.bind(upgradedSocket);
+            conn.bind(upgradedSocket, socket);
             onAfterTlsHandshake(context, endpointHost);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} upgraded to TLS {}:{}", ConnPoolSupport.getId(conn), tlsName.getHostName(), tlsName.getPort());
