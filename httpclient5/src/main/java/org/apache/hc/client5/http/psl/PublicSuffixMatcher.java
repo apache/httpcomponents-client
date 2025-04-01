@@ -34,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.hc.client5.http.utils.DnsUtils;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
 
@@ -137,8 +138,17 @@ public final class PublicSuffixMatcher {
         if (domain.startsWith(".")) {
             return null;
         }
-        final DomainRootInfo match = resolveDomainRoot(domain, expectedType);
-        return match != null ? match.root : null;
+        String normalized = DnsUtils.normalize(domain);
+        final boolean punyCoded = normalized.contains("xn-");
+        if (punyCoded) {
+            normalized = IDN.toUnicode(normalized);
+        }
+        final DomainRootInfo match = resolveDomainRoot(normalized, expectedType);
+        String domainRoot = match != null ? match.root : null;
+        if (domainRoot != null && punyCoded) {
+            domainRoot = IDN.toASCII(domainRoot);
+        }
+        return domainRoot;
     }
 
     static final class DomainRootInfo {
@@ -155,11 +165,11 @@ public final class PublicSuffixMatcher {
     }
 
     DomainRootInfo resolveDomainRoot(final String domain, final DomainType expectedType) {
-        String segment = DnsUtils.normalize(domain);
+        String segment = domain;
         String result = null;
         while (segment != null) {
             // An exception rule takes priority over any other matching rule.
-            final String key = IDN.toUnicode(segment);
+            final String key = segment;
             final DomainType exceptionRule = findEntry(exceptions, key);
             if (match(exceptionRule, expectedType)) {
                 return new DomainRootInfo(segment, key, exceptionRule);
@@ -173,7 +183,7 @@ public final class PublicSuffixMatcher {
             final String nextSegment = nextdot != -1 ? segment.substring(nextdot + 1) : null;
 
             // look for wildcard entries
-            final String wildcardKey = (nextSegment == null) ? "*" : "*." + IDN.toUnicode(nextSegment);
+            final String wildcardKey = (nextSegment == null) ? "*" : "*." + nextSegment;
             final DomainType wildcardDomainRule = findEntry(rules, wildcardKey);
             if (match(wildcardDomainRule, expectedType)) {
                 return new DomainRootInfo(result, wildcardKey, wildcardDomainRule);
@@ -239,20 +249,11 @@ public final class PublicSuffixMatcher {
          if (domain == null) {
              return false;
          }
-         return verifyStrict(domain.startsWith(".") ? domain.substring(1) : domain);
+         return verifyInternal(domain.startsWith(".") ? domain.substring(1) : domain);
      }
 
-    /**
-     * Verifies if the given domain does not represent a public domain root and is
-     * allowed to set cookies, have an identity represented by a certificate, etc.
-     *
-     * @since 5.5
-     */
-    public boolean verifyStrict(final String domain) {
-        Args.notNull(domain, "Domain");
-        if (domain.startsWith(".")) {
-            return false;
-        }
+    @Internal
+    public boolean verifyInternal(final String domain) {
         final DomainRootInfo domainRootInfo = resolveDomainRoot(domain, null);
         if (domainRootInfo == null) {
             return false;
