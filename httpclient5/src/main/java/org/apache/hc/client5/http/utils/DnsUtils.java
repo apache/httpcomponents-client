@@ -27,6 +27,10 @@
 
 package org.apache.hc.client5.http.utils;
 
+import java.net.IDN;
+
+import org.apache.hc.core5.annotation.Internal;
+
 /**
  * A collection of utilities relating to Domain Name System.
  *
@@ -70,6 +74,23 @@ public class DnsUtils {
             return buf.toString();
         }
         return s;
+    }
+
+    /**
+     * Decodes to Unicode and normalizes the given DNS name.
+     */
+    @Internal
+    public static String normalizeUnicode(final String s) {
+        if (s == null) {
+            return null;
+        }
+        String decoded;
+        try {
+            decoded = IDN.toUnicode(s);
+        } catch (final IllegalArgumentException ignore) {
+            decoded = s;
+        }
+        return normalize(decoded);
     }
 
 }
