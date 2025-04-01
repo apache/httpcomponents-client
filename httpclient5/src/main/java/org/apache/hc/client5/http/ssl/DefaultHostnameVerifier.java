@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.ssl;
 
-import java.net.IDN;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.cert.Certificate;
@@ -159,11 +158,11 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
 
     static void matchDNSName(final String host, final List<SubjectName> subjectAlts,
                              final PublicSuffixMatcher publicSuffixMatcher) throws SSLPeerUnverifiedException {
-        final String normalizedHost = DnsUtils.normalize(host);
+        final String normalizedHost = DnsUtils.normalizeUnicode(host);
         for (final SubjectName subjectAlt : subjectAlts) {
             if (subjectAlt.getType() == SubjectName.DNS) {
-                final String normalizedSubjectAlt = DnsUtils.normalize(subjectAlt.getValue());
-                if (matchIdentityStrict(normalizedHost, normalizedSubjectAlt, publicSuffixMatcher)) {
+                final String normalizedSubjectAlt = DnsUtils.normalizeUnicode(subjectAlt.getValue());
+                if (matchIdentity(normalizedHost, normalizedSubjectAlt, publicSuffixMatcher, true)) {
                     return;
                 }
             }
@@ -180,9 +179,9 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
             throw new SSLPeerUnverifiedException("Certificate subject for <" + host + "> doesn't contain " +
                     "a common name and does not have alternative names");
         }
-        final String normalizedHost = DnsUtils.normalize(host);
-        final String normalizedCn = DnsUtils.normalize(cn);
-        if (!matchIdentityStrict(normalizedHost, normalizedCn, publicSuffixMatcher)) {
+        final String normalizedHost = DnsUtils.normalizeUnicode(host);
+        final String normalizedCn = DnsUtils.normalizeUnicode(cn);
+        if (!matchIdentity(normalizedHost, normalizedCn, publicSuffixMatcher, true)) {
             throw new SSLPeerUnverifiedException("Certificate for <" + host + "> doesn't match " +
                     "common name of the certificate subject: " + cn);
         }
@@ -224,21 +223,11 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
         return false;
     }
 
-    private static boolean matchIdentity(final String host, final String identity,
+    static boolean matchIdentity(final String host, final String identity,
                                          final PublicSuffixMatcher publicSuffixMatcher,
                                          final boolean strict) {
-
-        final String normalizedIdentity;
-        try {
-            // Convert only the identity to its Unicode form
-            normalizedIdentity = IDN.toUnicode(identity);
-        } catch (final IllegalArgumentException e) {
-            return false;
-        }
-
-        // Public suffix check on the Unicode identity
         if (publicSuffixMatcher != null && host.contains(".")) {
-            if (!publicSuffixMatcher.verifyStrict(normalizedIdentity)) {
+            if (!publicSuffixMatcher.verifyInternal(identity)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Public Suffix List verification failed for identity '{}'", identity);
                 }
@@ -251,10 +240,10 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
         // character * which is considered to match any single domain name
         // component or component fragment..."
         // Based on this statement presuming only singular wildcard is legal
-        final int asteriskIdx = normalizedIdentity.indexOf('*');
+        final int asteriskIdx = identity.indexOf('*');
         if (asteriskIdx != -1) {
-            final String prefix = normalizedIdentity.substring(0, asteriskIdx);
-            final String suffix = normalizedIdentity.substring(asteriskIdx + 1);
+            final String prefix = identity.substring(0, asteriskIdx);
+            final String suffix = identity.substring(asteriskIdx + 1);
 
             if (!prefix.isEmpty() && !host.startsWith(prefix)) {
                 return false;
@@ -274,25 +263,7 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
         }
 
         // Direct Unicode comparison
-        return host.equalsIgnoreCase(normalizedIdentity);
-    }
-
-    static boolean matchIdentity(final String host, final String identity,
-                                 final PublicSuffixMatcher publicSuffixMatcher) {
-        return matchIdentity(host, identity, publicSuffixMatcher, false);
-    }
-
-    static boolean matchIdentity(final String host, final String identity) {
-        return matchIdentity(host, identity, null, false);
-    }
-
-    static boolean matchIdentityStrict(final String host, final String identity,
-                                       final PublicSuffixMatcher publicSuffixMatcher) {
-        return matchIdentity(host, identity, publicSuffixMatcher, true);
-    }
-
-    static boolean matchIdentityStrict(final String host, final String identity) {
-        return matchIdentity(host, identity, null, true);
+        return host.equalsIgnoreCase(identity);
     }
 
     static String extractCN(final String subjectPrincipal) throws SSLException {
