@@ -27,15 +27,23 @@
 package org.apache.hc.client5.http.impl;
 
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.http.FormattedHeader;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpMessage;
+import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.http.ProtocolVersionParser;
+import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.ssl.TLS;
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.CharArrayBuffer;
+import org.apache.hc.core5.util.Tokenizer;
 
 /**
  * Protocol switch handler.
@@ -45,31 +53,100 @@ import org.apache.hc.core5.http.ssl.TLS;
 @Internal
 public final class ProtocolSwitchStrategy {
 
-    enum ProtocolSwitch { FAILURE, TLS }
+    private static final ProtocolVersionParser PROTOCOL_VERSION_PARSER = ProtocolVersionParser.INSTANCE;
+    private static final Tokenizer TOKENIZER = Tokenizer.INSTANCE;
+    private static final Tokenizer.Delimiter UPGRADE_TOKEN_DELIMITER = Tokenizer.delimiters(',');
+    private static final Tokenizer.Delimiter LAX_PROTO_DELIMITER = Tokenizer.delimiters('/', ',');
+
+    @FunctionalInterface
+    private interface HeaderConsumer {
+
+        void accept(CharSequence buffer, ParserCursor cursor) throws ProtocolException;
+
+    }
 
     public ProtocolVersion switchProtocol(final HttpMessage response) throws ProtocolException {
-        final Iterator<String> it = MessageSupport.iterateTokens(response, HttpHeaders.UPGRADE);
+        final AtomicReference<ProtocolVersion> tlsUpgrade = new AtomicReference<>();
 
-        ProtocolVersion tlsUpgrade = null;
-        while (it.hasNext()) {
-            final String token = it.next();
-            if (token.startsWith("TLS")) {
-                // TODO: Improve handling of HTTP protocol token once HttpVersion has a #parse method
-                try {
-                    tlsUpgrade = token.length() == 3 ? TLS.V_1_2.getVersion() : TLS.parse(token.replace("TLS/", "TLSv"));
-                } catch (final ParseException ex) {
-                    throw new ProtocolException("Invalid protocol: " + token);
+        parseHeaders(response, HttpHeaders.UPGRADE, (buffer, cursor) -> {
+            final ProtocolVersion protocolVersion = parseProtocolVersion(buffer, cursor);
+            if (protocolVersion != null) {
+                if ("TLS".equalsIgnoreCase(protocolVersion.getProtocol())) {
+                    tlsUpgrade.set(protocolVersion);
+                } else if (!protocolVersion.equals(HttpVersion.HTTP_1_1)) {
+                    throw new ProtocolException("Unsupported protocol or HTTP version: " + protocolVersion);
                 }
-            } else if (token.equals("HTTP/1.1")) {
-                // TODO: Improve handling of HTTP protocol token once HttpVersion has a #parse method
-            } else {
-                throw new ProtocolException("Unsupported protocol: " + token);
+            }
+        });
+
+        final ProtocolVersion result = tlsUpgrade.get();
+        if (result != null) {
+            return result;
+        } else {
+            throw new ProtocolException("Invalid protocol switch response: no TLS version found");
+        }
+    }
+
+    private ProtocolVersion parseProtocolVersion(final CharSequence buffer, final ParserCursor cursor) throws ProtocolException {
+        TOKENIZER.skipWhiteSpace(buffer, cursor);
+        final String proto = TOKENIZER.parseToken(buffer, cursor, LAX_PROTO_DELIMITER);
+        if (!cursor.atEnd()) {
+            final char ch = buffer.charAt(cursor.getPos());
+            if (ch == '/') {
+                if (proto.isEmpty()) {
+                    throw new ParseException("Invalid protocol", buffer, cursor.getLowerBound(), cursor.getUpperBound(), cursor.getPos());
+                }
+                cursor.updatePos(cursor.getPos() + 1);
+                return PROTOCOL_VERSION_PARSER.parse(proto, null, buffer, cursor, UPGRADE_TOKEN_DELIMITER);
             }
         }
-        if (tlsUpgrade == null) {
-            throw new ProtocolException("Invalid protocol switch response");
+        if (proto.isEmpty()) {
+            return null;
+        } else if (proto.equalsIgnoreCase("TLS")) {
+            return TLS.V_1_2.getVersion();
+        } else {
+            throw new ProtocolException("Unsupported or invalid protocol: " + proto);
         }
-        return tlsUpgrade;
+    }
+
+
+    private void parseHeaders(final HttpMessage message, final String name, final HeaderConsumer consumer)
+            throws ProtocolException {
+        final Iterator<Header> it = message.headerIterator(name);
+        while (it.hasNext()) {
+            parseHeader(it.next(), consumer);
+        }
+    }
+
+    private void parseHeader(final Header header, final HeaderConsumer consumer) throws ProtocolException {
+        Args.notNull(header, "Header");
+        if (header instanceof FormattedHeader) {
+            final CharArrayBuffer buf = ((FormattedHeader) header).getBuffer();
+            final ParserCursor cursor = new ParserCursor(0, buf.length());
+            cursor.updatePos(((FormattedHeader) header).getValuePos());
+            parseHeaderElements(buf, cursor, consumer);
+        } else {
+            final String value = header.getValue();
+            if (value == null) {
+                return;
+            }
+            final ParserCursor cursor = new ParserCursor(0, value.length());
+            parseHeaderElements(value, cursor, consumer);
+        }
+    }
+
+    private void parseHeaderElements(final CharSequence buffer,
+                                     final ParserCursor cursor,
+                                     final HeaderConsumer consumer) throws ProtocolException {
+        while (!cursor.atEnd()) {
+            consumer.accept(buffer, cursor);
+            if (!cursor.atEnd()) {
+                final char ch = buffer.charAt(cursor.getPos());
+                if (ch == ',') {
+                    cursor.updatePos(cursor.getPos() + 1);
+                }
+            }
+        }
     }
 
 }
