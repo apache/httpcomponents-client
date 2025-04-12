@@ -1,4 +1,28 @@
-﻿Release 5.4.3
+﻿Release 5.4.4
+------------------
+
+This maintenance release corrects several regressions reported since the last
+release, including a defect causing some private domains in SSL certificates to
+get rejected as a mismatch.
+
+Change Log
+-------------------
+
+* DNS host/identity normalization should be performed only once per public API call.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2366: Fix regression in RequestEntityProxy#isRepeatable behavior. (#630)
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2365: Fix handling of private domains by PublicSuffixMatcher.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2364: Fix incorrect re-binding of the upgraded SSL socket to the HTTP connection
+  by the DefaultHttpClientConnectionOperator#upgrade(*) methods.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+Release 5.4.3
 ------------------
 
 This maintenance release upgrades HttpCore to version 5.3.4 and fixes a regression
