@@ -203,6 +203,19 @@ class TestRFC6265CookieSpec {
     }
 
     @Test
+    void testParseCookieWithHttpOnly() throws Exception {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+
+        final Header header = new BasicHeader("Set-Cookie", "name = value ; HttpOnly");
+        final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
+
+        Assertions.assertEquals(1, cookies.size());
+        final Cookie cookie = cookies.get(0);
+        Assertions.assertTrue(cookie.containsAttribute(Cookie.HTTP_ONLY_ATTR));
+    }
+
+    @Test
     void testValidateCookieBasics() throws Exception {
         final CommonCookieAttributeHandler h1 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h1.getAttributeName()).thenReturn("this");

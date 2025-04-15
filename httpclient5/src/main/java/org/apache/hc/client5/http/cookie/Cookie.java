@@ -45,7 +45,7 @@ public interface Cookie {
     String MAX_AGE_ATTR = "max-age";
     String SECURE_ATTR = "secure";
     String EXPIRES_ATTR = "expires";
-    String HTTP_ONLY_ATTR = "httpOnly";
+    String HTTP_ONLY_ATTR = "httponly";
 
     /**
      * @since 5.0
