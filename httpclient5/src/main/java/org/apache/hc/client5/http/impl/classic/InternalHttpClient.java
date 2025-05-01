@@ -161,11 +161,13 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             setupContext(localcontext);
 
             final HttpHost resolvedTarget = target != null ? target : RoutingSupport.determineHost(request);
-            if (request.getScheme() == null) {
-                request.setScheme(resolvedTarget.getSchemeName());
-            }
-            if (request.getAuthority() == null) {
-                request.setAuthority(new URIAuthority(resolvedTarget));
+            if (resolvedTarget != null) {
+                if (request.getScheme() == null) {
+                    request.setScheme(resolvedTarget.getSchemeName());
+                }
+                if (request.getAuthority() == null) {
+                    request.setAuthority(new URIAuthority(resolvedTarget));
+                }
             }
             final HttpRoute route = determineRoute(
                     resolvedTarget,
