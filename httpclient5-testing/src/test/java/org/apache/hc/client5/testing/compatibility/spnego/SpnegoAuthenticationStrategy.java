@@ -24,35 +24,27 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.auth;
+package org.apache.hc.client5.testing.compatibility.spnego;
 
-import org.apache.hc.client5.http.auth.gss.GssCredentials;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.ietf.jgss.GSSCredential;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-/**
- * Kerberos specific {@link Credentials} representation based on {@link GSSCredential}.
- *
- * @since 4.4
- *
- * The original KerberosCredentials class has been renamed to
- * org.apache.hc.client5.http.auth.gss.GssCredentials.
- *
- * @deprecated Do not use. The old GGS based experimental authentication schemes are no longer
- * supported.
- * Use org.apache.hc.client5.http.impl.auth.gss.SpnegoScheme, or consider using Basic or Bearer
- * authentication with TLS instead.
- * @see org.apache.hc.client5.http.impl.auth.gss.SpnegoScheme
- * @see org.apache.hc.client5.http.auth.gss.GssConfig
- * @see org.apache.hc.client5.http.auth.gss.GssCredentials
- */
-@Deprecated
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class KerberosCredentials extends GssCredentials {
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 
-    public KerberosCredentials(final GSSCredential gssCredential) {
-        super(gssCredential);
+public class SpnegoAuthenticationStrategy extends DefaultAuthenticationStrategy {
+
+    private static final List<String> SPNEGO_SCHEME_PRIORITY =
+            Collections.unmodifiableList(
+                Arrays.asList(
+                    StandardAuthScheme.BEARER,
+                    StandardAuthScheme.DIGEST,
+                    StandardAuthScheme.BASIC,
+                    StandardAuthScheme.SPNEGO));
+
+    @Override
+    protected final List<String> getSchemePriority() {
+        return SPNEGO_SCHEME_PRIORITY;
     }
-
 }
