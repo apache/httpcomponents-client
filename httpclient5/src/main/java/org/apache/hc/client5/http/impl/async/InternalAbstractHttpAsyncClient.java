@@ -219,12 +219,15 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                 setupContext(clientContext);
 
                 final HttpHost resolvedTarget = target != null ? target : RoutingSupport.determineHost(request);
-                if (request.getScheme() == null) {
-                    request.setScheme(resolvedTarget.getSchemeName());
+                if (resolvedTarget != null) {
+                    if (request.getScheme() == null) {
+                        request.setScheme(resolvedTarget.getSchemeName());
+                    }
+                    if (request.getAuthority() == null) {
+                        request.setAuthority(new URIAuthority(resolvedTarget));
+                    }
                 }
-                if (request.getAuthority() == null) {
-                    request.setAuthority(new URIAuthority(resolvedTarget));
-                }
+
                 final HttpRoute route = determineRoute(
                         resolvedTarget,
                         request,

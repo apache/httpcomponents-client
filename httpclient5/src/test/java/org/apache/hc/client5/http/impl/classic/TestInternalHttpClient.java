@@ -42,10 +42,13 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -233,4 +236,15 @@ class TestInternalHttpClient {
         Mockito.verify(closeable2).close();
     }
 
+    @Test
+    void testDoExecuteThrowsWhenNoTargetOrHost() throws Exception {
+        final ClassicHttpRequest request = ClassicRequestBuilder.get("/foo").build();
+        final HttpClientContext context = HttpClientContext.create();
+        Mockito.when(routePlanner.determineRoute(
+                Mockito.eq(null),
+                Mockito.any(),
+                Mockito.<HttpClientContext>any())).thenThrow(new ProtocolException());
+        Assertions.assertThrows(ClientProtocolException.class, () ->
+                client.execute(null, request, context));
+    }
 }
