@@ -17,7 +17,8 @@
     under the License.
 -->
 
-# Reporting a vulnerability
+# HttpComponents Security
 
-If you believe you found a vulnerability in Apache HttpClient,
-please contact [the Apache Security Team](https://www.apache.org/security/).
+The HttpComponents Security process and model are on our website's [Security](https://hc.apache.org/security.html) page.
+
+If you believe you found a vulnerability in Apache HttpClient, please contact [the Apache Security Team](https://www.apache.org/security/).
