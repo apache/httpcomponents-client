@@ -1,7 +1,70 @@
-Release 5.5 ALPHA2
+Release 5.5
 ------------------
 
-Dependency updates:
+This is the first GA release in the 5.5 release series. This release finalizes the 5.5
+APIs and adds several experimental features and improvements, such as request multiplexing
+over a shared HTTP/2 connection and the Classic API facade acting as a compatibility
+bridge between classic I/O client services and the asynchronous message transport used
+internally.
+
+Notable changes and features included in the 5.5 series:
+
+* Improved conformance to RFC 7616 (HTTP Digest Access Authentication).
+
+* The connection pool implementation acts as a caching facade in front of a standard
+  managed connection pool and shares already leased connections to multiplex message
+  exchanges over active HTTP/2 connections. Experimental.
+
+* Extended Auth API and improved authentication protocol logic to support mutual
+  authentication.
+
+* The Classic API facade now acts as a compatibility bridge between the classic I/O client
+  services (based on the standard InputStream / OutputStream model) and the asynchronous
+  message transport used internally. This is experimental.
+
+* HTTP/2 support for the Fluent Facade (via Classic API facade). This is experimental.
+
+
+Compatibility notes:
+
+* As of this release, HttpClient does not automatically execute redirects if the original
+  request manually added headers that are considered sensitive.
+
+
+Change Log
+-------------------
+
+* HTTPCLIENT-2367: Fixed NPE in InternalAbstractHttpAsyncClient by adding a null check for
+  resolvedTarget (#634).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Fixed case of Cookie#HTTP_ONLY_ATTR
+  Contributed by Finn Petersen <fp7@posteo.net>
+
+* Simplified ProtocolSwitchStrategy by leveraging ProtocolVersionParser (#627).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2364: Fixed incorrect re-binding of the upgraded SSL socket to the HTTP
+  connection by the #upgrade method of the DefaultHttpClientConnectionOperator.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2363: ensure requests have a scheme and an authority populated before
+  they get committed to the execution pipeline.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Upgraded HttpCore to version 5.3.4
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Disallow automatic request redirection if the original request contains potentially
+  sensitive headers.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2360: Enhance filename encoding in multipart/form-data per RFC 6266/5987
+  (#618).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Corrected APIs in ClientTlsStrategyBuilder to be compatible with Classic APIs.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * Bump testcontainers.version from 1.20.4 to 1.20.6 #622.
   Contributed by Gary Gregory <garydgregory at gmail.com>
