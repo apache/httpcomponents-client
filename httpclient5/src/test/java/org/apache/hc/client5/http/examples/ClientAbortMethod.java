@@ -36,6 +36,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.StatusLine;
+import org.apache.logging.log4j.core.util.Log4jThreadFactory;
 
 /**
  * This example demonstrates how to abort an HTTP method before its normal completion.
@@ -46,7 +47,8 @@ public class ClientAbortMethod {
         try (final CloseableHttpClient httpclient = HttpClients.createDefault()) {
             final HttpGet httpget = new HttpGet("http://httpbin.org/get");
 
-            final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+            final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1,
+                Log4jThreadFactory.createDaemonThreadFactory("demo"));
             // Cancel the request after once second
             executorService.schedule(httpget::cancel, 1, TimeUnit.SECONDS);
 
