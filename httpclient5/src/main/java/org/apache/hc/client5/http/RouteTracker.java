@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http;
 
 import java.net.InetAddress;
+import java.nio.file.Path;
 import java.util.Objects;
 
 import org.apache.hc.core5.http.HttpHost;
@@ -50,6 +51,9 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      * {@code null} indicates that the default should be used.
      */
     private final InetAddress localAddress;
+
+    /** The Unix domain socket to connect through, if any. */
+    private final Path unixDomainSocket;
 
     // the attributes above are fixed at construction time
     // now follow attributes that indicate the established route
@@ -78,9 +82,24 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      *                  {@code null} for the default
      */
     public RouteTracker(final HttpHost target, final InetAddress local) {
+        this(target, local, null);
+    }
+
+    /**
+     * Creates a new route tracker.
+     * The target and origin need to be specified at creation time.
+     *
+     * @param target              the host to which to route
+     * @param local               the local address to route from, or
+     *                            {@code null} for the default
+     * @param unixDomainSocket    the path to the Unix domain socket
+     *                            through which to connect, or {@code null}
+     */
+    public RouteTracker(final HttpHost target, final InetAddress local, final Path unixDomainSocket) {
         Args.notNull(target, "Target host");
         this.targetHost = target;
         this.localAddress = local;
+        this.unixDomainSocket = unixDomainSocket;
         this.tunnelled = TunnelType.PLAIN;
         this.layered = LayerType.PLAIN;
     }
@@ -104,7 +123,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      * @param route     the route to track
      */
     public RouteTracker(final HttpRoute route) {
-        this(route.getTargetHost(), route.getLocalAddress());
+        this(route.getTargetHost(), route.getLocalAddress(), route.getUnixDomainSocket());
     }
 
     /**
@@ -195,6 +214,11 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     }
 
     @Override
+    public Path getUnixDomainSocket() {
+        return this.unixDomainSocket;
+    }
+
+    @Override
     public int getHopCount() {
         int hops = 0;
         if (this.connected) {
@@ -265,10 +289,15 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      *          {@code null} if nothing has been tracked so far
      */
     public HttpRoute toRoute() {
-        return !this.connected ?
-            null : new HttpRoute(this.targetHost, this.localAddress,
-                                 this.proxyChain, this.secure,
-                                 this.tunnelled, this.layered);
+        if (!this.connected) {
+            return null;
+        } else if (this.unixDomainSocket != null) {
+            return new HttpRoute(this.targetHost, this.unixDomainSocket);
+        } else {
+            return new HttpRoute(this.targetHost, this.localAddress,
+                this.proxyChain, this.secure,
+                this.tunnelled, this.layered);
+        }
     }
 
     /**
@@ -297,6 +326,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
                         this.layered == that.layered &&
                         Objects.equals(this.targetHost, that.targetHost) &&
                         Objects.equals(this.localAddress, that.localAddress) &&
+                        Objects.equals(this.unixDomainSocket, that.unixDomainSocket) &&
                         Objects.equals(this.proxyChain, that.proxyChain);
     }
 
@@ -313,6 +343,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         int hash = LangUtils.HASH_SEED;
         hash = LangUtils.hashCode(hash, this.targetHost);
         hash = LangUtils.hashCode(hash, this.localAddress);
+        hash = LangUtils.hashCode(hash, this.unixDomainSocket);
         if (this.proxyChain != null) {
             for (final HttpHost element : this.proxyChain) {
                 hash = LangUtils.hashCode(hash, element);
@@ -338,6 +369,8 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         if (this.localAddress != null) {
             cab.append(this.localAddress);
             cab.append("->");
+        } else if (this.unixDomainSocket != null) {
+            cab.append(this.unixDomainSocket).append("->");
         }
         cab.append('{');
         if (this.connected) {

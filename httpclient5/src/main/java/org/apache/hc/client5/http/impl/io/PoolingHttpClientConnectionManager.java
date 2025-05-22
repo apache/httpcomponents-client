@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -479,6 +480,7 @@ public class PoolingHttpClientConnectionManager
             poolEntry.assignConnection(connFactory.createConnection(null));
         }
         final HttpRoute route = poolEntry.getRoute();
+        final Path unixDomainSocket = route.getUnixDomainSocket();
         final HttpHost firstHop = route.getProxyHost() != null ? route.getProxyHost() : route.getTargetHost();
         final SocketConfig socketConfig = resolveSocketConfig(route);
         final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
@@ -491,6 +493,7 @@ public class PoolingHttpClientConnectionManager
                 conn,
                 firstHop,
                 route.getTargetName(),
+                unixDomainSocket,
                 route.getLocalSocketAddress(),
                 connectTimeout,
                 socketConfig,

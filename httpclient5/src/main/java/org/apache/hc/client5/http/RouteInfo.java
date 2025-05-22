@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http;
 
 import java.net.InetAddress;
+import java.nio.file.Path;
 
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.net.NamedEndpoint;
@@ -88,6 +89,15 @@ public interface RouteInfo {
      *          or {@code null}
      */
     InetAddress getLocalAddress();
+
+    /**
+     * Obtains the Unix domain socket through which to connect to the target host.
+     *
+     * @return  the path to the Unix domain socket, or {@code null} if none
+     */
+    default Path getUnixDomainSocket() {
+        return null;
+    }
 
     /**
      * Obtains the number of hops in this route.

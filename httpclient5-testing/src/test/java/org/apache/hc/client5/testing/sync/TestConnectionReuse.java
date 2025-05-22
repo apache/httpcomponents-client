@@ -32,9 +32,12 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.testing.classic.RandomHandler;
@@ -51,16 +54,18 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.impl.HttpProcessors;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-class TestConnectionReuse extends AbstractIntegrationTestBase {
-
-    public TestConnectionReuse() {
-        super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
+abstract class AbstractTestConnectionReuse extends AbstractIntegrationTestBase {
+    protected AbstractTestConnectionReuse(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel,
+                               final boolean useUnixDomainSocket) {
+        super(scheme, clientProtocolLevel, useUnixDomainSocket);
     }
 
     @Test
@@ -295,14 +300,8 @@ class TestConnectionReuse extends AbstractIntegrationTestBase {
                 final URI requestURI,
                 final int repetitions,
                 final boolean forceClose) {
-            super();
-            this.httpclient = httpclient;
-            this.target = target;
-            this.forceClose = forceClose;
-            this.requests = new ArrayList<>(repetitions);
-            for (int i = 0; i < repetitions; i++) {
-                requests.add(new HttpGet(requestURI));
-            }
+            this(httpclient, target, forceClose,
+                Stream.generate(() -> new HttpGet(requestURI)).limit(repetitions).collect(Collectors.toList()));
         }
 
         public WorkerThread(
@@ -357,5 +356,54 @@ class TestConnectionReuse extends AbstractIntegrationTestBase {
             }
         }
     }
-
 }
+
+public class TestConnectionReuse {
+    @Nested
+    class Tcp extends AbstractTestConnectionReuse {
+        public Tcp() {
+            super(URIScheme.HTTP, ClientProtocolLevel.STANDARD, false);
+        }
+    }
+
+    @Nested
+    class Uds extends AbstractTestConnectionReuse {
+        public Uds() {
+            super(URIScheme.HTTP, ClientProtocolLevel.STANDARD, true);
+        }
+
+        @Test
+        void testMixedTcpAndUdsConnectionPooling() throws Exception {
+            configureServer(bootstrap -> bootstrap
+                .register("/random/*", new RandomHandler()));
+            final HttpHost target = startServer();
+
+            final TestClient client = client();
+            final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
+            connManager.setMaxTotal(5);
+            connManager.setDefaultMaxPerRoute(5);
+
+            final URI requestUri = new URI("/random/2000");
+            final HttpGet udsRequest = new HttpGet(requestUri);
+            final HttpGet tcpRequest = new HttpGet(requestUri);
+            tcpRequest.setConfig(RequestConfig.DEFAULT);
+
+            final HttpClientResponseHandler<Object> consumer = response -> {
+                EntityUtils.consume(response.getEntity());
+                return null;
+            };
+            client.execute(target, udsRequest, consumer);
+            client.execute(target, tcpRequest, consumer);
+
+            // Expect leased connections to be returned
+            Assertions.assertEquals(0, connManager.getTotalStats().getLeased());
+            // Expect two connections in the pool (one UDS, one TCP)
+            Assertions.assertEquals(2, connManager.getTotalStats().getAvailable());
+            Assertions.assertEquals(1, connManager.getRoutes()
+                .stream()
+                .filter(route -> route.getUnixDomainSocket() != null)
+                .count());
+        }
+    }
+}
+

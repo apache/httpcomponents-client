@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.io;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Path;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -95,6 +96,38 @@ public interface HttpClientConnectionOperator {
     }
 
     /**
+     * Connect the given managed connection to the remote endpoint.
+     *
+     * @param conn the managed connection.
+     * @param endpointHost the address of the remote endpoint.
+     * @param unixDomainSocket the path to the Unix domain socket, or {@code null} if none.
+     * @param endpointName the name of the remote endpoint, if different from the endpoint host name,
+     *                   {@code null} otherwise. Usually taken from the request URU authority.
+     * @param localAddress the address of the local endpoint.
+     * @param connectTimeout the timeout of the connect operation.
+     * @param socketConfig the socket configuration.
+     * @param attachment connect request attachment.
+     * @param context the execution context.
+     *
+     * @since 5.6
+     */
+    default void connect(
+        ManagedHttpClientConnection conn,
+        HttpHost endpointHost,
+        NamedEndpoint endpointName,
+        Path unixDomainSocket,
+        InetSocketAddress localAddress,
+        Timeout connectTimeout,
+        SocketConfig socketConfig,
+        Object attachment,
+        HttpContext context) throws IOException {
+        if (unixDomainSocket != null) {
+            throw new UnsupportedOperationException(getClass().getName() + " does not support Unix domain sockets");
+        }
+        connect(conn, endpointHost, localAddress, connectTimeout, socketConfig, context);
+    }
+
+    /**
      * Upgrades transport security of the given managed connection
      * by using the TLS security protocol.
      *
@@ -128,5 +161,4 @@ public interface HttpClientConnectionOperator {
             HttpContext context) throws IOException {
         upgrade(conn, endpointHost, context);
     }
-
 }
