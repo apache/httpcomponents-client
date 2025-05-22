@@ -31,6 +31,8 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
@@ -46,6 +48,7 @@ import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.io.DetachedSocketFactory;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
+import org.apache.hc.client5.http.socket.UnixDomainSocketFactory;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -80,6 +83,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
     static final DetachedSocketFactory PLAIN_SOCKET_FACTORY = socksProxy -> socksProxy == null ? new Socket() : new Socket(socksProxy);
 
     private final DetachedSocketFactory detachedSocketFactory;
+    private final UnixDomainSocketFactory unixDomainSocketFactory = UnixDomainSocketFactory.getSocketFactory();
     private final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup;
     private final SchemePortResolver schemePortResolver;
     private final DnsResolver dnsResolver;
@@ -153,6 +157,21 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final SocketConfig socketConfig,
             final Object attachment,
             final HttpContext context) throws IOException {
+        connect(conn, endpointHost, endpointName, null, localAddress, connectTimeout, socketConfig, attachment,
+            context);
+    }
+
+    @Override
+    public void connect(
+            final ManagedHttpClientConnection conn,
+            final HttpHost endpointHost,
+            final NamedEndpoint endpointName,
+            final Path unixDomainSocket,
+            final InetSocketAddress localAddress,
+            final Timeout connectTimeout,
+            final SocketConfig socketConfig,
+            final Object attachment,
+            final HttpContext context) throws IOException {
 
         Args.notNull(conn, "Connection");
         Args.notNull(endpointHost, "Host");
@@ -162,6 +181,10 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         final Timeout soTimeout = socketConfig.getSoTimeout();
         final SocketAddress socksProxyAddress = socketConfig.getSocksProxyAddress();
         final Proxy socksProxy = socksProxyAddress != null ? new Proxy(Proxy.Type.SOCKS, socksProxyAddress) : null;
+        if (unixDomainSocket != null) {
+            connectToUnixDomainSocket(conn, endpointHost, unixDomainSocket, connectTimeout, socketConfig, context, soTimeout);
+            return;
+        }
 
         final List<InetSocketAddress> remoteAddresses;
         if (endpointHost.getAddress() != null) {
@@ -185,23 +208,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                     socket.bind(localAddress);
                 }
                 conn.bind(socket);
-                if (soTimeout != null) {
-                    socket.setSoTimeout(soTimeout.toMillisecondsIntBound());
-                }
-                socket.setReuseAddress(socketConfig.isSoReuseAddress());
-                socket.setTcpNoDelay(socketConfig.isTcpNoDelay());
-                socket.setKeepAlive(socketConfig.isSoKeepAlive());
-                if (socketConfig.getRcvBufSize() > 0) {
-                    socket.setReceiveBufferSize(socketConfig.getRcvBufSize());
-                }
-                if (socketConfig.getSndBufSize() > 0) {
-                    socket.setSendBufferSize(socketConfig.getSndBufSize());
-                }
-
-                final int linger = socketConfig.getSoLinger().toMillisecondsIntBound();
-                if (linger >= 0) {
-                    socket.setSoLinger(true, linger);
-                }
+                configureSocket(socket, socketConfig, soTimeout);
                 socket.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisecondsIntBound() : 0);
                 conn.bind(socket);
                 onAfterSocketConnect(context, endpointHost);
@@ -239,6 +246,64 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                     LOG.debug("{} connection to {} failed ({}); retrying connection to the next address", endpointHost, remoteAddress, ex.getClass());
                 }
             }
+        }
+    }
+
+    private void connectToUnixDomainSocket(
+            final ManagedHttpClientConnection conn,
+            final HttpHost endpointHost,
+            final Path unixDomainSocket,
+            final Timeout connectTimeout,
+            final SocketConfig socketConfig,
+            final HttpContext context,
+            final Timeout soTimeout) throws IOException {
+        onBeforeSocketConnect(context, endpointHost);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} connecting to {} ({})", endpointHost, unixDomainSocket, connectTimeout);
+        }
+        final Socket newSocket = unixDomainSocketFactory.createSocket();
+        try {
+            conn.bind(newSocket);
+            final Socket socket = unixDomainSocketFactory.connectSocket(newSocket, unixDomainSocket,
+                connectTimeout);
+            conn.bind(socket);
+            configureSocket(socket, socketConfig, soTimeout);
+            onAfterSocketConnect(context, endpointHost);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} {} connected to {}", ConnPoolSupport.getId(conn), endpointHost, unixDomainSocket);
+            }
+            conn.setSocketTimeout(soTimeout);
+        } catch (final RuntimeException ex) {
+            Closer.closeQuietly(newSocket);
+            throw ex;
+        } catch (final IOException ex) {
+            Closer.closeQuietly(newSocket);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} connection to {} failed ({}); terminating operation", endpointHost, unixDomainSocket,
+                    ex.getClass());
+            }
+            throw ex;
+        }
+    }
+
+    private static void configureSocket(final Socket socket, final SocketConfig socketConfig,
+                                        final Timeout soTimeout) throws SocketException {
+        if (soTimeout != null) {
+            socket.setSoTimeout(soTimeout.toMillisecondsIntBound());
+        }
+        socket.setReuseAddress(socketConfig.isSoReuseAddress());
+        socket.setTcpNoDelay(socketConfig.isTcpNoDelay());
+        socket.setKeepAlive(socketConfig.isSoKeepAlive());
+        if (socketConfig.getRcvBufSize() > 0) {
+            socket.setReceiveBufferSize(socketConfig.getRcvBufSize());
+        }
+        if (socketConfig.getSndBufSize() > 0) {
+            socket.setSendBufferSize(socketConfig.getSndBufSize());
+        }
+
+        final int linger = socketConfig.getSoLinger().toMillisecondsIntBound();
+        if (linger >= 0) {
+            socket.setSoLinger(true, linger);
         }
     }
 

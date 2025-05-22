@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.testing.extension.sync;
 
+import java.nio.file.Path;
 import java.util.Collection;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
@@ -36,6 +37,7 @@ import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
@@ -154,6 +156,14 @@ final class StandardTestClientBuilder implements TestClientBuilder {
     @Override
     public TestClientBuilder setDefaultCredentialsProvider(final CredentialsProvider credentialsProvider) {
         this.clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+        return this;
+    }
+
+    @Override
+    public TestClientBuilder setUnixDomainSocket(final Path unixDomainSocket) {
+        this.clientBuilder.setDefaultRequestConfig(RequestConfig.custom()
+                .setUnixDomainSocket(unixDomainSocket)
+                .build());
         return this;
     }
 

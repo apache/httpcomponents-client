@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.config;
 
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
@@ -63,13 +64,14 @@ public class RequestConfig implements Cloneable {
     private final boolean contentCompressionEnabled;
     private final boolean hardCancellationEnabled;
     private final boolean protocolUpgradeEnabled;
+    private final Path unixDomainSocket;
 
     /**
      * Intended for CDI compatibility
     */
     protected RequestConfig() {
         this(false, null, null, false, false, 0, false, null, null,
-                DEFAULT_CONNECTION_REQUEST_TIMEOUT, null, null, DEFAULT_CONN_KEEP_ALIVE, false, false, false);
+                DEFAULT_CONNECTION_REQUEST_TIMEOUT, null, null, DEFAULT_CONN_KEEP_ALIVE, false, false, false, null);
     }
 
     RequestConfig(
@@ -88,7 +90,8 @@ public class RequestConfig implements Cloneable {
             final TimeValue connectionKeepAlive,
             final boolean contentCompressionEnabled,
             final boolean hardCancellationEnabled,
-            final boolean protocolUpgradeEnabled) {
+            final boolean protocolUpgradeEnabled,
+            final Path unixDomainSocket) {
         super();
         this.expectContinueEnabled = expectContinueEnabled;
         this.proxy = proxy;
@@ -106,6 +109,7 @@ public class RequestConfig implements Cloneable {
         this.contentCompressionEnabled = contentCompressionEnabled;
         this.hardCancellationEnabled = hardCancellationEnabled;
         this.protocolUpgradeEnabled = protocolUpgradeEnabled;
+        this.unixDomainSocket = unixDomainSocket;
     }
 
     /**
@@ -227,6 +231,13 @@ public class RequestConfig implements Cloneable {
         return protocolUpgradeEnabled;
     }
 
+    /**
+     * @see Builder#setUnixDomainSocket(Path)
+     */
+    public Path getUnixDomainSocket() {
+        return unixDomainSocket;
+    }
+
     @Override
     protected RequestConfig clone() throws CloneNotSupportedException {
         return (RequestConfig) super.clone();
@@ -252,6 +263,7 @@ public class RequestConfig implements Cloneable {
         builder.append(", contentCompressionEnabled=").append(contentCompressionEnabled);
         builder.append(", hardCancellationEnabled=").append(hardCancellationEnabled);
         builder.append(", protocolUpgradeEnabled=").append(protocolUpgradeEnabled);
+        builder.append(", unixDomainSocket=").append(unixDomainSocket);
         builder.append("]");
         return builder.toString();
     }
@@ -277,7 +289,8 @@ public class RequestConfig implements Cloneable {
             .setConnectionKeepAlive(config.getConnectionKeepAlive())
             .setContentCompressionEnabled(config.isContentCompressionEnabled())
             .setHardCancellationEnabled(config.isHardCancellationEnabled())
-            .setProtocolUpgradeEnabled(config.isProtocolUpgradeEnabled());
+            .setProtocolUpgradeEnabled(config.isProtocolUpgradeEnabled())
+            .setUnixDomainSocket(config.getUnixDomainSocket());
     }
 
     public static class Builder {
@@ -298,6 +311,7 @@ public class RequestConfig implements Cloneable {
         private boolean contentCompressionEnabled;
         private boolean hardCancellationEnabled;
         private boolean protocolUpgradeEnabled;
+        private Path unixDomainSocket;
 
         Builder() {
             super();
@@ -629,6 +643,25 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * Sets the Unix Domain Socket path to use for the connection.
+         * <p>
+         * When set, the connection will use the specified Unix Domain Socket
+         * instead of a TCP socket. This is useful for communicating with local
+         * services like Docker or systemd.
+         * </p>
+         * <p>
+         * Default: {@code null}
+         * </p>
+         *
+         * @return this instance.
+         * @since 5.6
+         */
+        public Builder setUnixDomainSocket(final Path unixDomainSocket) {
+            this.unixDomainSocket = unixDomainSocket;
+            return this;
+        }
+
         public RequestConfig build() {
             return new RequestConfig(
                     expectContinueEnabled,
@@ -646,7 +679,8 @@ public class RequestConfig implements Cloneable {
                     connectionKeepAlive != null ? connectionKeepAlive : DEFAULT_CONN_KEEP_ALIVE,
                     contentCompressionEnabled,
                     hardCancellationEnabled,
-                    protocolUpgradeEnabled);
+                    protocolUpgradeEnabled,
+                    unixDomainSocket);
         }
 
     }

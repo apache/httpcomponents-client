@@ -28,6 +28,7 @@
 package org.apache.hc.client5.testing.sync;
 
 import java.net.InetSocketAddress;
+import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
@@ -47,9 +48,16 @@ abstract class AbstractIntegrationTestBase {
 
     @RegisterExtension
     private final TestClientResources testResources;
+    private final boolean useUnixDomainSocket;
 
     protected AbstractIntegrationTestBase(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel) {
+        this(scheme, clientProtocolLevel, false);
+    }
+
+    protected AbstractIntegrationTestBase(
+        final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final boolean useUnixDomainSocket) {
         this.testResources = new TestClientResources(scheme, clientProtocolLevel, TIMEOUT);
+        this.useUnixDomainSocket = useUnixDomainSocket;
     }
 
     public URIScheme scheme() {
@@ -67,6 +75,9 @@ abstract class AbstractIntegrationTestBase {
     public HttpHost startServer() throws Exception {
         final TestServer server = testResources.server();
         final InetSocketAddress inetSocketAddress = server.start();
+        if (useUnixDomainSocket) {
+            testResources.udsProxy().start();
+        }
         return new HttpHost(testResources.scheme().id, "localhost", inetSocketAddress.getPort());
     }
 
@@ -75,6 +86,12 @@ abstract class AbstractIntegrationTestBase {
     }
 
     public TestClient client() throws Exception {
+        if (useUnixDomainSocket) {
+            final Path socketPath = testResources.udsProxy().getSocketPath();
+            testResources.configureClient(builder -> {
+                builder.setUnixDomainSocket(socketPath);
+            });
+        }
         return testResources.client();
     }
 
