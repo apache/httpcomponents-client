@@ -43,6 +43,7 @@ public class TestServer {
     private final Http1Config http1Config;
     private final HttpProcessor httpProcessor;
     private final Decorator<HttpServerRequestHandler> exchangeHandlerDecorator;
+    private volatile InetSocketAddress serverAddress;
 
     TestServer(
             final ClassicTestServer server,
@@ -64,7 +65,14 @@ public class TestServer {
         server.configure(exchangeHandlerDecorator);
         server.configure(httpProcessor);
         server.start();
-        return new InetSocketAddress(server.getInetAddress(), server.getPort());
+        serverAddress = new InetSocketAddress(server.getInetAddress(), server.getPort());
+        return serverAddress;
     }
 
+    public InetSocketAddress getServerAddress() {
+        if (serverAddress == null) {
+            throw new IllegalStateException("Server has not been started");
+        }
+        return serverAddress;
+    }
 }

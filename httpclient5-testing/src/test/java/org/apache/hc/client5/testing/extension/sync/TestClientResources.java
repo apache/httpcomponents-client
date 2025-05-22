@@ -50,6 +50,7 @@ public class TestClientResources implements AfterEachCallback {
 
     private TestServer server;
     private TestClient client;
+    private UnixDomainProxyServer udsProxy;
 
     public TestClientResources(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final Timeout timeout) {
         this.scheme = scheme != null ? scheme : URIScheme.HTTP;
@@ -74,6 +75,9 @@ public class TestClientResources implements AfterEachCallback {
         if (client != null) {
             client.close(CloseMode.GRACEFUL);
         }
+        if (udsProxy != null) {
+            udsProxy.close();
+        }
         if (server != null) {
             server.shutdown(CloseMode.IMMEDIATE);
         }
@@ -97,6 +101,15 @@ public class TestClientResources implements AfterEachCallback {
             server = serverBootstrap.build();
         }
         return server;
+    }
+
+    public UnixDomainProxyServer udsProxy() throws Exception {
+        if (udsProxy == null) {
+            final TestServer testServer = server();
+            final int port = testServer.getServerAddress().getPort();
+            udsProxy = new UnixDomainProxyServer(port);
+        }
+        return udsProxy;
     }
 
     public void configureClient(final Consumer<TestClientBuilder> clientCustomizer) {

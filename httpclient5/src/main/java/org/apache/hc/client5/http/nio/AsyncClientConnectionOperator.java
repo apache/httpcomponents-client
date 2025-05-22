@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.nio;
 
 import java.net.SocketAddress;
+import java.nio.file.Path;
 import java.util.concurrent.Future;
 
 import org.apache.hc.core5.annotation.Contract;
@@ -94,6 +95,40 @@ public interface AsyncClientConnectionOperator {
             Object attachment,
             HttpContext context,
             FutureCallback<ManagedAsyncClientConnection> callback) {
+        return connect(connectionInitiator, endpointHost, localAddress, connectTimeout,
+            attachment, callback);
+    }
+
+    /**
+     * Initiates operation to create a connection to the remote endpoint using
+     * the provided {@link ConnectionInitiator}.
+     *
+     * @param connectionInitiator the connection initiator.
+     * @param endpointHost the address of the remote endpoint.
+     * @param unixDomainSocket the path to the UDS through which to connect, or {@code null}.
+     * @param endpointName the name of the remote endpoint, if different from the endpoint host name,
+     *                   {@code null} otherwise. Usually taken from the request URU authority.
+     * @param localAddress the address of the local endpoint.
+     * @param connectTimeout the timeout of the connect operation.
+     * @param attachment the attachment, which can be any object representing custom parameter
+     *                    of the operation.
+     * @param context the execution context.
+     * @param callback the future result callback.
+     * @since 5.6
+     */
+    default Future<ManagedAsyncClientConnection> connect(
+            ConnectionInitiator connectionInitiator,
+            HttpHost endpointHost,
+            Path unixDomainSocket,
+            NamedEndpoint endpointName,
+            SocketAddress localAddress,
+            Timeout connectTimeout,
+            Object attachment,
+            HttpContext context,
+            FutureCallback<ManagedAsyncClientConnection> callback) {
+        if (unixDomainSocket != null) {
+            throw new UnsupportedOperationException(getClass().getName() + " does not support Unix domain sockets");
+        }
         return connect(connectionInitiator, endpointHost, localAddress, connectTimeout,
             attachment, callback);
     }

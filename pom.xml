@@ -75,6 +75,7 @@
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <rxjava.version>2.2.21</rxjava.version>
     <testcontainers.version>1.21.1</testcontainers.version>
+    <junixsocket.version>2.10.1</junixsocket.version>
     <api.comparison.version>5.3</api.comparison.version>
     <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer</hc.animal-sniffer.signature.ignores>
   </properties>
@@ -162,6 +163,12 @@
         <artifactId>rxjava</artifactId>
         <version>${rxjava.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.kohlschutter.junixsocket</groupId>
+        <artifactId>junixsocket-core</artifactId>
+        <version>${junixsocket.version}</version>
+        <type>pom</type>
       </dependency>
       <dependency>
         <groupId>org.junit</groupId>

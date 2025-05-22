@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.testing.extension.sync;
 
+import java.nio.file.Path;
 import java.util.Collection;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
@@ -100,6 +101,10 @@ public interface TestClientBuilder {
     }
 
     default TestClientBuilder setDefaultCredentialsProvider(CredentialsProvider credentialsProvider) {
+        throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
+    }
+
+    default TestClientBuilder setUnixDomainSocket(Path unixDomainSocket) {
         throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
     }
 

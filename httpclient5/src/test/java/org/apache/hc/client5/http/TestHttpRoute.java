@@ -28,7 +28,11 @@
 package org.apache.hc.client5.http;
 
 import java.net.InetAddress;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.hc.client5.http.RouteInfo.LayerType;
@@ -454,4 +458,44 @@ class TestHttpRoute {
         Assertions.assertEquals(route3, route1, "route was modified");
     }
 
+    @Test
+    void testUnixDomainSocketModeling() {
+        final Path uds1 = Paths.get("/var/run/docker.sock");
+        final HttpRoute route1 = new HttpRoute(TARGET1, uds1);
+
+        Assertions.assertEquals(uds1, route1.getUnixDomainSocket());
+        Assertions.assertEquals(1, route1.getHopCount(), "A UDS is not considered a proxy hop");
+        Assertions.assertNull(route1.getProxyHost(), "A UDS is not considered a proxy for routing purposes");
+        Assertions.assertEquals("/var/run/docker.sock->{}->[http://target1.test.invalid:80]", route1.toString());
+
+        final Path uds2 = Paths.get("/var/run/docker.sock");
+        final HttpRoute route2 = new HttpRoute(TARGET1, null, null, Collections.emptyList(), uds2, false,
+            TunnelType.PLAIN, LayerType.PLAIN);
+        final HttpRoute route3 = new HttpRoute(TARGET1, null, null, Collections.emptyList(), null, false,
+            TunnelType.PLAIN, LayerType.PLAIN);
+
+        Assertions.assertEquals(route1, route2,
+            "The UDS convenience constructor should produce an equivalent HttpRoute to the full constructor");
+        Assertions.assertNotEquals(route2, route3, "HttpRoute equality should consider the UDS field");
+        Assertions.assertNotEquals(route2.hashCode(), route3.hashCode(),
+            "HttpRoute hashing should consider the UDS field");
+    }
+
+    @Test
+    void testUnixDomainSocketValidation() {
+        final Path uds = Paths.get("/var/run/docker.sock");
+        final List<HttpHost> noProxies = Collections.emptyList();
+        final List<HttpHost> oneProxy = Collections.singletonList(PROXY1);
+        new HttpRoute(TARGET1, null, null, noProxies, uds, false, TunnelType.PLAIN, LayerType.PLAIN);
+        Assertions.assertThrows(RuntimeException.class, () ->
+            new HttpRoute(TARGET1, null, null, noProxies, uds, true, TunnelType.PLAIN, LayerType.PLAIN));
+        Assertions.assertThrows(RuntimeException.class, () ->
+            new HttpRoute(TARGET1, null, LOCAL41, noProxies, uds, false, TunnelType.PLAIN, LayerType.PLAIN));
+        Assertions.assertThrows(RuntimeException.class, () ->
+            new HttpRoute(TARGET1, null, null, oneProxy, uds, false, TunnelType.PLAIN, LayerType.PLAIN));
+        Assertions.assertThrows(RuntimeException.class, () ->
+            new HttpRoute(TARGET1, null, null, noProxies, uds, false, TunnelType.TUNNELLED, LayerType.PLAIN));
+        Assertions.assertThrows(RuntimeException.class, () ->
+            new HttpRoute(TARGET1, null, null, noProxies, uds, false, TunnelType.PLAIN, LayerType.LAYERED));
+    }
 }

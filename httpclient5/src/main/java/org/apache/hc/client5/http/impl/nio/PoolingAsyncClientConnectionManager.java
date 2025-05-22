@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.impl.nio;
 
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -446,6 +447,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         }
         final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = internalEndpoint.getPoolEntry();
         final HttpRoute route = poolEntry.getRoute();
+        final Path unixDomainSocket = route.getUnixDomainSocket();
         final HttpHost firstHop = route.getProxyHost() != null ? route.getProxyHost() : route.getTargetHost();
         final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
         final Timeout connectTimeout = timeout != null ? timeout : connectionConfig.getConnectTimeout();
@@ -456,6 +458,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         final Future<ManagedAsyncClientConnection> connectFuture = connectionOperator.connect(
                 connectionInitiator,
                 firstHop,
+                unixDomainSocket,
                 route.getTargetName(),
                 route.getLocalSocketAddress(),
                 connectTimeout,
