@@ -197,7 +197,6 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-compress</artifactId>
         <version>${commpress.version}</version>
-        <optional>true</optional>
       </dependency>
     </dependencies>
   </dependencyManagement>
