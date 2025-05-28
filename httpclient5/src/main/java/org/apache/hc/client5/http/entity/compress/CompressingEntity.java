@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
 import org.apache.hc.core5.util.Args;
@@ -110,14 +109,8 @@ public class CompressingEntity extends HttpEntityWrapper {
         Args.notNull(outStream, "Output stream");
 
         try (final OutputStream compressorStream = CompressingFactory.INSTANCE.getCompressorOutputStream(contentEncoding, outStream)) {
-            if (compressorStream != null) {
-                // Write compressed data
-                super.writeTo(compressorStream);
-            } else {
-                throw new UnsupportedOperationException("Unsupported compression: " + contentEncoding);
-            }
-        } catch (final CompressorException e) {
-            throw new IOException("Error initializing compression stream", e);
+            // Write compressed data
+            super.writeTo(compressorStream);
         }
     }
 

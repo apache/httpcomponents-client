@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 
-import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.hc.core5.io.Closer;
 
 /**
@@ -93,11 +92,7 @@ public class LazyDecompressingInputStream extends FilterInputStream {
      */
     private InputStream initWrapper() throws IOException {
         if (wrapperStream == null) {
-            try {
-                wrapperStream = CompressingFactory.INSTANCE.getDecompressorInputStream(compressionType, in, noWrap);
-            } catch (final CompressorException e) {
-                throw new IOException("Error initializing decompression stream", e);
-            }
+            wrapperStream = CompressingFactory.INSTANCE.getDecompressorInputStream(compressionType, in, noWrap);
         }
         return wrapperStream;
     }
