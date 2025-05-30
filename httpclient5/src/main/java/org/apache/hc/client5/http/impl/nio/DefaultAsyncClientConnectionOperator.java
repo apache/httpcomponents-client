@@ -27,9 +27,11 @@
 
 package org.apache.hc.client5.http.impl.nio;
 
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.nio.file.Path;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.DnsResolver;
@@ -40,6 +42,7 @@ import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.CallbackContribution;
@@ -104,7 +107,15 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
         Args.notNull(endpointHost, "Host");
         final ComplexFuture<ManagedAsyncClientConnection> future = new ComplexFuture<>(callback);
         final HttpHost remoteEndpoint = RoutingSupport.normalize(endpointHost, schemePortResolver);
-        final InetAddress remoteAddress = endpointHost.getAddress();
+        final Path unixDomainSocket = ((HttpClientContext) context).getRequestConfigOrDefault().getUnixDomainSocket();
+        final SocketAddress remoteAddress;
+        if (unixDomainSocket == null) {
+            final InetAddress remoteInetAddress = endpointHost.getAddress();
+            remoteAddress = remoteInetAddress != null ?
+                new InetSocketAddress(remoteInetAddress, remoteEndpoint.getPort()) : null;
+        } else {
+            remoteAddress = createUnixSocketAddress(unixDomainSocket);
+        }
         final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
 
         onBeforeSocketConnect(context, endpointHost);
@@ -115,7 +126,7 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
         final Future<IOSession> sessionFuture = sessionRequester.connect(
                 connectionInitiator,
                 remoteEndpoint,
-                remoteAddress != null ? new InetSocketAddress(remoteAddress, remoteEndpoint.getPort()) : null,
+                remoteAddress,
                 localAddress,
                 connectTimeout,
                 tlsConfig.getHttpVersionPolicy(),
@@ -178,6 +189,18 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
                 });
         future.setDependency(sessionFuture);
         return future;
+    }
+
+    // The IOReactor does not support AFUNIXSocketChannel from JUnixSocket, so if a Unix domain socket was configured,
+    // we must use JEP 380 sockets and addresses.
+    private static SocketAddress createUnixSocketAddress(final Path socketPath) {
+        try {
+            final Class<?> addressClass = Class.forName("java.net.UnixDomainSocketAddress");
+            final Method ofMethod = addressClass.getMethod("of", Path.class);
+            return (SocketAddress) ofMethod.invoke(null, socketPath);
+        } catch (final ReflectiveOperationException ex) {
+            throw new UnsupportedOperationException("Async Unix domain socket support requires JDK16 or later", ex);
+        }
     }
 
     @Override
