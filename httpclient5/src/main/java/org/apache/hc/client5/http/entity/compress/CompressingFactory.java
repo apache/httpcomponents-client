@@ -30,15 +30,14 @@ package org.apache.hc.client5.http.entity.compress;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
-import org.apache.hc.client5.http.entity.DeflateInputStream;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.util.Args;
 
@@ -68,81 +67,19 @@ public class CompressingFactory {
      */
     public static final CompressingFactory INSTANCE = new CompressingFactory();
 
+    private final List<CompressionHandler> handlers;
+    private final Map<String, String> formattedNameCache = new ConcurrentHashMap<>();
     private Set<String> inputProvidersCache;
     private Set<String> outputProvidersCache;
-    private final Map<String, String> formattedNameCache = new ConcurrentHashMap<>();
-    private final boolean commonsCompressAvailable;
-    private final Object compressorStreamFactory;
 
+    /**
+     * Creates a new instance of the CompressingFactory.
+     * Initializes the compression handlers for built-in and commons-compress formats.
+     */
     public CompressingFactory() {
-        boolean available = true;
-        Object factory = null;
-        try {
-            final Class<?> factoryClass = Class.forName("org.apache.commons.compress.compressors.CompressorStreamFactory");
-            factory = factoryClass.getDeclaredConstructor().newInstance();
-        } catch (final ReflectiveOperationException e) {
-            available = false;
-        }
-        this.commonsCompressAvailable = available;
-        this.compressorStreamFactory = factory;
-    }
-
-    /**
-     * Returns a set of available input stream compression providers.
-     *
-     * @return a set of available input stream compression providers in lowercase.
-     */
-    public Set<String> getAvailableInputProviders() {
-        if (inputProvidersCache == null) {
-            final Set<String> inputNames = new HashSet<>();
-            // Always add built-in compression formats with correct names
-            inputNames.add("gz");
-            inputNames.add("deflate");
-            if (commonsCompressAvailable) {
-                try {
-                    // Add commons-compress formats if available
-                    final Set<?> names = (Set<?>) compressorStreamFactory.getClass()
-                            .getMethod("getInputStreamCompressorNames")
-                            .invoke(compressorStreamFactory);
-                    names.stream()
-                            .map(name -> ((String) name).toLowerCase(Locale.ROOT))
-                            .forEach(inputNames::add);
-                } catch (final ReflectiveOperationException e) {
-                    // Ignore reflection errors
-                }
-            }
-            inputProvidersCache = inputNames;
-        }
-        return inputProvidersCache;
-    }
-
-    /**
-     * Returns a set of available output stream compression providers.
-     *
-     * @return a set of available output stream compression providers in lowercase.
-     */
-    public Set<String> getAvailableOutputProviders() {
-        if (outputProvidersCache == null) {
-            final Set<String> outputNames = new HashSet<>();
-            // Always add built-in compression formats with correct names
-            outputNames.add("gz");
-            outputNames.add("deflate");
-            if (commonsCompressAvailable) {
-                try {
-                    // Add commons-compress formats if available
-                    final Set<?> names = (Set<?>) compressorStreamFactory.getClass()
-                            .getMethod("getOutputStreamCompressorNames")
-                            .invoke(compressorStreamFactory);
-                    names.stream()
-                            .map(name -> ((String) name).toLowerCase(Locale.ROOT))
-                            .forEach(outputNames::add);
-                } catch (final ReflectiveOperationException e) {
-                    // Ignore reflection errors
-                }
-            }
-            outputProvidersCache = outputNames;
-        }
-        return outputProvidersCache;
+        this.handlers = new ArrayList<>();
+        this.handlers.add(new BuiltInCompressionHandler());
+        this.handlers.add(new CommonsCompressHandler());
     }
 
     /**
@@ -153,9 +90,9 @@ public class CompressingFactory {
      * If no match is found, it returns the original name as-is.
      * </p>
      *
-     * @param name the compression format name or alias.
-     * @return the corresponding standard key or the original name if no alias is found.
-     * @throws IllegalArgumentException if the name is null or empty.
+     * @param name the compression format name or alias
+     * @return the corresponding standard key or the original name if no alias is found
+     * @throws IllegalArgumentException if the name is null or empty
      */
     public String getFormattedName(final String name) {
         Args.notEmpty(name, "name");
@@ -171,6 +108,63 @@ public class CompressingFactory {
     }
 
     /**
+     * Returns a set of available input stream compression providers.
+     *
+     * @return a set of available input stream compression providers in lowercase
+     */
+    public Set<String> getAvailableInputProviders() {
+        if (inputProvidersCache == null) {
+            final Set<String> formats = new HashSet<>();
+            for (final CompressionHandler handler : handlers) {
+                formats.addAll(handler.getSupportedInputFormats());
+            }
+            inputProvidersCache = formats;
+        }
+        return inputProvidersCache;
+    }
+
+    /**
+     * Returns a set of available output stream compression providers.
+     *
+     * @return a set of available output stream compression providers in lowercase
+     */
+    public Set<String> getAvailableOutputProviders() {
+        if (outputProvidersCache == null) {
+            final Set<String> formats = new HashSet<>();
+            for (final CompressionHandler handler : handlers) {
+                formats.addAll(handler.getSupportedOutputFormats());
+            }
+            outputProvidersCache = formats;
+        }
+        return outputProvidersCache;
+    }
+
+    private boolean isSupported(final String name, final boolean isOutput) {
+        final Set<String> providers = isOutput ? getAvailableOutputProviders() : getAvailableInputProviders();
+        return providers.contains(name);
+    }
+
+    private InputStream createDecompressorInputStream(final String name, final InputStream inputStream, final boolean noWrap) throws IOException {
+        for (final CompressionHandler handler : handlers) {
+            final InputStream result = handler.createDecompressorStream(name, inputStream, noWrap);
+            if (result != null) {
+                return result;
+            }
+        }
+        throw new UnsupportedCompressionException("Compression format not supported: " + name);
+    }
+
+    private OutputStream createCompressorOutputStream(final String name, final OutputStream outputStream) throws IOException {
+        for (final CompressionHandler handler : handlers) {
+            final OutputStream result = handler.createCompressorStream(name, outputStream);
+            if (result != null) {
+                return result;
+            }
+        }
+        throw new UnsupportedCompressionException("Compression format not supported: " + name);
+    }
+
+    /**
      * Creates a decompressor input stream for the specified format type and decompresses the provided input stream.
      * <p>
      * If the format type is supported, this method returns a new input stream that decompresses data from the original input stream.
@@ -179,11 +173,11 @@ public class CompressingFactory {
      * - If {@code noWrap} is {@code false}, the deflate stream includes standard zlib headers.
      * </p>
      *
-     * @param name        the format type to use for decompression.
-     * @param inputStream the input stream to be decompressed.
-     * @param noWrap      whether to exclude zlib headers and trailers for deflate streams (applicable to "deflate" only).
-     * @return a decompressed input stream if the format type is supported; otherwise, the original input stream.
-     * @throws IOException if an error occurs while creating the decompressor input stream.
+     * @param name        the format type to use for decompression
+     * @param inputStream the input stream to be decompressed
+     * @param noWrap     whether to exclude zlib headers and trailers for deflate streams (applicable to "deflate" only)
+     * @return a decompressed input stream if the format type is supported; otherwise, the original input stream
+     * @throws IOException if an error occurs while creating the decompressor input stream
      */
     public InputStream getDecompressorInputStream(final String name, final InputStream inputStream, final boolean noWrap) throws IOException {
         Args.notNull(inputStream, "InputStream");
@@ -197,10 +191,10 @@ public class CompressingFactory {
     /**
      * Creates an output stream to compress the provided output stream based on the specified format type.
      *
-     * @param name         the format type to use for compression.
-     * @param outputStream the output stream to be compressed.
-     * @return a compressed output stream if the format type is supported; otherwise, the original output stream.
-     * @throws IOException if an error occurs while creating the compressor output stream.
+     * @param name         the format type to use for compression
+     * @param outputStream the output stream to be compressed
+     * @return a compressed output stream if the format type is supported; otherwise, the original output stream
+     * @throws IOException if an error occurs while creating the compressor output stream
      */
     public OutputStream getCompressorOutputStream(final String name, final OutputStream outputStream) throws IOException {
         Args.notNull(outputStream, "OutputStream");
@@ -214,9 +208,9 @@ public class CompressingFactory {
     /**
      * Decompresses an HTTP entity using the specified content encoding.
      *
-     * @param entity         the HTTP entity to decompress.
-     * @param contentEncoding the content encoding to use for decompression.
-     * @return a decompressed HTTP entity if the content encoding is supported; otherwise, the original entity.
+     * @param entity          the HTTP entity to decompress
+     * @param contentEncoding the content encoding to use for decompression
+     * @return a decompressed HTTP entity if the content encoding is supported; otherwise, the original entity
      */
     public HttpEntity decompressEntity(final HttpEntity entity, final String contentEncoding) {
         return decompressEntity(entity, contentEncoding, false);
@@ -225,10 +219,10 @@ public class CompressingFactory {
     /**
      * Decompresses an HTTP entity using the specified content encoding and noWrap option.
      *
-     * @param entity         the HTTP entity to decompress.
-     * @param contentEncoding the content encoding to use for decompression.
-     * @param noWrap         whether to exclude zlib headers and trailers for deflate streams.
-     * @return a decompressed HTTP entity if the content encoding is supported; otherwise, the original entity.
+     * @param entity          the HTTP entity to decompress
+     * @param contentEncoding the content encoding to use for decompression
+     * @param noWrap         whether to exclude zlib headers and trailers for deflate streams
+     * @return a decompressed HTTP entity if the content encoding is supported; otherwise, the original entity
      */
     public HttpEntity decompressEntity(final HttpEntity entity, final String contentEncoding, final boolean noWrap) {
         Args.notNull(entity, "HttpEntity");
@@ -244,9 +238,9 @@ public class CompressingFactory {
     /**
      * Compresses an HTTP entity using the specified content encoding.
      *
-     * @param entity         the HTTP entity to compress.
-     * @param contentEncoding the content encoding to use for compression.
-     * @return a compressed HTTP entity if the content encoding is supported; otherwise, the original entity.
+     * @param entity          the HTTP entity to compress
+     * @param contentEncoding the content encoding to use for compression
+     * @return a compressed HTTP entity if the content encoding is supported; otherwise, the original entity
      */
     public HttpEntity compressEntity(final HttpEntity entity, final String contentEncoding) {
         Args.notNull(entity, "HttpEntity");
@@ -257,71 +251,6 @@ public class CompressingFactory {
         return isSupported(formattedName, true)
                 ? new CompressingEntity(entity, formattedName)
                 : entity;
-    }
-
-    private InputStream createDecompressorInputStream(final String name, final InputStream inputStream, final boolean noWrap) throws IOException {
-        if ("gz".equals(name)) {
-            return new GZIPInputStream(inputStream);
-        } else if ("deflate".equals(name)) {
-            if (commonsCompressAvailable) {
-                try {
-                    final Class<?> paramsClass = Class.forName("org.apache.commons.compress.compressors.deflate.DeflateParameters");
-                    final Object params = paramsClass.getDeclaredConstructor().newInstance();
-                    paramsClass.getMethod("setWithZlibHeader", boolean.class).invoke(params, noWrap);
-
-                    final Class<?> inputStreamClass = Class.forName("org.apache.commons.compress.compressors.deflate.DeflateCompressorInputStream");
-                    return (InputStream) inputStreamClass.getDeclaredConstructor(InputStream.class, paramsClass)
-                            .newInstance(inputStream, params);
-                } catch (final ReflectiveOperationException e) {
-                    // Fallback to built-in implementation
-                    return new DeflateInputStream(inputStream);
-                }
-            } else {
-                return new DeflateInputStream(inputStream);
-            }
-        } else if (commonsCompressAvailable) {
-            try {
-                return (InputStream) compressorStreamFactory.getClass()
-                        .getMethod("createCompressorInputStream", String.class, InputStream.class)
-                        .invoke(compressorStreamFactory, name, inputStream);
-            } catch (final ReflectiveOperationException e) {
-                throw new IOException("Failed to create compressor input stream", e);
-            }
-        }
-        return inputStream;
-    }
-
-    private OutputStream createCompressorOutputStream(final String name, final OutputStream outputStream) throws IOException {
-        if ("gz".equals(name)) {
-            return new GZIPOutputStream(outputStream);
-        } else if ("deflate".equals(name)) {
-            if (commonsCompressAvailable) {
-                try {
-                    return (OutputStream) compressorStreamFactory.getClass()
-                            .getMethod("createCompressorOutputStream", String.class, OutputStream.class)
-                            .invoke(compressorStreamFactory, name, outputStream);
-                } catch (final ReflectiveOperationException e) {
-                    // Fallback to built-in implementation
-                    return new GZIPOutputStream(outputStream);
-                }
-            } else {
-                return new GZIPOutputStream(outputStream);
-            }
-        } else if (commonsCompressAvailable) {
-            try {
-                return (OutputStream) compressorStreamFactory.getClass()
-                        .getMethod("createCompressorOutputStream", String.class, OutputStream.class)
-                        .invoke(compressorStreamFactory, name, outputStream);
-            } catch (final ReflectiveOperationException e) {
-                throw new IOException("Failed to create compressor output stream", e);
-            }
-        }
-        return outputStream;
-    }
-
-    private boolean isSupported(final String name, final boolean isOutput) {
-        final Set<String> providers = isOutput ? getAvailableOutputProviders() : getAvailableInputProviders();
-        return providers.contains(name);
     }
 }
 
