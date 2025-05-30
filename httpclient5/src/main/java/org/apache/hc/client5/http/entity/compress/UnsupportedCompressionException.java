@@ -24,22 +24,40 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.entity;
+package org.apache.hc.client5.http.entity.compress;
 
 import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.hc.client5.http.entity.compress.CompressingFactory;
 
 /**
- * Factory for decorated {@link InputStream}s.
+ * Thrown to indicate that a requested compression format is not supported.
+ * <p>
+ * This exception is raised when the specified compression algorithm
+ * is either unavailable on the runtime classpath or unrecognized by
+ * the CompressingFactory.
+ * </p>
  *
- * @since 4.4
- * @deprecated Use {@link CompressingFactory} to retrieve appropriate {@link InputStream}s for compression handling.
+ * @since 5.5
  */
-@Deprecated
-public interface InputStreamFactory {
+public class UnsupportedCompressionException extends IOException {
 
-    InputStream create(InputStream inputStream) throws IOException;
+    private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a new exception with the specified detail message.
+     *
+     * @param message the detail message explaining the reason for the exception
+     */
+    public UnsupportedCompressionException(final String message) {
+        super(message);
+    }
+
+    /**
+     * Constructs a new exception with the specified detail message and cause.
+     *
+     * @param message the detail message explaining the reason for the exception
+     * @param cause   the underlying cause of this exception
+     */
+    public UnsupportedCompressionException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
 }
