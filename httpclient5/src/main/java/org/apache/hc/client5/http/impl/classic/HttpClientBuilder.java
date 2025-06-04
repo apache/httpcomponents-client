@@ -1066,7 +1066,7 @@ public class HttpClientBuilder {
                 .build();
         }
         Lookup<CookieSpecFactory> cookieSpecRegistryCopy = this.cookieSpecRegistry;
-        if (cookieSpecRegistryCopy == null) {
+        if (cookieSpecRegistryCopy == null && !this.cookieManagementDisabled) {
             cookieSpecRegistryCopy = CookieSpecSupport.createDefault();
         }
 

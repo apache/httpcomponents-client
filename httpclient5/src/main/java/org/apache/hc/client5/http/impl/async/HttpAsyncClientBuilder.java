@@ -1118,7 +1118,7 @@ public class HttpAsyncClientBuilder {
                     .build();
         }
         Lookup<CookieSpecFactory> cookieSpecRegistryCopy = this.cookieSpecRegistry;
-        if (cookieSpecRegistryCopy == null) {
+        if (cookieSpecRegistryCopy == null && !cookieManagementDisabled) {
             cookieSpecRegistryCopy = CookieSpecSupport.createDefault();
         }
 
