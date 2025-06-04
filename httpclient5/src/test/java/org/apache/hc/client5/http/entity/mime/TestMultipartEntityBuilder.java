@@ -30,7 +30,10 @@ package org.apache.hc.client5.http.entity.mime;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,8 +45,12 @@ import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class TestMultipartEntityBuilder {
+
+    @TempDir
+    Path tempDir;
 
     @Test
     void testBasics() {
@@ -67,7 +74,7 @@ class TestMultipartEntityBuilder {
     }
 
     @Test
-    void testAddBodyParts() {
+    void testAddBodyPartsFile() {
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .addTextBody("p1", "stuff")
                 .addBinaryBody("p2", new File("stuff"))
@@ -81,6 +88,20 @@ class TestMultipartEntityBuilder {
         Assertions.assertEquals(5, bodyParts.size());
     }
 
+    @Test
+    void testAddBodyPartsPath() throws IOException {
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
+                .addTextBody("p1", "stuff")
+                .addBinaryBody("p2", Files.createTempFile(tempDir, "test-", ".bin"))
+                .addBinaryBody("p3", new byte[]{})
+                .addBinaryBody("p4", new ByteArrayInputStream(new byte[]{}))
+                .addBinaryBody("p5", new ByteArrayInputStream(new byte[]{}), ContentType.DEFAULT_BINARY, "filename")
+                .buildEntity();
+        Assertions.assertNotNull(entity);
+        final List<MultipartPart> bodyParts = entity.getMultipart().getParts();
+        Assertions.assertNotNull(bodyParts);
+        Assertions.assertEquals(5, bodyParts.size());
+    }
 
     @Test
     void testMultipartCustomContentType() {

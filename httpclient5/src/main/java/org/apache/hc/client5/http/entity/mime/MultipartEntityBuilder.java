@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -213,6 +214,32 @@ import org.slf4j.LoggerFactory;
     public MultipartEntityBuilder addBinaryBody(
             final String name, final File file, final ContentType contentType, final String filename) {
         return addPart(name, new FileBody(file, contentType, filename));
+    }
+
+    /**
+     * Adds body with contents from the given source Path.
+     *
+     * @param name The part name.
+     * @param path The source path.
+     * @return {@code this} instance.
+     * @since 5.6
+     */
+    public MultipartEntityBuilder addBinaryBody(final String name, final Path path) {
+        return addBinaryBody(name, path, ContentType.DEFAULT_BINARY, path != null ? path.getFileName().toString() : null);
+    }
+
+    /**
+     * Adds body with contents from the given source Path.
+     *
+     * @param name        The part name.
+     * @param path        The source path.
+     * @param contentType The content type.
+     * @param fileName    The file name to override the Path's file name.
+     * @return {@code this} instance.
+     * @since 5.6
+     */
+    public MultipartEntityBuilder addBinaryBody(final String name, final Path path, final ContentType contentType, final String fileName) {
+        return addPart(name, new PathBody(path, contentType, fileName));
     }
 
     public MultipartEntityBuilder addBinaryBody(

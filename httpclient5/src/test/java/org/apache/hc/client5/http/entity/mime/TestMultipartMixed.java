@@ -150,7 +150,7 @@ class TestMultipartMixed {
     }
 
     @Test
-    void testMultipartPartStrict() throws Exception {
+    void testMultipartPartFileStrict() throws Exception {
         tmpfile = File.createTempFile("tmp", ".bin");
         try (Writer writer = new FileWriter(tmpfile)) {
             writer.append("some random whatever");
@@ -160,6 +160,46 @@ class TestMultipartMixed {
                 new FileBody(tmpfile)).build();
         final MultipartPart p2 = MultipartPartBuilder.create(
                 new FileBody(tmpfile, ContentType.create("text/plain", "ANSI_X3.4-1968"), "test-file")).build();
+        @SuppressWarnings("resource")
+        final MultipartPart p3 = MultipartPartBuilder.create(
+                new InputStreamBody(new FileInputStream(tmpfile), "file.tmp")).build();
+        final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",
+                Arrays.asList(p1, p2, p3));
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        multipart.writeTo(out);
+        out.close();
+
+        final String expected =
+            "--foo\r\n" +
+            "Content-Type: application/octet-stream\r\n" +
+            "\r\n" +
+            "some random whatever\r\n" +
+            "--foo\r\n" +
+            "Content-Type: text/plain; charset=US-ASCII\r\n" +
+            "\r\n" +
+            "some random whatever\r\n" +
+            "--foo\r\n" +
+            "Content-Type: application/octet-stream\r\n" +
+            "\r\n" +
+            "some random whatever\r\n" +
+            "--foo--\r\n";
+        final String s = out.toString("US-ASCII");
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(-1, multipart.getTotalLength());
+    }
+
+    @Test
+    void testMultipartPartPathStrict() throws Exception {
+        tmpfile = File.createTempFile("tmp", ".bin");
+        try (Writer writer = new FileWriter(tmpfile)) {
+            writer.append("some random whatever");
+        }
+
+        final MultipartPart p1 = MultipartPartBuilder.create(
+                new PathBody(tmpfile.toPath())).build();
+        final MultipartPart p2 = MultipartPartBuilder.create(
+                new PathBody(tmpfile.toPath(), ContentType.create("text/plain", "ANSI_X3.4-1968"), "test-file")).build();
         @SuppressWarnings("resource")
         final MultipartPart p3 = MultipartPartBuilder.create(
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp")).build();
