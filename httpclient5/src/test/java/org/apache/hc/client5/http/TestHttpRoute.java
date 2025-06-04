@@ -466,7 +466,7 @@ class TestHttpRoute {
         Assertions.assertEquals(uds1, route1.getUnixDomainSocket());
         Assertions.assertEquals(1, route1.getHopCount(), "A UDS is not considered a proxy hop");
         Assertions.assertNull(route1.getProxyHost(), "A UDS is not considered a proxy for routing purposes");
-        Assertions.assertEquals("/var/run/docker.sock->{}->[http://target1.test.invalid:80]", route1.toString());
+        Assertions.assertEquals(String.format("%s->{}->[http://target1.test.invalid:80]", uds1), route1.toString());
 
         final Path uds2 = Paths.get("/var/run/docker.sock");
         final HttpRoute route2 = new HttpRoute(TARGET1, null, null, Collections.emptyList(), uds2, false,
