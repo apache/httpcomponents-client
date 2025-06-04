@@ -1011,7 +1011,7 @@ public class HttpClientBuilder {
         if (!redirectHandlingDisabled) {
             RedirectStrategy redirectStrategyCopy = this.redirectStrategy;
             if (redirectStrategyCopy == null) {
-                redirectStrategyCopy = DefaultRedirectStrategy.INSTANCE;
+                redirectStrategyCopy = schemePortResolver != null ? new DefaultRedirectStrategy(schemePortResolver) : DefaultRedirectStrategy.INSTANCE;
             }
             execChainDefinition.addFirst(
                     new RedirectExec(routePlannerCopy, redirectStrategyCopy),
