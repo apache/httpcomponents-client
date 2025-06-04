@@ -203,8 +203,9 @@
 
   <modules>
     <module>httpclient5</module>
-    <module>httpclient5-fluent</module>
+    <module>httpclient5-compress</module>
     <module>httpclient5-cache</module>
+    <module>httpclient5-fluent</module>
     <module>httpclient5-testing</module>
   </modules>
 

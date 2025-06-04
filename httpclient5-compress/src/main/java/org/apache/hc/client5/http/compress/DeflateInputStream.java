@@ -24,7 +24,8 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.entity;
+
+package org.apache.hc.client5.http.compress;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -36,14 +37,33 @@ import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipException;
 
 /**
- * Deflates an input stream. This class includes logic needed for various RFCs in order
- * to reasonably implement the "deflate" compression algorithm.
+ * Input stream that decompresses data using the DEFLATE compression format.
+ * <p>
+ * This class extends {@link FilterInputStream} to provide proper handling of
+ * DEFLATE compressed data in HTTP responses. It automatically detects and handles
+ * both raw DEFLATE data and DEFLATE with zlib headers.
+ * </p>
+ * <p>
+ * The class implements a workaround for servers that send raw DEFLATE data when
+ * they should send ZLIB-wrapped DEFLATE data. It attempts to detect the ZLIB header
+ * and, if not found, falls back to raw DEFLATE decompression.
+ * </p>
  *
- * @deprecated Use compression functionality from httpclient5-compress module instead.
+ * @since 5.6
  */
-@Deprecated
 public class DeflateInputStream extends FilterInputStream {
 
+    /**
+     * Creates a new DEFLATE input stream.
+     * <p>
+     * The stream automatically detects whether the input is raw DEFLATE or
+     * ZLIB-wrapped DEFLATE data and configures the appropriate decompressor.
+     * </p>
+     *
+     * @param wrapped The input stream containing DEFLATE-compressed data
+     * @throws IOException If an error occurs initializing the stream
+     * @since 5.6
+     */
     public DeflateInputStream(final InputStream wrapped) throws IOException {
         super(null);
         final PushbackInputStream pushback = new PushbackInputStream(wrapped, 2);
@@ -67,6 +87,9 @@ public class DeflateInputStream extends FilterInputStream {
         in = new DeflateStream(pushback, new Inflater(nowrap));
     }
 
+    /**
+     * Internal implementation class that handles the actual decompression.
+     */
     private static class DeflateStream extends InflaterInputStream {
 
         private boolean closed;
