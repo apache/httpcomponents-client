@@ -1,4 +1,4 @@
-Release 5.5.1
+Release 5.6-alpha1
 ------------------
 
 Change Log
@@ -8,6 +8,11 @@ Change Log
   Contributed by Gary Gregory <garydgregory at gmail.com>
 
 * Bump testcontainers.version from 1.20.6 to 1.21.1 #638.
+  Contributed by Gary Gregory <garydgregory at gmail.com>
+
+* Add org.apache.hc.client5.http.entity.mime.PathBody
+  Add org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder.addBinaryBody(String, File)
+  Add org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder.addBinaryBody(String, Path, ContentType, String)
   Contributed by Gary Gregory <garydgregory at gmail.com>
 
 

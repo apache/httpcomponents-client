@@ -28,19 +28,31 @@
 package org.apache.hc.client5.http.entity.mime;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.apache.hc.core5.http.ContentType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class FormBodyPartTest {
 
+    @TempDir
+    Path tempDir;
+
     @Test
-    void testConstructorCompat() throws Exception {
-        final File tmp = File.createTempFile("test", "test");
-        tmp.deleteOnExit();
+    void testFileConstructorCompat() throws Exception {
+        final File tmp = Files.createTempFile(tempDir, "test-", "-file.bin").toFile();
         final FileBody obj = new FileBody(tmp, ContentType.APPLICATION_OCTET_STREAM);
         Assertions.assertEquals(tmp.getName(), obj.getFilename());
+    }
+
+    @Test
+    void testPathConstructorCompat() throws Exception {
+        final Path tmp = Files.createTempFile(tempDir, "test-", "-path.bin");
+        final PathBody obj = new PathBody(tmp, ContentType.APPLICATION_OCTET_STREAM);
+        Assertions.assertEquals(tmp.getFileName().toString(), obj.getFilename());
     }
 
 }
