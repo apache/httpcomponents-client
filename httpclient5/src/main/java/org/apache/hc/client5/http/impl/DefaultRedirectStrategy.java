@@ -32,9 +32,11 @@ import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.Locale;
 
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -56,10 +58,21 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultRedirectStrategy implements RedirectStrategy {
 
+    private final SchemePortResolver schemePortResolver;
+
     /**
      * Default instance of {@link DefaultRedirectStrategy}.
      */
     public static final DefaultRedirectStrategy INSTANCE = new DefaultRedirectStrategy();
+
+    @Internal
+    public DefaultRedirectStrategy(final SchemePortResolver schemePortResolver) {
+        this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
+    }
+
+    public DefaultRedirectStrategy() {
+        this(null);
+    }
 
     @Override
     public boolean isRedirectAllowed(
@@ -67,7 +80,9 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             final HttpHost newTarget,
             final HttpRequest redirect,
             final HttpContext context) {
-        if (!currentTarget.equals(newTarget)) {
+
+        // If authority (host + effective port) differs, strip sensitive headers
+        if (!isSameAuthority(currentTarget, newTarget)) {
             for (final Iterator<Header> it = redirect.headerIterator(); it.hasNext(); ) {
                 final Header header = it.next();
                 if (header.isSensitive()
@@ -78,6 +93,20 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             }
         }
         return true;
+    }
+
+    private boolean isSameAuthority(final HttpHost h1, final HttpHost h2) {
+        if (h1 == null || h2 == null) {
+            return false;
+        }
+        final String host1 = h1.getHostName();
+        final String host2 = h2.getHostName();
+        if (!host1.equalsIgnoreCase(host2)) {
+            return false;
+        }
+        final int port1 = schemePortResolver.resolve(h1);
+        final int port2 = schemePortResolver.resolve(h2);
+        return port1 == port2;
     }
 
     @Override
