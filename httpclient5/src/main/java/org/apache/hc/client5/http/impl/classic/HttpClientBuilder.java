@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import javax.net.ssl.HostnameVerifier;
+
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
@@ -86,6 +88,9 @@ import org.apache.hc.client5.http.protocol.RequestUpgrade;
 import org.apache.hc.client5.http.protocol.RequestValidateTrace;
 import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
+import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
@@ -844,6 +849,14 @@ public class HttpClientBuilder {
         HttpClientConnectionManager connManagerCopy = this.connManager;
         if (connManagerCopy == null) {
             final PoolingHttpClientConnectionManagerBuilder connectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
+            if (cookieManagementDisabled) {
+                final HostnameVerifier lightVerifier = new DefaultHostnameVerifier(null);
+                final TlsSocketStrategy tlsStrategy = ClientTlsStrategyBuilder.create()
+                        .setHostnameVerifier(lightVerifier)
+                        .buildClassic();
+
+                connectionManagerBuilder.setTlsSocketStrategy(tlsStrategy);
+            }
             if (systemProperties) {
                 connectionManagerBuilder.useSystemProperties();
             }

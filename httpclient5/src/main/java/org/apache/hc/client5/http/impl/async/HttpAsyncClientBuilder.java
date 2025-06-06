@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 
+import javax.net.ssl.HostnameVerifier;
+
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
@@ -82,6 +84,8 @@ import org.apache.hc.client5.http.protocol.RequestUpgrade;
 import org.apache.hc.client5.http.protocol.RequestValidateTrace;
 import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
+import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.function.Callback;
@@ -97,6 +101,7 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.NamedElementChain;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
+import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
@@ -882,6 +887,12 @@ public class HttpAsyncClientBuilder {
         AsyncClientConnectionManager connManagerCopy = this.connManager;
         if (connManagerCopy == null) {
             final PoolingAsyncClientConnectionManagerBuilder connectionManagerBuilder = PoolingAsyncClientConnectionManagerBuilder.create();
+            if (cookieManagementDisabled) {
+                final HostnameVerifier lightVerifier = new DefaultHostnameVerifier(null);
+                final TlsStrategy tlsStrategy = ClientTlsStrategyBuilder.create()
+                        .setHostnameVerifier(lightVerifier).buildAsync();
+                connectionManagerBuilder.setTlsStrategy(tlsStrategy);
+            }
             if (systemProperties) {
                 connectionManagerBuilder.useSystemProperties();
             }
