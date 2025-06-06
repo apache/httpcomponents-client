@@ -32,7 +32,6 @@ import java.security.PrivilegedAction;
 
 import javax.net.ssl.HostnameVerifier;
 
-import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.core5.util.TextUtils;
 
 /**
@@ -62,7 +61,7 @@ public final class HttpsSupport {
     }
 
     public static HostnameVerifier getDefaultHostnameVerifier() {
-        return new DefaultHostnameVerifier(PublicSuffixMatcherLoader.getDefault());
+        return new DefaultHostnameVerifier();
     }
 
 }
