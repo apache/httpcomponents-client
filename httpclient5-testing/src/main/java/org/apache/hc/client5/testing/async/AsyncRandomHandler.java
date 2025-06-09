@@ -43,6 +43,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.MethodNotSupportedException;
+import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
@@ -53,7 +54,10 @@ import org.apache.hc.core5.http.nio.ResponseChannel;
 import org.apache.hc.core5.http.nio.StreamChannel;
 import org.apache.hc.core5.http.nio.entity.AbstractBinAsyncEntityProducer;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.WWWFormCodec;
 import org.apache.hc.core5.util.Asserts;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * A handler that generates random data.
@@ -93,6 +97,22 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
         } catch (final URISyntaxException ex) {
             throw new ProtocolException(ex.getMessage(), ex);
         }
+        final String query = uri.getQuery();
+        int delayMs = 0;
+        boolean drip = false;
+        if (query != null) {
+            final List<NameValuePair> params = WWWFormCodec.parse(query, UTF_8);
+            for (final NameValuePair param : params) {
+                final String name = param.getName();
+                final String value = param.getValue();
+                if ("delay".equals(name)) {
+                    delayMs = Integer.parseInt(value);
+                } else if ("drip".equals(name)) {
+                    drip = "1".equals(value);
+                }
+            }
+        }
+
         final String path = uri.getPath();
         final int slash = path.lastIndexOf('/');
         if (slash != -1) {
@@ -109,7 +129,7 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
                 n = 1 + (int)(Math.random() * 79.0);
             }
             final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
-            final AsyncEntityProducer entityProducer = new RandomBinAsyncEntityProducer(n);
+            final AsyncEntityProducer entityProducer = new RandomBinAsyncEntityProducer(n, delayMs, drip);
             entityProducerRef.set(entityProducer);
             responseChannel.sendResponse(response, entityProducer, context);
         } else {
@@ -162,12 +182,22 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
         private final long length;
         private long remaining;
         private final ByteBuffer buffer;
+        private final int delayMs;
+        private final boolean drip;
+        private volatile long deadline;
 
         public RandomBinAsyncEntityProducer(final long len) {
+            this(len, 0, false);
+        }
+
+        public RandomBinAsyncEntityProducer(final long len, final int delayMs, final boolean drip) {
             super(512, ContentType.DEFAULT_TEXT);
             length = len;
             remaining = len;
             buffer = ByteBuffer.allocate(1024);
+            this.delayMs = delayMs;
+            this.deadline = System.currentTimeMillis() + (drip ? 0 : delayMs);
+            this.drip = drip;
         }
 
         @Override
@@ -192,6 +222,10 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
 
         @Override
         protected void produceData(final StreamChannel<ByteBuffer> channel) throws IOException {
+            if (System.currentTimeMillis() < deadline) {
+                return;
+            }
+
             final int chunk = Math.min((int) (remaining < Integer.MAX_VALUE ? remaining : Integer.MAX_VALUE), buffer.remaining());
             for (int i = 0; i < chunk; i++) {
                 final byte b = RANGE[(int) (Math.random() * RANGE.length)];
@@ -205,6 +239,8 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
 
             if (remaining <= 0 && buffer.position() == 0) {
                 channel.endStream();
+            } else if (drip) {
+                deadline = System.currentTimeMillis() + delayMs;
             }
         }
 

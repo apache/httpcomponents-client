@@ -28,6 +28,7 @@
 package org.apache.hc.client5.testing.async;
 
 import java.net.InetSocketAddress;
+import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
@@ -48,9 +49,17 @@ abstract class AbstractIntegrationTestBase {
 
     @RegisterExtension
     private final TestAsyncResources testResources;
+    private final boolean useUnixDomainSocket;
 
     protected AbstractIntegrationTestBase(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
+        this(scheme, clientProtocolLevel, serverProtocolLevel, false);
+    }
+
+    protected AbstractIntegrationTestBase(
+        final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel,
+        final ServerProtocolLevel serverProtocolLevel, final boolean useUnixDomainSocket) {
         this.testResources = new TestAsyncResources(scheme, clientProtocolLevel, serverProtocolLevel, TIMEOUT);
+        this.useUnixDomainSocket = useUnixDomainSocket;
     }
 
     public URIScheme scheme() {
@@ -72,6 +81,9 @@ abstract class AbstractIntegrationTestBase {
     public HttpHost startServer() throws Exception {
         final TestAsyncServer server = testResources.server();
         final InetSocketAddress inetSocketAddress = server.start();
+        if (useUnixDomainSocket) {
+            testResources.udsProxy().start();
+        }
         return new HttpHost(testResources.scheme().id, "localhost", inetSocketAddress.getPort());
     }
 
@@ -80,9 +92,21 @@ abstract class AbstractIntegrationTestBase {
     }
 
     public TestAsyncClient startClient() throws Exception {
+        if (useUnixDomainSocket) {
+            final Path socketPath = getUnixDomainSocket();
+            testResources.configureClient(builder -> {
+                builder.setUnixDomainSocket(socketPath);
+            });
+        }
         final TestAsyncClient client = testResources.client();
         client.start();
         return client;
     }
 
+    public Path getUnixDomainSocket() throws Exception {
+        if (useUnixDomainSocket) {
+            return testResources.udsProxy().getSocketPath();
+        }
+        return null;
+    }
 }

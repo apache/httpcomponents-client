@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.testing.extension.async;
 
+import java.nio.file.Path;
 import java.util.Collection;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
@@ -35,6 +36,7 @@ import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
@@ -50,6 +52,7 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.reactor.IOReactorConfig;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
 final class StandardTestClientBuilder implements TestAsyncClientBuilder {
@@ -167,6 +170,14 @@ final class StandardTestClientBuilder implements TestAsyncClientBuilder {
     }
 
     @Override
+    public TestAsyncClientBuilder setUnixDomainSocket(final Path unixDomainSocket) {
+        this.clientBuilder.setDefaultRequestConfig(RequestConfig.custom()
+            .setUnixDomainSocket(unixDomainSocket)
+            .build());
+        return this;
+    }
+
+    @Override
     public TestAsyncClient build() throws Exception {
         final PoolingAsyncClientConnectionManager connectionManager = connectionManagerBuilder
                 .setTlsStrategy(tlsStrategy != null ? tlsStrategy : new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
@@ -177,6 +188,7 @@ final class StandardTestClientBuilder implements TestAsyncClientBuilder {
                 .build();
         final CloseableHttpAsyncClient client = clientBuilder
                 .setIOReactorConfig(IOReactorConfig.custom()
+                        .setSelectInterval(TimeValue.ofMilliseconds(10))
                         .setSoTimeout(timeout)
                         .build())
                 .setConnectionManager(connectionManager)

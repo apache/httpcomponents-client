@@ -48,6 +48,7 @@ public class TestAsyncServer {
     private final Http1Config http1Config;
     private final HttpProcessor httpProcessor;
     private final Decorator<AsyncServerExchangeHandler> exchangeHandlerDecorator;
+    private volatile InetSocketAddress serverAddress;
 
     TestAsyncServer(
             final H2TestServer server,
@@ -98,7 +99,14 @@ public class TestAsyncServer {
         }
         server.configure(exchangeHandlerDecorator);
         server.configure(httpProcessor);
-        return server.start();
+        serverAddress = server.start();
+        return serverAddress;
     }
 
+    public InetSocketAddress getServerAddress() {
+        if (serverAddress == null) {
+            throw new IllegalStateException("Server has not been started");
+        }
+        return serverAddress;
+    }
 }

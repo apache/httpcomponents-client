@@ -30,6 +30,7 @@ package org.apache.hc.client5.testing.extension.async;
 import java.util.function.Consumer;
 
 import org.apache.hc.client5.testing.extension.sync.TestClientResources;
+import org.apache.hc.client5.testing.extension.sync.UnixDomainProxyServer;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Asserts;
@@ -52,6 +53,7 @@ public class TestAsyncResources implements AfterEachCallback {
 
     private TestAsyncServer server;
     private TestAsyncClient client;
+    private UnixDomainProxyServer udsProxy;
 
     public TestAsyncResources(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel, final Timeout timeout) {
         this.scheme = scheme != null ? scheme : URIScheme.HTTP;
@@ -84,9 +86,21 @@ public class TestAsyncResources implements AfterEachCallback {
         if (client != null) {
             client.close(CloseMode.GRACEFUL);
         }
+        if (udsProxy != null) {
+            udsProxy.close();
+        }
         if (server != null) {
             server.shutdown(TimeValue.ofSeconds(5));
         }
+    }
+
+    public UnixDomainProxyServer udsProxy() throws Exception {
+        if (udsProxy == null) {
+            final TestAsyncServer testServer = server();
+            final int port = testServer.getServerAddress().getPort();
+            udsProxy = new UnixDomainProxyServer(port);
+        }
+        return udsProxy;
     }
 
     public URIScheme scheme() {
