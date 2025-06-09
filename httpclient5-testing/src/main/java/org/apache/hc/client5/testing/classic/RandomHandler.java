@@ -29,10 +29,12 @@ package org.apache.hc.client5.testing.classic;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -40,10 +42,14 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.MethodNotSupportedException;
+import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.AbstractHttpEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.WWWFormCodec;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * A handler that generates random data.
@@ -84,6 +90,22 @@ public class RandomHandler implements HttpRequestHandler {
         } catch (final URISyntaxException ex) {
             throw new ProtocolException(ex.getMessage(), ex);
         }
+        final String query = uri.getQuery();
+        int delayMs = 0;
+        boolean drip = false;
+        if (query != null) {
+            final List<NameValuePair> params = WWWFormCodec.parse(query, UTF_8);
+            for (final NameValuePair param : params) {
+                final String name = param.getName();
+                final String value = param.getValue();
+                if ("delay".equals(name)) {
+                    delayMs = Integer.parseInt(value);
+                } else if ("drip".equals(name)) {
+                    drip = "1".equals(value);
+                }
+            }
+        }
+
         final String path = uri.getPath();
         final int slash = path.lastIndexOf('/');
         if (slash != -1) {
@@ -100,7 +122,7 @@ public class RandomHandler implements HttpRequestHandler {
                 n = 1 + (int)(Math.random() * 79.0);
             }
             response.setCode(HttpStatus.SC_OK);
-            response.setEntity(new RandomEntity(n));
+            response.setEntity(new RandomEntity(n, delayMs, drip));
         } else {
             throw new ProtocolException("Invalid request path: " + path);
         }
@@ -120,6 +142,12 @@ public class RandomHandler implements HttpRequestHandler {
         /** The length of the random data to generate. */
         protected final long length;
 
+        /** The duration of the delay before sending the response entity. */
+        protected final int delayMs;
+
+        /** Whether to delay after each chunk sent. If {@code false},
+         * will only delay at the start of the response entity. */
+        protected final boolean drip;
 
         /**
          * Creates a new entity generating the given amount of data.
@@ -128,8 +156,22 @@ public class RandomHandler implements HttpRequestHandler {
          *              0 to maxint
          */
         public RandomEntity(final long len) {
+            this(len, 0, false);
+        }
+
+        /**
+         * Creates a new entity generating the given amount of data.
+         *
+         * @param len       the number of random bytes to generate,
+         *                  0 to maxint
+         * @param delayMs   how long to wait before sending the first byte
+         * @param drip      whether to repeat the delay after each byte
+         */
+        public RandomEntity(final long len, final int delayMs, final boolean drip) {
             super((ContentType) null, null);
-            length = len;
+            this.length = len;
+            this.delayMs = delayMs;
+            this.drip = drip;
         }
 
         /**
@@ -185,31 +227,48 @@ public class RandomHandler implements HttpRequestHandler {
         @Override
         public void writeTo(final OutputStream out) throws IOException {
 
-            final int blocksize = 2048;
-            int remaining = (int) length; // range checked in constructor
-            final byte[] data = new byte[Math.min(remaining, blocksize)];
+            try {
+                final int blocksize = 2048;
+                int remaining = (int) length; // range checked in constructor
+                final byte[] data = new byte[Math.min(remaining, blocksize)];
 
-            while (remaining > 0) {
-                final int end = Math.min(remaining, data.length);
-
-                double value = 0.0;
-                for (int i = 0; i < end; i++) {
-                    // we get 5 random characters out of one random value
-                    if (i % 5 == 0) {
-                        value = Math.random();
-                    }
-                    value = value * RANGE.length;
-                    final int d = (int) value;
-                    value = value - d;
-                    data[i] = RANGE[d];
-                }
-                out.write(data, 0, end);
                 out.flush();
+                if (!drip) {
+                    delay();
+                }
+                while (remaining > 0) {
+                    final int end = Math.min(remaining, data.length);
 
-                remaining = remaining - end;
+                    double value = 0.0;
+                    for (int i = 0; i < end; i++) {
+                        // we get 5 random characters out of one random value
+                        if (i % 5 == 0) {
+                            value = Math.random();
+                        }
+                        value = value * RANGE.length;
+                        final int d = (int) value;
+                        value = value - d;
+                        data[i] = RANGE[d];
+                    }
+                    out.write(data, 0, end);
+                    out.flush();
+
+                    remaining = remaining - end;
+                    if (drip) {
+                        delay();
+                    }
+                }
+            } finally {
+                out.close();
             }
-            out.close();
+        }
 
+        private void delay() throws IOException {
+            try {
+                Thread.sleep(delayMs);
+            } catch (final InterruptedException ex) {
+                throw new InterruptedIOException();
+            }
         }
 
         @Override
