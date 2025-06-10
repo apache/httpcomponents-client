@@ -87,7 +87,7 @@ abstract class AbstractIntegrationTestBase {
 
     public TestClient client() throws Exception {
         if (useUnixDomainSocket) {
-            final Path socketPath = testResources.udsProxy().getSocketPath();
+            final Path socketPath = getUnixDomainSocket();
             testResources.configureClient(builder -> {
                 builder.setUnixDomainSocket(socketPath);
             });
@@ -95,4 +95,10 @@ abstract class AbstractIntegrationTestBase {
         return testResources.client();
     }
 
+    public Path getUnixDomainSocket() throws Exception {
+        if (useUnixDomainSocket) {
+            return testResources.udsProxy().getSocketPath();
+        }
+        return null;
+    }
 }

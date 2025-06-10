@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.testing.extension.async;
 
+import java.nio.file.Path;
 import java.util.Collection;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
@@ -107,6 +108,10 @@ public interface TestAsyncClientBuilder {
     }
 
     default TestAsyncClientBuilder setDefaultCredentialsProvider(CredentialsProvider credentialsProvider) {
+        throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
+    }
+
+    default TestAsyncClientBuilder setUnixDomainSocket(Path unixDomainSocket) {
         throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
     }
 
