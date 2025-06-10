@@ -87,6 +87,11 @@ public class TestAsyncResources implements AfterEachCallback {
             client.close(CloseMode.GRACEFUL);
         }
         if (udsProxy != null) {
+            // The test harness enables UDS through a default RequestConfig set on the client. If a test case
+            // overrides the RequestConfig on a given request, it may connect directly to the test server by mistake.
+            if (udsProxy.getRequestsReceived() == 0) {
+                throw new AssertionError("The UDS proxy did not receive any requests");
+            }
             udsProxy.close();
         }
         if (server != null) {

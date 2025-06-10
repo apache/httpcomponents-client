@@ -64,6 +64,12 @@ abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrationTest
         super(scheme, clientProtocolLevel, serverProtocolLevel);
     }
 
+    protected AbstractHttpAsyncFundamentalsTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel,
+                                                final ServerProtocolLevel serverProtocolLevel,
+                                                final boolean useUnixDomainSocket) {
+        super(scheme, clientProtocolLevel, serverProtocolLevel, useUnixDomainSocket);
+    }
+
     @Test
     void testSequentialGetRequests() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));

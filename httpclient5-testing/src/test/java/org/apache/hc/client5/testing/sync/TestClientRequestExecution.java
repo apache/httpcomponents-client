@@ -74,7 +74,11 @@ import org.junit.jupiter.api.Test;
 abstract class TestClientRequestExecution extends AbstractIntegrationTestBase {
 
     public TestClientRequestExecution(final URIScheme scheme) {
-        super(scheme, ClientProtocolLevel.STANDARD);
+        this(scheme, false);
+    }
+
+    public TestClientRequestExecution(final URIScheme scheme, final boolean useUnixDomainSocket) {
+        super(scheme, ClientProtocolLevel.STANDARD, useUnixDomainSocket);
     }
 
     private static class SimpleService implements HttpRequestHandler {
