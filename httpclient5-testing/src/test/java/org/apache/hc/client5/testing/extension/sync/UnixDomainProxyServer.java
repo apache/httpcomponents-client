@@ -42,6 +42,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
@@ -50,6 +51,7 @@ public final class UnixDomainProxyServer {
     private final ExecutorService executorService;
     private final Path socketPath;
     private final CountDownLatch serverReady = new CountDownLatch(1);
+    private final AtomicInteger requestsReceived = new AtomicInteger(0);
     private volatile AFUNIXServerSocket serverSocket;
 
     public UnixDomainProxyServer(final int port) {
@@ -69,6 +71,10 @@ public final class UnixDomainProxyServer {
 
     public Path getSocketPath() {
         return socketPath;
+    }
+
+    public int getRequestsReceived() {
+        return requestsReceived.get();
     }
 
     public void close() {
@@ -106,6 +112,7 @@ public final class UnixDomainProxyServer {
     private void serveRequests(final AFUNIXServerSocket server) throws IOException {
         while (true) {
             final AFUNIXSocket udsClient = server.accept();
+            requestsReceived.incrementAndGet();
             final Socket tcpSocket = new Socket("localhost", port);
             final CompletableFuture<Void> f1 = supplyAsync(() -> pipe(udsClient, tcpSocket), executorService);
             final CompletableFuture<Void> f2 = supplyAsync(() -> pipe(tcpSocket, udsClient), executorService);

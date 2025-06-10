@@ -50,7 +50,11 @@ import org.junit.jupiter.api.Test;
 abstract class TestHttp1RequestReExecution extends AbstractIntegrationTestBase {
 
     public TestHttp1RequestReExecution(final URIScheme scheme) {
-        super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);
+        this(scheme, false);
+    }
+
+    public TestHttp1RequestReExecution(final URIScheme scheme, final boolean useUnixDomainSocket) {
+        super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD, useUnixDomainSocket);
     }
 
     @BeforeEach

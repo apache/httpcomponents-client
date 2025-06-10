@@ -55,7 +55,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 abstract class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest {
 
     public TestHttp1Async(final URIScheme scheme) {
-        super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD);
+        this(scheme, false);
+    }
+
+    public TestHttp1Async(final URIScheme scheme, final boolean useUnixDomainSocket) {
+        super(scheme, ClientProtocolLevel.STANDARD, ServerProtocolLevel.STANDARD, useUnixDomainSocket);
     }
 
     @ParameterizedTest(name = "{displayName}; concurrent connections: {0}")

@@ -69,7 +69,13 @@ import org.junit.jupiter.api.Test;
 abstract class AbstractH2AsyncFundamentalsTest extends AbstractHttpAsyncFundamentalsTest {
 
     public AbstractH2AsyncFundamentalsTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final ServerProtocolLevel serverProtocolLevel) {
-        super(scheme, clientProtocolLevel, serverProtocolLevel);
+        this(scheme, clientProtocolLevel, serverProtocolLevel, false);
+    }
+
+    public AbstractH2AsyncFundamentalsTest(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel,
+                                           final ServerProtocolLevel serverProtocolLevel,
+                                           final boolean useUnixDomainSocket) {
+        super(scheme, clientProtocolLevel, serverProtocolLevel, useUnixDomainSocket);
     }
 
     @Test

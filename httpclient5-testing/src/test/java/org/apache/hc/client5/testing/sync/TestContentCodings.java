@@ -66,7 +66,11 @@ import org.junit.jupiter.api.Test;
 abstract class TestContentCodings extends AbstractIntegrationTestBase {
 
     protected TestContentCodings(final URIScheme scheme) {
-        super(scheme, ClientProtocolLevel.STANDARD);
+        this(scheme, false);
+    }
+
+    protected TestContentCodings(final URIScheme scheme, final boolean useUnixDomainSocket) {
+        super(scheme, ClientProtocolLevel.STANDARD, useUnixDomainSocket);
     }
 
     /**
