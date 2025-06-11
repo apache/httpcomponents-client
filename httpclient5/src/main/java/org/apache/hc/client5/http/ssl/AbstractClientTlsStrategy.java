@@ -97,9 +97,9 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
         this.supportedProtocols = supportedProtocols;
         this.supportedCipherSuites = supportedCipherSuites;
         this.sslBufferManagement = sslBufferManagement != null ? sslBufferManagement : SSLBufferMode.STATIC;
-        this.hostnameVerificationPolicy = hostnameVerificationPolicy != null ? hostnameVerificationPolicy : HostnameVerificationPolicy.BOTH;
-        this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier :
-                (this.hostnameVerificationPolicy == HostnameVerificationPolicy.BUILTIN ? NoopHostnameVerifier.INSTANCE : HttpsSupport.getDefaultHostnameVerifier());
+        this.hostnameVerificationPolicy = hostnameVerificationPolicy != null ? hostnameVerificationPolicy :
+                (hostnameVerifier != null ? HostnameVerificationPolicy.BOTH : HostnameVerificationPolicy.BUILTIN);
+        this.hostnameVerifier = hostnameVerifier;
     }
 
     /**

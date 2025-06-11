@@ -54,8 +54,8 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
     public static DefaultClientTlsStrategy createDefault() {
         return new DefaultClientTlsStrategy(
                 SSLContexts.createDefault(),
-                HostnameVerificationPolicy.BOTH,
-                HttpsSupport.getDefaultHostnameVerifier());
+                HostnameVerificationPolicy.BUILTIN,
+                null);
     }
 
     /**
@@ -67,8 +67,8 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
                 HttpsSupport.getSystemProtocols(),
                 HttpsSupport.getSystemCipherSuits(),
                 SSLBufferMode.STATIC,
-                HostnameVerificationPolicy.BOTH,
-                HttpsSupport.getDefaultHostnameVerifier());
+                HostnameVerificationPolicy.BUILTIN,
+                null);
     }
 
     /**
@@ -127,7 +127,7 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
             final String[] supportedCipherSuites,
             final SSLBufferMode sslBufferManagement,
             final HostnameVerifier hostnameVerifier) {
-        this(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, HostnameVerificationPolicy.CLIENT, hostnameVerifier);
+        this(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, null, hostnameVerifier);
     }
 
     public DefaultClientTlsStrategy(
@@ -147,7 +147,7 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
     }
 
     public DefaultClientTlsStrategy(final SSLContext sslContext) {
-        this(sslContext, HttpsSupport.getDefaultHostnameVerifier());
+        this(sslContext, null);
     }
 
     @Override

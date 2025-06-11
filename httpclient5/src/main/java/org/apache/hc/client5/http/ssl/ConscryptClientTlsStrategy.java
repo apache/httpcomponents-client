@@ -54,8 +54,8 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
     public static TlsStrategy getDefault() {
         return new ConscryptClientTlsStrategy(
                 SSLContexts.createDefault(),
-                HostnameVerificationPolicy.BOTH,
-                HttpsSupport.getDefaultHostnameVerifier());
+                HostnameVerificationPolicy.BUILTIN,
+                null);
     }
 
     public static TlsStrategy getSystemDefault() {
@@ -64,8 +64,8 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
                 HttpsSupport.getSystemProtocols(),
                 HttpsSupport.getSystemCipherSuits(),
                 SSLBufferMode.STATIC,
-                HostnameVerificationPolicy.BOTH,
-                HttpsSupport.getDefaultHostnameVerifier());
+                HostnameVerificationPolicy.BUILTIN,
+                null);
     }
 
     public ConscryptClientTlsStrategy(
@@ -107,7 +107,7 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
     }
 
     public ConscryptClientTlsStrategy(final SSLContext sslContext) {
-        this(sslContext, HttpsSupport.getDefaultHostnameVerifier());
+        this(sslContext, null);
     }
 
     @Override

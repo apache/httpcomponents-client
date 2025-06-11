@@ -226,16 +226,13 @@ public class ClientTlsStrategyBuilder {
         }
         final HostnameVerificationPolicy hostnameVerificationPolicyCopy = hostnameVerificationPolicy != null ? hostnameVerificationPolicy :
                 (hostnameVerifier == null ? HostnameVerificationPolicy.BUILTIN : HostnameVerificationPolicy.BOTH);
-        final HostnameVerifier hostnameVerifierCopy = hostnameVerifier != null ? hostnameVerifier :
-                (hostnameVerificationPolicyCopy == HostnameVerificationPolicy.CLIENT || hostnameVerificationPolicyCopy == HostnameVerificationPolicy.BOTH ?
-                        HttpsSupport.getDefaultHostnameVerifier() : NoopHostnameVerifier.INSTANCE);
         return new DefaultClientTlsStrategy(
                 sslContextCopy,
                 tlsVersionsCopy,
                 ciphersCopy,
                 sslBufferMode != null ? sslBufferMode : SSLBufferMode.STATIC,
                 hostnameVerificationPolicyCopy,
-                hostnameVerifierCopy);
+                hostnameVerifier);
     }
 
 }
