@@ -4,7 +4,7 @@ Release 5.6-alpha1
 Change Log
 -------------------
 
-* Bump org.junit:junit-bom from 5.12.2 to 5.13.0 #639.
+* Bump org.junit:junit-bom from 5.12.2 to 5.13.1 #639, #650.
   Contributed by Gary Gregory <garydgregory at gmail.com>
 
 * Bump testcontainers.version from 1.20.6 to 1.21.1 #638.
