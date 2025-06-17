@@ -646,8 +646,8 @@ abstract class TestRedirects extends AbstractIntegrationTestBase {
         Assertions.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
                 reqWrapper.getUri());
 
-        assertThat(values.poll(), CoreMatchers.equalTo("gzip, x-gzip, deflate"));
-        assertThat(values.poll(), CoreMatchers.equalTo("gzip, x-gzip, deflate"));
+        assertThat(values.poll(), CoreMatchers.equalTo("gzip, deflate, lz4-framed, lz4-block, bzip2, pack200, deflate64, x-gzip"));
+        assertThat(values.poll(), CoreMatchers.equalTo("gzip, deflate, lz4-framed, lz4-block, bzip2, pack200, deflate64, x-gzip"));
         assertThat(values.poll(), CoreMatchers.nullValue());
     }
 
