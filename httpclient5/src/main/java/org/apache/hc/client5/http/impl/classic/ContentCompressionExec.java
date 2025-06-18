@@ -86,16 +86,19 @@ public final class ContentCompressionExec implements ExecChainHandler {
             final Lookup<InputStreamFactory> decoderRegistry,
             final boolean ignoreUnknown) {
 
-        final boolean brotliSupported = BrotliDecompressingEntity.isAvailable();
-        final List<String> encodings = new ArrayList<>(4);
-        encodings.add("gzip");
-        encodings.add("x-gzip");
-        encodings.add("deflate");
-        if (brotliSupported) {
-            encodings.add("br");
+        final boolean brotliSupported = decoderRegistry == null && BrotliDecompressingEntity.isAvailable();
+        if (acceptEncoding != null) {
+            this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING, acceptEncoding);
+        } else {
+            final List<String> encodings = new ArrayList<>(4);
+            encodings.add("gzip");
+            encodings.add("x-gzip");
+            encodings.add("deflate");
+            if (brotliSupported) {
+                encodings.add("br");
+            }
+            this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING, encodings);
         }
-        this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING, encodings);
-
         if (decoderRegistry != null) {
             this.decoderRegistry = decoderRegistry;
         } else {
@@ -108,8 +111,6 @@ public final class ContentCompressionExec implements ExecChainHandler {
             }
             this.decoderRegistry = builder.build();
         }
-
-
         this.ignoreUnknown = ignoreUnknown;
     }
 
