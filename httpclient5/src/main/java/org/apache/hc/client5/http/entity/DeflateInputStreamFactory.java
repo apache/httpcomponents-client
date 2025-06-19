@@ -42,6 +42,17 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 public class DeflateInputStreamFactory implements InputStreamFactory {
 
     /**
+     * Canonical token for the deflate content-coding.
+     * @since 5.6
+     */
+    public static final String ENCODING = "deflate";
+
+    @Override
+    public String getContentEncoding() {
+        return ENCODING;
+    }
+
+    /**
      * Default instance of {@link DeflateInputStreamFactory}.
      */
     private static final DeflateInputStreamFactory INSTANCE = new DeflateInputStreamFactory();

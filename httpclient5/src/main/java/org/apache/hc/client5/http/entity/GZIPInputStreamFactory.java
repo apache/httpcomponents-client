@@ -43,6 +43,17 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 public class GZIPInputStreamFactory implements InputStreamFactory {
 
     /**
+     * Canonical token for the gzip content-coding.
+     * @since 5.6
+     */
+    public static final String ENCODING = "gzip";
+
+    @Override
+    public String getContentEncoding() {
+        return ENCODING;
+    }
+
+    /**
      * Default instance of {@link GZIPInputStreamFactory}.
      */
     private static final GZIPInputStreamFactory INSTANCE = new GZIPInputStreamFactory();

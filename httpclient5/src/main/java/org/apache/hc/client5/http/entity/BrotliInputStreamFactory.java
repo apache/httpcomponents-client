@@ -42,6 +42,17 @@ import org.brotli.dec.BrotliInputStream;
 public class BrotliInputStreamFactory implements InputStreamFactory {
 
     /**
+     * Canonical token for the deflate content-coding.
+     * @since 5.6
+     */
+    public static final String ENCODING = "br";
+
+    @Override
+    public String getContentEncoding() {
+        return ENCODING;
+    }
+
+    /**
      * Default instance of {@link BrotliInputStreamFactory}.
      */
     private static final BrotliInputStreamFactory INSTANCE = new BrotliInputStreamFactory();
