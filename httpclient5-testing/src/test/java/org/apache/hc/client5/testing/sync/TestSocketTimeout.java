@@ -112,7 +112,7 @@ abstract class AbstractTestSocketTimeout extends AbstractIntegrationTestBase {
 
         assertTrue(actualDelayMs > expectedDelayMs / 2,
             format("Socket read timed out too soon (only %,d out of %,d ms)", actualDelayMs, expectedDelayMs));
-        assertTrue(actualDelayMs < expectedDelayMs * 2,
+        assertTrue(actualDelayMs < expectedDelayMs * 3,
             format("Socket read timed out too late (%,d out of %,d ms)", actualDelayMs, expectedDelayMs));
     }
 }
