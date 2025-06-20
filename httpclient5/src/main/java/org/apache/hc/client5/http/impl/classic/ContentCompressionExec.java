@@ -29,17 +29,14 @@ package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.zip.GZIPInputStream;
 
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.DecompressingEntity;
-import org.apache.hc.client5.http.entity.DeflateInputStream;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
 import org.apache.hc.client5.http.entity.compress.ContentDecoderRegistry;
@@ -60,7 +57,6 @@ import org.apache.hc.core5.http.message.BasicHeaderValueParser;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
-import org.brotli.dec.BrotliInputStream;
 
 /**
  * Request execution handler in the classic request execution chain
@@ -81,67 +77,39 @@ public final class ContentCompressionExec implements ExecChainHandler {
     private final Lookup<InputStreamFactory> decoderRegistry;
     private final boolean ignoreUnknown;
 
-    private static final Map<ContentCoding, InputStreamFactory> DECODERS = ContentDecoderRegistry.getRegistry();
-
-    /**
-     * Pre-built list of all supported tokens (plus X-GZIP alias) for
-     * the Accept-Encoding header, to avoid reconstructing it every time.
-     */
-    private static final List<String> DEFAULT_ACCEPT_ENCODINGS;
-    static {
-        final List<String> tmp = new ArrayList<>(DECODERS.size() + 1);
-        for (final ContentCoding coding : DECODERS.keySet()) {
-            tmp.add(coding.token());
-        }
-        // add x-gzip alias if gzip is present
-        if (DECODERS.containsKey(ContentCoding.GZIP)) {
-            tmp.add(ContentCoding.X_GZIP.token());
-        }
-        DEFAULT_ACCEPT_ENCODINGS = Collections.unmodifiableList(tmp);
-    }
-
     public ContentCompressionExec(
             final List<String> acceptEncoding,
             final Lookup<InputStreamFactory> decoderRegistry,
             final boolean ignoreUnknown) {
-
-        final List<String> encodingsHeader = acceptEncoding != null ? acceptEncoding : DEFAULT_ACCEPT_ENCODINGS;
-
-        this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING, encodingsHeader);
-
-        if (decoderRegistry != null) {
-            this.decoderRegistry = decoderRegistry;
-        } else {
-            final RegistryBuilder<InputStreamFactory> builder = RegistryBuilder.create();
-            DECODERS.forEach((coding, factory) ->
-                    builder.register(coding.token(), factory));
-            // register the x-gzip alias again
-            if (DECODERS.containsKey(ContentCoding.GZIP)) {
-                builder.register(ContentCoding.X_GZIP.token(), DECODERS.get(ContentCoding.GZIP));
-            }
-            this.decoderRegistry = builder.build();
-        }
-
+        this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING,
+                Args.notEmpty(acceptEncoding, "Encoding list"));
+        this.decoderRegistry = Args.notNull(decoderRegistry, "Decoder register");
         this.ignoreUnknown = ignoreUnknown;
     }
 
     public ContentCompressionExec(final boolean ignoreUnknown) {
-        this(null, null, ignoreUnknown);
+        final Map<ContentCoding, InputStreamFactory> decoderMap = ContentDecoderRegistry.getRegistry();
+        final RegistryBuilder<InputStreamFactory> builder = RegistryBuilder.create();
+        final List<String> acceptEncodingList = new ArrayList<>(decoderMap.size() + 1);
+        decoderMap.forEach((coding, factory) -> {
+            acceptEncodingList.add(coding.token());
+            builder.register(coding.token(), factory);
+        });
+        // register the x-gzip alias again
+        if (decoderMap.containsKey(ContentCoding.GZIP)) {
+            acceptEncodingList.add(ContentCoding.X_GZIP.token());
+            builder.register(ContentCoding.X_GZIP.token(), decoderMap.get(ContentCoding.GZIP));
+        }
+        this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING, acceptEncodingList);
+        this.decoderRegistry = builder.build();
+        this.ignoreUnknown = ignoreUnknown;
     }
 
     /**
-     * Handles {@code gzip} and {@code deflate} compressed entities by using the following
-     * decoders:
-     * <ul>
-     * <li>gzip - see {@link GZIPInputStream}</li>
-     * <li>deflate - see {@link DeflateInputStream}</li>
-     * <li>brotli - see {@link BrotliInputStream}</li>
-     * </ul>
      */
     public ContentCompressionExec() {
-        this(null, null, true);
+        this(true);
     }
-
 
     @Override
     public ClassicHttpResponse execute(

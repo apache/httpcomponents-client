@@ -79,7 +79,6 @@ final class CommonsCompressDecoderFactory implements InputStreamFactory {
         this.encoding = encoding.toLowerCase(Locale.ROOT);
     }
 
-    @Override
     public String getContentEncoding() {
         return encoding;
     }

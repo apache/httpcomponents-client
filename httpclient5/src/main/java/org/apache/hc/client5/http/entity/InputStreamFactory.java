@@ -38,21 +38,4 @@ public interface InputStreamFactory {
 
     InputStream create(InputStream inputStream) throws IOException;
 
-    /**
-     * Returns the canonical {@code Content-Encoding} token handled by this
-     * factory (for example {@code "gzip"}, {@code "deflate"}, {@code "br"}).
-     * <p>
-     * Implementations that do <strong>not</strong> represent a HTTP
-     * content-decoder should simply inherit the default implementation,
-     * which returns an empty string.
-     *
-     * @return the lower-case encoding token, or an empty string when the
-     *         factory is not intended for HTTP content-decoding
-     *
-     * @since 5.6
-     */
-    default String getContentEncoding() {
-        return "";
-    }
-
 }
