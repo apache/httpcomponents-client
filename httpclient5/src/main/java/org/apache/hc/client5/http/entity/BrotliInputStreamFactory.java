@@ -47,11 +47,6 @@ public class BrotliInputStreamFactory implements InputStreamFactory {
      */
     public static final String ENCODING = "br";
 
-    @Override
-    public String getContentEncoding() {
-        return ENCODING;
-    }
-
     /**
      * Default instance of {@link BrotliInputStreamFactory}.
      */

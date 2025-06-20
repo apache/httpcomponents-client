@@ -129,8 +129,6 @@ public enum ContentCoding {
      * @return the matching enum constant, or {@code null} if none
      */
     public static ContentCoding fromToken(final String token) {
-        return TOKEN_LOOKUP.get(
-                token == null ? null : token.toLowerCase(Locale.ROOT)
-        );
+        return token != null ? TOKEN_LOOKUP.get(token.toLowerCase(Locale.ROOT)) : null;
     }
 }

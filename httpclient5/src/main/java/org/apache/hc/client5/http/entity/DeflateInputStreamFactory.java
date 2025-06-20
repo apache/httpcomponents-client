@@ -47,11 +47,6 @@ public class DeflateInputStreamFactory implements InputStreamFactory {
      */
     public static final String ENCODING = "deflate";
 
-    @Override
-    public String getContentEncoding() {
-        return ENCODING;
-    }
-
     /**
      * Default instance of {@link DeflateInputStreamFactory}.
      */

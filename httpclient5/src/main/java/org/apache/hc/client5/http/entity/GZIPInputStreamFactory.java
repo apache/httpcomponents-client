@@ -48,11 +48,6 @@ public class GZIPInputStreamFactory implements InputStreamFactory {
      */
     public static final String ENCODING = "gzip";
 
-    @Override
-    public String getContentEncoding() {
-        return ENCODING;
-    }
-
     /**
      * Default instance of {@link GZIPInputStreamFactory}.
      */
