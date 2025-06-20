@@ -15,6 +15,12 @@ Change Log
   Add org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder.addBinaryBody(String, Path, ContentType, String)
   Contributed by Gary Gregory <garydgregory at gmail.com>
 
+* Bump log4j.version from 2.24.3 to 2.25.0 #656 
+  Contributed by Gary Gregory <garydgregory at gmail.com>
+
+* Bump testcontainers.version from 1.21.1 to 1.21.2 #655 
+  Contributed by Gary Gregory <garydgregory at gmail.com>
+
 
 Release 5.5
 ------------------
