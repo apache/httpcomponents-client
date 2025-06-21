@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.entity;
 import java.io.File;
 import java.io.InputStream;
 
+import org.apache.hc.client5.http.entity.compress.ContentCoding;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -115,13 +116,13 @@ class TestEntityBuilder {
     }
 
     @Test
-    void testBuildGZipped() {
-        final HttpEntity entity = EntityBuilder.create().setText("stuff").gzipCompressed().build();
+    void testBuildCompressed() {
+        final HttpEntity entity = EntityBuilder.create().setText("stuff").compressed(ContentCoding.GZIP).build();
         Assertions.assertNotNull(entity);
         Assertions.assertNotNull(entity.getContentType());
         Assertions.assertEquals("text/plain; charset=UTF-8", entity.getContentType());
-        Assertions.assertNotNull(entity.getContentEncoding());
         Assertions.assertEquals("gzip", entity.getContentEncoding());
+        Assertions.assertTrue(entity.isChunked());
     }
 
 }

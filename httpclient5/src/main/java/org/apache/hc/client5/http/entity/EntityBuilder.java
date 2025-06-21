@@ -33,6 +33,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.hc.client5.http.entity.compress.ContentCoding;
+import org.apache.hc.client5.http.entity.compress.ContentEncoderRegistry;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.NameValuePair;
@@ -72,7 +74,28 @@ public class EntityBuilder {
     private ContentType contentType;
     private String contentEncoding;
     private boolean chunked;
+    /**
+     * @deprecated use {@link #compressWith} instead
+     */
+    @Deprecated
     private boolean gzipCompressed;
+
+    /**
+     * The compression algorithm to apply when {@link #build() building}
+     * the final {@link HttpEntity}.
+     * <p>
+     * If {@code null} (default) the entity is sent as-is; otherwise the
+     * entity content is wrapped in the corresponding <i>compressing</i>
+     * wrapper (for example {@code GzipCompressingEntity},
+     * {@code DeflateCompressingEntity}, or a Commons-Compress based
+     * implementation) and the correct {@code Content-Encoding} header is
+     * added.
+     * </p>
+     *
+     * @since 5.6
+     */
+    private ContentCoding compressWith;
+
 
     EntityBuilder() {
         super();
@@ -335,20 +358,55 @@ public class EntityBuilder {
      * Tests if entities are to be GZIP compressed ({@code true}), or not ({@code false}).
      *
      * @return {@code true} if entity is to be GZIP compressed, {@code false} otherwise.
+     * @deprecated since 5.6 – use {@link #getCompressWith()} and
+     *             check for {@code ContentCoding.GZIP} instead.
      */
+    @Deprecated
     public boolean isGzipCompressed() {
-        return gzipCompressed;
+        return compressWith == ContentCoding.GZIP;
     }
 
     /**
      * Sets entities to be GZIP compressed.
      *
      * @return this instance.
+     * @deprecated since 5.6 – replace with
+     *             {@code compressed(ContentCoding.GZIP)}.
      */
+    @Deprecated
     public EntityBuilder gzipCompressed() {
-        this.gzipCompressed = true;
+        this.compressWith = ContentCoding.GZIP;
         return this;
     }
+
+    /**
+     * Requests that the entity produced by this builder be <em>compressed</em>
+     * with the supplied content-coding.
+     *
+     * @param coding the content-coding to use (never {@code null})
+     * @return this builder for method chaining
+     * @since 5.6
+     */
+    public EntityBuilder compressed(final ContentCoding coding) {
+        this.compressWith = coding;
+        return this;
+    }
+
+    /**
+     * Returns the content-coding that {@link #build()} will apply to the
+     * outgoing {@link org.apache.hc.core5.http.HttpEntity}, or {@code null}
+     * when no compression has been requested.
+     *
+     * @return the chosen {@link ContentCoding} — typically
+     * {@link ContentCoding#GZIP}, {@link ContentCoding#DEFLATE}, etc. —
+     * or {@code null} if the request body will be sent uncompressed.
+     * @since 5.6
+     */
+    public ContentCoding getCompressWith() {
+        return compressWith;
+    }
+
+
 
     private ContentType getContentOrDefault(final ContentType def) {
         return this.contentType != null ? this.contentType : def;
@@ -380,8 +438,13 @@ public class EntityBuilder {
         } else {
             throw new IllegalStateException("No entity set");
         }
-        if (this.gzipCompressed) {
-            return new GzipCompressingEntity(e);
+        if (compressWith != null) {
+            final ContentEncoderRegistry.EncoderFactory f = ContentEncoderRegistry.lookup(compressWith);
+            if (f == null) {
+                throw new UnsupportedOperationException(
+                        "No encoder available for content-coding '" + compressWith.token() + '\'');
+            }
+            return f.wrap(e);
         }
         return e;
     }

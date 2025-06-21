@@ -79,6 +79,7 @@
     <api.comparison.version>5.3</api.comparison.version>
     <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer</hc.animal-sniffer.signature.ignores>
     <commons.compress.version>1.27.1</commons.compress.version>
+    <zstd.jni.version>1.5.7-3</zstd.jni.version>
   </properties>
 
   <dependencyManagement>
@@ -210,7 +211,11 @@
         <artifactId>commons-compress</artifactId>
         <version>${commons.compress.version}</version>
       </dependency>
-
+      <dependency>
+        <groupId>com.github.luben</groupId>
+        <artifactId>zstd-jni</artifactId>
+        <version>${zstd.jni.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
