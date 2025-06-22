@@ -84,7 +84,7 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
 
-    - run: mvn clean package -DskipTests -Drat.skip=true -Dcheckstyle.skip
+    - run: ./mvnw clean package -DskipTests -Drat.skip=true -Dcheckstyle.skip
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
