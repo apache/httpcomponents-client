@@ -109,9 +109,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     }
 
     private void validateUdsArguments() {
-        if (this.secure) {
-            throw new UnsupportedOperationException("HTTPS is not supported over a UDS connection");
-        } else if (this.localAddress != null) {
+        if (this.localAddress != null) {
             throw new UnsupportedOperationException("A localAddress cannot be specified for a UDS connection");
         } else if (this.proxyChain != null) {
             throw new UnsupportedOperationException("Proxies are not supported over a UDS connection");
@@ -225,7 +223,22 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      * @since 5.6
      */
     public HttpRoute(final HttpHost target, final Path unixDomainSocket) {
-        this(target, null, null, Collections.emptyList(), unixDomainSocket, false, TunnelType.PLAIN, LayerType.PLAIN);
+        this(target, false, unixDomainSocket);
+    }
+
+    /**
+     * Creates a new direct route that connects over a Unix domain socket rather than TCP.
+     *
+     * @param target           the host to which to route
+     * @param secure           {@code true} if the route is (to be) secure,
+     *                         {@code false} otherwise
+     * @param unixDomainSocket the path to the Unix domain socket
+     *
+     * @since 5.6
+     */
+    public HttpRoute(final HttpHost target, final boolean secure, final Path unixDomainSocket) {
+        this(target, null, null, Collections.emptyList(), unixDomainSocket, secure,
+                TunnelType.PLAIN, LayerType.PLAIN);
     }
 
     /**

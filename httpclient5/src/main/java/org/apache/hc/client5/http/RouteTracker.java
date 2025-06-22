@@ -292,7 +292,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         if (!this.connected) {
             return null;
         } else if (this.unixDomainSocket != null) {
-            return new HttpRoute(this.targetHost, this.unixDomainSocket);
+            return new HttpRoute(this.targetHost, this.secure, this.unixDomainSocket);
         } else {
             return new HttpRoute(this.targetHost, this.localAddress,
                 this.proxyChain, this.secure,

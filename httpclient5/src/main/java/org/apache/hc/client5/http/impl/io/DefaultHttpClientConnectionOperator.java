@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.io;
 
+import javax.net.ssl.SSLSocket;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -35,8 +36,6 @@ import java.net.SocketException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-
-import javax.net.ssl.SSLSocket;
 
 import org.apache.hc.client5.http.ConnectExceptionSupport;
 import org.apache.hc.client5.http.DnsResolver;
@@ -182,7 +181,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         final SocketAddress socksProxyAddress = socketConfig.getSocksProxyAddress();
         final Proxy socksProxy = socksProxyAddress != null ? new Proxy(Proxy.Type.SOCKS, socksProxyAddress) : null;
         if (unixDomainSocket != null) {
-            connectToUnixDomainSocket(conn, endpointHost, unixDomainSocket, connectTimeout, socketConfig, context, soTimeout);
+            connectToUnixDomainSocket(conn, endpointHost, endpointName, attachment, unixDomainSocket, connectTimeout, socketConfig, context, soTimeout);
             return;
         }
 
@@ -218,17 +217,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 conn.setSocketTimeout(soTimeout);
                 final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(endpointHost.getSchemeName()) : null;
                 if (tlsSocketStrategy != null) {
-                    final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
-                    onBeforeTlsHandshake(context, endpointHost);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("{} {} upgrading to TLS", ConnPoolSupport.getId(conn), tlsName);
-                    }
-                    final SSLSocket sslSocket = tlsSocketStrategy.upgrade(socket, tlsName.getHostName(), tlsName.getPort(), attachment, context);
-                    conn.bind(sslSocket, socket);
-                    onAfterTlsHandshake(context, endpointHost);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("{} {} upgraded to TLS", ConnPoolSupport.getId(conn), tlsName);
-                    }
+                    upgradeToTls(conn, endpointHost, endpointName, attachment, context, tlsSocketStrategy, socket);
                 }
                 return;
             } catch (final RuntimeException ex) {
@@ -249,9 +238,27 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         }
     }
 
+    private void upgradeToTls(final ManagedHttpClientConnection conn, final HttpHost endpointHost,
+                              final NamedEndpoint endpointName, final Object attachment, final HttpContext context,
+                              final TlsSocketStrategy tlsSocketStrategy, final Socket socket) throws IOException {
+        final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
+        onBeforeTlsHandshake(context, endpointHost);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} {} upgrading to TLS", ConnPoolSupport.getId(conn), tlsName);
+        }
+        final SSLSocket sslSocket = tlsSocketStrategy.upgrade(socket, tlsName.getHostName(), tlsName.getPort(), attachment, context);
+        conn.bind(sslSocket, socket);
+        onAfterTlsHandshake(context, endpointHost);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} {} upgraded to TLS", ConnPoolSupport.getId(conn), tlsName);
+        }
+    }
+
     private void connectToUnixDomainSocket(
             final ManagedHttpClientConnection conn,
             final HttpHost endpointHost,
+            final NamedEndpoint endpointName,
+            final Object attachment,
             final Path unixDomainSocket,
             final Timeout connectTimeout,
             final SocketConfig socketConfig,
@@ -273,6 +280,11 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 LOG.debug("{} {} connected to {}", ConnPoolSupport.getId(conn), endpointHost, unixDomainSocket);
             }
             conn.setSocketTimeout(soTimeout);
+
+            final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(endpointHost.getSchemeName()) : null;
+            if (tlsSocketStrategy != null) {
+                upgradeToTls(conn, endpointHost, endpointName, attachment, context, tlsSocketStrategy, socket);
+            }
         } catch (final RuntimeException ex) {
             Closer.closeQuietly(newSocket);
             throw ex;

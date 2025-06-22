@@ -30,8 +30,6 @@ import org.apache.hc.core5.http.URIScheme;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
-
 class UdsIntegrationTests {
     @Nested
     @DisplayName("Request execution (HTTP/1.1)")
@@ -46,7 +44,6 @@ class UdsIntegrationTests {
     class RequestExecutionTls extends TestClientRequestExecution {
         public RequestExecutionTls() {
             super(URIScheme.HTTPS, true);
-            assumeTrue(false, "HTTPS is not currently supported over Unix domain sockets");
         }
     }
 

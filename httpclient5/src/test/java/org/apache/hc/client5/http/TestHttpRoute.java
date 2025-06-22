@@ -487,8 +487,7 @@ class TestHttpRoute {
         final List<HttpHost> noProxies = Collections.emptyList();
         final List<HttpHost> oneProxy = Collections.singletonList(PROXY1);
         new HttpRoute(TARGET1, null, null, noProxies, uds, false, TunnelType.PLAIN, LayerType.PLAIN);
-        Assertions.assertThrows(RuntimeException.class, () ->
-            new HttpRoute(TARGET1, null, null, noProxies, uds, true, TunnelType.PLAIN, LayerType.PLAIN));
+        new HttpRoute(TARGET1, null, null, null, uds, true, TunnelType.PLAIN, LayerType.PLAIN);
         Assertions.assertThrows(RuntimeException.class, () ->
             new HttpRoute(TARGET1, null, LOCAL41, noProxies, uds, false, TunnelType.PLAIN, LayerType.PLAIN));
         Assertions.assertThrows(RuntimeException.class, () ->

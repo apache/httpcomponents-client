@@ -100,10 +100,8 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         if (unixDomainSocket != null) {
             if (proxy != null) {
                 throw new UnsupportedOperationException("Proxies are not supported over Unix domain sockets");
-            } else if (secure) {
-                throw new UnsupportedOperationException("HTTPS is not supported over Unix domain sockets");
             }
-            return new HttpRoute(target, unixDomainSocket);
+            return new HttpRoute(target, secure, unixDomainSocket);
         }
         final InetAddress inetAddress = determineLocalAddress(target, context);
         if (proxy == null) {
