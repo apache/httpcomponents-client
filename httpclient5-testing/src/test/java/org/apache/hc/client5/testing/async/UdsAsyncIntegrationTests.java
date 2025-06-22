@@ -47,6 +47,15 @@ class UdsAsyncIntegrationTests {
     }
 
     @Nested
+    @DisplayName("Fundamentals (HTTP/1.1, TLS)")
+    class Http1Tls extends TestHttp1Async {
+        public Http1Tls() {
+            super(URIScheme.HTTPS, true);
+            checkForUdsSupport();
+        }
+    }
+
+    @Nested
     @DisplayName("Request re-execution (HTTP/1.1)")
     class Http1RequestReExecution extends TestHttp1RequestReExecution {
         public Http1RequestReExecution() {
