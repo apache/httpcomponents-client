@@ -2119,6 +2119,59 @@ Changelog:
 
 
 
+Release 4.3.6
+-------------------
+
+HttpClient 4.3.6 (GA) is a maintenance release that fixes several problems with HttpClient OSGi
+bundle as well as some other issues reported since release 4.3.5.
+
+Please note that as of this release HttpClient disables all versions of SSL (including SSLv3)
+in favor of the TLS protocol by default. Those users who wish to continue using SSLv3 need 
+to explicitly enable support for it. 
+
+Users of all HttpClient versions are advised to upgrade.
+
+Changelog:
+-------------------
+
+* SSLv3 protocol is disabled by default
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1558] HttpCore classes included in the OSGi bundle by mistake
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1544] Fixed NPE in ResponseProcessCookies when running with DEBUG priority
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1542] Caching HttpClient uses absolute URIs for validation 
+  Based on contribution by Joseph Walton <joe at kafsemo.org>
+
+* [HTTPCLIENT-1537] OSGi metadata contains invalid default proxy port value
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1547, HTTPCLIENT-1563] HttpClient OSGi bundle doesn't import packages "javax.naming",
+  "javax.naming.ldap" and "javax.naming.directory".
+  Contributed by Willem Jiang <ningjiang at apache.org>
+
+
+
+Release 4.3.5
+-------------------
+
+HttpClient 4.3.5 (GA) is a bug fix release that addresses several of issues reported since 
+release 4.3.4.
+
+Users of all HttpClient versions are advised to upgrade.
+
+Changelog:
+-------------------
+
+* Improved SSL cert subject parsing
+
+* [HTTPCLIENT-1524] RFC 2617 auth schemes (basic and digest) cannot handle auth parameters with 
+  mixed or upper case
+
+
 Release 4.3.4
 -------------------
 
