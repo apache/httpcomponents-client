@@ -68,9 +68,6 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public final class ContentDecoderRegistry {
 
-    private static final String CCSF =
-            "org.apache.commons.compress.compressors.CompressorStreamFactory";
-
 
     private static final Map<ContentCoding, InputStreamFactory> REGISTRY = buildRegistry();
 
@@ -91,9 +88,9 @@ public final class ContentDecoderRegistry {
         register(m, ContentCoding.DEFLATE, new DeflateInputStreamFactory());
 
         // 2. Commons-Compress (optional)
-        if (commonsCompressPresent()) {
+        if (CommonsCompressSupport.isPresent()) {
             for (final ContentCoding coding : Arrays.asList(
-                    ContentCoding.BROTLI,
+                    ContentCoding.BROTLI,     // note: will be skipped until CC ships an encoder
                     ContentCoding.ZSTD,
                     ContentCoding.XZ,
                     ContentCoding.LZMA,
@@ -125,16 +122,6 @@ public final class ContentDecoderRegistry {
                                    final ContentCoding coding) {
         if (CommonsCompressDecoderFactory.runtimeAvailable(coding.token())) {
             register(map, coding, new CommonsCompressDecoderFactory(coding.token()));
-        }
-    }
-
-    private static boolean commonsCompressPresent() {
-        try {
-            Class.forName(
-                    CCSF, false, ContentDecoderRegistry.class.getClassLoader());
-            return true;
-        } catch (final ClassNotFoundException | LinkageError ex) {
-            return false;
         }
     }
 
