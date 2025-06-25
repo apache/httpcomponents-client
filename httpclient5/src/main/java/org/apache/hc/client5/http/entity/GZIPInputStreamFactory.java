@@ -36,9 +36,14 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * {@link InputStreamFactory} for handling GZIPContent Coded responses.
- *
+ * @deprecated – the public extension point has moved to
+ *             {@link org.apache.hc.client5.http.entity.compress.Decoder}.
+ *             For built-in gzip support use
+ *             {@code ContentCodecRegistry.decoder(ContentCoding.GZIP)} or
+ *             wrap a stream directly with
  * @since 5.0
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class GZIPInputStreamFactory implements InputStreamFactory {
 
