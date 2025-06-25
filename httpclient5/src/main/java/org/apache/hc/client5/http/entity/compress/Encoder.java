@@ -24,35 +24,36 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.entity;
+
+package org.apache.hc.client5.http.entity.compress;
 
 import org.apache.hc.core5.http.HttpEntity;
 
 /**
- * {@link org.apache.hc.core5.http.io.entity.HttpEntityWrapper} responsible for
- * handling br Content Coded responses.
- * @deprecated See {@link org.apache.hc.client5.http.entity.compress.ContentCodecRegistry#decoder(org.apache.hc.client5.http.entity.compress.ContentCoding)}
+ * Push-side transformer that wraps an existing {@link HttpEntity} in a
+ * streaming, on-the-fly <em>compressing</em> entity.
  *
- * @see GzipDecompressingEntity
- * @since 5.2
+ * <p>The returned entity will:</p>
+ * <ul>
+ *   <li>Advertise the appropriate {@code Content-Encoding} header.</li>
+ *   <li>Report an unknown content length ({@code -1}) and
+ *       {@link HttpEntity#isChunked() chunked} transfer.</li>
+ *   <li>Compress the source bytes as they are written to the output
+ *       stream supplied by the HTTP transport.</li>
+ * </ul>
+ *
+ * @since 5.6
  */
-@Deprecated
-public class BrotliDecompressingEntity extends DecompressingEntity {
-    /**
-     * Creates a new {@link DecompressingEntity}.
-     *
-     * @param entity factory to create decompressing stream.
-     */
-    public BrotliDecompressingEntity(final HttpEntity entity) {
-        super(entity, BrotliInputStreamFactory.getInstance());
-    }
+@FunctionalInterface
+public interface Encoder {
 
-    public static boolean isAvailable() {
-        try {
-            Class.forName("org.brotli.dec.BrotliInputStream");
-            return true;
-        } catch (final ClassNotFoundException | NoClassDefFoundError e) {
-            return false;
-        }
-    }
+    /**
+     * Wraps the supplied entity in its compressing counterpart.
+     *
+     * @param src the original, uncompressed {@link HttpEntity}
+     *            (never {@code null})
+     * @return a new {@code HttpEntity} that produces compressed bytes
+     * when written
+     */
+    HttpEntity wrap(HttpEntity src);
 }
