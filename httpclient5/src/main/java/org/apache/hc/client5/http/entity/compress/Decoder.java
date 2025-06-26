@@ -24,35 +24,37 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.entity;
 
-import org.apache.hc.core5.http.HttpEntity;
+package org.apache.hc.client5.http.entity.compress;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * {@link org.apache.hc.core5.http.io.entity.HttpEntityWrapper} responsible for
- * handling br Content Coded responses.
- * @deprecated See {@link org.apache.hc.client5.http.entity.compress.ContentCodecRegistry#decoder(org.apache.hc.client5.http.entity.compress.ContentCoding)}
+ * Pull-side transformer that takes a compressed {@link InputStream} and
+ * returns a lazily-decoded view of the same byte sequence.
  *
- * @see GzipDecompressingEntity
- * @since 5.2
+ * <p>Implementations <strong>must</strong> return a stream that honours the
+ * usual {@code InputStream} contract and propagates {@link IOException}s
+ * raised by the underlying transport.</p>
+ *
+ * @since 5.6
  */
-@Deprecated
-public class BrotliDecompressingEntity extends DecompressingEntity {
-    /**
-     * Creates a new {@link DecompressingEntity}.
-     *
-     * @param entity factory to create decompressing stream.
-     */
-    public BrotliDecompressingEntity(final HttpEntity entity) {
-        super(entity, BrotliInputStreamFactory.getInstance());
-    }
+@FunctionalInterface
+public interface Decoder {
 
-    public static boolean isAvailable() {
-        try {
-            Class.forName("org.brotli.dec.BrotliInputStream");
-            return true;
-        } catch (final ClassNotFoundException | NoClassDefFoundError e) {
-            return false;
-        }
-    }
+    /**
+     * Wraps the supplied source stream in a decoding stream that transparently
+     * produces the uncompressed data.
+     *
+     * @param src the source {@code InputStream} positioned at the start of the
+     *            encoded payload (never {@code null})
+     * @return a new, undecoded {@code InputStream}; the caller is responsible
+     * for closing it
+     * @throws IOException if the decoding stream cannot be created or an
+     *                     underlying I/O error occurs
+     */
+    InputStream wrap(InputStream src) throws IOException;
 }
+
+
