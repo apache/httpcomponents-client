@@ -37,8 +37,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.ProtocolFamily;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.StandardProtocolFamily;
+import java.nio.channels.SocketChannel;
 import java.nio.file.Path;
 
 /**
@@ -70,14 +73,14 @@ public final class UnixDomainSocketFactory {
 
     private static Implementation detectImplementation() {
         try {
-            Class.forName(JUNIXSOCKET_SOCKET_CLASS);
-            LOG.debug("Using JUnixSocket Unix Domain Socket implementation");
-            return Implementation.JUNIXSOCKET;
+            Class.forName(JDK_UNIX_SOCKET_ADDRESS_CLASS);
+            LOG.debug("Using JDK Unix Domain Socket implementation");
+            return Implementation.JDK;
         } catch (final ClassNotFoundException e) {
             try {
-                Class.forName(JDK_UNIX_SOCKET_ADDRESS_CLASS);
-                LOG.debug("Using JDK Unix Domain Socket implementation");
-                return Implementation.JDK;
+                Class.forName(JUNIXSOCKET_SOCKET_CLASS);
+                LOG.debug("Using JUnixSocket Unix Domain Socket implementation");
+                return Implementation.JUNIXSOCKET;
             } catch (final ClassNotFoundException e2) {
                 LOG.debug("No Unix Domain Socket implementation found");
                 return Implementation.NONE;
@@ -138,11 +141,17 @@ public final class UnixDomainSocketFactory {
 
         try {
             if (IMPLEMENTATION == Implementation.JDK) {
-                // Java 16+ only supports UDS through the SocketChannel API, but the sync client is coupled
-                // to the legacy Socket API. In order to use Java sockets, we first need to write an
-                // adapter, similar to the one provided by JUnixSocket.
-                throw new UnsupportedOperationException("JEP 380 Unix domain sockets are not supported; use "
-                        + "JUnixSocket");
+                // Java 16+ only supports UDS through the SocketChannel API, but the sync client is coupled to the
+                // legacy Socket API. To facilitate this, we use an adapter, similar to the one provided by JUnixSocket.
+                try {
+                    final SocketChannel channel = (SocketChannel) SocketChannel.class.getMethod("open",
+                            ProtocolFamily.class)
+                        .invoke(null, StandardProtocolFamily.valueOf("UNIX"));
+                    return new Jep380SocketChannelAdapter(channel);
+                } catch (final ReflectiveOperationException ex) {
+                    throw new UnsupportedOperationException("JEP 380 Unix domain sockets are not supported; use "
+                        + "JUnixSocket", ex);
+                }
             } else {
                 // JUnixSocket implementation
                 final Class<?> socketClass = Class.forName(JUNIXSOCKET_SOCKET_CLASS);
