@@ -346,6 +346,36 @@ public class H2SharingConnPoolTest {
                 Mockito.eq(true));
     }
 
+    /**
+     * Same connection can only be released once.
+     * Attempting to release it again will throw: IllegalStateException("Pool entry is not present in the set of leased entries")
+     *
+     * @see org.apache.hc.core5.pool.LaxConnPool.PerRoutePool#removeLeased(PoolEntry)
+     * @see org.apache.hc.core5.pool.StrictConnPool#release(PoolEntry, boolean)
+     */
+    @Test
+    void testReleaseNonReusableNotInCacheReturnedToPool() throws Exception {
+        final PoolEntry<String, HttpConnection> poolEntry = new PoolEntry<>(DEFAULT_ROUTE);
+        poolEntry.assignConnection(connection);
+        Mockito.when(connection.isOpen()).thenReturn(false);
+        final H2SharingConnPool.PerRoutePool<String, HttpConnection> routePool = h2SharingPool.getPerRoutePool(DEFAULT_ROUTE);
+        routePool.track(poolEntry);
+        routePool.track(poolEntry);
+
+        final AtomicReference<HttpConnection> connRef = new AtomicReference<>(connection);
+        Mockito.doAnswer(invocation -> {
+            final PoolEntry<String, HttpConnection> entry = invocation.getArgument(0);
+            if (!connRef.compareAndSet(entry.getConnection(), null)) {
+                throw new IllegalStateException("Pool entry is not present in the set of leased entries");
+            }
+            return null;
+        }).when(connPool).release(Mockito.eq(poolEntry), Mockito.anyBoolean());
+
+        h2SharingPool.release(poolEntry, false);
+        // for reproduce https://issues.apache.org/jira/browse/HTTPCLIENT-2379
+        Assertions.assertThrows(IllegalStateException.class, () -> h2SharingPool.release(poolEntry, false));
+    }
+
     @Test
     void testClose() throws Exception {
         h2SharingPool.close();
