@@ -69,7 +69,15 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
     private final MultihomeIOSessionRequester sessionRequester;
     private final Lookup<TlsStrategy> tlsStrategyLookup;
 
-    DefaultAsyncClientConnectionOperator(
+    /**
+     * Constructs a new {@code DefaultAsyncClientConnectionOperator}.
+     *
+     * <p><strong>Note:</strong> this class is marked {@code @Internal}; rely on it
+     * only if you are prepared for incompatible changes in a future major
+     * release.  Typical client code should use the high-level builders in
+     * {@code HttpAsyncClients} instead.</p>
+     */
+    protected DefaultAsyncClientConnectionOperator(
             final Lookup<TlsStrategy> tlsStrategyLookup,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
