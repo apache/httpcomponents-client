@@ -47,9 +47,9 @@ class TestBrotli {
 
         final byte[] bytes = new byte[] {33, 44, 0, 4, 116, 101, 115, 116, 32, 98, 114, 111, 116, 108, 105, 10, 3};
 
-        final HttpEntity entity = new org.apache.hc.client5.http.entity.compress.DecompressingEntity(
-                new ByteArrayEntity(bytes, null),
-                ContentCodecRegistry.decoder(ContentCoding.BROTLI));
+        final HttpEntity entity = ContentCodecRegistry.unwrap(
+                ContentCoding.BROTLI,
+                new ByteArrayEntity(bytes, null));
 
         Assertions.assertEquals("test brotli\n", EntityUtils.toString(entity));
     }
