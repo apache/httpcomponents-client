@@ -4,10 +4,10 @@ Release 5.6-alpha1
 Change Log
 -------------------
 
-* Bump org.junit:junit-bom from 5.12.2 to 5.13.1 #639, #650.
+* Bump org.junit:junit-bom from 5.12.2 to 5.13.3 #639, #650, #670.
   Contributed by Gary Gregory <garydgregory at gmail.com>
 
-* Bump testcontainers.version from 1.20.6 to 1.21.1 #638.
+* Bump testcontainers.version from 1.20.6 to 1.21.3 #638, #655 #669.
   Contributed by Gary Gregory <garydgregory at gmail.com>
 
 * Add org.apache.hc.client5.http.entity.mime.PathBody
@@ -15,10 +15,10 @@ Change Log
   Add org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder.addBinaryBody(String, Path, ContentType, String)
   Contributed by Gary Gregory <garydgregory at gmail.com>
 
-* Bump log4j.version from 2.24.3 to 2.25.0 #656 
+* Bump log4j.version from 2.24.3 to 2.25.0 #656.
   Contributed by Gary Gregory <garydgregory at gmail.com>
 
-* Bump testcontainers.version from 1.21.1 to 1.21.2 #655 
+* Bump com.github.luben:zstd-jni from 1.5.7-3 to 1.5.7-4 #668.
   Contributed by Gary Gregory <garydgregory at gmail.com>
 
 
