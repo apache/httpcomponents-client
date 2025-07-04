@@ -28,7 +28,6 @@
 package org.apache.hc.client5.http.entity.compress;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -59,20 +58,17 @@ public final class ContentCodecRegistry {
     private static final Map<ContentCoding, Codec> REGISTRY = build();
 
     private static Map<ContentCoding, Codec> build() {
-        final Map<ContentCoding, Codec> m =
-                new EnumMap<>(ContentCoding.class);
+        final Map<ContentCoding, Codec> m = new EnumMap<>(ContentCoding.class);
 
-        /* 1. Built-ins ------------------------------------------------- */
         m.put(ContentCoding.GZIP,
                 new Codec(
                         // encoder
                         org.apache.hc.client5.http.entity.GzipCompressingEntity::new,
-                        // decoder
-                        GZIPInputStream::new));
+                        ent -> new DecompressingEntity(ent, GZIPInputStream::new)));
         m.put(ContentCoding.DEFLATE,
                 new Codec(
                         org.apache.hc.client5.http.entity.DeflateCompressingEntity::new,
-                        DeflateInputStream::new));
+                        ent -> new DecompressingEntity(ent, DeflateInputStream::new)));
 
         /* 2. Commons-Compress extras ---------------------------------- */
         if (CommonsCompressSupport.isPresent()) {
@@ -88,8 +84,10 @@ public final class ContentCodecRegistry {
                     ContentCoding.DEFLATE64)) {
 
                 if (CommonsCompressDecoderFactory.runtimeAvailable(c.token())) {
-                    m.put(c, new Codec(e -> new CommonsCompressingEntity(e, c.token()), new CommonsCompressDecoderFactory(c.token())
-                    ));
+                    m.put(c, new Codec(
+                            e -> new CommonsCompressingEntity(e, c.token()),
+                            ent -> new DecompressingEntity(ent,
+                                    CommonsCompressDecoderFactory.decoder(c.token()))));
                 }
             }
         }
@@ -98,35 +96,20 @@ public final class ContentCodecRegistry {
         if (!m.containsKey(ContentCoding.BROTLI)
                 && CommonsCompressDecoderFactory.runtimeAvailable(ContentCoding.BROTLI.token())) {
             m.put(ContentCoding.BROTLI,
-                    Codec.decodeOnly(BrotliInputStream::new));
+                    Codec.decodeOnly(ent ->
+                            new DecompressingEntity(ent, BrotliInputStream::new)));
         }
 
         return Collections.unmodifiableMap(m);
     }
 
-
-    /**
-     * Returns the {@link Codec} (or {@code null}).
-     */
-    public static Codec codec(final ContentCoding coding) {
-        return REGISTRY.get(coding);
-    }
-
-    /**
-     * Convenient encoder helper – returns {@code null} if unsupported.
-     */
-    public static HttpEntity wrap(final ContentCoding coding,
-                                  final HttpEntity src) {
-        final Codec c = codec(coding);
+    public static HttpEntity wrap(final ContentCoding coding, final HttpEntity src) {
+        final Codec c = REGISTRY.get(coding);
         return c != null && c.encoder != null ? c.encoder.wrap(src) : null;
     }
 
-    /**
-     * Convenient decoder helper – returns {@code null} if unsupported.
-     */
-    public static InputStream unwrap(final ContentCoding coding,
-                                     final InputStream src) throws IOException {
-        final Codec c = codec(coding);
+    public static HttpEntity unwrap(final ContentCoding coding, final HttpEntity src) throws IOException {
+        final Codec c = REGISTRY.get(coding);
         return c != null && c.decoder != null ? c.decoder.wrap(src) : null;
     }
 
