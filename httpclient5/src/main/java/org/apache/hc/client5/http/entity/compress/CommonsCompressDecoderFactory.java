@@ -55,7 +55,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  */
 @Internal
 @Contract(threading = ThreadingBehavior.STATELESS)
-final class CommonsCompressDecoderFactory implements Decoder {
+final class CommonsCompressDecoderFactory {
 
     /**
      * Map of codings that need extra JARs → the fully‐qualified class we test for
@@ -71,27 +71,19 @@ final class CommonsCompressDecoderFactory implements Decoder {
         REQUIRED_CLASS_NAME = Collections.unmodifiableMap(m);
     }
 
-    private final String encoding;          // lower-case IANA token
-    private final CompressorStreamFactory factory = new CompressorStreamFactory();
-
-    CommonsCompressDecoderFactory(final String encoding) {
-        this.encoding = encoding.toLowerCase(Locale.ROOT);
-    }
-
-    public String getContentEncoding() {
-        return encoding;
-    }
-
     /**
-     * Lazily wraps the source stream in a Commons-Compress decoder.
+     * @return lazy decoder for the given IANA token (lower-case).
      */
-    @Override
-    public InputStream wrap(final InputStream source) throws IOException {
-        try {
-            return factory.createCompressorInputStream(encoding, source);
-        } catch (final CompressorException | LinkageError ex) {
-            throw new IOException("Unable to decode Content-Encoding '" + encoding + '\'', ex);
-        }
+    static IOFunction<InputStream, InputStream> decoder(final String token) {
+        final String enc = token.toLowerCase(Locale.ROOT);
+        final CompressorStreamFactory factory = new CompressorStreamFactory();
+        return in -> {
+            try {
+                return factory.createCompressorInputStream(enc, in);
+            } catch (final CompressorException | LinkageError ex) {
+                throw new IOException("Unable to decode Content-Encoding '" + enc + '\'', ex);
+            }
+        };
     }
 
     /**

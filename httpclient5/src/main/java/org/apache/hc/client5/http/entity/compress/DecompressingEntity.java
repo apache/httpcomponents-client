@@ -39,14 +39,15 @@ import org.apache.hc.core5.util.Args;
 public class DecompressingEntity extends HttpEntityWrapper {
 
     private static final int BUF_SIZE = 8 * 1024;   // 8 KiB buffer
-
-    private final Decoder decoder;
+    private final IOFunction<InputStream, InputStream> decoder;
     private final ReentrantLock lock = new ReentrantLock();
     private volatile InputStream cached;
 
-    public DecompressingEntity(final HttpEntity src, final Decoder decoder) {
+    public DecompressingEntity(
+            final HttpEntity src,
+            final IOFunction<InputStream, InputStream> decoder) {
         super(src);
-        this.decoder = Args.notNull(decoder, "Decoder");
+        this.decoder = Args.notNull(decoder, "Stream decoder");
     }
 
     /**
@@ -55,7 +56,7 @@ public class DecompressingEntity extends HttpEntityWrapper {
     @Override
     public InputStream getContent() throws IOException {
         if (!isStreaming()) {
-            return decoder.wrap(super.getContent());
+            return decoder.apply(super.getContent());
         }
 
         InputStream local = cached;
@@ -63,7 +64,7 @@ public class DecompressingEntity extends HttpEntityWrapper {
             lock.lock();
             try {
                 if (cached == null) {
-                    cached = decoder.wrap(super.getContent());
+                    cached = decoder.apply(super.getContent());
                 }
                 local = cached;
             } finally {
@@ -81,6 +82,16 @@ public class DecompressingEntity extends HttpEntityWrapper {
         return -1;
     }
 
+    @Override
+    public boolean isRepeatable() {
+        return super.isRepeatable();
+    }
+
+    @Override
+    public boolean isStreaming() {
+        return super.isStreaming();
+    }
+
     /**
      * Streams the decoded bytes directly to {@code out}.
      */
@@ -94,15 +105,5 @@ public class DecompressingEntity extends HttpEntityWrapper {
                 out.write(buf, 0, len);
             }
         }
-    }
-
-    @Override
-    public boolean isRepeatable() {
-        return super.isRepeatable();
-    }
-
-    @Override
-    public boolean isStreaming() {
-        return super.isStreaming();
     }
 }

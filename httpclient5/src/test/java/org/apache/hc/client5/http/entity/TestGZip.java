@@ -30,7 +30,6 @@ package org.apache.hc.client5.http.entity;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
@@ -69,8 +68,9 @@ class TestGZip {
             final ByteArrayOutputStream buf = new ByteArrayOutputStream();
             gzipe.writeTo(buf);
             final ByteArrayEntity out = new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
-            final org.apache.hc.client5.http.entity.compress.DecompressingEntity gunzipe = new org.apache.hc.client5.http.entity.compress.DecompressingEntity(
-                    out, ContentCodecRegistry.decoder(ContentCoding.GZIP));
+            final HttpEntity gunzipe = ContentCodecRegistry
+                    .decoder(ContentCoding.GZIP)
+                    .wrap(out);
             Assertions.assertEquals("some kind of text",
                     EntityUtils.toString(gunzipe, StandardCharsets.US_ASCII));
         }
@@ -105,10 +105,10 @@ class TestGZip {
             bytes[i] = (byte) (data[i] & 0xff);
         }
 
-        try (final org.apache.hc.client5.http.entity.compress.DecompressingEntity entity = new org.apache.hc.client5.http.entity.compress.DecompressingEntity(
-                new InputStreamEntity(new ByteArrayInputStream(bytes),
-                        ContentType.APPLICATION_OCTET_STREAM),
-                ContentCodecRegistry.decoder(ContentCoding.GZIP))) {
+        try (final HttpEntity entity = ContentCodecRegistry
+                .decoder(ContentCoding.GZIP)
+                .wrap(new InputStreamEntity(new ByteArrayInputStream(bytes),
+                        ContentType.APPLICATION_OCTET_STREAM))) {
             Assertions.assertEquals("stream-1\nstream-2\n",
                     EntityUtils.toString(entity, StandardCharsets.US_ASCII));
         }
@@ -128,9 +128,10 @@ class TestGZip {
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         gzipped.writeTo(buf);
 
-        final HttpEntity ungzip = new org.apache.hc.client5.http.entity.compress.DecompressingEntity(
-                new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM),
-                ContentCodecRegistry.decoder(ContentCoding.GZIP));
+        final HttpEntity ungzip = ContentCodecRegistry
+                .decoder(ContentCoding.GZIP)
+                .wrap(new ByteArrayEntity(buf.toByteArray(),
+                        ContentType.APPLICATION_OCTET_STREAM));
 
         Assertions.assertEquals(txt, EntityUtils.toString(ungzip, StandardCharsets.US_ASCII));
     }
@@ -144,15 +145,11 @@ class TestGZip {
         }
         final byte[] gzBytes = baos.toByteArray();
 
-        final InputStream decoded = ContentCodecRegistry.unwrap(
+        final HttpEntity decodedEntity = ContentCodecRegistry.unwrap(
                 ContentCoding.GZIP,
-                new ByteArrayInputStream(gzBytes));
+                new ByteArrayEntity(gzBytes, ContentType.APPLICATION_OCTET_STREAM));
 
-        Assertions.assertNotNull(decoded, "unwrap returned null");
-
-        final HttpEntity decodedEntity = new InputStreamEntity(
-                decoded, -1, ContentType.APPLICATION_OCTET_STREAM);
-
+        Assertions.assertNotNull(decodedEntity, "unwrap returned null");
         Assertions.assertEquals("unwrap check",
                 EntityUtils.toString(decodedEntity, StandardCharsets.US_ASCII));
     }

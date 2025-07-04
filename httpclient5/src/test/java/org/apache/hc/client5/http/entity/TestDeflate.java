@@ -57,9 +57,9 @@ class TestDeflate {
         compresser.finish();
         final int len = compresser.deflate(compressed);
 
-        final HttpEntity entity = new org.apache.hc.client5.http.entity.compress.DecompressingEntity(
-                new ByteArrayEntity(compressed, 0, len, ContentType.APPLICATION_OCTET_STREAM),
-                ContentCodecRegistry.decoder(ContentCoding.DEFLATE));
+        final HttpEntity entity = ContentCodecRegistry
+                .decoder(ContentCoding.DEFLATE)
+                .wrap(new ByteArrayEntity(compressed, 0, len, ContentType.APPLICATION_OCTET_STREAM));
 
         Assertions.assertEquals(s, EntityUtils.toString(entity));
     }
@@ -78,9 +78,9 @@ class TestDeflate {
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         deflated.writeTo(buf);
 
-        final HttpEntity decoded = new org.apache.hc.client5.http.entity.compress.DecompressingEntity(
-                new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM),
-                ContentCodecRegistry.decoder(ContentCoding.DEFLATE));
+        final HttpEntity decoded = ContentCodecRegistry
+                .decoder(ContentCoding.DEFLATE)
+                .wrap(new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM));
 
         Assertions.assertEquals(text, EntityUtils.toString(decoded, StandardCharsets.US_ASCII));
     }

@@ -29,32 +29,30 @@ package org.apache.hc.client5.http.entity.compress;
 
 import java.io.IOException;
 
-import org.apache.hc.core5.http.HttpEntity;
+import org.conscrypt.Internal;
 
 /**
- * Pull-side transformer that takes a compressed {@link HttpEntity} and
- * returns a lazily-decoded view of the same byte sequence.
+ * Minimal equivalent of {@link java.util.function.Function} whose
+ * {@link #apply(Object)} method is allowed to throw {@link IOException}.
+ * <p>
+ * Used internally by the content-coding layer to pass lambdas that wrap /
+ * unwrap streams without forcing boiler-plate try/catch blocks.
+ * </p>
  *
- * <p>Implementations <strong>must</strong> return an entity whose
- * {@code InputStream} honours the usual stream contract and propagates
- * {@link IOException}s raised by the underlying transport.</p>
- *
+ * @param <T> input type
+ * @param <R> result type
  * @since 5.6
  */
+@Internal
 @FunctionalInterface
-public interface Decoder {
+public interface IOFunction<T, R> {
 
     /**
-     * Wraps the supplied source entity in a decoding entity that transparently
-     * produces the uncompressed data.
+     * Applies the transformation.
      *
-     * @param src the source {@code HttpEntity} positioned at the start of the
-     *            encoded payload (never {@code null})
-     * @return a new, undecoded {@code HttpEntity}; the caller is responsible
-     *         for consuming / closing its content stream
-     * @throws IOException if the decoding entity cannot be created or an
-     *                     underlying I/O error occurs
+     * @param value source value (never {@code null})
+     * @return transformed value
+     * @throws IOException if the transformation cannot be performed
      */
-    HttpEntity wrap(HttpEntity src) throws IOException;
+    R apply(T value) throws IOException;
 }
-

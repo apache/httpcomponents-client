@@ -40,7 +40,6 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.compress.ContentCodecRegistry;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
 import org.apache.hc.client5.http.entity.compress.Decoder;
-import org.apache.hc.client5.http.entity.compress.DecompressingEntity;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -149,14 +148,12 @@ public final class ContentCompressionExec implements ExecChainHandler {
                     final String codecname = codec.getName().toLowerCase(Locale.ROOT);
                     final Decoder decoder = decoderRegistry.lookup(codecname);
                     if (decoder != null) {
-                        response.setEntity(new DecompressingEntity(response.getEntity(), decoder));
+                        response.setEntity(decoder.wrap(response.getEntity()));
                         response.removeHeaders(HttpHeaders.CONTENT_LENGTH);
                         response.removeHeaders(HttpHeaders.CONTENT_ENCODING);
                         response.removeHeaders(HttpHeaders.CONTENT_MD5);
-                    } else {
-                        if (!"identity".equals(codecname) && !ignoreUnknown) {
-                            throw new HttpException("Unsupported Content-Encoding: " + codec.getName());
-                        }
+                    } else if (!"identity".equals(codecname) && !ignoreUnknown) {
+                        throw new HttpException("Unsupported Content-Encoding: " + codec.getName());
                     }
                 }
             }
