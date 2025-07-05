@@ -33,16 +33,17 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-
 import javax.net.ssl.SSLException;
-
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ConnectionClosedException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,6 +73,29 @@ class TestDefaultHttpRequestRetryStrategy {
         Assertions.assertFalse(this.retryStrategy.retryRequest(response3, 4, null));
 
         Assertions.assertEquals(TimeValue.ofMilliseconds(1234L), this.retryStrategy.getRetryInterval(response1, 1, null));
+    }
+
+    @Test
+    void testRetryRequestWithResponseTimeout() {
+        final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
+
+        final HttpClientContext context = HttpClientContext.create();
+        context.setRequestConfig(RequestConfig.custom()
+                .build());
+
+        Assertions.assertTrue(retryStrategy.retryRequest(response, 1, context));
+
+        context.setRequestConfig(RequestConfig.custom()
+            .setResponseTimeout(Timeout.ofMilliseconds(1234L))
+            .build());
+
+        Assertions.assertTrue(retryStrategy.retryRequest(response, 1, context));
+
+        context.setRequestConfig(RequestConfig.custom()
+                .setResponseTimeout(Timeout.ofMilliseconds(1233L))
+                .build());
+
+        Assertions.assertFalse(retryStrategy.retryRequest(response, 1, context));
     }
 
     @Test
