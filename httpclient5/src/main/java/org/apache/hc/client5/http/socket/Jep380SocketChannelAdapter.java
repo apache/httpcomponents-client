@@ -51,11 +51,13 @@ final class Jep380SocketChannelAdapter extends Socket {
     @Override
     public void connect(final SocketAddress endpoint, final int timeout) throws IOException {
         channel.connect(endpoint);
+        channel.configureBlocking(false);
     }
 
     @Override
     public void connect(final SocketAddress endpoint) throws IOException {
         channel.connect(endpoint);
+        channel.configureBlocking(false);
     }
 
     @Override
