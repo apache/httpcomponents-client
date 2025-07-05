@@ -36,7 +36,6 @@ import java.util.Map;
 
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
-import org.apache.hc.client5.http.entity.InputStreamFactory;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -56,8 +55,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  */
 @Internal
 @Contract(threading = ThreadingBehavior.STATELESS)
-final class CommonsCompressDecoderFactory implements InputStreamFactory {
-
+final class CommonsCompressDecoderFactory {
 
     /**
      * Map of codings that need extra JARs → the fully‐qualified class we test for
@@ -73,28 +71,24 @@ final class CommonsCompressDecoderFactory implements InputStreamFactory {
         REQUIRED_CLASS_NAME = Collections.unmodifiableMap(m);
     }
 
-    private final String encoding;
-
-    CommonsCompressDecoderFactory(final String encoding) {
-        this.encoding = encoding.toLowerCase(Locale.ROOT);
+    /**
+     * @return lazy decoder for the given IANA token (lower-case).
+     */
+    static IOFunction<InputStream, InputStream> decoder(final String token) {
+        final String enc = token.toLowerCase(Locale.ROOT);
+        final CompressorStreamFactory factory = new CompressorStreamFactory();
+        return in -> {
+            try {
+                return factory.createCompressorInputStream(enc, in);
+            } catch (final CompressorException | LinkageError ex) {
+                throw new IOException("Unable to decode Content-Encoding '" + enc + '\'', ex);
+            }
+        };
     }
 
-    public String getContentEncoding() {
-        return encoding;
-    }
-
-    @Override
-    public InputStream create(final InputStream source) throws IOException {
-        try {
-            return new CompressorStreamFactory()
-                    .createCompressorInputStream(encoding, source);
-        } catch (final CompressorException | LinkageError ex) {
-            throw new IOException(
-                    "Unable to decode Content-Encoding '" + encoding + '\'', ex);
-        }
-    }
-
-
+    /**
+     * Tests that required helper classes are present for a coding token.
+     */
     static boolean runtimeAvailable(final String token) {
         final ContentCoding coding = ContentCoding.fromToken(token);
         if (coding == null) {

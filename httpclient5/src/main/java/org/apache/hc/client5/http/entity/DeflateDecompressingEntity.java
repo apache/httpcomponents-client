@@ -39,11 +39,13 @@ import org.apache.hc.core5.http.HttpEntity;
  * rather than {@code deflate} streams. We handle both types in here,
  * since that's what is seen on the internet. Moral - prefer
  * {@code gzip}!
+ * @deprecated See {@link org.apache.hc.client5.http.entity.compress.ContentCodecRegistry#decoder(org.apache.hc.client5.http.entity.compress.ContentCoding)}
  *
  * @see GzipDecompressingEntity
  *
  * @since 4.1
  */
+@Deprecated
 public class DeflateDecompressingEntity extends DecompressingEntity {
 
     /**
