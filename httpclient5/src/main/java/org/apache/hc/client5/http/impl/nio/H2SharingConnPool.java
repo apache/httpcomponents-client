@@ -270,16 +270,17 @@ public class H2SharingConnPool<T, C extends HttpConnection> implements ManagedCo
         PoolEntry<T, C> lease() {
             lock.lock();
             try {
-                final PoolEntry<T, C> entry = entryMap.entrySet().stream()
+                return entryMap.entrySet().stream()
+                        .filter(e -> {
+                            final C conn = e.getKey().getConnection();
+                            return conn != null && conn.isOpen();
+                        })
                         .min(Comparator.comparingLong(e -> e.getValue().get()))
-                        .map(Map.Entry::getKey)
+                        .map(e -> {
+                            e.getValue().incrementAndGet();
+                            return e.getKey();
+                        })
                         .orElse(null);
-                if (entry == null) {
-                    return null;
-                }
-                final AtomicLong counter = getCounter(entry);
-                counter.incrementAndGet();
-                return entry;
             } finally {
                 lock.unlock();
             }
@@ -288,20 +289,18 @@ public class H2SharingConnPool<T, C extends HttpConnection> implements ManagedCo
         long release(final PoolEntry<T, C> entry, final boolean reusable) {
             lock.lock();
             try {
-                final C connection = entry.getConnection();
-                if (!reusable || connection == null || !connection.isOpen()) {
-                    entryMap.remove(entry);
-                    return 0;
-                } else {
-                    final AtomicLong counter = entryMap.compute(entry, (e, c) -> {
-                        if (c == null) {
-                            return null;
-                        }
-                        final long count = c.decrementAndGet();
-                        return count > 0 ? c : null;
-                    });
-                    return counter != null ? counter.get() : 0L;
+                if (!reusable) {
+                    entry.discardConnection(CloseMode.GRACEFUL);
                 }
+
+                final AtomicLong counter = entryMap.compute(entry, (e, c) -> {
+                    if (c == null) {
+                        return null;
+                    }
+                    final long count = c.decrementAndGet();
+                    return count > 0 ? c : null;
+                });
+                return counter != null ? counter.get() : 0L;
             } finally {
                 lock.unlock();
             }
