@@ -49,7 +49,6 @@ final class Jep380SocketChannelImplAdapter extends SocketImpl {
 
     public Jep380SocketChannelImplAdapter(final SocketChannel channel) throws IOException {
         this.channel = channel;
-        channel.configureBlocking(false);
     }
 
     @Override
