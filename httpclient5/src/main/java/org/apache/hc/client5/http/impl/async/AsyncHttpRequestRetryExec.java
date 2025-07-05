@@ -126,9 +126,6 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                 state.retrying = retryStrategy.retryRequest(response, scope.execCount.get(), clientContext);
                 if (state.retrying) {
                     state.delay = retryStrategy.getRetryInterval(response, scope.execCount.get(), clientContext);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("{} retrying request in {}", exchangeId, state.delay);
-                    }
                     return new DiscardingEntityConsumer<>();
                 }
                 return asyncExecCallback.handleResponse(response, entityDetails);
@@ -146,13 +143,17 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                     if (entityProducer != null) {
                        entityProducer.releaseResources();
                     }
+                    final TimeValue delay = TimeValue.isPositive(state.delay) ? state.delay : TimeValue.ZERO_MILLISECONDS;
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} wait for {}", exchangeId, delay);
+                    }
                     scope.scheduler.scheduleExecution(
                             request,
                             entityProducer,
                             scope,
                             (r, e, s, c) -> execute(r, e, s, chain, c),
                             asyncExecCallback,
-                            state.delay);
+                            delay);
                 } else {
                     asyncExecCallback.completed();
                 }
@@ -182,13 +183,17 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                         state.retrying = true;
                         final int execCount = scope.execCount.incrementAndGet();
                         state.delay = retryStrategy.getRetryInterval(request, (IOException) cause, execCount - 1, clientContext);
+                        final TimeValue delay = TimeValue.isPositive(state.delay) ? state.delay : TimeValue.ZERO_MILLISECONDS;
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} wait for {}", exchangeId, delay);
+                        }
                         scope.scheduler.scheduleExecution(
                                 request,
                                 entityProducer,
                                 scope,
                                 (r, e, s, c) -> execute(r, e, s, chain, c),
                                 asyncExecCallback,
-                                state.delay);
+                                delay);
                         return;
                     }
                 }

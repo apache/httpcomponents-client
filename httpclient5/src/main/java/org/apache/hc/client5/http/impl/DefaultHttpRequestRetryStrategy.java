@@ -41,6 +41,8 @@ import java.util.Set;
 import javax.net.ssl.SSLException;
 
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -55,6 +57,7 @@ import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Default implementation of the {@link HttpRequestRetryStrategy} interface.
@@ -95,7 +98,8 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
             final Collection<Class<? extends IOException>> clazzes,
             final Collection<Integer> codes) {
         Args.notNegative(maxRetries, "maxRetries");
-        Args.notNegative(defaultRetryInterval.getDuration(), "defaultRetryInterval");
+        Args.notNull(defaultRetryInterval, "defaultRetryInterval");
+        Args.check(TimeValue.isNonNegative(defaultRetryInterval), "Default retry interval is negative");
         this.maxRetries = maxRetries;
         this.defaultRetryInterval = defaultRetryInterval;
         this.nonRetriableIOExceptionClasses = new HashSet<>(clazzes);
@@ -199,6 +203,14 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
             final HttpContext context) {
         Args.notNull(response, "response");
 
+        if (context != null) {
+            final HttpClientContext clientContext = HttpClientContext.cast(context);
+            final RequestConfig requestConfig = clientContext.getRequestConfigOrDefault();
+            final Timeout responseTimeout = requestConfig.getResponseTimeout();
+            if (responseTimeout != null && defaultRetryInterval.compareTo(responseTimeout) > 0) {
+                return false;
+            }
+        }
         return execCount <= this.maxRetries && retriableCodes.contains(response.getCode());
     }
 

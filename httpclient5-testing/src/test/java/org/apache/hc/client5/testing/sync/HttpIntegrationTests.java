@@ -112,4 +112,24 @@ class HttpIntegrationTests {
 
     }
 
+    @Nested
+    @DisplayName("Request re-execution (HTTP/1.1)")
+    class RequestReExecution extends TestClientRequestReExecution {
+
+        public RequestReExecution() {
+            super(URIScheme.HTTP);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Request re-execution (HTTP/1.1)")
+    class RequestReExecutionTls extends TestClientRequestReExecution {
+
+        public RequestReExecutionTls() {
+            super(URIScheme.HTTPS);
+        }
+
+    }
+
 }
