@@ -45,7 +45,6 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.util.TimeValue;
-import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -136,38 +135,6 @@ class TestHttpRequestRetryExec {
                 Mockito.any(),
                 Mockito.same(scope));
         Mockito.verify(nextInterval, Mockito.times(1)).sleep();
-    }
-
-    @Test
-    void testRetryIntervalGreaterResponseTimeout() throws Exception {
-        final HttpRoute route = new HttpRoute(target);
-        final HttpGet request = new HttpGet("/test");
-        final HttpClientContext context = HttpClientContext.create();
-        context.setRequestConfig(RequestConfig.custom()
-                .setResponseTimeout(Timeout.ofSeconds(3))
-                .build());
-
-        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
-
-        Mockito.when(chain.proceed(
-                Mockito.same(request),
-                Mockito.any())).thenReturn(response);
-        Mockito.when(retryStrategy.retryRequest(
-                Mockito.any(),
-                Mockito.anyInt(),
-                Mockito.any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
-        Mockito.when(retryStrategy.getRetryInterval(
-                Mockito.any(),
-                Mockito.anyInt(),
-                Mockito.any())).thenReturn(TimeValue.ofSeconds(5));
-
-        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        retryExec.execute(request, scope, chain);
-
-        Mockito.verify(chain, Mockito.times(1)).proceed(
-                Mockito.any(),
-                Mockito.same(scope));
-        Mockito.verify(response, Mockito.times(0)).close();
     }
 
     @Test
