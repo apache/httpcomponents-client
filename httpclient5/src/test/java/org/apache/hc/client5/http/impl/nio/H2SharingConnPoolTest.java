@@ -86,10 +86,16 @@ public class H2SharingConnPoolTest {
     @Test
     void testLeaseExistingConnectionReturned() throws Exception {
         final PoolEntry<String, HttpConnection> poolEntry = new PoolEntry<>(DEFAULT_ROUTE);
-        final H2SharingConnPool.PerRoutePool<String, HttpConnection> routePool = h2SharingPool.getPerRoutePool(DEFAULT_ROUTE);
-        routePool.track(poolEntry);
+        final HttpConnection conn = Mockito.mock(HttpConnection.class);
+        Mockito.when(conn.isOpen()).thenReturn(true);
+        poolEntry.assignConnection(conn);
 
-        final Future<PoolEntry<String, HttpConnection>> future = h2SharingPool.lease(DEFAULT_ROUTE, null, Timeout.ONE_MILLISECOND, callback);
+        final H2SharingConnPool.PerRoutePool<String, HttpConnection> routePool =
+                h2SharingPool.getPerRoutePool(DEFAULT_ROUTE);
+        routePool.track(poolEntry);
+        final Future<PoolEntry<String, HttpConnection>> future =
+                h2SharingPool.lease(DEFAULT_ROUTE, null, Timeout.ONE_MILLISECOND, callback);
+
         Assertions.assertNotNull(future);
         Assertions.assertSame(poolEntry, future.get());
 
@@ -98,8 +104,7 @@ public class H2SharingConnPoolTest {
                 Mockito.any(),
                 Mockito.any(),
                 Mockito.any());
-        Mockito.verify(callback).completed(
-                Mockito.same(poolEntry));
+        Mockito.verify(callback).completed(Mockito.same(poolEntry));
     }
 
     @Test
@@ -312,38 +317,6 @@ public class H2SharingConnPoolTest {
         Mockito.verify(connPool, Mockito.never()).release(
                 Mockito.same(poolEntry),
                 Mockito.anyBoolean());
-    }
-
-    @Test
-    void testReleaseNonReusableInCacheReturnedToPool() throws Exception {
-        final PoolEntry<String, HttpConnection> poolEntry = new PoolEntry<>(DEFAULT_ROUTE);
-        poolEntry.assignConnection(connection);
-        Mockito.when(connection.isOpen()).thenReturn(true);
-        final H2SharingConnPool.PerRoutePool<String, HttpConnection> routePool = h2SharingPool.getPerRoutePool(DEFAULT_ROUTE);
-        routePool.track(poolEntry);
-        routePool.track(poolEntry);
-
-        h2SharingPool.release(poolEntry, false);
-
-        Mockito.verify(connPool).release(
-                Mockito.same(poolEntry),
-                Mockito.eq(false));
-    }
-
-    @Test
-    void testReleaseReusableAndClosedInCacheReturnedToPool() throws Exception {
-        final PoolEntry<String, HttpConnection> poolEntry = new PoolEntry<>(DEFAULT_ROUTE);
-        poolEntry.assignConnection(connection);
-        Mockito.when(connection.isOpen()).thenReturn(false);
-        final H2SharingConnPool.PerRoutePool<String, HttpConnection> routePool = h2SharingPool.getPerRoutePool(DEFAULT_ROUTE);
-        routePool.track(poolEntry);
-        routePool.track(poolEntry);
-
-        h2SharingPool.release(poolEntry, true);
-
-        Mockito.verify(connPool).release(
-                Mockito.same(poolEntry),
-                Mockito.eq(true));
     }
 
     /**

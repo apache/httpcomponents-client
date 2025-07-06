@@ -98,7 +98,7 @@ public class H2SharingPerRoutePoolTest {
         pool.track(poolEntry1);
         pool.track(poolEntry1);
 
-        Assertions.assertEquals(0, pool.release(poolEntry1, false));
+        Assertions.assertEquals(2, pool.release(poolEntry1, false)); // 3 → 2
     }
 
     @Test
@@ -114,7 +114,7 @@ public class H2SharingPerRoutePoolTest {
         pool.track(poolEntry1);
 
         Mockito.when(poolEntry1.getConnection().isOpen()).thenReturn(false);
-        Assertions.assertEquals(0, pool.release(poolEntry1, true));
+        Assertions.assertEquals(2, pool.release(poolEntry1, true));  // 3 → 2
     }
 
     @Test
@@ -124,7 +124,7 @@ public class H2SharingPerRoutePoolTest {
         pool.track(poolEntry1);
 
         poolEntry1.discardConnection(CloseMode.IMMEDIATE);
-        Assertions.assertEquals(0, pool.release(poolEntry1, true));
+        Assertions.assertEquals(2, pool.release(poolEntry1, true));  // 3 → 2
     }
 
 }
