@@ -260,6 +260,8 @@ class AbstractTestValidateAfterInactivity {
     private CloseableHttpAsyncClient asyncClient(final boolean validateAfterInactivity) {
         final PoolingAsyncClientConnectionManager connManager = new PoolingAsyncClientConnectionManager();
         connManager.setDefaultConnectionConfig(getConnectionConfig(validateAfterInactivity));
+        connManager.setDefaultMaxPerRoute(1);
+        connManager.setMaxTotal(1);
         final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
             .setConnectionManager(connManager)
             .disableAutomaticRetries()
