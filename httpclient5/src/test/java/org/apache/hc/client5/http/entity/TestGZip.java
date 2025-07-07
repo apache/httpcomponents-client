@@ -32,10 +32,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.function.UnaryOperator;
 
 import org.apache.hc.client5.http.entity.compress.ContentCodecRegistry;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
-import org.apache.hc.client5.http.entity.compress.Encoder;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
@@ -70,7 +70,7 @@ class TestGZip {
             final ByteArrayEntity out = new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
             final HttpEntity gunzipe = ContentCodecRegistry
                     .decoder(ContentCoding.GZIP)
-                    .wrap(out);
+                    .apply(out);
             Assertions.assertEquals("some kind of text",
                     EntityUtils.toString(gunzipe, StandardCharsets.US_ASCII));
         }
@@ -107,7 +107,7 @@ class TestGZip {
 
         try (final HttpEntity entity = ContentCodecRegistry
                 .decoder(ContentCoding.GZIP)
-                .wrap(new InputStreamEntity(new ByteArrayInputStream(bytes),
+                .apply(new InputStreamEntity(new ByteArrayInputStream(bytes),
                         ContentType.APPLICATION_OCTET_STREAM))) {
             Assertions.assertEquals("stream-1\nstream-2\n",
                     EntityUtils.toString(entity, StandardCharsets.US_ASCII));
@@ -120,17 +120,17 @@ class TestGZip {
         final String txt = "some kind of text";
 
         final HttpEntity plain = new StringEntity(txt, ContentType.TEXT_PLAIN);
-        final Encoder gzipEn = ContentCodecRegistry.encoder(ContentCoding.GZIP);
+        final UnaryOperator<HttpEntity> gzipEn = ContentCodecRegistry.encoder(ContentCoding.GZIP);
         Assertions.assertNotNull(gzipEn, "gzip encoder must exist");
 
-        final HttpEntity gzipped = gzipEn.wrap(plain);
+        final HttpEntity gzipped = gzipEn.apply(plain);
 
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         gzipped.writeTo(buf);
 
         final HttpEntity ungzip = ContentCodecRegistry
                 .decoder(ContentCoding.GZIP)
-                .wrap(new ByteArrayEntity(buf.toByteArray(),
+                .apply(new ByteArrayEntity(buf.toByteArray(),
                         ContentType.APPLICATION_OCTET_STREAM));
 
         Assertions.assertEquals(txt, EntityUtils.toString(ungzip, StandardCharsets.US_ASCII));

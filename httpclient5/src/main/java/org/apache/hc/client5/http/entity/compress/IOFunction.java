@@ -29,7 +29,8 @@ package org.apache.hc.client5.http.entity.compress;
 
 import java.io.IOException;
 
-import org.conscrypt.Internal;
+import org.apache.hc.core5.annotation.Internal;
+
 
 /**
  * Minimal equivalent of {@link java.util.function.Function} whose

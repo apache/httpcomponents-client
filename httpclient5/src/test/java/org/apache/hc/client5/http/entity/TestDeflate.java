@@ -29,11 +29,11 @@ package org.apache.hc.client5.http.entity;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.function.UnaryOperator;
 import java.util.zip.Deflater;
 
 import org.apache.hc.client5.http.entity.compress.ContentCodecRegistry;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
-import org.apache.hc.client5.http.entity.compress.Encoder;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
@@ -59,7 +59,7 @@ class TestDeflate {
 
         final HttpEntity entity = ContentCodecRegistry
                 .decoder(ContentCoding.DEFLATE)
-                .wrap(new ByteArrayEntity(compressed, 0, len, ContentType.APPLICATION_OCTET_STREAM));
+                .apply(new ByteArrayEntity(compressed, 0, len, ContentType.APPLICATION_OCTET_STREAM));
 
         Assertions.assertEquals(s, EntityUtils.toString(entity));
     }
@@ -70,17 +70,17 @@ class TestDeflate {
         final String text = "some kind of text";
 
         final HttpEntity plain = new StringEntity(text, ContentType.TEXT_PLAIN);
-        final Encoder encoder = ContentCodecRegistry.encoder(ContentCoding.DEFLATE);
+        final UnaryOperator<HttpEntity> encoder = ContentCodecRegistry.encoder(ContentCoding.DEFLATE);
         Assertions.assertNotNull(encoder, "deflate encoder must exist");
 
-        final HttpEntity deflated = encoder.wrap(plain);
+        final HttpEntity deflated = encoder.apply(plain);
 
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         deflated.writeTo(buf);
 
         final HttpEntity decoded = ContentCodecRegistry
                 .decoder(ContentCoding.DEFLATE)
-                .wrap(new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM));
+                .apply(new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM));
 
         Assertions.assertEquals(text, EntityUtils.toString(decoded, StandardCharsets.US_ASCII));
     }
