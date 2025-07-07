@@ -33,13 +33,13 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.compress.ContentCodecRegistry;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
-import org.apache.hc.client5.http.entity.compress.Decoder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -74,12 +74,12 @@ import org.apache.hc.core5.util.Args;
 public final class ContentCompressionExec implements ExecChainHandler {
 
     private final Header acceptEncoding;
-    private final Lookup<Decoder> decoderRegistry;
+    private final Lookup<UnaryOperator<HttpEntity>> decoderRegistry;
     private final boolean ignoreUnknown;
 
     public ContentCompressionExec(
             final List<String> acceptEncoding,
-            final Lookup<Decoder> decoderRegistry,
+            final Lookup<UnaryOperator<HttpEntity>> decoderRegistry,
             final boolean ignoreUnknown) {
         this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING,
                 Args.notEmpty(acceptEncoding, "Encoding list"));
@@ -88,15 +88,15 @@ public final class ContentCompressionExec implements ExecChainHandler {
     }
 
     public ContentCompressionExec(final boolean ignoreUnknown) {
-        final Map<ContentCoding, Decoder> decoderMap = new EnumMap<>(ContentCoding.class);
+        final Map<ContentCoding, UnaryOperator<HttpEntity>> decoderMap = new EnumMap<>(ContentCoding.class);
         for (final ContentCoding c : ContentCoding.values()) {
-            final Decoder d = ContentCodecRegistry.decoder(c);
+            final UnaryOperator<HttpEntity> d = ContentCodecRegistry.decoder(c);
             if (d != null) {
                 decoderMap.put(c, d);
             }
         }
 
-        final RegistryBuilder<Decoder> builder = RegistryBuilder.create();
+        final RegistryBuilder<UnaryOperator<HttpEntity>> builder = RegistryBuilder.create();
         final List<String> acceptList = new ArrayList<>(decoderMap.size() + 1);
         decoderMap.forEach((coding, decoder) -> {
             acceptList.add(coding.token());
@@ -146,9 +146,9 @@ public final class ContentCompressionExec implements ExecChainHandler {
                 final HeaderElement[] codecs = BasicHeaderValueParser.INSTANCE.parseElements(contentEncoding, cursor);
                 for (final HeaderElement codec : codecs) {
                     final String codecname = codec.getName().toLowerCase(Locale.ROOT);
-                    final Decoder decoder = decoderRegistry.lookup(codecname);
+                    final UnaryOperator<HttpEntity> decoder = decoderRegistry.lookup(codecname);
                     if (decoder != null) {
-                        response.setEntity(decoder.wrap(response.getEntity()));
+                        response.setEntity(decoder.apply(response.getEntity()));
                         response.removeHeaders(HttpHeaders.CONTENT_LENGTH);
                         response.removeHeaders(HttpHeaders.CONTENT_ENCODING);
                         response.removeHeaders(HttpHeaders.CONTENT_MD5);

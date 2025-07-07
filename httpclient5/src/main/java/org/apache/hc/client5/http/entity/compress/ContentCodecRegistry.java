@@ -27,11 +27,11 @@
 
 package org.apache.hc.client5.http.entity.compress;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.hc.client5.http.entity.DeflateInputStream;
@@ -44,7 +44,7 @@ import org.brotli.dec.BrotliInputStream;
 
 /**
  * Run-time catalogue of built-in and Commons-Compress
- * {@linkplain Encoder encoders} / {@linkplain Decoder decoders}.
+ * {@linkplain java.util.function.UnaryOperator encoders} / {@linkplain java.util.function.UnaryOperator decoders}.
  *
  * <p>Entries are wired once at class-load time and published through an
  * unmodifiable map, so lookups are lock-free and thread-safe.</p>
@@ -103,50 +103,49 @@ public final class ContentCodecRegistry {
         return Collections.unmodifiableMap(m);
     }
 
-    public static HttpEntity wrap(final ContentCoding coding, final HttpEntity src) {
-        final Codec c = REGISTRY.get(coding);
-        return c != null && c.encoder != null ? c.encoder.wrap(src) : null;
+    public static HttpEntity wrap(final ContentCoding c, final HttpEntity src) {
+        final Codec k = REGISTRY.get(c);
+        return k != null && k.encoder != null ? k.encoder.apply(src) : null;
     }
 
-    public static HttpEntity unwrap(final ContentCoding coding, final HttpEntity src) throws IOException {
-        final Codec c = REGISTRY.get(coding);
-        return c != null && c.decoder != null ? c.decoder.wrap(src) : null;
+    public static HttpEntity unwrap(final ContentCoding c, final HttpEntity src) {
+        final Codec k = REGISTRY.get(c);
+        return k != null && k.decoder != null ? k.decoder.apply(src) : null;
     }
 
     private ContentCodecRegistry() {
     }
 
     /**
-     * Returns the {@link Decoder} for the given coding, or {@code null}.
+     * Returns the {@link java.util.function.UnaryOperator}&lt;HttpEntity&gt; for the given coding, or {@code null}.
      */
-    public static Decoder decoder(final ContentCoding coding) {
+    public static UnaryOperator<HttpEntity> decoder(final ContentCoding coding) {
         final Codec c = REGISTRY.get(coding);
         return c != null ? c.decoder : null;
     }
 
     /**
-     * Returns the {@link Encoder} for the given coding, or {@code null}.
+     * Returns the {@link java.util.function.UnaryOperator}&lt;HttpEntity&gt; for the given coding, or {@code null}.
      */
-    public static Encoder encoder(final ContentCoding coding) {
+    public static UnaryOperator<HttpEntity> encoder(final ContentCoding coding) {
         final Codec c = REGISTRY.get(coding);
         return c != null ? c.encoder : null;
     }
 
-
     static final class Codec {
-        final Encoder encoder;
-        final Decoder decoder;
+        final UnaryOperator<HttpEntity> encoder;
+        final UnaryOperator<HttpEntity> decoder;
 
-        Codec(final Encoder enc, final Decoder dec) {
+        Codec(final UnaryOperator<HttpEntity> enc, final UnaryOperator<HttpEntity> dec) {
             this.encoder = enc;
             this.decoder = dec;
         }
 
-        static Codec encodeOnly(final Encoder e) {
+        static Codec encodeOnly(final UnaryOperator<HttpEntity> e) {
             return new Codec(e, null);
         }
 
-        static Codec decodeOnly(final Decoder d) {
+        static Codec decodeOnly(final UnaryOperator<HttpEntity> d) {
             return new Codec(null, d);
         }
     }
