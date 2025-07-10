@@ -27,6 +27,8 @@
 
 package org.apache.hc.client5.http.entity;
 
+import org.apache.hc.client5.http.entity.compress.ContentCodecRegistry;
+import org.apache.hc.client5.http.entity.compress.ContentCoding;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -45,7 +47,10 @@ class TestBrotli {
 
         final byte[] bytes = new byte[] {33, 44, 0, 4, 116, 101, 115, 116, 32, 98, 114, 111, 116, 108, 105, 10, 3};
 
-        final HttpEntity entity = new BrotliDecompressingEntity(new ByteArrayEntity(bytes, null));
+        final HttpEntity entity = ContentCodecRegistry.unwrap(
+                ContentCoding.BROTLI,
+                new ByteArrayEntity(bytes, null));
+
         Assertions.assertEquals("test brotli\n", EntityUtils.toString(entity));
     }
 

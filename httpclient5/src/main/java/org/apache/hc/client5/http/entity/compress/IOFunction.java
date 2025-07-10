@@ -24,35 +24,36 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.entity;
 
-import org.apache.hc.core5.http.HttpEntity;
+package org.apache.hc.client5.http.entity.compress;
+
+import java.io.IOException;
+
+import org.apache.hc.core5.annotation.Internal;
+
 
 /**
- * {@link org.apache.hc.core5.http.io.entity.HttpEntityWrapper} responsible for
- * handling br Content Coded responses.
- * @deprecated See {@link org.apache.hc.client5.http.entity.compress.ContentCodecRegistry#decoder(org.apache.hc.client5.http.entity.compress.ContentCoding)}
+ * Minimal equivalent of {@link java.util.function.Function} whose
+ * {@link #apply(Object)} method is allowed to throw {@link IOException}.
+ * <p>
+ * Used internally by the content-coding layer to pass lambdas that wrap /
+ * unwrap streams without forcing boiler-plate try/catch blocks.
+ * </p>
  *
- * @see GzipDecompressingEntity
- * @since 5.2
+ * @param <T> input type
+ * @param <R> result type
+ * @since 5.6
  */
-@Deprecated
-public class BrotliDecompressingEntity extends DecompressingEntity {
-    /**
-     * Creates a new {@link DecompressingEntity}.
-     *
-     * @param entity factory to create decompressing stream.
-     */
-    public BrotliDecompressingEntity(final HttpEntity entity) {
-        super(entity, BrotliInputStreamFactory.getInstance());
-    }
+@Internal
+@FunctionalInterface
+public interface IOFunction<T, R> {
 
-    public static boolean isAvailable() {
-        try {
-            Class.forName("org.brotli.dec.BrotliInputStream");
-            return true;
-        } catch (final ClassNotFoundException | NoClassDefFoundError e) {
-            return false;
-        }
-    }
+    /**
+     * Applies the transformation.
+     *
+     * @param value source value (never {@code null})
+     * @return transformed value
+     * @throws IOException if the transformation cannot be performed
+     */
+    R apply(T value) throws IOException;
 }

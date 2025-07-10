@@ -108,7 +108,7 @@ class TestDecompressingEntity {
         }
     }
 
-    static class ChecksumEntity extends DecompressingEntity {
+    static class ChecksumEntity extends org.apache.hc.client5.http.entity.compress.DecompressingEntity {
 
         public ChecksumEntity(final HttpEntity wrapped, final Checksum checksum) {
             super(wrapped, inStream -> new CheckedInputStream(inStream, checksum));
