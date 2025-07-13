@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.IOException;
 
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
-import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
@@ -40,6 +39,7 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
@@ -96,6 +96,7 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
     private static class State {
 
         volatile boolean retrying;
+        volatile int status;
         volatile TimeValue delay;
 
     }
@@ -125,6 +126,7 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                 }
                 state.retrying = retryStrategy.retryRequest(response, scope.execCount.get(), clientContext);
                 if (state.retrying) {
+                    state.status = response.getCode();
                     state.delay = retryStrategy.getRetryInterval(response, scope.execCount.get(), clientContext);
                     return new DiscardingEntityConsumer<>();
                 }
@@ -139,13 +141,16 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
             @Override
             public void completed() {
                 if (state.retrying) {
-                    scope.execCount.incrementAndGet();
+                    final int execCount = scope.execCount.incrementAndGet();
                     if (entityProducer != null) {
                        entityProducer.releaseResources();
                     }
+                    final HttpHost target = scope.route.getTargetHost();
                     final TimeValue delay = TimeValue.isPositive(state.delay) ? state.delay : TimeValue.ZERO_MILLISECONDS;
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("{} wait for {}", exchangeId, delay);
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("{} {} responded with status {}; " +
+                                        "request will be automatically re-executed in {} (exec count {})",
+                                exchangeId, target, state.status, delay, execCount);
                     }
                     scope.scheduler.scheduleExecution(
                             request,
@@ -162,7 +167,7 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
             @Override
             public void failed(final Exception cause) {
                 if (cause instanceof IOException) {
-                    final HttpRoute route = scope.route;
+                    final HttpHost target = scope.route.getTargetHost();
                     final HttpClientContext clientContext = scope.clientContext;
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
                         if (LOG.isDebugEnabled()) {
@@ -172,10 +177,6 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("{} {}", exchangeId, cause.getMessage(), cause);
                         }
-                        if (LOG.isInfoEnabled()) {
-                            LOG.info("Recoverable I/O exception ({}) caught when processing request to {}",
-                                    cause.getClass().getName(), route);
-                        }
                         scope.execRuntime.discardEndpoint();
                         if (entityProducer != null) {
                             entityProducer.releaseResources();
@@ -184,8 +185,10 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                         final int execCount = scope.execCount.incrementAndGet();
                         state.delay = retryStrategy.getRetryInterval(request, (IOException) cause, execCount - 1, clientContext);
                         final TimeValue delay = TimeValue.isPositive(state.delay) ? state.delay : TimeValue.ZERO_MILLISECONDS;
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("{} wait for {}", exchangeId, delay);
+                        if (LOG.isInfoEnabled()) {
+                            LOG.info("{} recoverable I/O exception ({}) caught when sending request to {};" +
+                                            "request will be automatically re-executed in {} (exec count {})",
+                                    exchangeId, cause.getClass().getName(), target, delay, execCount);
                         }
                         scope.scheduler.scheduleExecution(
                                 request,
