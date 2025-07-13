@@ -43,6 +43,7 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.NoHttpResponseException;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.util.Args;
@@ -102,6 +103,7 @@ public class HttpRequestRetryExec implements ExecChainHandler {
         Args.notNull(scope, "scope");
         final String exchangeId = scope.exchangeId;
         final HttpRoute route = scope.route;
+        final HttpHost target = route.getTargetHost();
         final HttpClientContext context = scope.clientContext;
         ClassicHttpRequest currentRequest = request;
 
@@ -119,7 +121,12 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                     if (retryStrategy.retryRequest(response, execCount, context)) {
                         response.close();
                         final TimeValue delay = retryStrategy.getRetryInterval(response, execCount, context);
-                        pause(exchangeId, delay);
+                        if (LOG.isInfoEnabled()) {
+                            LOG.info("{} {} responded with status {}; " +
+                                            "request will be automatically re-executed in {} (exec count {})",
+                                    exchangeId, target, response.getCode(), delay, execCount + 1);
+                        }
+                        pause(delay);
                         currentRequest = ClassicRequestBuilder.copy(scope.originalRequest).build();
                     } else {
                         return response;
@@ -143,18 +150,19 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} {}", exchangeId, ex.getMessage(), ex);
                     }
-                    if (LOG.isInfoEnabled()) {
-                        LOG.info("Recoverable I/O exception ({}) caught when processing request to {}",
-                                ex.getClass().getName(), route);
-                    }
                     final TimeValue delay = retryStrategy.getRetryInterval(request, ex, execCount, context);
-                    pause(exchangeId, delay);
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("{} recoverable I/O exception ({}) caught when sending request to {};" +
+                                        "request will be automatically re-executed in {} (exec count {})",
+                                exchangeId, ex.getClass().getName(), target, delay, execCount + 1);
+                    }
+                    pause(delay);
                     currentRequest = ClassicRequestBuilder.copy(scope.originalRequest).build();
                     continue;
                 }
                 if (ex instanceof NoHttpResponseException) {
                     final NoHttpResponseException updatedex = new NoHttpResponseException(
-                            route.getTargetHost().toHostString() + " failed to respond");
+                            target.toHostString() + " failed to respond");
                     updatedex.setStackTrace(ex.getStackTrace());
                     throw updatedex;
                 }
@@ -163,10 +171,7 @@ public class HttpRequestRetryExec implements ExecChainHandler {
         }
     }
 
-    private static void pause(final String exchangeId, final TimeValue delay) throws InterruptedIOException {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("{} wait for {}", exchangeId, delay);
-        }
+    private static void pause(final TimeValue delay) throws InterruptedIOException {
         if (TimeValue.isPositive(delay)) {
             try {
                 delay.sleep();
