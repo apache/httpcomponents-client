@@ -27,13 +27,18 @@
 
 package org.apache.hc.client5.http.entity;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.function.UnaryOperator;
 import java.util.zip.Deflater;
 
+import org.apache.hc.client5.http.entity.compress.ContentCodecRegistry;
+import org.apache.hc.client5.http.entity.compress.ContentCoding;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -52,8 +57,33 @@ class TestDeflate {
         compresser.finish();
         final int len = compresser.deflate(compressed);
 
-        final HttpEntity entity = new DeflateDecompressingEntity(new ByteArrayEntity(compressed, 0, len, ContentType.APPLICATION_OCTET_STREAM));
+        final HttpEntity entity = ContentCodecRegistry
+                .decoder(ContentCoding.DEFLATE)
+                .apply(new ByteArrayEntity(compressed, 0, len, ContentType.APPLICATION_OCTET_STREAM));
+
         Assertions.assertEquals(s, EntityUtils.toString(entity));
     }
+
+    @Test
+    void testEncodeThenDecode() throws Exception {
+
+        final String text = "some kind of text";
+
+        final HttpEntity plain = new StringEntity(text, ContentType.TEXT_PLAIN);
+        final UnaryOperator<HttpEntity> encoder = ContentCodecRegistry.encoder(ContentCoding.DEFLATE);
+        Assertions.assertNotNull(encoder, "deflate encoder must exist");
+
+        final HttpEntity deflated = encoder.apply(plain);
+
+        final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        deflated.writeTo(buf);
+
+        final HttpEntity decoded = ContentCodecRegistry
+                .decoder(ContentCoding.DEFLATE)
+                .apply(new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM));
+
+        Assertions.assertEquals(text, EntityUtils.toString(decoded, StandardCharsets.US_ASCII));
+    }
+
 
 }

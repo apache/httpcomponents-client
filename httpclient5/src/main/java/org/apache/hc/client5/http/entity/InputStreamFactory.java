@@ -31,9 +31,10 @@ import java.io.InputStream;
 
 /**
  * Factory for decorated {@link InputStream}s.
- *
+ * @deprecated Replaced by {@link org.apache.hc.client5.http.entity.compress.Decoder}.
  * @since 4.4
  */
+@Deprecated
 public interface InputStreamFactory {
 
     InputStream create(InputStream inputStream) throws IOException;

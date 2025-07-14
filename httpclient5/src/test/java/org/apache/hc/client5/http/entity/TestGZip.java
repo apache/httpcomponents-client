@@ -32,7 +32,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.function.UnaryOperator;
 
+import org.apache.hc.client5.http.entity.compress.ContentCodecRegistry;
+import org.apache.hc.client5.http.entity.compress.ContentCoding;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
@@ -65,10 +68,14 @@ class TestGZip {
             final ByteArrayOutputStream buf = new ByteArrayOutputStream();
             gzipe.writeTo(buf);
             final ByteArrayEntity out = new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
-            final GzipDecompressingEntity gunzipe = new GzipDecompressingEntity(out);
-            Assertions.assertEquals("some kind of text", EntityUtils.toString(gunzipe, StandardCharsets.US_ASCII));
+            final HttpEntity gunzipe = ContentCodecRegistry
+                    .decoder(ContentCoding.GZIP)
+                    .apply(out);
+            Assertions.assertEquals("some kind of text",
+                    EntityUtils.toString(gunzipe, StandardCharsets.US_ASCII));
         }
     }
+
 
     @Test
     void testCompressionIOExceptionLeavesOutputStreamOpen() throws Exception {
@@ -98,9 +105,53 @@ class TestGZip {
             bytes[i] = (byte) (data[i] & 0xff);
         }
 
-        try (final GzipDecompressingEntity entity = new GzipDecompressingEntity(new InputStreamEntity(new ByteArrayInputStream(bytes), ContentType.APPLICATION_OCTET_STREAM))) {
-            Assertions.assertEquals("stream-1\nstream-2\n", EntityUtils.toString(entity, StandardCharsets.US_ASCII));
+        try (final HttpEntity entity = ContentCodecRegistry
+                .decoder(ContentCoding.GZIP)
+                .apply(new InputStreamEntity(new ByteArrayInputStream(bytes),
+                        ContentType.APPLICATION_OCTET_STREAM))) {
+            Assertions.assertEquals("stream-1\nstream-2\n",
+                    EntityUtils.toString(entity, StandardCharsets.US_ASCII));
         }
+    }
+
+    @Test
+    void testEncodeThenDecode() throws Exception {
+
+        final String txt = "some kind of text";
+
+        final HttpEntity plain = new StringEntity(txt, ContentType.TEXT_PLAIN);
+        final UnaryOperator<HttpEntity> gzipEn = ContentCodecRegistry.encoder(ContentCoding.GZIP);
+        Assertions.assertNotNull(gzipEn, "gzip encoder must exist");
+
+        final HttpEntity gzipped = gzipEn.apply(plain);
+
+        final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        gzipped.writeTo(buf);
+
+        final HttpEntity ungzip = ContentCodecRegistry
+                .decoder(ContentCoding.GZIP)
+                .apply(new ByteArrayEntity(buf.toByteArray(),
+                        ContentType.APPLICATION_OCTET_STREAM));
+
+        Assertions.assertEquals(txt, EntityUtils.toString(ungzip, StandardCharsets.US_ASCII));
+    }
+
+    @Test
+    void testUnwrapHelper() throws Exception {
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (java.util.zip.GZIPOutputStream gout = new java.util.zip.GZIPOutputStream(baos)) {
+            gout.write("unwrap check".getBytes(StandardCharsets.US_ASCII));
+        }
+        final byte[] gzBytes = baos.toByteArray();
+
+        final HttpEntity decodedEntity = ContentCodecRegistry.unwrap(
+                ContentCoding.GZIP,
+                new ByteArrayEntity(gzBytes, ContentType.APPLICATION_OCTET_STREAM));
+
+        Assertions.assertNotNull(decodedEntity, "unwrap returned null");
+        Assertions.assertEquals("unwrap check",
+                EntityUtils.toString(decodedEntity, StandardCharsets.US_ASCII));
     }
 
 }

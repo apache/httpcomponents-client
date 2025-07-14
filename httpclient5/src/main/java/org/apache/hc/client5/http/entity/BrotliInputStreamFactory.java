@@ -35,10 +35,11 @@ import org.brotli.dec.BrotliInputStream;
 
 /**
  * {@link InputStreamFactory} for handling Brotli Content Coded responses.
- *
+ * @deprecated See {@link org.apache.hc.client5.http.entity.compress.ContentCodecRegistry#decoder(org.apache.hc.client5.http.entity.compress.ContentCoding)}
  * @since 5.2
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
+@Deprecated
 public class BrotliInputStreamFactory implements InputStreamFactory {
 
     /**

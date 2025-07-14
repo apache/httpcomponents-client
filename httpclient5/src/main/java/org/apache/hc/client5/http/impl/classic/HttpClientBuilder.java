@@ -38,6 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
@@ -55,6 +56,8 @@ import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
+import org.apache.hc.client5.http.entity.compress.ContentCodecRegistry;
+import org.apache.hc.client5.http.entity.compress.ContentCoding;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
@@ -89,6 +92,7 @@ import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
@@ -211,6 +215,7 @@ public class HttpClientBuilder {
     private BackoffManager backoffManager;
     private Lookup<AuthSchemeFactory> authSchemeRegistry;
     private Lookup<CookieSpecFactory> cookieSpecRegistry;
+    @Deprecated
     private LinkedHashMap<String, InputStreamFactory> contentDecoderMap;
     private CookieStore cookieStore;
     private CredentialsProvider credentialsProvider;
@@ -233,6 +238,12 @@ public class HttpClientBuilder {
     private ProxySelector proxySelector;
 
     private List<Closeable> closeables;
+
+    /**
+     * Custom decoders keyed by {@link ContentCoding}.
+     *
+     */
+    private LinkedHashMap<ContentCoding, UnaryOperator<HttpEntity>> contentDecoder;
 
     public static HttpClientBuilder create() {
         return new HttpClientBuilder();
@@ -704,6 +715,23 @@ public class HttpClientBuilder {
     }
 
     /**
+     * Sets a map of {@linkplain java.util.function.UnaryOperator}&lt;HttpEntity&gt; decoders,
+     * keyed by {@link ContentCoding}, to be used for automatic response decompression.
+     *
+     * @param contentDecoder decoder map, or {@code null} to fall back to the
+     *                       defaults from {@link ContentCodecRegistry}.
+     * @return this builder.
+     *
+     * @since 5.6
+     */
+    public final HttpClientBuilder setContentDecoder(
+            final LinkedHashMap<ContentCoding, UnaryOperator<HttpEntity>> contentDecoder) {
+        this.contentDecoder = contentDecoder;
+        return this;
+    }
+
+
+    /**
      * Sets default {@link RequestConfig} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
@@ -963,18 +991,26 @@ public class HttpClientBuilder {
                 ChainElement.PROTOCOL.name());
 
         if (!contentCompressionDisabled) {
-            if (contentDecoderMap != null) {
-                final List<String> encodings = new ArrayList<>(contentDecoderMap.keySet());
-                final RegistryBuilder<InputStreamFactory> b2 = RegistryBuilder.create();
-                for (final Map.Entry<String, InputStreamFactory> entry: contentDecoderMap.entrySet()) {
-                    b2.register(entry.getKey(), entry.getValue());
+            // Custom decoder map supplied by the caller
+            if (contentDecoder != null) {
+                final List<String> encodings = new ArrayList<>(contentDecoder.size());
+                final RegistryBuilder<UnaryOperator<HttpEntity>> b2 = RegistryBuilder.create();
+                for (final Map.Entry<ContentCoding, UnaryOperator<HttpEntity>> entry : contentDecoder.entrySet()) {
+                    final String token = entry.getKey().token();
+                    encodings.add(token);
+                    b2.register(token, entry.getValue());
                 }
-                final Registry<InputStreamFactory> decoderRegistry = b2.build();
+                final Registry<UnaryOperator<HttpEntity>> decoderRegistry = b2.build();
+
                 execChainDefinition.addFirst(
                         new ContentCompressionExec(encodings, decoderRegistry, true),
                         ChainElement.COMPRESS.name());
+
             } else {
-                execChainDefinition.addFirst(new ContentCompressionExec(true), ChainElement.COMPRESS.name());
+                // Use the default decoders from ContentCodecRegistry
+                execChainDefinition.addFirst(
+                        new ContentCompressionExec(true),
+                        ChainElement.COMPRESS.name());
             }
         }
 

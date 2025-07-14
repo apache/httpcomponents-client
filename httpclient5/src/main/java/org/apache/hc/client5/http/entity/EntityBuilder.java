@@ -33,8 +33,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.hc.client5.http.entity.compress.ContentCodecRegistry;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
-import org.apache.hc.client5.http.entity.compress.ContentEncoderRegistry;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.NameValuePair;
@@ -439,12 +439,12 @@ public class EntityBuilder {
             throw new IllegalStateException("No entity set");
         }
         if (compressWith != null) {
-            final ContentEncoderRegistry.EncoderFactory f = ContentEncoderRegistry.lookup(compressWith);
-            if (f == null) {
+            final HttpEntity compressed = ContentCodecRegistry.wrap(compressWith, e);
+            if (compressed == null) {
                 throw new UnsupportedOperationException(
                         "No encoder available for content-coding '" + compressWith.token() + '\'');
             }
-            return f.wrap(e);
+            return compressed;
         }
         return e;
     }

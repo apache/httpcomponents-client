@@ -32,8 +32,11 @@ import org.apache.hc.core5.http.HttpEntity;
  * {@link org.apache.hc.core5.http.io.entity.HttpEntityWrapper} for handling
  * gzip Content Coded responses.
  *
+ * @deprecated See {@link org.apache.hc.client5.http.entity.compress.ContentCodecRegistry#decoder(org.apache.hc.client5.http.entity.compress.ContentCoding)}
+ *
  * @since 4.1
  */
+@Deprecated
 public class GzipDecompressingEntity extends DecompressingEntity {
 
     /**
