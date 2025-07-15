@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.Closeable;
+import java.io.InputStream;
 import java.net.ProxySelector;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -58,6 +59,8 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
 import org.apache.hc.client5.http.entity.compress.ContentCodecRegistry;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
+import org.apache.hc.client5.http.entity.compress.DecompressingEntity;
+import org.apache.hc.client5.http.entity.compress.IOFunction;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
@@ -215,8 +218,6 @@ public class HttpClientBuilder {
     private BackoffManager backoffManager;
     private Lookup<AuthSchemeFactory> authSchemeRegistry;
     private Lookup<CookieSpecFactory> cookieSpecRegistry;
-    @Deprecated
-    private LinkedHashMap<String, InputStreamFactory> contentDecoderMap;
     private CookieStore cookieStore;
     private CredentialsProvider credentialsProvider;
     private String userAgent;
@@ -706,11 +707,24 @@ public class HttpClientBuilder {
      * Sets a map of {@link org.apache.hc.client5.http.entity.InputStreamFactory}s
      * to be used for automatic content decompression.
      *
+     * @deprecated Populate via {@link #setContentDecoder(LinkedHashMap)}
+     *
      * @return this instance.
      */
+    @Deprecated
     public final HttpClientBuilder setContentDecoderRegistry(
             final LinkedHashMap<String, InputStreamFactory> contentDecoderMap) {
-        this.contentDecoderMap = contentDecoderMap;
+        if (contentDecoderMap != null) {
+            final LinkedHashMap<ContentCoding, UnaryOperator<HttpEntity>> map = new LinkedHashMap<>();
+            for (final Map.Entry<String, InputStreamFactory> e : contentDecoderMap.entrySet()) {
+                final ContentCoding coding = ContentCoding.fromToken(e.getKey());
+                if (coding != null) {
+                    final IOFunction<InputStream, InputStream> decoderFunc = e.getValue()::create;
+                    map.put(coding, srcEntity -> new DecompressingEntity(srcEntity, decoderFunc));
+                }
+            }
+            this.contentDecoder = map;
+        }
         return this;
     }
 
