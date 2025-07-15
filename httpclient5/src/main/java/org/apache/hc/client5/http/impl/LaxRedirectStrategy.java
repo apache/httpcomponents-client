@@ -36,6 +36,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
@@ -82,6 +83,16 @@ public class LaxRedirectStrategy extends DefaultRedirectStrategy {
             default:
                 return false;
         }
+    }
+
+    @Override
+    public boolean isRedirectAllowed(
+            final HttpHost currentTarget,
+            final HttpHost newTarget,
+            final HttpRequest redirect,
+            final HttpContext context) {
+        // Always allow, regardless of sensitive headers
+        return true;
     }
 
     protected boolean isRedirectable(final String method) {

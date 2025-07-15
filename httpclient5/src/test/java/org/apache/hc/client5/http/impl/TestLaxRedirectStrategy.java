@@ -32,6 +32,8 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpHead;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
@@ -39,6 +41,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -67,6 +70,24 @@ class TestLaxRedirectStrategy {
     void testIsRedirectedWithNonRedirectMethod() {
         testIsRedirected(new HttpPut("/put"), false);
     }
+
+    @Test
+    void testIsRedirectAllowedAlwaysTrue() {
+        final LaxRedirectStrategy strategy = new LaxRedirectStrategy();
+        final HttpContext context = mock(HttpContext.class);
+        final HttpHost current = new HttpHost("http", "localhost", 80);
+        final HttpHost next = new HttpHost("http", "example.com", 80);
+        // Create a request with an Authorization header
+        final HttpRequest request = new HttpGet("/test");
+        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer token");
+
+        // Even with sensitive headers and target change, LaxRedirectStrategy should allow it
+        assertTrue(
+                strategy.isRedirectAllowed(current, next, request, context),
+                "LaxRedirectStrategy should always allow redirects regardless of sensitive headers"
+        );
+    }
+
 
     private void testIsRedirected(final HttpRequest request, final boolean expected) {
         final LaxRedirectStrategy strategy = new LaxRedirectStrategy();
