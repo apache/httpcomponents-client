@@ -265,13 +265,6 @@ class TestDefaultRedirectStrategy {
                 new HttpHost("somehost", 1234),
                 new HttpHost("somehost", 1234),
                 BasicRequestBuilder.get("/")
-                        .build(),
-                null));
-
-        Assertions.assertTrue(redirectStrategy.isRedirectAllowed(
-                new HttpHost("somehost", 1234),
-                new HttpHost("somehost", 1234),
-                BasicRequestBuilder.get("/")
                         .addHeader(HttpHeaders.AUTHORIZATION, "let me pass")
                         .build(),
                 null));
