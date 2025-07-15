@@ -32,10 +32,14 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpHead;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -80,5 +84,84 @@ class TestLaxRedirectStrategy {
         when(response.getFirstHeader("location").getValue()).thenReturn("http://localhost/redirect");
 
         assertEquals(expected, strategy.isRedirected(request, response, context));
+    }
+
+    /**
+     * Test {@link LaxRedirectStrategy#isRedirectAllowed(HttpHost, HttpHost, HttpRequest, HttpContext)}.
+     * The method should return true for all requests, enabling backward compatibility.
+     *
+     **/
+    @Test
+    void testRedirectAllowed() throws Exception {
+        final LaxRedirectStrategy redirectStrategy = new LaxRedirectStrategy();
+
+        // Same host and port
+        Assertions.assertTrue(redirectStrategy.isRedirectAllowed(
+                new HttpHost("somehost", 1234),
+                new HttpHost("somehost", 1234),
+                BasicRequestBuilder.get("/").build(),
+                null));
+
+        // Same host and port with Authorization header
+        Assertions.assertTrue(redirectStrategy.isRedirectAllowed(
+                new HttpHost("somehost", 1234),
+                new HttpHost("somehost", 1234),
+                BasicRequestBuilder.get("/")
+                        .addHeader(HttpHeaders.AUTHORIZATION, "let me pass")
+                        .build(),
+                null));
+
+        // Same host and port with Cookie header
+        Assertions.assertTrue(redirectStrategy.isRedirectAllowed(
+                new HttpHost("somehost", 1234),
+                new HttpHost("somehost", 1234),
+                BasicRequestBuilder.get("/")
+                        .addHeader(HttpHeaders.COOKIE, "stuff=blah")
+                        .build(),
+                null));
+
+        // Different host and same port
+        Assertions.assertTrue(redirectStrategy.isRedirectAllowed(
+                new HttpHost("somehost", 1234),
+                new HttpHost("someotherhost", 1234),
+                BasicRequestBuilder.get("/")
+                        .build(),
+                null));
+
+        // Different host and same port with Authorization header
+        Assertions.assertTrue(redirectStrategy.isRedirectAllowed(
+                new HttpHost("somehost", 1234),
+                new HttpHost("someotherhost", 1234),
+                BasicRequestBuilder.get("/")
+                        .addHeader(HttpHeaders.AUTHORIZATION, "let me pass")
+                        .build(),
+                null));
+
+        // Different host and same port with Cookie header
+        Assertions.assertTrue(redirectStrategy.isRedirectAllowed(
+                new HttpHost("somehost", 1234),
+                new HttpHost("someotherhost", 1234),
+                BasicRequestBuilder.get("/")
+                        .addHeader(HttpHeaders.COOKIE, "stuff=blah")
+                        .build(),
+                null));
+
+        // Same host and different ports with Authorization header
+        Assertions.assertTrue(redirectStrategy.isRedirectAllowed(
+                new HttpHost("somehost", 1234),
+                new HttpHost("somehost", 80),
+                BasicRequestBuilder.get("/")
+                        .addHeader(HttpHeaders.AUTHORIZATION, "let me pass")
+                        .build(),
+                null));
+
+        // Same host and different ports with Cookie header
+        Assertions.assertTrue(redirectStrategy.isRedirectAllowed(
+                new HttpHost("somehost", 1234),
+                new HttpHost("somehost", 80),
+                BasicRequestBuilder.get("/")
+                        .addHeader(HttpHeaders.COOKIE, "stuff=blah")
+                        .build(),
+                null));
     }
 }
