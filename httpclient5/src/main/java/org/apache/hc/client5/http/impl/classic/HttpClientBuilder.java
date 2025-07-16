@@ -244,7 +244,7 @@ public class HttpClientBuilder {
      * Custom decoders keyed by {@link ContentCoding}.
      *
      */
-    private LinkedHashMap<ContentCoding, UnaryOperator<HttpEntity>> contentDecoder;
+    private LinkedHashMap<String, UnaryOperator<HttpEntity>> contentDecoder;
 
     public static HttpClientBuilder create() {
         return new HttpClientBuilder();
@@ -715,13 +715,10 @@ public class HttpClientBuilder {
     public final HttpClientBuilder setContentDecoderRegistry(
             final LinkedHashMap<String, InputStreamFactory> contentDecoderMap) {
         if (contentDecoderMap != null) {
-            final LinkedHashMap<ContentCoding, UnaryOperator<HttpEntity>> map = new LinkedHashMap<>();
+            final LinkedHashMap<String, UnaryOperator<HttpEntity>> map = new LinkedHashMap<>();
             for (final Map.Entry<String, InputStreamFactory> e : contentDecoderMap.entrySet()) {
-                final ContentCoding coding = ContentCoding.fromToken(e.getKey());
-                if (coding != null) {
-                    final IOFunction<InputStream, InputStream> decoderFunc = e.getValue()::create;
-                    map.put(coding, srcEntity -> new DecompressingEntity(srcEntity, decoderFunc));
-                }
+                final IOFunction<InputStream, InputStream> decoderFunc = e.getValue()::create;
+                map.put(e.getKey(), srcEntity -> new DecompressingEntity(srcEntity, decoderFunc));
             }
             this.contentDecoder = map;
         }
@@ -739,7 +736,7 @@ public class HttpClientBuilder {
      * @since 5.6
      */
     public final HttpClientBuilder setContentDecoder(
-            final LinkedHashMap<ContentCoding, UnaryOperator<HttpEntity>> contentDecoder) {
+            final LinkedHashMap<String, UnaryOperator<HttpEntity>> contentDecoder) {
         this.contentDecoder = contentDecoder;
         return this;
     }
@@ -1009,8 +1006,8 @@ public class HttpClientBuilder {
             if (contentDecoder != null) {
                 final List<String> encodings = new ArrayList<>(contentDecoder.size());
                 final RegistryBuilder<UnaryOperator<HttpEntity>> b2 = RegistryBuilder.create();
-                for (final Map.Entry<ContentCoding, UnaryOperator<HttpEntity>> entry : contentDecoder.entrySet()) {
-                    final String token = entry.getKey().token();
+                for (final Map.Entry<String, UnaryOperator<HttpEntity>> entry : contentDecoder.entrySet()) {
+                    final String token = entry.getKey();
                     encodings.add(token);
                     b2.register(token, entry.getValue());
                 }
