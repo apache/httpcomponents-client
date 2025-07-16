@@ -42,6 +42,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.Header;
@@ -164,6 +165,12 @@ final class StandardTestClientBuilder implements TestClientBuilder {
         this.clientBuilder.setDefaultRequestConfig(RequestConfig.custom()
                 .setUnixDomainSocket(unixDomainSocket)
                 .build());
+        return this;
+    }
+
+    @Override
+    public TestClientBuilder setRedirectStrategy(final RedirectStrategy redirectStrategy) {
+        this.clientBuilder.setRedirectStrategy(redirectStrategy);
         return this;
     }
 
