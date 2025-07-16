@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -42,8 +43,11 @@ import org.apache.hc.core5.util.TimeValue;
  * it should be done and so on.
  *
  * @since 5.0
+ *
+ * @deprecated Use {@link RequestReExecutionStrategy}.
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
+@Deprecated
 public interface HttpRequestRetryStrategy {
 
     /**
@@ -102,5 +106,38 @@ public interface HttpRequestRetryStrategy {
      * @return the retry interval between subsequent retries
      */
     TimeValue getRetryInterval(HttpResponse response, int execCount, HttpContext context);
+
+    static RequestReExecutionStrategy adaptor(final HttpRequestRetryStrategy retryStrategy) {
+
+        return retryStrategy != null ? new RequestReExecutionStrategy() {
+
+            @Override
+            public Optional<TimeValue> reExecute(
+                    final HttpRequest request,
+                    final IOException exception,
+                    final int execCount,
+                    final HttpContext context) {
+                if (retryStrategy.retryRequest(request, exception, execCount, context)) {
+                    return Optional.ofNullable(retryStrategy.getRetryInterval(request, exception, execCount, context));
+                } else {
+                    return Optional.empty();
+                }
+            }
+
+            @Override
+            public Optional<TimeValue> reExecute(
+                    final HttpResponse response,
+                    final int execCount,
+                    final HttpContext context) {
+                if (retryStrategy.retryRequest(response, execCount, context)) {
+                    return Optional.ofNullable(retryStrategy.getRetryInterval(response, execCount, context));
+                } else {
+                    return Optional.empty();
+                }
+            }
+
+        } : null;
+
+    }
 
 }

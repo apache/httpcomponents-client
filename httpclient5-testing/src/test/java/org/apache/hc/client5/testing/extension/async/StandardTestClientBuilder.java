@@ -31,7 +31,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
-import org.apache.hc.client5.http.HttpRequestRetryStrategy;
+import org.apache.hc.client5.http.RequestReExecutionStrategy;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -146,8 +146,8 @@ final class StandardTestClientBuilder implements TestAsyncClientBuilder {
     }
 
     @Override
-    public TestAsyncClientBuilder setRetryStrategy(final HttpRequestRetryStrategy retryStrategy) {
-        this.clientBuilder.setRetryStrategy(retryStrategy);
+    public TestAsyncClientBuilder setReExecutionStrategy(final RequestReExecutionStrategy reExecutionStrategy) {
+        this.clientBuilder.setRequestReExecutionStrategy(reExecutionStrategy);
         return this;
     }
 

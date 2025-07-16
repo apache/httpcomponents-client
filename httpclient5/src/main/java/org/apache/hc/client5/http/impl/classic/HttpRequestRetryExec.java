@@ -28,9 +28,10 @@ package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.util.Optional;
 
-import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.RequestReExecutionStrategy;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChain.Scope;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
@@ -86,12 +87,12 @@ public class HttpRequestRetryExec implements ExecChainHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpRequestRetryExec.class);
 
-    private final HttpRequestRetryStrategy retryStrategy;
+    private final RequestReExecutionStrategy reExecutionStrategy;
 
     public HttpRequestRetryExec(
-            final HttpRequestRetryStrategy retryStrategy) {
-         Args.notNull(retryStrategy, "retryStrategy");
-         this.retryStrategy = retryStrategy;
+            final RequestReExecutionStrategy reExecutionStrategy) {
+         Args.notNull(reExecutionStrategy, "reExecutionStrategy");
+         this.reExecutionStrategy = reExecutionStrategy;
     }
 
     @Override
@@ -118,9 +119,10 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                         }
                         return response;
                     }
-                    if (retryStrategy.retryRequest(response, execCount, context)) {
+                    final Optional<TimeValue> reExecInterval = reExecutionStrategy.reExecute(response, execCount, context);
+                    if (reExecInterval.isPresent()) {
                         response.close();
-                        final TimeValue delay = retryStrategy.getRetryInterval(response, execCount, context);
+                        final TimeValue delay = reExecInterval.get();
                         if (LOG.isInfoEnabled()) {
                             LOG.info("{} {} responded with status {}; " +
                                             "request will be automatically re-executed in {} (exec count {})",
@@ -146,11 +148,12 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                     }
                     throw ex;
                 }
-                if (retryStrategy.retryRequest(request, ex, execCount, context)) {
+                final Optional<TimeValue> reExecInterval = reExecutionStrategy.reExecute(request, ex, execCount, context);
+                if (reExecInterval.isPresent()) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} {}", exchangeId, ex.getMessage(), ex);
                     }
-                    final TimeValue delay = retryStrategy.getRetryInterval(request, ex, execCount, context);
+                    final TimeValue delay = reExecInterval.get();
                     if (LOG.isInfoEnabled()) {
                         LOG.info("{} recoverable I/O exception ({}) caught when sending request to {};" +
                                         "request will be automatically re-executed in {} (exec count {})",

@@ -27,8 +27,9 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
+import java.util.Optional;
 
-import org.apache.hc.client5.http.HttpRequestRetryStrategy;
+import org.apache.hc.client5.http.RequestReExecutionStrategy;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
@@ -86,11 +87,11 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(AsyncHttpRequestRetryExec.class);
 
-    private final HttpRequestRetryStrategy retryStrategy;
+    private final RequestReExecutionStrategy reExecutionStrategy;
 
-    public AsyncHttpRequestRetryExec(final HttpRequestRetryStrategy retryStrategy) {
-        Args.notNull(retryStrategy, "retryStrategy");
-        this.retryStrategy = retryStrategy;
+    public AsyncHttpRequestRetryExec(final RequestReExecutionStrategy reExecutionStrategy) {
+        Args.notNull(reExecutionStrategy, "reExecutionStrategy");
+        this.reExecutionStrategy = reExecutionStrategy;
     }
 
     private static class State {
@@ -98,6 +99,12 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
         volatile boolean retrying;
         volatile int status;
         volatile TimeValue delay;
+
+        void reset() {
+            retrying = false;
+            status = 0;
+            delay = null;
+        }
 
     }
 
@@ -124,11 +131,14 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                     }
                     return asyncExecCallback.handleResponse(response, entityDetails);
                 }
-                state.retrying = retryStrategy.retryRequest(response, scope.execCount.get(), clientContext);
-                if (state.retrying) {
+                final Optional<TimeValue> reExecInterval = reExecutionStrategy.reExecute(response, scope.execCount.get(), clientContext);
+                if (reExecInterval.isPresent()) {
+                    state.retrying = true;
                     state.status = response.getCode();
-                    state.delay = retryStrategy.getRetryInterval(response, scope.execCount.get(), clientContext);
+                    state.delay = reExecInterval.get();
                     return new DiscardingEntityConsumer<>();
+                } else {
+                    state.reset();
                 }
                 return asyncExecCallback.handleResponse(response, entityDetails);
             }
@@ -173,31 +183,36 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("{} cannot retry non-repeatable request", exchangeId);
                         }
-                    } else if (retryStrategy.retryRequest(request, (IOException) cause, scope.execCount.get(), clientContext)) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("{} {}", exchangeId, cause.getMessage(), cause);
+                    } else {
+                        final Optional<TimeValue> reExecInterval = reExecutionStrategy.reExecute(request, (IOException) cause, scope.execCount.get(), clientContext);
+                        if (reExecInterval.isPresent()) {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} {}", exchangeId, cause.getMessage(), cause);
+                            }
+                            scope.execRuntime.discardEndpoint();
+                            if (entityProducer != null) {
+                                entityProducer.releaseResources();
+                            }
+                            state.retrying = true;
+                            final int execCount = scope.execCount.incrementAndGet();
+                            state.delay = reExecInterval.get();
+                            final TimeValue delay = TimeValue.isPositive(state.delay) ? state.delay : TimeValue.ZERO_MILLISECONDS;
+                            if (LOG.isInfoEnabled()) {
+                                LOG.info("{} recoverable I/O exception ({}) caught when sending request to {};" +
+                                                "request will be automatically re-executed in {} (exec count {})",
+                                        exchangeId, cause.getClass().getName(), target, delay, execCount);
+                            }
+                            scope.scheduler.scheduleExecution(
+                                    request,
+                                    entityProducer,
+                                    scope,
+                                    (r, e, s, c) -> execute(r, e, s, chain, c),
+                                    asyncExecCallback,
+                                    delay);
+                            return;
+                        } else {
+                            state.reset();
                         }
-                        scope.execRuntime.discardEndpoint();
-                        if (entityProducer != null) {
-                            entityProducer.releaseResources();
-                        }
-                        state.retrying = true;
-                        final int execCount = scope.execCount.incrementAndGet();
-                        state.delay = retryStrategy.getRetryInterval(request, (IOException) cause, execCount - 1, clientContext);
-                        final TimeValue delay = TimeValue.isPositive(state.delay) ? state.delay : TimeValue.ZERO_MILLISECONDS;
-                        if (LOG.isInfoEnabled()) {
-                            LOG.info("{} recoverable I/O exception ({}) caught when sending request to {};" +
-                                            "request will be automatically re-executed in {} (exec count {})",
-                                    exchangeId, cause.getClass().getName(), target, delay, execCount);
-                        }
-                        scope.scheduler.scheduleExecution(
-                                request,
-                                entityProducer,
-                                scope,
-                                (r, e, s, c) -> execute(r, e, s, chain, c),
-                                asyncExecCallback,
-                                delay);
-                        return;
                     }
                 }
                 asyncExecCallback.failed(cause);

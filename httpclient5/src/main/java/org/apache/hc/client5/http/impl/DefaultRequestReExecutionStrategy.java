@@ -36,10 +36,12 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.net.ssl.SSLException;
 
+import org.apache.hc.client5.http.RequestReExecutionStrategy;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -59,20 +61,17 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
 /**
- * Default implementation of the {@link org.apache.hc.client5.http.HttpRequestRetryStrategy} interface.
+ * Default implementation of the {@link RequestReExecutionStrategy} interface.
  *
- * @since 5.0
- *
- * @deprecated Use {@link org.apache.hc.client5.http.RequestReExecutionStrategy}
+ * @since 5.6
  */
-@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
-public class DefaultHttpRequestRetryStrategy implements org.apache.hc.client5.http.HttpRequestRetryStrategy {
+public class DefaultRequestReExecutionStrategy implements RequestReExecutionStrategy {
 
     /**
-     * Default instance of {@link DefaultHttpRequestRetryStrategy}.
+     * Default instance of {@link DefaultRequestReExecutionStrategy}.
      */
-    public static final DefaultHttpRequestRetryStrategy INSTANCE = new DefaultHttpRequestRetryStrategy();
+    public static final DefaultRequestReExecutionStrategy INSTANCE = new DefaultRequestReExecutionStrategy();
 
     /**
      * Maximum number of allowed retries
@@ -94,7 +93,7 @@ public class DefaultHttpRequestRetryStrategy implements org.apache.hc.client5.ht
      */
     private final Set<Integer> retriableCodes;
 
-    protected DefaultHttpRequestRetryStrategy(
+    protected DefaultRequestReExecutionStrategy(
             final int maxRetries,
             final TimeValue defaultRetryInterval,
             final Collection<Class<? extends IOException>> clazzes,
@@ -131,7 +130,7 @@ public class DefaultHttpRequestRetryStrategy implements org.apache.hc.client5.ht
      * subsequent retries if the {@code Retry-After} header is not set
      * or invalid.
      */
-    public DefaultHttpRequestRetryStrategy(
+    public DefaultRequestReExecutionStrategy(
             final int maxRetries,
             final TimeValue defaultRetryInterval) {
         this(maxRetries, defaultRetryInterval,
@@ -165,12 +164,12 @@ public class DefaultHttpRequestRetryStrategy implements org.apache.hc.client5.ht
      * <li>SC_SERVICE_UNAVAILABLE (503)</li>
      * </ul>
      */
-    public DefaultHttpRequestRetryStrategy() {
+    public DefaultRequestReExecutionStrategy() {
         this(1, TimeValue.ofSeconds(1L));
     }
 
     @Override
-    public boolean retryRequest(
+    public Optional<TimeValue> reExecute(
             final HttpRequest request,
             final IOException exception,
             final int execCount,
@@ -180,49 +179,49 @@ public class DefaultHttpRequestRetryStrategy implements org.apache.hc.client5.ht
 
         if (execCount > this.maxRetries) {
             // Do not retry if over max retries
-            return false;
+            return Optional.empty();
         }
         if (this.nonRetriableIOExceptionClasses.contains(exception.getClass())) {
-            return false;
+            return Optional.empty();
         }
         for (final Class<? extends IOException> rejectException : this.nonRetriableIOExceptionClasses) {
             if (rejectException.isInstance(exception)) {
-                return false;
+                return Optional.empty();
             }
         }
         if (request instanceof CancellableDependency && ((CancellableDependency) request).isCancelled()) {
-            return false;
+            return Optional.empty();
         }
 
         // Retry if the request is considered idempotent
-        return handleAsIdempotent(request);
+        if (handleAsIdempotent(request)) {
+            return Optional.of(getRetryInterval(request, execCount, context));
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
-    public boolean retryRequest(
+    public Optional<TimeValue> reExecute(
             final HttpResponse response,
             final int execCount,
             final HttpContext context) {
         Args.notNull(response, "response");
-
-        if (context != null) {
+        if (execCount <= this.maxRetries && retriableCodes.contains(response.getCode())) {
+            final TimeValue retryInterval = getRetryInterval(response, execCount, context);
             final HttpClientContext clientContext = HttpClientContext.cast(context);
-            final RequestConfig requestConfig = clientContext.getRequestConfigOrDefault();
-            final Timeout responseTimeout = requestConfig.getResponseTimeout();
-            if (responseTimeout != null && defaultRetryInterval.compareTo(responseTimeout) > 0) {
-                return false;
+            final RequestConfig requestConfig = clientContext != null ? clientContext.getRequestConfig() : null;
+            final Timeout responseTimeout = requestConfig != null ? requestConfig.getResponseTimeout() : null;
+            if (responseTimeout == null || responseTimeout.compareTo(retryInterval) >= 0) {
+                return Optional.of(retryInterval);
             }
         }
-        return execCount <= this.maxRetries && retriableCodes.contains(response.getCode());
+        return Optional.empty();
     }
 
-    @Override
-    public TimeValue getRetryInterval(
-            final HttpResponse response,
-            final int execCount,
-            final HttpContext context) {
-        Args.notNull(response, "response");
-
+    protected TimeValue getRetryInterval(final HttpResponse response,
+                                         final int execCount,
+                                         final HttpContext context) {
         final Header header = response.getFirstHeader(HttpHeaders.RETRY_AFTER);
         TimeValue retryAfter = null;
         if (header != null) {
@@ -246,6 +245,12 @@ public class DefaultHttpRequestRetryStrategy implements org.apache.hc.client5.ht
 
     protected boolean handleAsIdempotent(final HttpRequest request) {
         return Method.isIdempotent(request.getMethod());
+    }
+
+    protected TimeValue getRetryInterval(final HttpRequest request,
+                                         final int execCount,
+                                         final HttpContext context) {
+        return TimeValue.ZERO_MILLISECONDS;
     }
 
 }

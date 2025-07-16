@@ -29,7 +29,8 @@ package org.apache.hc.client5.testing.sync;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
+
+import org.apache.hc.client5.http.impl.DefaultRequestReExecutionStrategy;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.classic.RandomHandler;
 import org.apache.hc.client5.testing.classic.ServiceUnavailableDecorator;
@@ -79,7 +80,7 @@ abstract class TestClientRequestReExecution extends AbstractIntegrationTestBase 
         final HttpHost target = startServer();
 
         configureClient(builder -> builder
-                .setRetryStrategy(new DefaultHttpRequestRetryStrategy(1, TimeValue.ofSeconds(1))));
+                .setReExecutionStrategy(new DefaultRequestReExecutionStrategy(1, TimeValue.ofSeconds(1))));
         final TestClient client = client();
 
         final HttpClientContext context = HttpClientContext.create();
@@ -100,7 +101,7 @@ abstract class TestClientRequestReExecution extends AbstractIntegrationTestBase 
         final HttpHost target = startServer();
 
         configureClient(builder -> builder
-                .setRetryStrategy(new DefaultHttpRequestRetryStrategy(5, TimeValue.ofSeconds(1))));
+                .setReExecutionStrategy(new DefaultRequestReExecutionStrategy(5, TimeValue.ofSeconds(1))));
         final TestClient client = client();
 
         final HttpClientContext context = HttpClientContext.create();

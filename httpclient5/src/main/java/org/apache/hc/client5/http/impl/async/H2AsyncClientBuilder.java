@@ -39,7 +39,7 @@ import java.util.concurrent.ThreadFactory;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.DnsResolver;
-import org.apache.hc.client5.http.HttpRequestRetryStrategy;
+import org.apache.hc.client5.http.RequestReExecutionStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
@@ -53,8 +53,8 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
-import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
+import org.apache.hc.client5.http.impl.DefaultRequestReExecutionStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
@@ -183,7 +183,7 @@ public class H2AsyncClientBuilder {
 
     private HttpRoutePlanner routePlanner;
     private RedirectStrategy redirectStrategy;
-    private HttpRequestRetryStrategy retryStrategy;
+    private RequestReExecutionStrategy reExecutionStrategy;
 
     private Lookup<AuthSchemeFactory> authSchemeRegistry;
     private Lookup<CookieSpecFactory> cookieSpecRegistry;
@@ -445,16 +445,35 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Sets {@link HttpRequestRetryStrategy} instance.
+     * Sets {@link org.apache.hc.client5.http.HttpRequestRetryStrategy} instance.
      * <p>
      * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
      * method.
      * </p>
      *
      * @return this instance.
+     *
+     * @deprecated Use {@link #setRequestReExecutionStrategy(RequestReExecutionStrategy)}
      */
-    public final H2AsyncClientBuilder setRetryStrategy(final HttpRequestRetryStrategy retryStrategy) {
-        this.retryStrategy = retryStrategy;
+    @Deprecated
+    public final H2AsyncClientBuilder setRetryStrategy(final org.apache.hc.client5.http.HttpRequestRetryStrategy retryStrategy) {
+        this.reExecutionStrategy = org.apache.hc.client5.http.HttpRequestRetryStrategy.adaptor(retryStrategy);
+        return this;
+    }
+
+    /**
+     * Sets {@link RequestReExecutionStrategy} instance.
+     * <p>
+     * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
+     * method.
+     * </p>
+     *
+     * @return this instance.
+     *
+     * @since 5.6
+     */
+    public final H2AsyncClientBuilder setRequestReExecutionStrategy(final RequestReExecutionStrategy reExecutionStrategy) {
+        this.reExecutionStrategy = reExecutionStrategy;
         return this;
     }
 
@@ -814,12 +833,12 @@ public class H2AsyncClientBuilder {
 
         // Add request retry executor, if not disabled
         if (!automaticRetriesDisabled) {
-            HttpRequestRetryStrategy retryStrategyCopy = this.retryStrategy;
-            if (retryStrategyCopy == null) {
-                retryStrategyCopy = DefaultHttpRequestRetryStrategy.INSTANCE;
+            RequestReExecutionStrategy reExecutionStrategyCopy = this.reExecutionStrategy;
+            if (reExecutionStrategyCopy == null) {
+                reExecutionStrategyCopy = DefaultRequestReExecutionStrategy.INSTANCE;
             }
             execChainDefinition.addFirst(
-                    new AsyncHttpRequestRetryExec(retryStrategyCopy),
+                    new AsyncHttpRequestRetryExec(reExecutionStrategyCopy),
                     ChainElement.RETRY.name());
         }
 
