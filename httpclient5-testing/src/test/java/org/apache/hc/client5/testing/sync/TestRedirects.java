@@ -49,7 +49,7 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
+import org.apache.hc.client5.http.impl.DefaultRequestReExecutionStrategy;
 import org.apache.hc.client5.http.impl.LaxRedirectStrategy;
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -655,7 +655,7 @@ abstract class TestRedirects extends AbstractIntegrationTestBase {
     @Test
     void testRetryUponRedirect() throws Exception {
         configureClient(builder -> builder
-                .setRetryStrategy(new DefaultHttpRequestRetryStrategy(
+                .setReExecutionStrategy(new DefaultRequestReExecutionStrategy(
                         3,
                         TimeValue.ofSeconds(1),
                         Arrays.asList(

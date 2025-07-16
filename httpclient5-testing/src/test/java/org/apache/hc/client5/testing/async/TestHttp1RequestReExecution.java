@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
-import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
+import org.apache.hc.client5.http.impl.DefaultRequestReExecutionStrategy;
 import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
 import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
 import org.apache.hc.client5.testing.extension.async.TestAsyncClient;
@@ -81,7 +81,7 @@ abstract class TestHttp1RequestReExecution extends AbstractIntegrationTestBase {
         final HttpHost target = startServer();
 
         configureClient(builder -> builder
-                .setRetryStrategy(new DefaultHttpRequestRetryStrategy(1, TimeValue.ofSeconds(1))));
+                .setReExecutionStrategy(new DefaultRequestReExecutionStrategy(1, TimeValue.ofSeconds(1))));
         final TestAsyncClient client = startClient();
 
         final Future<SimpleHttpResponse> future = client.execute(
@@ -100,7 +100,7 @@ abstract class TestHttp1RequestReExecution extends AbstractIntegrationTestBase {
         final HttpHost target = startServer();
 
         configureClient(builder -> builder
-                .setRetryStrategy(new DefaultHttpRequestRetryStrategy(5, TimeValue.ofSeconds(1))));
+                .setReExecutionStrategy(new DefaultRequestReExecutionStrategy(5, TimeValue.ofSeconds(1))));
         final TestAsyncClient client = startClient();
 
         final Future<SimpleHttpResponse> future = client.execute(

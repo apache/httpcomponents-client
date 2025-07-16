@@ -31,7 +31,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
-import org.apache.hc.client5.http.HttpRequestRetryStrategy;
+import org.apache.hc.client5.http.RequestReExecutionStrategy;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -77,7 +77,7 @@ public interface TestClientBuilder {
         throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
     }
 
-    default TestClientBuilder setRetryStrategy(HttpRequestRetryStrategy retryStrategy) {
+    default TestClientBuilder setReExecutionStrategy(RequestReExecutionStrategy reExecutionStrategy) {
         throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
     }
 

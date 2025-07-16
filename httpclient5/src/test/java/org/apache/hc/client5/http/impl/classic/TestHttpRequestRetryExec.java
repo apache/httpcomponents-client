@@ -29,9 +29,10 @@ package org.apache.hc.client5.http.impl.classic;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Optional;
 
-import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.RequestReExecutionStrategy;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -56,7 +57,7 @@ import org.mockito.MockitoAnnotations;
 class TestHttpRequestRetryExec {
 
     @Mock
-    private HttpRequestRetryStrategy retryStrategy;
+    private RequestReExecutionStrategy reExecutionStrategy;
     @Mock
     private ExecChain chain;
     @Mock
@@ -70,10 +71,9 @@ class TestHttpRequestRetryExec {
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-        retryExec = new HttpRequestRetryExec(retryStrategy);
+        retryExec = new HttpRequestRetryExec(reExecutionStrategy);
         target = new HttpHost("localhost", 80);
     }
-
 
     @Test
     void testFundamentals1() throws Exception {
@@ -86,14 +86,14 @@ class TestHttpRequestRetryExec {
         Mockito.when(chain.proceed(
                 Mockito.same(request),
                 Mockito.any())).thenReturn(response);
-        Mockito.when(retryStrategy.retryRequest(
+        Mockito.when(reExecutionStrategy.reExecute(
                 Mockito.any(),
-                Mockito.anyInt(),
-                Mockito.any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
-        Mockito.when(retryStrategy.getRetryInterval(
+                Mockito.eq(1),
+                Mockito.any())).thenReturn(Optional.of(TimeValue.ZERO_MILLISECONDS));
+        Mockito.when(reExecutionStrategy.reExecute(
                 Mockito.any(),
-                Mockito.anyInt(),
-                Mockito.any())).thenReturn(TimeValue.ZERO_MILLISECONDS);
+                Mockito.intThat(i -> i > 1),
+                Mockito.any())).thenReturn(Optional.empty());
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         retryExec.execute(request, scope, chain);
@@ -115,16 +115,16 @@ class TestHttpRequestRetryExec {
         Mockito.when(chain.proceed(
                 Mockito.same(request),
                 Mockito.any())).thenThrow(new IOException("Ka-boom"));
-        Mockito.when(retryStrategy.retryRequest(
+        Mockito.when(reExecutionStrategy.reExecute(
                 Mockito.any(),
                 Mockito.any(),
-                Mockito.anyInt(),
-                Mockito.any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
-        Mockito.when(retryStrategy.getRetryInterval(
+                Mockito.eq(1),
+                Mockito.any())).thenReturn(Optional.of(nextInterval));
+        Mockito.when(reExecutionStrategy.reExecute(
                 Mockito.any(),
                 Mockito.any(),
-                Mockito.anyInt(),
-                Mockito.any())).thenReturn(nextInterval);
+                Mockito.intThat(i -> i > 1),
+                Mockito.any())).thenReturn(Optional.empty());
         Mockito.when(nextInterval.getDuration()).thenReturn(100L);
         Mockito.when(nextInterval.compareTo(Mockito.any())).thenReturn(-1);
 
@@ -151,14 +151,14 @@ class TestHttpRequestRetryExec {
         Mockito.when(chain.proceed(
                 Mockito.same(request),
                 Mockito.any())).thenReturn(response);
-        Mockito.when(retryStrategy.retryRequest(
+        Mockito.when(reExecutionStrategy.reExecute(
                 Mockito.any(),
-                Mockito.anyInt(),
-                Mockito.any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
-        Mockito.when(retryStrategy.getRetryInterval(
+                Mockito.eq(1),
+                Mockito.any())).thenReturn(Optional.of(TimeValue.ofSeconds(1)));
+        Mockito.when(reExecutionStrategy.reExecute(
                 Mockito.any(),
-                Mockito.anyInt(),
-                Mockito.any())).thenReturn(TimeValue.ofSeconds(1));
+                Mockito.intThat(i -> i > 1),
+                Mockito.any())).thenReturn(Optional.empty());
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         retryExec.execute(request, scope, chain);
@@ -179,7 +179,7 @@ class TestHttpRequestRetryExec {
         Mockito.when(chain.proceed(
                 Mockito.any(),
                 Mockito.any())).thenReturn(response);
-        Mockito.doThrow(new RuntimeException("Ooopsie")).when(retryStrategy).retryRequest(
+        Mockito.doThrow(new RuntimeException("Ooopsie")).when(reExecutionStrategy).reExecute(
                 Mockito.any(),
                 Mockito.anyInt(),
                 Mockito.any());
@@ -231,11 +231,11 @@ class TestHttpRequestRetryExec {
                     wrapper.addHeader("Cookie", "monster");
                     throw new IOException("Ka-boom");
                 });
-        Mockito.when(retryStrategy.retryRequest(
+        Mockito.when(reExecutionStrategy.reExecute(
                 Mockito.any(),
                 Mockito.any(),
                 Mockito.eq(1),
-                Mockito.any())).thenReturn(Boolean.TRUE);
+                Mockito.any())).thenReturn(Optional.of(TimeValue.ZERO_MILLISECONDS));
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, originalRequest, endpoint, context);
         final ClassicHttpRequest request = ClassicRequestBuilder.copy(originalRequest).build();
         Assertions.assertThrows(IOException.class, () ->
@@ -264,7 +264,7 @@ class TestHttpRequestRetryExec {
         Mockito.verify(chain, Mockito.times(1)).proceed(
                 Mockito.same(request),
                 Mockito.same(scope));
-        Mockito.verify(retryStrategy, Mockito.never()).retryRequest(
+        Mockito.verify(reExecutionStrategy, Mockito.never()).reExecute(
                 Mockito.any(),
                 Mockito.any(),
                 Mockito.anyInt(),

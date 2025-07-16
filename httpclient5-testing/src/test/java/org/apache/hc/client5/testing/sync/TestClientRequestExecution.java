@@ -29,12 +29,13 @@ package org.apache.hc.client5.testing.sync;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.client5.http.HttpRequestRetryStrategy;
+import org.apache.hc.client5.http.RequestReExecutionStrategy;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
@@ -141,31 +142,23 @@ abstract class TestClientRequestExecution extends AbstractIntegrationTestBase {
 
         final HttpRequestInterceptor interceptor = (request, entityDetails, context) -> request.addHeader("my-header", "stuff");
 
-        final HttpRequestRetryStrategy requestRetryStrategy = new HttpRequestRetryStrategy() {
+        final RequestReExecutionStrategy requestRetryStrategy = new RequestReExecutionStrategy() {
 
             @Override
-            public boolean retryRequest(
+            public Optional<TimeValue> reExecute(
                     final HttpRequest request,
                     final IOException exception,
                     final int executionCount,
                     final HttpContext context) {
-                return true;
+                return Optional.of(TimeValue.ZERO_MILLISECONDS);
             }
 
             @Override
-            public boolean retryRequest(
+            public Optional<TimeValue> reExecute(
                     final HttpResponse response,
                     final int executionCount,
                     final HttpContext context) {
-                return false;
-            }
-
-            @Override
-            public TimeValue getRetryInterval(
-                    final HttpResponse response,
-                    final int executionCount,
-                    final HttpContext context) {
-                return TimeValue.ofSeconds(1L);
+                return Optional.empty();
             }
 
         };
@@ -173,7 +166,7 @@ abstract class TestClientRequestExecution extends AbstractIntegrationTestBase {
         configureClient(builder -> builder
                 .addRequestInterceptorFirst(interceptor)
                 .setRequestExecutor(new FaultyHttpRequestExecutor("Oppsie"))
-                .setRetryStrategy(requestRetryStrategy)
+                .setReExecutionStrategy(requestRetryStrategy)
         );
         final TestClient client = client();
 
@@ -199,38 +192,30 @@ abstract class TestClientRequestExecution extends AbstractIntegrationTestBase {
         configureServer(bootstrap -> bootstrap.register("*", new SimpleService()));
         final HttpHost target = startServer();
 
-        final HttpRequestRetryStrategy requestRetryStrategy = new HttpRequestRetryStrategy() {
+        final RequestReExecutionStrategy requestRetryStrategy = new RequestReExecutionStrategy() {
 
             @Override
-            public boolean retryRequest(
+            public Optional<TimeValue> reExecute(
                     final HttpRequest request,
                     final IOException exception,
                     final int executionCount,
                     final HttpContext context) {
-                return true;
+                return Optional.of(TimeValue.ZERO_MILLISECONDS);
             }
 
             @Override
-            public boolean retryRequest(
+            public Optional<TimeValue> reExecute(
                     final HttpResponse response,
                     final int executionCount,
                     final HttpContext context) {
-                return false;
-            }
-
-            @Override
-            public TimeValue getRetryInterval(
-                    final HttpResponse response,
-                    final int executionCount,
-                    final HttpContext context) {
-                return TimeValue.ofSeconds(1L);
+                return Optional.empty();
             }
 
         };
 
         configureClient(builder -> builder
                 .setRequestExecutor(new FaultyHttpRequestExecutor("a message showing that this failed"))
-                .setRetryStrategy(requestRetryStrategy)
+                .setReExecutionStrategy(requestRetryStrategy)
         );
         final TestClient client = client();
 
