@@ -56,8 +56,7 @@ import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
-import org.apache.hc.client5.http.entity.compress.ContentCodecRegistry;
-import org.apache.hc.client5.http.entity.compress.ContentCoding;
+import org.apache.hc.client5.http.entity.compress.DecompressingEntity;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
@@ -215,7 +214,6 @@ public class HttpClientBuilder {
     private BackoffManager backoffManager;
     private Lookup<AuthSchemeFactory> authSchemeRegistry;
     private Lookup<CookieSpecFactory> cookieSpecRegistry;
-    @Deprecated
     private LinkedHashMap<String, InputStreamFactory> contentDecoderMap;
     private CookieStore cookieStore;
     private CredentialsProvider credentialsProvider;
@@ -238,12 +236,6 @@ public class HttpClientBuilder {
     private ProxySelector proxySelector;
 
     private List<Closeable> closeables;
-
-    /**
-     * Custom decoders keyed by {@link ContentCoding}.
-     *
-     */
-    private LinkedHashMap<ContentCoding, UnaryOperator<HttpEntity>> contentDecoder;
 
     public static HttpClientBuilder create() {
         return new HttpClientBuilder();
@@ -715,23 +707,6 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Sets a map of {@linkplain java.util.function.UnaryOperator}&lt;HttpEntity&gt; decoders,
-     * keyed by {@link ContentCoding}, to be used for automatic response decompression.
-     *
-     * @param contentDecoder decoder map, or {@code null} to fall back to the
-     *                       defaults from {@link ContentCodecRegistry}.
-     * @return this builder.
-     *
-     * @since 5.6
-     */
-    public final HttpClientBuilder setContentDecoder(
-            final LinkedHashMap<ContentCoding, UnaryOperator<HttpEntity>> contentDecoder) {
-        this.contentDecoder = contentDecoder;
-        return this;
-    }
-
-
-    /**
      * Sets default {@link RequestConfig} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
@@ -992,13 +967,16 @@ public class HttpClientBuilder {
 
         if (!contentCompressionDisabled) {
             // Custom decoder map supplied by the caller
-            if (contentDecoder != null) {
-                final List<String> encodings = new ArrayList<>(contentDecoder.size());
+            if (contentDecoderMap != null) {
+                final List<String> encodings = new ArrayList<>(contentDecoderMap.size());
                 final RegistryBuilder<UnaryOperator<HttpEntity>> b2 = RegistryBuilder.create();
-                for (final Map.Entry<ContentCoding, UnaryOperator<HttpEntity>> entry : contentDecoder.entrySet()) {
-                    final String token = entry.getKey().token();
+                for (final Map.Entry<String, InputStreamFactory> entry : contentDecoderMap.entrySet()) {
+                    final String token = entry.getKey();
+                    final InputStreamFactory inputStreamFactory = entry.getValue();
                     encodings.add(token);
-                    b2.register(token, entry.getValue());
+                    b2.register(token, httpEntity -> new DecompressingEntity(
+                            httpEntity,
+                            inputStreamFactory::create));
                 }
                 final Registry<UnaryOperator<HttpEntity>> decoderRegistry = b2.build();
 
