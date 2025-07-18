@@ -33,10 +33,12 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
@@ -96,6 +98,7 @@ import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.NamedElementChain;
 import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -258,6 +261,16 @@ public class HttpAsyncClientBuilder {
     private List<Closeable> closeables;
 
     private ProxySelector proxySelector;
+
+    /**
+     * Maps {@code Content-Encoding} tokens to decoder factories in insertion order.
+     */
+    private LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> contentDecoderMap;
+
+    /**
+     * When {@code true} the client skips <i>all</i> transparent response decompression.
+     */
+    private boolean contentCompressionDisabled;
 
     public static HttpAsyncClientBuilder create() {
         return new HttpAsyncClientBuilder();
@@ -845,6 +858,37 @@ public class HttpAsyncClientBuilder {
         return this;
     }
 
+
+    /**
+     * Replaces the current decoder registry with {@code contentDecoderMap}.
+     *
+     * <p>The map’s insertion order defines the {@code Accept-Encoding}
+     * preference list sent on every request.</p>
+     *
+     * @param contentDecoderMap a non-empty {@link LinkedHashMap} whose keys are
+     *                          lower-case coding tokens and whose values create
+     *                          a fresh wrapper consumer for each response
+     * @return {@code this} builder instance
+     * @since 5.6
+     */
+    public HttpAsyncClientBuilder setContentDecoderMap(
+            final LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> contentDecoderMap) {
+        this.contentDecoderMap = contentDecoderMap;
+        return this;
+    }
+
+    /**
+     * Disables transparent response decompression for the client produced by
+     * this builder.
+     *
+     * @return {@code this} builder instance
+     * @since 5.6
+     */
+    public HttpAsyncClientBuilder disableContentCompression() {
+        this.contentCompressionDisabled = true;
+        return this;
+    }
+
     /**
      * Request exec chain customization and extension.
      * <p>
@@ -1000,6 +1044,19 @@ public class HttpAsyncClientBuilder {
                     new AsyncHttpRequestRetryExec(retryStrategyCopy),
                     ChainElement.RETRY.name());
         }
+
+        if (!contentCompressionDisabled) {
+            if (contentDecoderMap != null && !contentDecoderMap.isEmpty()) {
+                execChainDefinition.addFirst(
+                        new ContentCompressionAsyncExec(contentDecoderMap, true),
+                        ChainElement.COMPRESS.name());
+            } else {
+                execChainDefinition.addFirst(
+                        new ContentCompressionAsyncExec(),
+                        ChainElement.COMPRESS.name());
+            }
+        }
+
 
         HttpRoutePlanner routePlannerCopy = this.routePlanner;
         if (routePlannerCopy == null) {
