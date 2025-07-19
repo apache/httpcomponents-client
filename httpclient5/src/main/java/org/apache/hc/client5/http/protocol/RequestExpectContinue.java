@@ -29,9 +29,11 @@ package org.apache.hc.client5.http.protocol;
 
 import java.io.IOException;
 
+import org.apache.hc.client5.http.config.ExpectContinueTrigger;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpException;
@@ -41,6 +43,7 @@ import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -68,13 +71,20 @@ public class RequestExpectContinue implements HttpRequestInterceptor {
         if (!request.containsHeader(HttpHeaders.EXPECT)) {
             final HttpClientContext clientContext = HttpClientContext.cast(context);
             final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : clientContext.getProtocolVersion();
+            final RequestConfig config = clientContext.getRequestConfigOrDefault();
+            if (!config.isExpectContinueEnabled()) {
+                return;
+            }
+            if (config.getExpectContinueTrigger() == ExpectContinueTrigger.IF_REUSED) {
+                final EndpointDetails details = HttpCoreContext.cast(context).getEndpointDetails();
+                if (details != null && details.getRequestCount() == 0) {
+                    return;
+                }
+            }
             // Do not send the expect header if request body is known to be empty
             if (entity != null
                     && entity.getContentLength() != 0 && !version.lessEquals(HttpVersion.HTTP_1_0)) {
-                final RequestConfig config = clientContext.getRequestConfigOrDefault();
-                if (config.isExpectContinueEnabled()) {
-                    request.addHeader(HttpHeaders.EXPECT, HeaderElements.CONTINUE);
-                }
+                request.addHeader(HttpHeaders.EXPECT, HeaderElements.CONTINUE);
             }
         }
     }
