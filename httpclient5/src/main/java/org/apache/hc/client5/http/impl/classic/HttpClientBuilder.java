@@ -51,7 +51,6 @@ import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.BackoffManager;
 import org.apache.hc.client5.http.classic.ConnectionBackoffStrategy;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
-import org.apache.hc.client5.http.config.EnvironmentProxyConfigurer;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
@@ -237,9 +236,6 @@ public class HttpClientBuilder {
     private ProxySelector proxySelector;
 
     private List<Closeable> closeables;
-
-    private boolean applyEnvProxy;
-
 
     public static HttpClientBuilder create() {
         return new HttpClientBuilder();
@@ -796,33 +792,6 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Enables transparent transfer of proxy-related environment variables
-     * to the standard JDK system-properties <em>for this client only</em>.
-     * <p>
-     * When this flag is set, {@link EnvironmentProxyConfigurer#apply()}
-     * will be invoked during {@link #build()}, copying
-     * {@code HTTP_PROXY}, {@code HTTPS_PROXY} and {@code NO_PROXY}
-     * (plus lower-case aliases) to their {@code http.*}/{@code https.*}
-     * counterparts, provided those properties are not already defined.
-     * </p>
-     *
-     * <p><strong>Opt-in behaviour:</strong> if you do not call
-     * {@code useEnvironmentProxy()}, the builder leaves JVM system
-     * properties untouched.  Combine with
-     * {@link #useSystemProperties()}&nbsp;(enabled by default via
-     * {@code HttpClientBuilder.create()}) so the newly populated
-     * properties are actually honoured by the client.</p>
-     *
-     * @return this builder, for method chaining
-     * @since 5.6
-     */
-    public HttpClientBuilder useEnvironmentProxy() {
-        this.applyEnvProxy = true;
-        return this;
-    }
-
-
-    /**
      * Sets the {@link ProxySelector} that will be used to select the proxies
      * to be used for establishing HTTP connections. If a non-null proxy selector is set,
      * it will take precedence over the proxy settings configured in the client.
@@ -869,10 +838,6 @@ public class HttpClientBuilder {
     }
 
     public CloseableHttpClient build() {
-
-        if (applyEnvProxy) {
-            EnvironmentProxyConfigurer.apply();
-        }
 
         // Create main request executor
         // We copy the instance fields to avoid changing them, and rename to avoid accidental use of the wrong version
