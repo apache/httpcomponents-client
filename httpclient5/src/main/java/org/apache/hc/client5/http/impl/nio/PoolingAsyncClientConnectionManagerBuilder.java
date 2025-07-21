@@ -90,6 +90,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
     private boolean messageMultiplexing;
 
+    private boolean enableHttpsAyncProxyTunnelling;   // <— default false
+
+
     public static PoolingAsyncClientConnectionManagerBuilder create() {
         return new PoolingAsyncClientConnectionManagerBuilder();
     }
@@ -257,6 +260,16 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
+     * Enables <strong>TLS-in-TLS tunnelling</strong> for the <em>reactor / async</em> transport.
+     *
+     * @since 5.6
+     */
+    public PoolingAsyncClientConnectionManagerBuilder useHttpsAsyncProxyTunnelling() {
+        this.enableHttpsAyncProxyTunnelling = true;
+        return this;
+    }
+
+    /**
      * Use experimental connections pool implementation that acts as a caching facade
      * in front of a standard connection pool and shares already leased connections
      * to multiplex message exchanges over active HTTP/2 connections.
@@ -306,8 +319,18 @@ public class PoolingAsyncClientConnectionManagerBuilder {
                 }
             }
         }
+
+        final AsyncClientConnectionOperator operator = enableHttpsAyncProxyTunnelling
+                ? new ProxyTlsAsyncConnectionOperator(
+                RegistryBuilder.<TlsStrategy>create()
+                        .register(URIScheme.HTTPS.id, tlsStrategyCopy)
+                        .build(),
+                schemePortResolver,
+                dnsResolver)
+                : createConnectionOperator(tlsStrategyCopy, schemePortResolver, dnsResolver);
+
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
-                createConnectionOperator(tlsStrategyCopy, schemePortResolver, dnsResolver),
+                operator,
                 poolConcurrencyPolicy,
                 poolReusePolicy,
                 null,
@@ -322,5 +345,6 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         }
         return poolingmgr;
     }
+
 
 }

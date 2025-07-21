@@ -87,6 +87,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
     private Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
     private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
 
+    private boolean enableHttpsProxyTunnelling;   // <— default false
+
     private boolean systemProperties;
 
     private int maxConnTotal;
@@ -304,11 +306,32 @@ public class PoolingHttpClientConnectionManagerBuilder {
         return this;
     }
 
+    /**
+     * Enables double-TLS tunnelling when the route contains an {@code https://} proxy.
+     *
+     * @return this builder for method chaining
+     * @since 5.6
+     */
+    public PoolingHttpClientConnectionManagerBuilder useHttpsProxyTunnelling() {
+        this.enableHttpsProxyTunnelling = true;
+        return this;
+    }
+
     @Internal
     protected HttpClientConnectionOperator createConnectionOperator(
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
             final TlsSocketStrategy tlsSocketStrategy) {
+
+        if (enableHttpsProxyTunnelling) {
+            return new ProxyTlsConnectionOperator(
+                    RegistryBuilder.<TlsSocketStrategy>create()
+                            .register(URIScheme.HTTPS.id, tlsSocketStrategy)
+                            .build(),
+                    schemePortResolver,
+                    dnsResolver);
+        }
+
         return new DefaultHttpClientConnectionOperator(schemePortResolver, dnsResolver,
                 RegistryBuilder.<TlsSocketStrategy>create()
                         .register(URIScheme.HTTPS.id, tlsSocketStrategy)
