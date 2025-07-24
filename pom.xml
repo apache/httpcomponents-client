@@ -80,6 +80,7 @@
     <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer</hc.animal-sniffer.signature.ignores>
     <commons.compress.version>1.27.1</commons.compress.version>
     <zstd.jni.version>1.5.7-4</zstd.jni.version>
+    <stefanbirkner.version>1.2.1</stefanbirkner.version>
   </properties>
 
   <dependencyManagement>
@@ -215,6 +216,11 @@
         <groupId>com.github.luben</groupId>
         <artifactId>zstd-jni</artifactId>
         <version>${zstd.jni.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.stefanbirkner</groupId>
+        <artifactId>system-lambda</artifactId>
+        <version>${stefanbirkner.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
