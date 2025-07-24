@@ -28,43 +28,46 @@ package org.apache.hc.client5.http.examples;
 
 import java.util.concurrent.Future;
 
-import org.apache.hc.client5.http.async.methods.GzipDecompressingStringAsyncEntityConsumer;
+import org.apache.hc.client5.http.async.methods.GzipCompressingAsyncEntityProducer;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
-import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
+import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.Message;
-import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
+import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 
 /**
- * Example demonstrating how to use GzipDecompressingStringAsyncEntityConsumer for receiving compressed responses.
+ * Example demonstrating how to use GzipCompressingAsyncEntityProducer for streaming GZIP-compressed uploads.
  */
-public class AsyncClientDecompressionExample {
+public class AsyncClientGzipCompressionExample {
 
     public static void main(final String[] args) throws Exception {
         try (final CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
             client.start();
 
-            final SimpleHttpRequest request = SimpleRequestBuilder.get("http://httpbin.org/gzip").build(); // Endpoint that returns GZIP-compressed JSON
+            final String requestBody = "This is some text to be compressed and uploaded. Repeat for larger size if needed.";
 
-            // Use the decompressing consumer wrapped in BasicResponseConsumer
-            final GzipDecompressingStringAsyncEntityConsumer entityConsumer = new GzipDecompressingStringAsyncEntityConsumer();
-            final BasicResponseConsumer<String> responseConsumer = new BasicResponseConsumer<>(entityConsumer);
+            // Create a delegate producer for the raw content
+            final StringAsyncEntityProducer delegate = new StringAsyncEntityProducer(requestBody, ContentType.TEXT_PLAIN);
 
-            final Future<Message<HttpResponse, String>> future = client.execute(
-                    SimpleRequestProducer.create(request),
-                    responseConsumer,
-                    new FutureCallback<Message<HttpResponse, String>>() {
+            // Wrap with compressing producer
+            final GzipCompressingAsyncEntityProducer compressingProducer = new GzipCompressingAsyncEntityProducer(delegate);
+
+            final SimpleHttpRequest request = SimpleRequestBuilder.post("http://httpbin.org/post").build();
+
+            final Future<SimpleHttpResponse> future = client.execute(
+                    new BasicRequestProducer(request, compressingProducer),
+                    SimpleResponseConsumer.create(),
+                    new FutureCallback<SimpleHttpResponse>() {
 
                         @Override
-                        public void completed(final Message<HttpResponse, String> result) {
-                            final HttpResponse response = result.getHead();
-                            final String decompressedBody = result.getBody();
+                        public void completed(final SimpleHttpResponse response) {
                             System.out.println(request.getRequestUri() + " -> " + response.getCode());
-                            System.out.println("Decompressed body: " + decompressedBody);
+                            System.out.println(response.getBodyText());
                         }
 
                         @Override

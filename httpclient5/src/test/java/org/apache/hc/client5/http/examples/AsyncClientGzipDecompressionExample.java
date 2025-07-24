@@ -40,9 +40,9 @@ import org.apache.hc.core5.http.Message;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 
 /**
- * Example demonstrating how to use GzipDecompressingStringAsyncEntityConsumer for receiving compressed responses.
+ * Example demonstrating how to use GzipDecompressingStringAsyncEntityConsumer for streaming decompression of compressed responses.
  */
-public class AsyncClientDecompressionExample {
+public class AsyncClientGzipDecompressionExample {
 
     public static void main(final String[] args) throws Exception {
         try (final CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {

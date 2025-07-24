@@ -45,43 +45,36 @@ import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.apache.hc.core5.io.CloseMode;
 
 /**
- * Example client that shows how to send a <em>gzip‑compressed</em> POST body
- * using {@link CompressingAsyncEntityProducer}.  The program posts to
+ * Example client that shows how to send a gzip‑compressed POST body
+ * using {@link CompressingAsyncEntityProducer}. The program posts to
  * {@code https://httpbin.org/post}, which echoes request details back in the
  * JSON response so you can verify {@code Content-Encoding: gzip} was honoured.
- *
- * <p>The built‑in HttpClient pipeline has no automatic <strong>request‑side</strong>
+ * <p>
+ * The built‑in HttpClient pipeline has no automatic request‑side
  * compression; therefore you wrap the original producer with the generic
- * compressor and add the {@code Content-Encoding} header yourself.</p>
+ * compressor and add the {@code Content-Encoding} header yourself.
  *
  * @since 5.6
  */
 public final class AsyncClientCompressionExample {
-
     private AsyncClientCompressionExample() {
     }
 
     public static void main(final String[] args) throws Exception {
-
         try (final CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
             client.start();
-
             // Raw payload and original producer
             final String payload = "{\"msg\":\"hello compressed world\"}";
             final AsyncEntityProducer rawProducer = new StringAsyncEntityProducer(payload);
             // Explicit content‑type because 1‑arg constructor cannot infer it
             // when we later bypass SimpleRequestProducer.create()
-
-
             // Wrap with gzip compression
             final AsyncEntityProducer gzipProducer = new CompressingAsyncEntityProducer(rawProducer, "gzip");
-
             // Build POST request and explicitly signal the encoding
             final SimpleHttpRequest request = SimpleRequestBuilder.post("https://httpbin.org/post")
                     .addHeader("Content-Encoding", "gzip")
                     .addHeader("Content-Type", ContentType.APPLICATION_JSON.toString())
                     .build();
-
             final Future<Message<HttpResponse, String>> future = client.execute(
                     new org.apache.hc.core5.http.nio.support.BasicRequestProducer(request, gzipProducer),
                     new BasicResponseConsumer<>(new StringAsyncEntityConsumer()),
@@ -102,7 +95,6 @@ public final class AsyncClientCompressionExample {
                             System.err.println("Request cancelled");
                         }
                     });
-
             future.get();
             client.close(CloseMode.GRACEFUL);
         }
