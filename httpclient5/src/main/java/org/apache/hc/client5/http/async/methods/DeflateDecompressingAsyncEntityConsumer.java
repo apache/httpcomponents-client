@@ -28,12 +28,10 @@ package org.apache.hc.client5.http.async.methods;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
-import java.util.zip.ZipException;
 
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.EntityDetails;
@@ -41,36 +39,51 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.nio.AsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
+import org.apache.hc.core5.util.Args;
 
 /**
- * A DEFLATE-only {@link AsyncEntityConsumer} that decompresses incrementally without buffering the full compressed input.
- * Decompressed output is appended to a StringBuilder chunk-by-chunk. Suitable for modest decompressed payloads.
+ * An asynchronous entity consumer that decompresses raw DEFLATE (RFC 1951) content incrementally
+ * without buffering the full compressed input. It wraps an inner {@link AsyncEntityConsumer} to
+ * process decompressed data, supporting arbitrary result types (e.g., String, byte[], or custom).
+ * Decompressed chunks are passed to the inner consumer as they are produced, using a fixed-size
+ * buffer to minimize memory usage. Suitable for modest-sized payloads.
  *
+ * @param <T> the type of the result produced by the inner consumer
  * @since 5.6
  */
-public class DeflateDecompressingStringAsyncEntityConsumer implements AsyncEntityConsumer<String> {
+public class DeflateDecompressingAsyncEntityConsumer<T> implements AsyncEntityConsumer<T> {
 
-    private final StringBuilder resultBuilder = new StringBuilder();
-    private FutureCallback<String> callback;
-    private List<Header> trailers;
-    private String result;
+    private final AsyncEntityConsumer<T> innerConsumer;
     private Inflater inflater;
-    private final byte[] decompressBuffer = new byte[8192]; // Fixed-size output buffer for inflate
+    private final byte[] decompressBuffer = new byte[8192];
+    private List<Header> trailers = new ArrayList<>();
+    private FutureCallback<T> callback;
+
+    /**
+     * Constructs a new DEFLATE decompressing consumer wrapping the specified inner consumer.
+     *
+     * @param innerConsumer the consumer to process decompressed data
+     * @throws IllegalArgumentException if innerConsumer is null
+     */
+    public DeflateDecompressingAsyncEntityConsumer(final AsyncEntityConsumer<T> innerConsumer) {
+        this.innerConsumer = Args.notNull(innerConsumer, "innerConsumer");
+    }
 
     @Override
-    public void streamStart(final EntityDetails entityDetails, final FutureCallback<String> resultCallback) throws HttpException, IOException {
-        this.callback = resultCallback;
-        this.trailers = new ArrayList<>();
+    public void streamStart(final EntityDetails entityDetails, final FutureCallback<T> resultCallback) throws HttpException, IOException {
         final String encoding = entityDetails.getContentEncoding();
         if (!"deflate".equalsIgnoreCase(encoding)) {
             throw new HttpException("Unsupported content coding: " + encoding + ". Only DEFLATE is supported.");
         }
-        this.inflater = new Inflater(true); // nowrap: true for raw deflate
+        inflater = new Inflater(false); // nowrap: false for ZLIB-wrapped DEFLATE (common in HTTP)
+        this.callback = resultCallback;
+        innerConsumer.streamStart(entityDetails, resultCallback);
     }
 
     @Override
     public void updateCapacity(final CapacityChannel capacityChannel) throws IOException {
         capacityChannel.update(Integer.MAX_VALUE); // Always ready for more data
+        innerConsumer.updateCapacity(capacityChannel);
     }
 
     @Override
@@ -90,10 +103,10 @@ public class DeflateDecompressingStringAsyncEntityConsumer implements AsyncEntit
                 if (inflater.finished()) {
                     break;
                 } else if (inflater.needsDictionary()) {
-                    throw new ZipException("Deflate dictionary needed");
+                    throw new IOException("Deflate dictionary needed");
                 }
             }
-            resultBuilder.append(new String(decompressBuffer, 0, bytesInflated, StandardCharsets.UTF_8));
+            innerConsumer.consume(ByteBuffer.wrap(decompressBuffer, 0, bytesInflated));
         }
     }
 
@@ -113,23 +126,20 @@ public class DeflateDecompressingStringAsyncEntityConsumer implements AsyncEntit
             if (bytesInflated == 0) {
                 break;
             }
-            resultBuilder.append(new String(decompressBuffer, 0, bytesInflated, StandardCharsets.UTF_8));
+            innerConsumer.consume(ByteBuffer.wrap(decompressBuffer, 0, bytesInflated));
         }
         if (!inflater.finished()) {
             throw new IOException("Incomplete Deflate stream");
         }
-        result = resultBuilder.toString();
-
+        innerConsumer.streamEnd(trailers);
         if (callback != null) {
-            callback.completed(result);
+            callback.completed(innerConsumer.getContent());
         }
     }
 
     @Override
     public void failed(final Exception cause) {
-        if (callback != null) {
-            callback.failed(cause);
-        }
+        innerConsumer.failed(cause);
     }
 
     @Override
@@ -138,11 +148,11 @@ public class DeflateDecompressingStringAsyncEntityConsumer implements AsyncEntit
             inflater.end();
             inflater = null;
         }
-        resultBuilder.setLength(0);
+        innerConsumer.releaseResources();
     }
 
     @Override
-    public String getContent() {
-        return result;
+    public T getContent() {
+        return innerConsumer.getContent();
     }
 }

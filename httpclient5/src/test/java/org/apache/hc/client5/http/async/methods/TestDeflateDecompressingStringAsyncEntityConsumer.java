@@ -31,13 +31,16 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.Deflater;
 
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.EntityDetails;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.nio.AsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +57,7 @@ class TestDeflateDecompressingStringAsyncEntityConsumer {
     @Mock
     private CapacityChannel capacityChannel;
 
-    private DeflateDecompressingStringAsyncEntityConsumer consumer;
+    private DeflateDecompressingAsyncEntityConsumer<String> consumer;
 
     private CountDownLatch latch;
 
@@ -62,12 +65,15 @@ class TestDeflateDecompressingStringAsyncEntityConsumer {
 
     private Exception capturedException;
 
+    private TestStringAsyncEntityConsumer innerConsumer;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         Mockito.when(entityDetails.getContentEncoding()).thenReturn("deflate");
 
-        consumer = new DeflateDecompressingStringAsyncEntityConsumer();
+        innerConsumer = new TestStringAsyncEntityConsumer();
+        consumer = new DeflateDecompressingAsyncEntityConsumer<>(innerConsumer);
 
         latch = new CountDownLatch(1);
         capturedResult = null;
@@ -97,16 +103,16 @@ class TestDeflateDecompressingStringAsyncEntityConsumer {
         try {
             consumer.streamStart(entityDetails, callback);
         } catch (final HttpException | IOException e) {
-            Assertions.fail(e);
+            Assertions.fail("Failed to start stream: " + e.getMessage(), e);
         }
     }
 
     @Test
     void testDecompressChunkedInput() throws IOException, HttpException, InterruptedException {
-        // Generate compressed data (raw deflate, no header/trailer)
+        // Generate compressed data (ZLIB-wrapped deflate)
         final String original = "Hello, decompressed world!";
         final ByteArrayOutputStream compressedOut = new ByteArrayOutputStream();
-        final Deflater deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, true); // nowrap: true
+        final Deflater deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, false); // nowrap: false for ZLIB
         deflater.setInput(original.getBytes(StandardCharsets.UTF_8));
         deflater.finish();
         final byte[] buf = new byte[1024];
@@ -129,8 +135,14 @@ class TestDeflateDecompressingStringAsyncEntityConsumer {
         consumer.streamEnd(Collections.emptyList());
 
         // Wait for callback
-        Assertions.assertTrue(latch.await(5, TimeUnit.SECONDS));
-        Assertions.assertNull(capturedException);
+        final boolean latchResult = latch.await(5, TimeUnit.SECONDS);
+        if (!latchResult) {
+            System.out.println("Captured exception: " + capturedException);
+            System.out.println("Captured result: " + capturedResult);
+            System.out.println("Inner consumer content: " + innerConsumer.getContent());
+        }
+        Assertions.assertTrue(latchResult, "Callback was not invoked within timeout");
+        Assertions.assertNull(capturedException, "Unexpected exception: " + capturedException);
         Assertions.assertEquals(original, capturedResult);
         Assertions.assertEquals(original, consumer.getContent());
     }
@@ -145,5 +157,50 @@ class TestDeflateDecompressingStringAsyncEntityConsumer {
     void testReleaseResources() {
         consumer.releaseResources();
         Assertions.assertNull(consumer.getContent());
+    }
+
+    // Test-specific String consumer with proper resource cleanup
+    private static class TestStringAsyncEntityConsumer implements AsyncEntityConsumer<String> {
+
+        private final StringBuilder builder = new StringBuilder();
+        private String result;
+
+        @Override
+        public void streamStart(final EntityDetails entityDetails, final FutureCallback<String> resultCallback) throws HttpException, IOException {
+            // No-op for test
+        }
+
+        @Override
+        public void updateCapacity(final CapacityChannel capacityChannel) throws IOException {
+            capacityChannel.update(Integer.MAX_VALUE);
+        }
+
+        @Override
+        public void consume(final ByteBuffer src) throws IOException {
+            final byte[] bytes = new byte[src.remaining()];
+            src.get(bytes);
+            builder.append(new String(bytes, StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
+            result = builder.toString();
+        }
+
+        @Override
+        public void failed(final Exception cause) {
+            // No-op for test
+        }
+
+        @Override
+        public void releaseResources() {
+            builder.setLength(0);
+            result = null; // Ensure getContent() returns null after cleanup
+        }
+
+        @Override
+        public String getContent() {
+            return result;
+        }
     }
 }

@@ -28,46 +28,45 @@ package org.apache.hc.client5.http.examples;
 
 import java.util.concurrent.Future;
 
-import org.apache.hc.client5.http.async.methods.GzipCompressingAsyncEntityProducer;
+import org.apache.hc.client5.http.async.methods.DeflateDecompressingAsyncEntityConsumer;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
-import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
+import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
-import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.Message;
+import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
+import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 
 /**
- * Example demonstrating how to use GzipCompressingAsyncEntityProducer for streaming GZIP-compressed uploads.
+ * Example demonstrating how to use DeflateDecompressingAsyncEntityConsumer for receiving compressed responses.
  */
-public class AsyncClientGzipCompressionExample {
+public class AsyncClientDeflateDecompressionExample {
 
     public static void main(final String[] args) throws Exception {
         try (final CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
             client.start();
 
-            final String requestBody = "This is some text to be compressed and uploaded. Repeat for larger size if needed.";
+            final SimpleHttpRequest request = SimpleRequestBuilder.get("https://httpbin.org/deflate").build(); // Use HTTPS for httpbin.org
 
-            // Create a delegate producer for the raw content
-            final StringAsyncEntityProducer delegate = new StringAsyncEntityProducer(requestBody, ContentType.TEXT_PLAIN);
+            // Use the decompressing consumer wrapped around StringAsyncEntityConsumer
+            final StringAsyncEntityConsumer innerConsumer = new StringAsyncEntityConsumer();
+            final DeflateDecompressingAsyncEntityConsumer<String> entityConsumer = new DeflateDecompressingAsyncEntityConsumer<>(innerConsumer);
+            final BasicResponseConsumer<String> responseConsumer = new BasicResponseConsumer<>(entityConsumer);
 
-            // Wrap with compressing producer
-            final GzipCompressingAsyncEntityProducer compressingProducer = new GzipCompressingAsyncEntityProducer(delegate);
-
-            final SimpleHttpRequest request = SimpleRequestBuilder.post("http://httpbin.org/post").build();
-
-            final Future<SimpleHttpResponse> future = client.execute(
-                    new BasicRequestProducer(request, compressingProducer),
-                    SimpleResponseConsumer.create(),
-                    new FutureCallback<SimpleHttpResponse>() {
+            final Future<Message<HttpResponse, String>> future = client.execute(
+                    SimpleRequestProducer.create(request),
+                    responseConsumer,
+                    new FutureCallback<Message<HttpResponse, String>>() {
 
                         @Override
-                        public void completed(final SimpleHttpResponse response) {
+                        public void completed(final Message<HttpResponse, String> result) {
+                            final HttpResponse response = result.getHead();
+                            final String decompressedBody = result.getBody();
                             System.out.println(request.getRequestUri() + " -> " + response.getCode());
-                            System.out.println(response.getBodyText());
+                            System.out.println("Decompressed body: " + decompressedBody);
                         }
 
                         @Override

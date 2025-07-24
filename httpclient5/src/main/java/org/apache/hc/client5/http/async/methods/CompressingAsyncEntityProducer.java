@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.UnaryOperator;
 
 import org.apache.hc.client5.http.entity.compress.ContentCodecRegistry;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
@@ -141,7 +142,7 @@ public final class CompressingAsyncEntityProducer implements AsyncEntityProducer
         if (coding == null) {
             throw new IOException("Unknown coding: " + token);
         }
-        final java.util.function.UnaryOperator<HttpEntity> op = ContentCodecRegistry.encoder(coding);
+        final UnaryOperator<HttpEntity> op = ContentCodecRegistry.encoder(coding);
         if (op == null) {
             throw new IOException("No encoder registered for " + token);
         }
