@@ -28,60 +28,79 @@ package org.apache.hc.client5.http.examples;
 
 import java.util.concurrent.Future;
 
-import org.apache.hc.client5.http.async.methods.DeflateDecompressingAsyncEntityConsumer;
+import org.apache.hc.client5.http.async.methods.DeflatingAsyncEntityProducer;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
-import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Message;
+import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
+import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
+import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 
 /**
- * Example demonstrating how to use DeflateDecompressingAsyncEntityConsumer for receiving compressed responses.
+ * Demonstrates how to POST a JSON body compressed on-the-fly with
+ * {@link DeflatingAsyncEntityProducer}.  The program talks to
+ * <a href="https://httpbin.org/post">httpbin</a>, which echoes your request,
+ * making it easy to verify that the {@code Content-Encoding: deflate}
+ * header was honoured.
+ *
+ * <p>Key take-aways:</p>
+ * <ol>
+ *   <li>Wrap any existing {@code AsyncEntityProducer} in the compressor.</li>
+ *   <li>Add the encoding header yourself – HttpClient does not do that for you.</li>
+ *   <li>The producer is streaming: huge payloads are never fully buffered.</li>
+ * </ol>
+ *
+ * @since 5.6
  */
-public class AsyncClientDeflateDecompressionExample {
+public class AsyncClientDeflateCompressionExample {
 
     public static void main(final String[] args) throws Exception {
         try (final CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
             client.start();
 
-            final SimpleHttpRequest request = SimpleRequestBuilder.get("https://httpbin.org/deflate").build(); // Use HTTPS for httpbin.org
+            final String json = "{\"msg\":\"hello deflated world\"}";
+            final AsyncEntityProducer raw =
+                    new StringAsyncEntityProducer(json, ContentType.APPLICATION_JSON);
 
-            // Use the decompressing consumer wrapped around StringAsyncEntityConsumer
-            final StringAsyncEntityConsumer innerConsumer = new StringAsyncEntityConsumer();
-            final DeflateDecompressingAsyncEntityConsumer<String> entityConsumer = new DeflateDecompressingAsyncEntityConsumer<>(innerConsumer);
-            final BasicResponseConsumer<String> responseConsumer = new BasicResponseConsumer<>(entityConsumer);
+            final AsyncEntityProducer deflated = new DeflatingAsyncEntityProducer(raw);
+
+            final SimpleHttpRequest request = SimpleRequestBuilder
+                    .post("https://httpbin.org/post")
+                    .addHeader("Content-Encoding", "deflate")
+                    .build();
 
             final Future<Message<HttpResponse, String>> future = client.execute(
-                    SimpleRequestProducer.create(request),
-                    responseConsumer,
+                    /* works in every 5.x version ↓ */
+                    new BasicRequestProducer(request, deflated),
+                    new BasicResponseConsumer<>(new StringAsyncEntityConsumer()),
                     new FutureCallback<Message<HttpResponse, String>>() {
 
                         @Override
                         public void completed(final Message<HttpResponse, String> result) {
-                            final HttpResponse response = result.getHead();
-                            final String decompressedBody = result.getBody();
-                            System.out.println(request.getRequestUri() + " -> " + response.getCode());
-                            System.out.println("Decompressed body: " + decompressedBody);
+                            System.out.println("HTTP " + result.getHead().getCode());
+                            System.out.println(result.getBody());
                         }
 
                         @Override
                         public void failed(final Exception ex) {
-                            System.out.println(request.getRequestUri() + " -> " + ex);
+                            ex.printStackTrace();
                         }
 
                         @Override
                         public void cancelled() {
-                            System.out.println(request.getRequestUri() + " cancelled");
+                            System.out.println("cancelled");
                         }
-
                     });
+
+
             future.get();
         }
     }
-
 }
