@@ -47,8 +47,8 @@ import org.apache.hc.core5.reactive.ReactiveResponseConsumer;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.reactivestreams.Publisher;
 
-import io.reactivex.Flowable;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Observable;
 
 /**
  * This example demonstrates a reactive, full-duplex HTTP/1.1 message exchange using RxJava.

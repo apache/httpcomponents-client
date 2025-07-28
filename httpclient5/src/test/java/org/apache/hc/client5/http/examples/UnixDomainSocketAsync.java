@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.examples;
 
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.config.RequestConfig;
