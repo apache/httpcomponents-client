@@ -85,15 +85,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@code ClientConnectionPoolManager} maintains a pool of
+ * {@code PoolingHttpClientConnectionManager} maintains a pool of
  * {@link ManagedHttpClientConnection}s and is able to service connection requests
  * from multiple execution threads. Connections are pooled on a per route
  * basis. A request for a route which already the manager has persistent
  * connections for available in the pool will be serviced by leasing
  * a connection from the pool rather than creating a new connection.
  * <p>
- * {@code ClientConnectionPoolManager} maintains a maximum limit of connection
- * on a per route basis and in total. Connection limits, however, can be adjusted
+ * {@code PoolingHttpClientConnectionManager} maintains a maximum limit of connections
+ * per route and in total. Connection limits, however, can be adjusted
  * using {@link ConnPoolControl} methods.
  * <p>
  * Total time to live (TTL) set at construction time defines maximum life span
