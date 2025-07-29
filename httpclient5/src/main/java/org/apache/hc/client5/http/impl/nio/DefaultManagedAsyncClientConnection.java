@@ -57,7 +57,7 @@ import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientConnection, Identifiable {
+public class DefaultManagedAsyncClientConnection implements ManagedAsyncClientConnection, Identifiable {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultManagedAsyncClientConnection.class);
 

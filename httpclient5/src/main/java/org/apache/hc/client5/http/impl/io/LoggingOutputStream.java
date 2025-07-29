@@ -32,7 +32,7 @@ import java.io.OutputStream;
 
 import org.apache.hc.client5.http.impl.Wire;
 
-class LoggingOutputStream extends OutputStream {
+public class LoggingOutputStream extends OutputStream {
 
     private final OutputStream out;
     private final Wire wire;

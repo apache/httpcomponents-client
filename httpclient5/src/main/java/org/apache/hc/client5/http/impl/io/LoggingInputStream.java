@@ -36,7 +36,7 @@ import org.apache.hc.client5.http.impl.Wire;
 /**
  * Delegates {@link InputStream} calls and logs to a {@link Wire}.
  */
-class LoggingInputStream extends FilterInputStream {
+public class LoggingInputStream extends FilterInputStream {
 
     private final Wire wire;
 

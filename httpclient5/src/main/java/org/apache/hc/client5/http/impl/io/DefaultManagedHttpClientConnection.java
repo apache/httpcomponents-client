@@ -56,7 +56,7 @@ import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class DefaultManagedHttpClientConnection
+public class DefaultManagedHttpClientConnection
         extends DefaultBHttpClientConnection implements ManagedHttpClientConnection, Identifiable {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultManagedHttpClientConnection.class);
