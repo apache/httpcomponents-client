@@ -43,6 +43,16 @@ import org.apache.hc.core5.util.Timeout;
 public class ConnectionConfig implements Cloneable {
 
     private static final Timeout DEFAULT_CONNECT_TIMEOUT = Timeout.ofMinutes(3);
+    private static final long MIN_ATTEMPT_DELAY_MS = 10;
+
+    /**
+     * @since 5.6
+     */
+    private static final TimeValue DEFAULT_HE_ATTEMPT_DELAY = TimeValue.ofMilliseconds(250);
+    /**
+     * @since 5.6
+     */
+    private static final TimeValue DEFAULT_HE_OTHER_FAMILY_DELAY = TimeValue.ofMilliseconds(50);
 
     public static final ConnectionConfig DEFAULT = new Builder().build();
 
@@ -53,10 +63,27 @@ public class ConnectionConfig implements Cloneable {
     private final TimeValue timeToLive;
 
     /**
+     * @since 5.6
+     */
+    private final boolean happyEyeballsEnabled;
+    /**
+     * @since 5.6
+     */
+    private final TimeValue happyEyeballsAttemptDelay;
+    /**
+     * @since 5.6
+     */
+    private final TimeValue happyEyeballsOtherFamilyDelay;
+    /**
+     * @since 5.6
+     */
+    private final ProtocolFamilyPreference protocolFamilyPreference;
+
+    /**
      * Intended for CDI compatibility
      */
     protected ConnectionConfig() {
-        this(DEFAULT_CONNECT_TIMEOUT, null, null, null, null);
+        this(DEFAULT_CONNECT_TIMEOUT, null, null, null, null, false, DEFAULT_HE_ATTEMPT_DELAY, DEFAULT_HE_OTHER_FAMILY_DELAY, ProtocolFamilyPreference.INTERLEAVE);
     }
 
     ConnectionConfig(
@@ -64,13 +91,21 @@ public class ConnectionConfig implements Cloneable {
             final Timeout socketTimeout,
             final Timeout idleTimeout,
             final TimeValue validateAfterInactivity,
-            final TimeValue timeToLive) {
+            final TimeValue timeToLive,
+            final boolean happyEyeballsEnabled,
+            final TimeValue happyEyeballsAttemptDelay,
+            final TimeValue happyEyeballsOtherFamilyDelay,
+            final ProtocolFamilyPreference protocolFamilyPreference) {
         super();
         this.connectTimeout = connectTimeout;
         this.socketTimeout = socketTimeout;
         this.idleTimeout = idleTimeout;
         this.validateAfterInactivity = validateAfterInactivity;
         this.timeToLive = timeToLive;
+        this.happyEyeballsEnabled = happyEyeballsEnabled;
+        this.happyEyeballsAttemptDelay = happyEyeballsAttemptDelay != null ? happyEyeballsAttemptDelay : DEFAULT_HE_ATTEMPT_DELAY;
+        this.happyEyeballsOtherFamilyDelay = happyEyeballsOtherFamilyDelay != null ? happyEyeballsOtherFamilyDelay : DEFAULT_HE_OTHER_FAMILY_DELAY;
+        this.protocolFamilyPreference = protocolFamilyPreference != null ? protocolFamilyPreference : ProtocolFamilyPreference.INTERLEAVE;
     }
 
     /**
@@ -108,6 +143,46 @@ public class ConnectionConfig implements Cloneable {
         return timeToLive;
     }
 
+    /**
+     * Whether Happy Eyeballs connection attempts are enabled.
+     *
+     * @see Builder#setHappyEyeballsEnabled(boolean)
+     * @since 5.7
+     */
+    public boolean isHappyEyeballsEnabled() {
+        return happyEyeballsEnabled;
+    }
+
+    /**
+     * Delay between subsequent concurrent connection attempts.
+     *
+     * @see Builder#setHappyEyeballsAttemptDelay(TimeValue)
+     * @since 5.7
+     */
+    public TimeValue getHappyEyeballsAttemptDelay() {
+        return happyEyeballsAttemptDelay;
+    }
+
+    /**
+     * Initial delay before launching the first address of the other protocol family.
+     *
+     * @see Builder#setHappyEyeballsOtherFamilyDelay(TimeValue)
+     * @since 5.7
+     */
+    public TimeValue getHappyEyeballsOtherFamilyDelay() {
+        return happyEyeballsOtherFamilyDelay;
+    }
+
+    /**
+     * Protocol family preference controlling address selection and ordering.
+     *
+     * @see Builder#setProtocolFamilyPreference(ProtocolFamilyPreference)
+     * @since 5.7
+     */
+    public ProtocolFamilyPreference getProtocolFamilyPreference() {
+        return protocolFamilyPreference;
+    }
+
     @Override
     protected ConnectionConfig clone() throws CloneNotSupportedException {
         return (ConnectionConfig) super.clone();
@@ -122,6 +197,10 @@ public class ConnectionConfig implements Cloneable {
         builder.append(", idleTimeout=").append(idleTimeout);
         builder.append(", validateAfterInactivity=").append(validateAfterInactivity);
         builder.append(", timeToLive=").append(timeToLive);
+        builder.append(", happyEyeballsEnabled=").append(happyEyeballsEnabled);
+        builder.append(", happyEyeballsAttemptDelay=").append(happyEyeballsAttemptDelay);
+        builder.append(", happyEyeballsOtherFamilyDelay=").append(happyEyeballsOtherFamilyDelay);
+        builder.append(", protocolFamilyPreference=").append(protocolFamilyPreference);
         builder.append("]");
         return builder.toString();
     }
@@ -135,7 +214,11 @@ public class ConnectionConfig implements Cloneable {
                 .setConnectTimeout(config.getConnectTimeout())
                 .setSocketTimeout(config.getSocketTimeout())
                 .setValidateAfterInactivity(config.getValidateAfterInactivity())
-                .setTimeToLive(config.getTimeToLive());
+                .setTimeToLive(config.getTimeToLive())
+                .setHappyEyeballsEnabled(config.isHappyEyeballsEnabled())
+                .setHappyEyeballsAttemptDelay(config.getHappyEyeballsAttemptDelay())
+                .setHappyEyeballsOtherFamilyDelay(config.getHappyEyeballsOtherFamilyDelay())
+                .setProtocolFamilyPreference(config.getProtocolFamilyPreference());
     }
 
     public static class Builder {
@@ -145,6 +228,12 @@ public class ConnectionConfig implements Cloneable {
         private Timeout idleTimeout;
         private TimeValue validateAfterInactivity;
         private TimeValue timeToLive;
+
+        // New fields (defaults)
+        private boolean happyEyeballsEnabled = false; // disabled by default
+        private TimeValue happyEyeballsAttemptDelay = DEFAULT_HE_ATTEMPT_DELAY;
+        private TimeValue happyEyeballsOtherFamilyDelay = DEFAULT_HE_OTHER_FAMILY_DELAY;
+        private ProtocolFamilyPreference protocolFamilyPreference = ProtocolFamilyPreference.INTERLEAVE;
 
         Builder() {
             super();
@@ -281,13 +370,82 @@ public class ConnectionConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * Enables or disables Happy Eyeballs connection attempts.
+         *
+         * @since 5.7
+         * @return this instance.
+         */
+        public Builder setHappyEyeballsEnabled(final boolean enabled) {
+            this.happyEyeballsEnabled = enabled;
+            return this;
+        }
+
+        /**
+         * Sets the delay between concurrent connection attempts.
+         * <p>
+         * The value must not be less than 10 ms. The recommended minimum is 100 ms
+         * and the recommended upper bound is 2 seconds.
+         * </p>
+         *
+         * @since 5.7
+         * @return this instance.
+         * @throws IllegalArgumentException if {@code delay} is less than 10 ms.
+         */
+        public Builder setHappyEyeballsAttemptDelay(final TimeValue delay) {
+            if (delay != null && delay.toMilliseconds() < MIN_ATTEMPT_DELAY_MS) {
+                throw new IllegalArgumentException(
+                        "Happy Eyeballs attempt delay must not be less than " + MIN_ATTEMPT_DELAY_MS + " ms, got: "
+                                + delay.toMilliseconds() + " ms");
+            }
+            this.happyEyeballsAttemptDelay = delay;
+            return this;
+        }
+
+        /**
+         * Sets the initial delay before launching the first address of the other
+         * protocol family (IPv6 vs IPv4) when interleaving attempts.
+         * <p>
+         * The value must not be less than 10 ms and is clamped to the attempt delay.
+         * </p>
+         *
+         * @since 5.7
+         * @return this instance.
+         * @throws IllegalArgumentException if {@code delay} is less than 10 ms.
+         */
+        public Builder setHappyEyeballsOtherFamilyDelay(final TimeValue delay) {
+            if (delay != null && delay.toMilliseconds() < MIN_ATTEMPT_DELAY_MS) {
+                throw new IllegalArgumentException(
+                        "Happy Eyeballs other-family delay must not be less than " + MIN_ATTEMPT_DELAY_MS + " ms, got: "
+                                + delay.toMilliseconds() + " ms");
+            }
+            this.happyEyeballsOtherFamilyDelay = delay;
+            return this;
+        }
+
+        /**
+         * Sets the protocol family preference that guides address selection and ordering.
+         *
+         * @since 5.7
+         * @return this instance.
+         */
+        public Builder setProtocolFamilyPreference(final ProtocolFamilyPreference preference) {
+            this.protocolFamilyPreference = preference;
+            return this;
+        }
+
         public ConnectionConfig build() {
             return new ConnectionConfig(
                     connectTimeout != null ? connectTimeout : DEFAULT_CONNECT_TIMEOUT,
                     socketTimeout,
                     idleTimeout,
                     validateAfterInactivity,
-                    timeToLive);
+                    timeToLive,
+                    happyEyeballsEnabled,
+                    happyEyeballsAttemptDelay != null ? happyEyeballsAttemptDelay : DEFAULT_HE_ATTEMPT_DELAY,
+                    happyEyeballsOtherFamilyDelay != null ? happyEyeballsOtherFamilyDelay : DEFAULT_HE_OTHER_FAMILY_DELAY,
+                    protocolFamilyPreference != null ? protocolFamilyPreference : ProtocolFamilyPreference.INTERLEAVE
+            );
         }
 
     }
