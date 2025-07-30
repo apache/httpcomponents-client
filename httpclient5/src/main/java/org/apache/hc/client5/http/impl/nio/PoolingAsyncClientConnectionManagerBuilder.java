@@ -93,6 +93,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
     private boolean messageMultiplexing;
 
+    private AsyncClientConnectionOperator connectionOperator;
+
     public static PoolingAsyncClientConnectionManagerBuilder create() {
         return new PoolingAsyncClientConnectionManagerBuilder();
     }
@@ -289,6 +291,20 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         return this;
     }
 
+    /**
+     * Sets custom {@link AsyncClientConnectionOperator} instance.
+     *
+     * @param connectionOperator the custom connection operator.
+     * @return this instance.
+     * @since 5.6
+     */
+    @Experimental
+    public final PoolingAsyncClientConnectionManagerBuilder setConnectionOperator(
+            final AsyncClientConnectionOperator connectionOperator) {
+        this.connectionOperator = connectionOperator;
+        return this;
+    }
+
     @Internal
     protected AsyncClientConnectionOperator createConnectionOperator(
             final TlsStrategy tlsStrategy,
@@ -303,26 +319,32 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     public PoolingAsyncClientConnectionManager build() {
-        final TlsStrategy tlsStrategyCopy;
-        if (tlsStrategy != null) {
-            tlsStrategyCopy = tlsStrategy;
+        final AsyncClientConnectionOperator operator;
+        if (this.connectionOperator != null) {
+            operator = this.connectionOperator;
         } else {
-            if (ReflectionUtils.determineJRELevel() <= 8 && ConscryptClientTlsStrategy.isSupported()) {
-                if (systemProperties) {
-                    tlsStrategyCopy = ConscryptClientTlsStrategy.getSystemDefault();
-                } else {
-                    tlsStrategyCopy = ConscryptClientTlsStrategy.getDefault();
-                }
+            final TlsStrategy tlsStrategyCopy;
+            if (tlsStrategy != null) {
+                tlsStrategyCopy = tlsStrategy;
             } else {
-                if (systemProperties) {
-                    tlsStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
+                if (ReflectionUtils.determineJRELevel() <= 8 && ConscryptClientTlsStrategy.isSupported()) {
+                    if (systemProperties) {
+                        tlsStrategyCopy = ConscryptClientTlsStrategy.getSystemDefault();
+                    } else {
+                        tlsStrategyCopy = ConscryptClientTlsStrategy.getDefault();
+                    }
                 } else {
-                    tlsStrategyCopy = DefaultClientTlsStrategy.createDefault();
+                    if (systemProperties) {
+                        tlsStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
+                    } else {
+                        tlsStrategyCopy = DefaultClientTlsStrategy.createDefault();
+                    }
                 }
             }
+            operator = createConnectionOperator(tlsStrategyCopy, schemePortResolver, dnsResolver);
         }
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
-                createConnectionOperator(tlsStrategyCopy, schemePortResolver, dnsResolver),
+                operator,
                 poolConcurrencyPolicy,
                 poolReusePolicy,
                 null,
