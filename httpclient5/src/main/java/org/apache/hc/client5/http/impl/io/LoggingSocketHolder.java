@@ -38,7 +38,7 @@ import org.apache.hc.client5.http.impl.Wire;
 import org.apache.hc.core5.http.impl.io.SocketHolder;
 import org.slf4j.Logger;
 
-public class LoggingSocketHolder extends SocketHolder {
+class LoggingSocketHolder extends SocketHolder {
 
     private final Wire wire;
 
