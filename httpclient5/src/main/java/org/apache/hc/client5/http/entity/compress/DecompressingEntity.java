@@ -82,14 +82,12 @@ public class DecompressingEntity extends HttpEntityWrapper {
         return -1;
     }
 
+    /**
+     * Content is no longer encoded
+     */
     @Override
-    public boolean isRepeatable() {
-        return super.isRepeatable();
-    }
-
-    @Override
-    public boolean isStreaming() {
-        return super.isStreaming();
+    public String getContentEncoding() {
+        return null;
     }
 
     /**
