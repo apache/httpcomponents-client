@@ -182,8 +182,7 @@ public final class HappyEyeballsV2AsyncClientConnectionOperator
                                                         final int attemptDelayMillis) {
         this.dnsResolver = Args.notNull(dnsResolver, "DNS resolver");
         this.attemptDelayMillis = attemptDelayMillis;
-        this.otherFamilyDelayMillis =
-                Math.min(DEFAULT_OTHER_FAMILY_DELAY_MS, attemptDelayMillis);
+        this.otherFamilyDelayMillis = Math.min(DEFAULT_OTHER_FAMILY_DELAY_MS, attemptDelayMillis);
 
         final ThreadFactory tf = r -> {
             final Thread t = new Thread(r, "hc-hev2-scheduler");
@@ -437,37 +436,63 @@ public final class HappyEyeballsV2AsyncClientConnectionOperator
         /* Rule 1 – unusable destinations */
         final boolean validA = sa != null && !sa.isAnyLocalAddress();
         final boolean validB = sb != null && !sb.isAnyLocalAddress();
-        if (!validA && !validB) return 0;
-        if (!validB) return preferA;
-        if (!validA) return preferB;
+        if (!validA && !validB) {
+            return 0;
+        }
+        if (!validB) {
+            return preferA;
+        }
+        if (!validA) {
+            return preferB;
+        }
 
         /* Rule 2 – prefer matching scope */
-        if (aDest.scope == aSrc.scope && bDest.scope != bSrc.scope) return preferA;
-        if (aDest.scope != aSrc.scope && bDest.scope == bSrc.scope) return preferB;
+        if (aDest.scope == aSrc.scope && bDest.scope != bSrc.scope) {
+            return preferA;
+        }
+        if (aDest.scope != aSrc.scope && bDest.scope == bSrc.scope) {
+            return preferB;
+        }
 
         /* Rule 3 – TODO deprecated */
         /* Rule 4 – TODO home vs care-of */
 
         /* Rule 5 – prefer matching label */
-        if (aSrc.label == aDest.label && bSrc.label != bDest.label) return preferA;
-        if (aSrc.label != aDest.label && bSrc.label == bDest.label) return preferB;
+        if (aSrc.label == aDest.label && bSrc.label != bDest.label) {
+            return preferA;
+        }
+        if (aSrc.label != aDest.label && bSrc.label == bDest.label) {
+            return preferB;
+        }
 
         /* Rule 6 – higher precedence */
-        if (aDest.precedence > bDest.precedence) return preferA;
-        if (aDest.precedence < bDest.precedence) return preferB;
+        if (aDest.precedence > bDest.precedence) {
+            return preferA;
+        }
+        if (aDest.precedence < bDest.precedence) {
+            return preferB;
+        }
 
         /* Rule 7 – TODO native transport */
 
         /* Rule 8 – smaller scope */
-        if (aDest.scope.value < bDest.scope.value) return preferA;
-        if (aDest.scope.value > bDest.scope.value) return preferB;
+        if (aDest.scope.value < bDest.scope.value) {
+            return preferA;
+        }
+        if (aDest.scope.value > bDest.scope.value) {
+            return preferB;
+        }
 
         /* Rule 9 – longest matching prefix (IPv6 only) */
         if (da instanceof Inet6Address && db instanceof Inet6Address) {
             final int commonA = commonPrefixLen(sa, da);
             final int commonB = commonPrefixLen(sb, db);
-            if (commonA > commonB) return preferA;
-            if (commonA < commonB) return preferB;
+            if (commonA > commonB) {
+                return preferA;
+            }
+            if (commonA < commonB) {
+                return preferB;
+            }
         }
 
         /* Rule 10 – equal */
