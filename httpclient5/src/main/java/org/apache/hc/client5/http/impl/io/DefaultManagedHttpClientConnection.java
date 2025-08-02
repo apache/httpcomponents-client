@@ -38,6 +38,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentLengthStrategy;
@@ -56,7 +57,8 @@ import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class DefaultManagedHttpClientConnection
+@Internal
+public class DefaultManagedHttpClientConnection
         extends DefaultBHttpClientConnection implements ManagedHttpClientConnection, Identifiable {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultManagedHttpClientConnection.class);

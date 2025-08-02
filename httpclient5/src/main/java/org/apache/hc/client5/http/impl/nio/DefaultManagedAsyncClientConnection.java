@@ -35,6 +35,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpConnection;
@@ -57,7 +58,8 @@ import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientConnection, Identifiable {
+@Internal
+public class DefaultManagedAsyncClientConnection implements ManagedAsyncClientConnection, Identifiable {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultManagedAsyncClientConnection.class);
 
