@@ -57,6 +57,7 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.Closer;
+import org.apache.hc.core5.io.SocketSupport;
 import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
@@ -197,7 +198,15 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 if (socketConfig.getSndBufSize() > 0) {
                     socket.setSendBufferSize(socketConfig.getSndBufSize());
                 }
-
+                if (socketConfig.getTcpKeepIdle() > 0) {
+                    SocketSupport.setOption(socket, SocketSupport.TCP_KEEPIDLE, socketConfig.getTcpKeepIdle());
+                }
+                if (socketConfig.getTcpKeepInterval() > 0) {
+                    SocketSupport.setOption(socket, SocketSupport.TCP_KEEPINTERVAL, socketConfig.getTcpKeepInterval());
+                }
+                if (socketConfig.getTcpKeepCount() > 0) {
+                    SocketSupport.setOption(socket, SocketSupport.TCP_KEEPCOUNT, socketConfig.getTcpKeepCount());
+                }
                 final int linger = socketConfig.getSoLinger().toMillisecondsIntBound();
                 if (linger >= 0) {
                     socket.setSoLinger(true, linger);
