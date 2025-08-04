@@ -80,6 +80,10 @@
     <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer</hc.animal-sniffer.signature.ignores>
     <commons.compress.version>1.27.1</commons.compress.version>
     <zstd.jni.version>1.5.7-4</zstd.jni.version>
+    <micrometer.version>1.15.2</micrometer.version>
+    <micrometer.tracing.version>1.5.2</micrometer.tracing.version>
+    <otel.version>1.52.0</otel.version>     <!-- already used elsewhere -->
+    <commons-compress.version>1.26.2</commons-compress.version>
   </properties>
 
   <dependencyManagement>
@@ -216,11 +220,48 @@
         <artifactId>zstd-jni</artifactId>
         <version>${zstd.jni.version}</version>
       </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-core</artifactId>
+        <version>${micrometer.version}</version>
+        <optional>true</optional>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-observation</artifactId>
+        <version>${micrometer.version}</version>
+        <optional>true</optional>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-prometheus</artifactId>
+        <version>${micrometer.version}</version>
+        <optional>true</optional>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-tracing-bridge-otel</artifactId>
+        <version>${micrometer.tracing.version}</version>
+        <optional>true</optional>
+      </dependency>
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-sdk</artifactId>
+        <version>${otel.version}</version>
+        <optional>true</optional>
+      </dependency>
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-sdk-testing</artifactId>
+        <version>${otel.version}</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
   <modules>
     <module>httpclient5</module>
+    <module>httpclient5-observation</module>
     <module>httpclient5-fluent</module>
     <module>httpclient5-cache</module>
     <module>httpclient5-testing</module>
