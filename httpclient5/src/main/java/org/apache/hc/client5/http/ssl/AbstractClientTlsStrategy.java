@@ -220,8 +220,6 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
             final SSLSocket upgradedSocket,
             final String target,
             final Object attachment) throws IOException {
-        final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
-
         final SSLParameters sslParameters = upgradedSocket.getSSLParameters();
         if (supportedProtocols != null) {
             sslParameters.setProtocols(supportedProtocols);
@@ -238,17 +236,11 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
         }
         upgradedSocket.setSSLParameters(sslParameters);
 
-        final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout();
-        if (handshakeTimeout != null) {
-            upgradedSocket.setSoTimeout(handshakeTimeout.toMillisecondsIntBound());
-        }
-
         initializeSocket(upgradedSocket);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Enabled protocols: {}", (Object) upgradedSocket.getEnabledProtocols());
             LOG.debug("Enabled cipher suites: {}", (Object) upgradedSocket.getEnabledCipherSuites());
-            LOG.debug("Starting handshake ({})", handshakeTimeout);
         }
         upgradedSocket.startHandshake();
         verifySession(target, upgradedSocket.getSession());

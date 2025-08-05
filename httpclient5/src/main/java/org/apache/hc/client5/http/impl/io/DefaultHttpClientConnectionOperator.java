@@ -41,6 +41,7 @@ import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.io.DetachedSocketFactory;
@@ -160,7 +161,6 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         Args.notNull(socketConfig, "Socket config");
         Args.notNull(context, "Context");
 
-        final Timeout soTimeout = socketConfig.getSoTimeout();
         final SocketAddress socksProxyAddress = socketConfig.getSocksProxyAddress();
         final Proxy socksProxy = socksProxyAddress != null ? new Proxy(Proxy.Type.SOCKS, socksProxyAddress) : null;
 
@@ -186,8 +186,9 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                     socket.bind(localAddress);
                 }
                 conn.bind(socket);
-                if (soTimeout != null) {
-                    socket.setSoTimeout(soTimeout.toMillisecondsIntBound());
+                final Timeout socketTimeout = socketConfig.getSoTimeout();
+                if (socketTimeout != null) {
+                    socket.setSoTimeout(socketTimeout.toMillisecondsIntBound());
                 }
                 socket.setReuseAddress(socketConfig.isSoReuseAddress());
                 socket.setTcpNoDelay(socketConfig.isTcpNoDelay());
@@ -217,7 +218,6 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} {} connected {}->{}", ConnPoolSupport.getId(conn), endpointHost, conn.getLocalAddress(), conn.getRemoteAddress());
                 }
-                conn.setSocketTimeout(soTimeout);
                 final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(endpointHost.getSchemeName()) : null;
                 if (tlsSocketStrategy != null) {
                     final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
@@ -225,8 +225,15 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} {} upgrading to TLS", ConnPoolSupport.getId(conn), tlsName);
                     }
+                    final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
+                    final int soTimeout = socket.getSoTimeout();
+                    final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout() != null ? tlsConfig.getHandshakeTimeout() : connectTimeout;
+                    if (handshakeTimeout != null) {
+                        socket.setSoTimeout(handshakeTimeout.toMillisecondsIntBound());
+                    }
                     final SSLSocket sslSocket = tlsSocketStrategy.upgrade(socket, tlsName.getHostName(), tlsName.getPort(), attachment, context);
                     conn.bind(sslSocket, socket);
+                    socket.setSoTimeout(soTimeout);
                     onAfterTlsHandshake(context, endpointHost);
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} {} upgraded to TLS", ConnPoolSupport.getId(conn), tlsName);
