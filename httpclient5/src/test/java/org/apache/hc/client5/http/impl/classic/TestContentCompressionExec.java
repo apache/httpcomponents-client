@@ -206,7 +206,7 @@ class TestContentCompressionExec {
         final HttpEntity original = EntityBuilder.create().setText("encoded stuff").setContentEncoding("whatever").build();
         response.setEntity(original);
 
-        impl = new ContentCompressionExec(false);
+        impl = new ContentCompressionExec();
 
         Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
 

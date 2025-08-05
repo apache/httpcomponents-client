@@ -62,7 +62,6 @@ import org.apache.hc.core5.util.Args;
 public final class ContentCompressionAsyncExec implements AsyncExecChainHandler {
 
     private final Lookup<UnaryOperator<AsyncDataConsumer>> decoders;
-    private final boolean ignoreUnknown;
 
     public ContentCompressionAsyncExec(
             final LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> decoderMap,
@@ -73,7 +72,6 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
         final RegistryBuilder<UnaryOperator<AsyncDataConsumer>> rb = RegistryBuilder.create();
         decoderMap.forEach(rb::register);
         this.decoders = rb.build();
-        this.ignoreUnknown = ignoreUnknown;
     }
 
     /**
@@ -86,7 +84,6 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
         this.decoders = RegistryBuilder.<UnaryOperator<AsyncDataConsumer>>create()
                 .register(ContentCoding.DEFLATE.token(), map.get(ContentCoding.DEFLATE.token()))
                 .build();
-        this.ignoreUnknown = true;
     }
 
 
@@ -132,7 +129,7 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
                         final UnaryOperator<AsyncDataConsumer> op = decoders.lookup(token);
                         if (op != null) {
                             downstream = op.apply(downstream);
-                        } else if (!ignoreUnknown) {
+                        } else {
                             throw new HttpException("Unsupported Content-Encoding: " + token);
                         }
                     }

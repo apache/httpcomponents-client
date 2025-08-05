@@ -981,13 +981,13 @@ public class HttpClientBuilder {
                 final Registry<UnaryOperator<HttpEntity>> decoderRegistry = b2.build();
 
                 execChainDefinition.addFirst(
-                        new ContentCompressionExec(encodings, decoderRegistry, true),
+                        new ContentCompressionExec(encodings, decoderRegistry),
                         ChainElement.COMPRESS.name());
 
             } else {
                 // Use the default decoders from ContentCodecRegistry
                 execChainDefinition.addFirst(
-                        new ContentCompressionExec(true),
+                        new ContentCompressionExec(),
                         ChainElement.COMPRESS.name());
             }
         }
