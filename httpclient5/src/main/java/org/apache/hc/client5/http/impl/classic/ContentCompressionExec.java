@@ -75,19 +75,16 @@ public final class ContentCompressionExec implements ExecChainHandler {
 
     private final Header acceptEncoding;
     private final Lookup<UnaryOperator<HttpEntity>> decoderRegistry;
-    private final boolean ignoreUnknown;
 
     public ContentCompressionExec(
             final List<String> acceptEncoding,
-            final Lookup<UnaryOperator<HttpEntity>> decoderRegistry,
-            final boolean ignoreUnknown) {
+            final Lookup<UnaryOperator<HttpEntity>> decoderRegistry) {
         this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING,
                 Args.notEmpty(acceptEncoding, "Encoding list"));
         this.decoderRegistry = Args.notNull(decoderRegistry, "Decoder register");
-        this.ignoreUnknown = ignoreUnknown;
     }
 
-    public ContentCompressionExec(final boolean ignoreUnknown) {
+    public ContentCompressionExec() {
         final Map<ContentCoding, UnaryOperator<HttpEntity>> decoderMap = new EnumMap<>(ContentCoding.class);
         for (final ContentCoding c : ContentCoding.values()) {
             final UnaryOperator<HttpEntity> d = ContentCodecRegistry.decoder(c);
@@ -109,13 +106,6 @@ public final class ContentCompressionExec implements ExecChainHandler {
         }
         this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING, acceptList);
         this.decoderRegistry = builder.build();
-        this.ignoreUnknown = ignoreUnknown;
-    }
-
-    /**
-     */
-    public ContentCompressionExec() {
-        this(true);
     }
 
     @Override
@@ -152,7 +142,7 @@ public final class ContentCompressionExec implements ExecChainHandler {
                         response.removeHeaders(HttpHeaders.CONTENT_LENGTH);
                         response.removeHeaders(HttpHeaders.CONTENT_ENCODING);
                         response.removeHeaders(HttpHeaders.CONTENT_MD5);
-                    } else if (!"identity".equals(codecname) && !ignoreUnknown) {
+                    } else if (!"identity".equals(codecname)) {
                         throw new HttpException("Unsupported Content-Encoding: " + codec.getName());
                     }
                 }
