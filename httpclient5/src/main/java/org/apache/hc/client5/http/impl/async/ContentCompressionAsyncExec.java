@@ -27,7 +27,7 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Set;
@@ -37,6 +37,7 @@ import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.methods.InflatingAsyncDataConsumer;
+import org.apache.hc.client5.http.async.methods.InflatingGzipDataConsumer;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
@@ -75,13 +76,17 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
     }
 
     /**
-     * default = DEFLATE only
+     * Default: DEFLATE + GZIP (plus <code>x-gzip</code> alias).
      */
     public ContentCompressionAsyncExec() {
         final LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> map = new LinkedHashMap<>();
         map.put(ContentCoding.DEFLATE.token(),
                 d -> new InflatingAsyncDataConsumer(d, null));
+        map.put(ContentCoding.GZIP.token(), InflatingGzipDataConsumer::new);
+        map.put(ContentCoding.X_GZIP.token(), InflatingGzipDataConsumer::new);
         this.decoders = RegistryBuilder.<UnaryOperator<AsyncDataConsumer>>create()
+                .register(ContentCoding.GZIP.token(), map.get(ContentCoding.GZIP.token()))
+                .register(ContentCoding.X_GZIP.token(), map.get(ContentCoding.X_GZIP.token()))
                 .register(ContentCoding.DEFLATE.token(), map.get(ContentCoding.DEFLATE.token()))
                 .build();
     }
@@ -100,7 +105,7 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
 
         if (enabled && !request.containsHeader(HttpHeaders.ACCEPT_ENCODING)) {
             request.addHeader(MessageSupport.headerOfTokens(
-                    HttpHeaders.ACCEPT_ENCODING, Collections.singletonList("deflate")));
+                    HttpHeaders.ACCEPT_ENCODING, Arrays.asList("gzip", "x-gzip", "deflate")));
         }
 
         chain.proceed(request, producer, scope, new AsyncExecCallback() {
