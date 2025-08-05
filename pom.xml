@@ -404,8 +404,37 @@
           </excludes>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${hc.surefire.version}</version>
+        <configuration>
+          <excludedGroups>slow</excludedGroups>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>slow-tests</id>
+      <build>
+        <plugins>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>${hc.surefire.version}</version>
+              <configuration combine.self="override">
+                <groups>slow</groups>
+              </configuration>
+          </plugin>
+
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 
   <reporting>
     <plugins>
