@@ -838,6 +838,7 @@ public class HttpClientBuilder {
     }
 
     public CloseableHttpClient build() {
+
         // Create main request executor
         // We copy the instance fields to avoid changing them, and rename to avoid accidental use of the wrong version
         HttpRequestExecutor requestExecCopy = this.requestExec;
