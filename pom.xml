@@ -77,7 +77,7 @@
     <testcontainers.version>1.21.3</testcontainers.version>
     <junixsocket.version>2.10.1</junixsocket.version>
     <api.comparison.version>5.3</api.comparison.version>
-    <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer</hc.animal-sniffer.signature.ignores>
+    <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer,jdk.net.ExtendedSocketOptions,jdk.net.Sockets</hc.animal-sniffer.signature.ignores>
     <commons.compress.version>1.27.1</commons.compress.version>
     <zstd.jni.version>1.5.7-4</zstd.jni.version>
   </properties>
