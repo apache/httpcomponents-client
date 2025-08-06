@@ -331,7 +331,62 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                 // of two proxies, where P1 must be tunnelled to P2.
                 // route: Source -> P1 -> P2 -> Target (3 hops)
                 // fact:  Source -> P1 -> Target       (2 hops)
-                asyncExecCallback.failed(new HttpException("Proxy chains are not supported"));
+                final HttpRoute currentFact = tracker.toRoute();
+                final int hopIndex = currentFact.getHopCount() - 1;
+                final HttpHost currentProxy = currentFact.getHopTarget(hopIndex - 1);
+                final HttpHost nextHop = route.getHopTarget(hopIndex);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} create tunnel to proxy", exchangeId);
+                }
+                createTunnel(state, currentProxy, nextHop, scope, new AsyncExecCallback() {
+
+                    @Override
+                    public AsyncDataConsumer handleResponse(final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
+                        return asyncExecCallback.handleResponse(response, entityDetails);
+                    }
+
+                    @Override
+                    public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                        asyncExecCallback.handleInformationResponse(response);
+                    }
+
+                    @Override
+                    public void completed() {
+                        if (!execRuntime.isEndpointConnected()) {
+                            // Remote endpoint disconnected. Need to start over
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} proxy disconnected", exchangeId);
+                            }
+                            state.tracker.reset();
+                        }
+                        if (state.challenged) {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} proxy authentication required", exchangeId);
+                            }
+                            proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                        } else {
+                            if (state.tunnelRefused) {
+                                if (LOG.isDebugEnabled()) {
+                                    LOG.debug("{} tunnel refused", exchangeId);
+                                }
+                                asyncExecCallback.completed();
+                            } else {
+                                if (LOG.isDebugEnabled()) {
+                                    LOG.debug("{} tunnel to proxy created", exchangeId);
+                                }
+                                tracker.tunnelProxy(nextHop, false);
+                                proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void failed(final Exception cause) {
+                        execRuntime.markConnectionNonReusable();
+                        asyncExecCallback.failed(cause);
+                    }
+
+                });
                 break;
 
             case HttpRouteDirector.LAYER_PROTOCOL:
