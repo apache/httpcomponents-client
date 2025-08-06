@@ -42,6 +42,7 @@ import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.client5.testing.tls.TlsHandshakeTimeoutServer;
 import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -70,6 +71,11 @@ public class TestTlsHandshakeTimeout {
             .setDefaultConnectionConfig(ConnectionConfig.custom()
                 .setConnectTimeout(5, SECONDS)
                 .setSocketTimeout(5, SECONDS)
+                .build())
+            .setDefaultSocketConfig(SocketConfig.custom()
+                .setTcpKeepIdle(2)
+                .setTcpKeepInterval(1)
+                .setTcpKeepCount(5)
                 .build())
             .setTlsSocketStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext(), HostnameVerificationPolicy.CLIENT, NoopHostnameVerifier.INSTANCE))
             .setDefaultTlsConfig(TlsConfig.custom()

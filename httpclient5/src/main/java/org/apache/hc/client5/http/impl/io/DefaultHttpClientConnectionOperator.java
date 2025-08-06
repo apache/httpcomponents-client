@@ -36,6 +36,8 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
+import jdk.net.ExtendedSocketOptions;
+import jdk.net.Sockets;
 import org.apache.hc.client5.http.ConnectExceptionSupport;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -58,7 +60,6 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.Closer;
-import org.apache.hc.core5.io.SocketSupport;
 import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
@@ -318,13 +319,13 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             socket.setSoLinger(true, linger);
         }
         if (socketConfig.getTcpKeepIdle() > 0) {
-            SocketSupport.setOption(socket, SocketSupport.TCP_KEEPIDLE, socketConfig.getTcpKeepIdle());
+            Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPIDLE, socketConfig.getTcpKeepIdle());
         }
         if (socketConfig.getTcpKeepInterval() > 0) {
-            SocketSupport.setOption(socket, SocketSupport.TCP_KEEPINTERVAL, socketConfig.getTcpKeepInterval());
+            Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPINTERVAL, socketConfig.getTcpKeepInterval());
         }
         if (socketConfig.getTcpKeepCount() > 0) {
-            SocketSupport.setOption(socket, SocketSupport.TCP_KEEPCOUNT, socketConfig.getTcpKeepCount());
+            Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPCOUNT, socketConfig.getTcpKeepCount());
         }
     }
 
