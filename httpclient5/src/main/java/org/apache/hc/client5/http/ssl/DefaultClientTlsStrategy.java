@@ -151,6 +151,7 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
     }
 
     @Override
+    @SuppressWarnings("Since15")
     void applyParameters(final SSLEngine sslEngine, final SSLParameters sslParameters, final String[] appProtocols) {
         sslParameters.setApplicationProtocols(appProtocols);
         sslEngine.setSSLParameters(sslParameters);

@@ -299,6 +299,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         }
     }
 
+    @SuppressWarnings("Since15")
     private static void configureSocket(final Socket socket, final SocketConfig socketConfig,
                                         final Timeout soTimeout) throws IOException {
         if (soTimeout != null) {
