@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.Locale;
+import java.util.List;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 
@@ -39,21 +39,19 @@ import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.methods.InflatingAsyncDataConsumer;
 import org.apache.hc.client5.http.async.methods.InflatingGzipDataConsumer;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
+import org.apache.hc.client5.http.impl.ContentCodingSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
-import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.message.BasicHeaderValueParser;
 import org.apache.hc.core5.http.message.MessageSupport;
-import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.util.Args;
@@ -119,23 +117,16 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
                     return cb.handleResponse(rsp, details);
                 }
 
-                final String coding = details != null ? details.getContentEncoding() : null;
-
-                if (coding != null) {
+                final List<String> codecs = ContentCodingSupport.parseContentCodecs(details);
+                if (!codecs.isEmpty()) {
                     AsyncDataConsumer downstream = cb.handleResponse(rsp, wrapEntityDetails(details));
-
-                    final HeaderElement[] el = BasicHeaderValueParser.INSTANCE
-                            .parseElements(coding, new ParserCursor(0, coding.length()));
-                    for (int i = el.length - 1; i >= 0; i--) {
-                        final String token = el[i].getName().toLowerCase(Locale.ROOT);
-                        if ("identity".equals(token) || token.isEmpty()) {
-                            continue;
-                        }
-                        final UnaryOperator<AsyncDataConsumer> op = decoders.lookup(token);
+                    for (int i = codecs.size() - 1; i >= 0; i--) {
+                        final String codec = codecs.get(i);
+                        final UnaryOperator<AsyncDataConsumer> op = decoders.lookup(codec);
                         if (op != null) {
                             downstream = op.apply(downstream);
                         } else {
-                            throw new HttpException("Unsupported Content-Encoding: " + token);
+                            throw new HttpException("Unsupported Content-Encoding: " + codec);
                         }
                     }
                     rsp.removeHeaders(HttpHeaders.CONTENT_ENCODING);
@@ -143,6 +134,7 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
                     rsp.removeHeaders(HttpHeaders.CONTENT_MD5);
                     return downstream;
                 }
+
                 return cb.handleResponse(rsp, details);
             }
 

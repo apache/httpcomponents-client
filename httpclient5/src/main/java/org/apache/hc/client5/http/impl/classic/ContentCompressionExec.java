@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 
@@ -40,6 +39,7 @@ import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.compress.ContentCodecRegistry;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
+import org.apache.hc.client5.http.impl.ContentCodingSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -47,15 +47,12 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.message.BasicHeaderValueParser;
 import org.apache.hc.core5.http.message.MessageSupport;
-import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -130,22 +127,20 @@ public final class ContentCompressionExec implements ExecChainHandler {
         // entity can be null in case of 304 Not Modified, 204 No Content or similar
         // check for zero length entity.
         if (requestConfig.isContentCompressionEnabled() && entity != null && entity.getContentLength() != 0) {
-            final String contentEncoding = entity.getContentEncoding();
-            if (contentEncoding != null) {
-                final ParserCursor cursor = new ParserCursor(0, contentEncoding.length());
-                final HeaderElement[] codecs = BasicHeaderValueParser.INSTANCE.parseElements(contentEncoding, cursor);
-                for (final HeaderElement codec : codecs) {
-                    final String codecname = codec.getName().toLowerCase(Locale.ROOT);
-                    final UnaryOperator<HttpEntity> decoder = decoderRegistry.lookup(codecname);
+            final List<String> codecs = ContentCodingSupport.parseContentCodecs(entity);
+            if (!codecs.isEmpty()) {
+                for (int i = codecs.size() - 1; i >= 0; i--) {
+                    final String codec = codecs.get(i);
+                    final UnaryOperator<HttpEntity> decoder = decoderRegistry.lookup(codec);
                     if (decoder != null) {
                         response.setEntity(decoder.apply(response.getEntity()));
-                        response.removeHeaders(HttpHeaders.CONTENT_LENGTH);
-                        response.removeHeaders(HttpHeaders.CONTENT_ENCODING);
-                        response.removeHeaders(HttpHeaders.CONTENT_MD5);
-                    } else if (!"identity".equals(codecname)) {
-                        throw new HttpException("Unsupported Content-Encoding: " + codec.getName());
+                    } else {
+                        throw new HttpException("Unsupported Content-Encoding: " + codec);
                     }
                 }
+                response.removeHeaders(HttpHeaders.CONTENT_LENGTH);
+                response.removeHeaders(HttpHeaders.CONTENT_ENCODING);
+                response.removeHeaders(HttpHeaders.CONTENT_MD5);
             }
         }
         return response;
