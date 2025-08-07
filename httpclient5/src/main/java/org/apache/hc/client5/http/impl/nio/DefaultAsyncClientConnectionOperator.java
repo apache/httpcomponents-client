@@ -141,7 +141,7 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
                         if (tlsStrategy != null) {
                             try {
                                 final Timeout socketTimeout = connection.getSocketTimeout();
-                                final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout();
+                                final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout() != null ? tlsConfig.getHandshakeTimeout() : connectTimeout;
                                 final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
                                 onBeforeTlsHandshake(context, endpointHost);
                                 if (LOG.isDebugEnabled()) {
@@ -151,7 +151,7 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
                                         connection,
                                         tlsName,
                                         attachment,
-                                        handshakeTimeout != null ? handshakeTimeout : connectTimeout,
+                                        handshakeTimeout,
                                         new FutureContribution<TransportSecurityLayer>(future) {
 
                                             @Override
