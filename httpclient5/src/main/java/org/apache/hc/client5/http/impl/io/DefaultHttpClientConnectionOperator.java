@@ -33,6 +33,7 @@ import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -79,6 +80,10 @@ import org.slf4j.LoggerFactory;
 public class DefaultHttpClientConnectionOperator implements HttpClientConnectionOperator {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultHttpClientConnectionOperator.class);
+    @SuppressWarnings("Since15")
+    private static final boolean SUPPORTS_KEEPALIVE_OPTIONS = Sockets.supportedOptions(Socket.class)
+            .containsAll(Arrays.asList(ExtendedSocketOptions.TCP_KEEPIDLE, ExtendedSocketOptions.TCP_KEEPINTERVAL,
+                    ExtendedSocketOptions.TCP_KEEPCOUNT));
 
     static final DetachedSocketFactory PLAIN_SOCKET_FACTORY = socksProxy -> socksProxy == null ? new Socket() : new Socket(socksProxy);
 
@@ -319,14 +324,16 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         if (linger >= 0) {
             socket.setSoLinger(true, linger);
         }
-        if (socketConfig.getTcpKeepIdle() > 0) {
-            Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPIDLE, socketConfig.getTcpKeepIdle());
-        }
-        if (socketConfig.getTcpKeepInterval() > 0) {
-            Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPINTERVAL, socketConfig.getTcpKeepInterval());
-        }
-        if (socketConfig.getTcpKeepCount() > 0) {
-            Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPCOUNT, socketConfig.getTcpKeepCount());
+        if (SUPPORTS_KEEPALIVE_OPTIONS) {
+            if (socketConfig.getTcpKeepIdle() > 0) {
+                Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPIDLE, socketConfig.getTcpKeepIdle());
+            }
+            if (socketConfig.getTcpKeepInterval() > 0) {
+                Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPINTERVAL, socketConfig.getTcpKeepInterval());
+            }
+            if (socketConfig.getTcpKeepCount() > 0) {
+                Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPCOUNT, socketConfig.getTcpKeepCount());
+            }
         }
     }
 
