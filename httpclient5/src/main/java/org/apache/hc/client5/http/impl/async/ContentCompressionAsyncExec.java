@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,7 +39,9 @@ import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.methods.InflatingAsyncDataConsumer;
 import org.apache.hc.client5.http.async.methods.InflatingGzipDataConsumer;
+import org.apache.hc.client5.http.async.methods.InflatingZstdDataConsumer;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
+import org.apache.hc.client5.http.impl.ZstdRuntime;
 import org.apache.hc.client5.http.impl.ContentCodingSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
@@ -61,6 +64,7 @@ import org.apache.hc.core5.util.Args;
 public final class ContentCompressionAsyncExec implements AsyncExecChainHandler {
 
     private final Lookup<UnaryOperator<AsyncDataConsumer>> decoders;
+    private final List<String> acceptTokens;
 
     public ContentCompressionAsyncExec(
             final LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> decoderMap,
@@ -71,6 +75,7 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
         final RegistryBuilder<UnaryOperator<AsyncDataConsumer>> rb = RegistryBuilder.create();
         decoderMap.forEach(rb::register);
         this.decoders = rb.build();
+        this.acceptTokens = new ArrayList<>(decoderMap.keySet());
     }
 
     /**
@@ -78,15 +83,25 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
      */
     public ContentCompressionAsyncExec() {
         final LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> map = new LinkedHashMap<>();
-        map.put(ContentCoding.DEFLATE.token(),
-                d -> new InflatingAsyncDataConsumer(d, null));
+        map.put(ContentCoding.DEFLATE.token(), d -> new InflatingAsyncDataConsumer(d, null));
         map.put(ContentCoding.GZIP.token(), InflatingGzipDataConsumer::new);
         map.put(ContentCoding.X_GZIP.token(), InflatingGzipDataConsumer::new);
-        this.decoders = RegistryBuilder.<UnaryOperator<AsyncDataConsumer>>create()
-                .register(ContentCoding.GZIP.token(), map.get(ContentCoding.GZIP.token()))
-                .register(ContentCoding.X_GZIP.token(), map.get(ContentCoding.X_GZIP.token()))
-                .register(ContentCoding.DEFLATE.token(), map.get(ContentCoding.DEFLATE.token()))
-                .build();
+
+        final RegistryBuilder<UnaryOperator<AsyncDataConsumer>> rb =
+                RegistryBuilder.<UnaryOperator<AsyncDataConsumer>>create()
+                        .register(ContentCoding.GZIP.token(), InflatingGzipDataConsumer::new)
+                        .register(ContentCoding.X_GZIP.token(), InflatingGzipDataConsumer::new)
+                        .register(ContentCoding.DEFLATE.token(), d -> new InflatingAsyncDataConsumer(d, null));
+
+        // Add zstd only when zstd-jni is present (no reflection needed)
+        final List<String> tokens = new ArrayList<>(Arrays.asList("gzip", "x-gzip", "deflate"));
+        if (ZstdRuntime.available()) {
+            rb.register(ContentCoding.ZSTD.token(), InflatingZstdDataConsumer::new);
+            tokens.add("zstd");
+        }
+
+        this.decoders = rb.build();
+        this.acceptTokens = tokens;
     }
 
 
@@ -102,8 +117,7 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
         final boolean enabled = ctx.getRequestConfigOrDefault().isContentCompressionEnabled();
 
         if (enabled && !request.containsHeader(HttpHeaders.ACCEPT_ENCODING)) {
-            request.addHeader(MessageSupport.headerOfTokens(
-                    HttpHeaders.ACCEPT_ENCODING, Arrays.asList("gzip", "x-gzip", "deflate")));
+            request.addHeader(MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING, acceptTokens));
         }
 
         chain.proceed(request, producer, scope, new AsyncExecCallback() {
