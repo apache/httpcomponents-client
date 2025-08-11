@@ -154,13 +154,6 @@ public class TestAsyncSocketTimeout {
             final int minorVersion = Integer.parseInt(components[1]);
             assumeFalse(majorVersion <= 5 && minorVersion <= 3, "Async UDS requires HttpCore 5.4+");
         }
-
-        @Override
-        void closeClient(final TestAsyncClient client) {
-            // TODO: Why does `CloseMode.GRACEFUL` (the test client default)
-            //  block until the IOReactor shutdown timeout when using UDS?
-            client.close(CloseMode.IMMEDIATE);
-        }
     }
 }
 
