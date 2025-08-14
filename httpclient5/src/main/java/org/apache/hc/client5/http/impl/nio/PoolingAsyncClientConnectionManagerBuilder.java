@@ -95,6 +95,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
 
     private AsyncClientConnectionOperator connectionOperator;
 
+    private ConnectionConfig defaultConnectionConfig;
+
     public static PoolingAsyncClientConnectionManagerBuilder create() {
         return new PoolingAsyncClientConnectionManagerBuilder();
     }
@@ -195,6 +197,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
      */
     public final PoolingAsyncClientConnectionManagerBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
         this.connectionConfigResolver = route -> config;
+        this.defaultConnectionConfig = config;
         return this;
     }
 
@@ -309,42 +312,38 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     protected AsyncClientConnectionOperator createConnectionOperator(
             final TlsStrategy tlsStrategy,
             final SchemePortResolver schemePortResolver,
-            final DnsResolver dnsResolver) {
+            final DnsResolver dnsResolver,
+            final ConnectionConfig defaultConnectionConfig) {
         return new DefaultAsyncClientConnectionOperator(
                 RegistryBuilder.<TlsStrategy>create()
                         .register(URIScheme.HTTPS.getId(), tlsStrategy)
                         .build(),
                 schemePortResolver,
-                dnsResolver);
+                dnsResolver,
+                defaultConnectionConfig);
     }
 
     public PoolingAsyncClientConnectionManager build() {
-        final AsyncClientConnectionOperator operator;
-        if (this.connectionOperator != null) {
-            operator = this.connectionOperator;
+        final TlsStrategy tlsStrategyCopy;
+        if (tlsStrategy != null) {
+            tlsStrategyCopy = tlsStrategy;
         } else {
-            final TlsStrategy tlsStrategyCopy;
-            if (tlsStrategy != null) {
-                tlsStrategyCopy = tlsStrategy;
-            } else {
-                if (ReflectionUtils.determineJRELevel() <= 8 && ConscryptClientTlsStrategy.isSupported()) {
-                    if (systemProperties) {
-                        tlsStrategyCopy = ConscryptClientTlsStrategy.getSystemDefault();
-                    } else {
-                        tlsStrategyCopy = ConscryptClientTlsStrategy.getDefault();
-                    }
+            if (ReflectionUtils.determineJRELevel() <= 8 && ConscryptClientTlsStrategy.isSupported()) {
+                if (systemProperties) {
+                    tlsStrategyCopy = ConscryptClientTlsStrategy.getSystemDefault();
                 } else {
-                    if (systemProperties) {
-                        tlsStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
-                    } else {
-                        tlsStrategyCopy = DefaultClientTlsStrategy.createDefault();
-                    }
+                    tlsStrategyCopy = ConscryptClientTlsStrategy.getDefault();
+                }
+            } else {
+                if (systemProperties) {
+                    tlsStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
+                } else {
+                    tlsStrategyCopy = DefaultClientTlsStrategy.createDefault();
                 }
             }
-            operator = createConnectionOperator(tlsStrategyCopy, schemePortResolver, dnsResolver);
         }
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
-                operator,
+                createConnectionOperator(tlsStrategyCopy, schemePortResolver, dnsResolver, defaultConnectionConfig),
                 poolConcurrencyPolicy,
                 poolReusePolicy,
                 null,

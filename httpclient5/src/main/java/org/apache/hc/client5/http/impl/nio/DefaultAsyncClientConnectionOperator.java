@@ -37,6 +37,7 @@ import java.util.concurrent.Future;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
@@ -71,21 +72,14 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
     private final MultihomeIOSessionRequester sessionRequester;
     private final Lookup<TlsStrategy> tlsStrategyLookup;
 
-    /**
-     * Constructs a new {@code DefaultAsyncClientConnectionOperator}.
-     *
-     * <p><strong>Note:</strong> this class is marked {@code @Internal}; rely on it
-     * only if you are prepared for incompatible changes in a future major
-     * release.  Typical client code should use the high-level builders in
-     * {@code HttpAsyncClients} instead.</p>
-     */
-    protected DefaultAsyncClientConnectionOperator(
+    DefaultAsyncClientConnectionOperator(
             final Lookup<TlsStrategy> tlsStrategyLookup,
             final SchemePortResolver schemePortResolver,
-            final DnsResolver dnsResolver) {
+            final DnsResolver dnsResolver,
+            final ConnectionConfig defaultConnectionConfig) {
         this.tlsStrategyLookup = Args.notNull(tlsStrategyLookup, "TLS strategy lookup");
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
-        this.sessionRequester = new MultihomeIOSessionRequester(dnsResolver);
+        this.sessionRequester = new MultihomeIOSessionRequester(dnsResolver, defaultConnectionConfig);
     }
 
     @Override
@@ -97,21 +91,21 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
             final Object attachment,
             final FutureCallback<ManagedAsyncClientConnection> callback) {
         return connect(connectionInitiator, host, null, localAddress, connectTimeout,
-            attachment, null, callback);
+                attachment, null, callback);
     }
 
     @Override
     public Future<ManagedAsyncClientConnection> connect(
-        final ConnectionInitiator connectionInitiator,
-        final HttpHost endpointHost,
-        final NamedEndpoint endpointName,
-        final SocketAddress localAddress,
-        final Timeout connectTimeout,
-        final Object attachment,
-        final HttpContext context,
-        final FutureCallback<ManagedAsyncClientConnection> callback) {
-        return connect(connectionInitiator, endpointHost, null, endpointName, localAddress, connectTimeout, attachment,
-            context, callback);
+            final ConnectionInitiator connectionInitiator,
+            final HttpHost endpointHost,
+            final NamedEndpoint endpointName,
+            final SocketAddress localAddress,
+            final Timeout connectTimeout,
+            final Object attachment,
+            final HttpContext context,
+            final FutureCallback<ManagedAsyncClientConnection> callback) {
+        return connect(connectionInitiator, endpointHost, null, endpointName, localAddress, connectTimeout,
+                attachment, context, callback);
     }
 
     @Override
@@ -127,16 +121,22 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
             final FutureCallback<ManagedAsyncClientConnection> callback) {
         Args.notNull(connectionInitiator, "Connection initiator");
         Args.notNull(endpointHost, "Host");
+
         final ComplexFuture<ManagedAsyncClientConnection> future = new ComplexFuture<>(callback);
         final HttpHost remoteEndpoint = RoutingSupport.normalize(endpointHost, schemePortResolver);
+
         final SocketAddress remoteAddress;
         if (unixDomainSocket == null) {
             final InetAddress remoteInetAddress = endpointHost.getAddress();
-            remoteAddress = remoteInetAddress != null ?
-                new InetSocketAddress(remoteInetAddress, remoteEndpoint.getPort()) : null;
+            if (remoteInetAddress != null) {
+                remoteAddress = new InetSocketAddress(remoteInetAddress, remoteEndpoint.getPort());
+            } else {
+                remoteAddress = null;
+            }
         } else {
             remoteAddress = createUnixSocketAddress(unixDomainSocket);
         }
+
         final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
 
         onBeforeSocketConnect(context, endpointHost);
@@ -161,16 +161,22 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
                             LOG.debug("{} {} connected {}->{}", ConnPoolSupport.getId(connection), endpointHost,
                                     connection.getLocalAddress(), connection.getRemoteAddress());
                         }
-                        final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(endpointHost.getSchemeName()) : null;
+                        final TlsStrategy tlsStrategy = tlsStrategyLookup != null
+                                ? tlsStrategyLookup.lookup(endpointHost.getSchemeName())
+                                : null;
                         if (tlsStrategy != null) {
                             try {
                                 final Timeout socketTimeout = connection.getSocketTimeout();
-                                final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout() != null ? tlsConfig.getHandshakeTimeout() : connectTimeout;
+                                final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout() != null
+                                        ? tlsConfig.getHandshakeTimeout()
+                                        : connectTimeout;
                                 final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
+
                                 onBeforeTlsHandshake(context, endpointHost);
                                 if (LOG.isDebugEnabled()) {
                                     LOG.debug("{} {} upgrading to TLS", ConnPoolSupport.getId(connection), tlsName);
                                 }
+
                                 tlsStrategy.upgrade(
                                         connection,
                                         tlsName,
@@ -208,11 +214,12 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
                     }
 
                 });
+
         future.setDependency(sessionFuture);
         return future;
     }
 
-        // The IOReactor does not support AFUNIXSocketChannel from JUnixSocket, so if a Unix domain socket was configured,
+    // The IOReactor does not support AFUNIXSocketChannel from JUnixSocket, so if a Unix domain socket was configured,
     // we must use JEP 380 sockets and addresses.
     private static SocketAddress createUnixSocketAddress(final Path socketPath) {
         try {
@@ -240,7 +247,10 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
             final Object attachment,
             final HttpContext context,
             final FutureCallback<ManagedAsyncClientConnection> callback) {
-        final String newProtocol = URIScheme.HTTP.same(endpointHost.getSchemeName()) ? URIScheme.HTTPS.id : endpointHost.getSchemeName();
+        final String newProtocol = URIScheme.HTTP.same(endpointHost.getSchemeName())
+                ? URIScheme.HTTPS.id
+                : endpointHost.getSchemeName();
+
         final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(newProtocol) : null;
         if (tlsStrategy != null) {
             final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
@@ -263,7 +273,9 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
 
                     });
         } else {
-            callback.failed(new UnsupportedSchemeException(newProtocol + " protocol is not supported"));
+            if (callback != null) {
+                callback.failed(new UnsupportedSchemeException(newProtocol + " protocol is not supported"));
+            }
         }
     }
 
@@ -277,6 +289,10 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
     }
 
     protected void onAfterTlsHandshake(final HttpContext httpContext, final HttpHost endpointHost) {
+    }
+
+    public void shutdown() {
+        sessionRequester.shutdown();
     }
 
 }
