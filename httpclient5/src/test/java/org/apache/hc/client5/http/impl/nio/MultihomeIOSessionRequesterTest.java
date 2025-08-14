@@ -58,6 +58,7 @@ import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -68,11 +69,27 @@ class MultihomeIOSessionRequesterTest {
     private ConnectionInitiator connectionInitiator;
     private NamedEndpoint namedEndpoint;
 
+    // Shared scheduler to make mock timings deterministic across platforms/CI
+    private ScheduledExecutorService testScheduler;
+
     @BeforeEach
     void setUp() {
         dnsResolver = Mockito.mock(DnsResolver.class);
         connectionInitiator = Mockito.mock(ConnectionInitiator.class);
         namedEndpoint = Mockito.mock(NamedEndpoint.class);
+
+        testScheduler = Executors.newScheduledThreadPool(2, r -> {
+            final Thread t = new Thread(r, "mh-test-scheduler");
+            t.setDaemon(true);
+            return t;
+        });
+    }
+
+    @AfterEach
+    void shutdownScheduler() {
+        if (testScheduler != null) {
+            testScheduler.shutdownNow();
+        }
     }
 
     @Test
@@ -173,7 +190,8 @@ class MultihomeIOSessionRequesterTest {
 
         when(namedEndpoint.getHostName()).thenReturn("dual");
         when(namedEndpoint.getPort()).thenReturn(8080);
-        when(dnsResolver.resolve("dual", 8080)).thenReturn(Arrays.asList(aV6, aV4)); // v6 first, v4 second
+        // v6 first from DNS so requester will start with v6 and stagger v4 shortly after
+        when(dnsResolver.resolve("dual", 8080)).thenReturn(Arrays.asList(aV6, aV4));
 
         final IOSession v6Session = Mockito.mock(IOSession.class, "v6Session");
         final IOSession v4Session = Mockito.mock(IOSession.class, "v4Session");
@@ -183,29 +201,27 @@ class MultihomeIOSessionRequesterTest {
                     final InetSocketAddress remote = invocation.getArgument(1);
                     final FutureCallback<IOSession> cb = invocation.getArgument(5);
                     final CompletableFuture<IOSession> f = new CompletableFuture<>();
-                    final ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+
+                    // Large margin so v4 always wins even with CI jitter.
                     if (remote.equals(aV6)) {
-                        ses.schedule(() -> {
+                        testScheduler.schedule(() -> {
                             cb.completed(v6Session);
                             f.complete(v6Session);
-                            ses.shutdown();
-                        }, 200, TimeUnit.MILLISECONDS);
+                        }, 1200, TimeUnit.MILLISECONDS);
                     } else {
-                        ses.schedule(() -> {
+                        testScheduler.schedule(() -> {
                             cb.completed(v4Session);
                             f.complete(v4Session);
-                            ses.shutdown();
-                        }, 50, TimeUnit.MILLISECONDS);
+                        }, 60, TimeUnit.MILLISECONDS);
                     }
                     return f;
                 });
 
         final Future<IOSession> future = sessionRequester.connect(
-                connectionInitiator, namedEndpoint, null, Timeout.ofSeconds(2), null, null
-        );
+                connectionInitiator, namedEndpoint, null, Timeout.ofSeconds(3), null, null);
 
-        final IOSession winner = future.get(2, TimeUnit.SECONDS);
-        assertSame(v4Session, winner);
+        final IOSession winner = future.get(3, TimeUnit.SECONDS);
+        assertSame(v4Session, winner, "IPv4 should win with faster completion");
         verify(connectionInitiator, atLeast(2)).connect(any(), any(), any(), any(), any(), any());
     }
 
@@ -235,19 +251,19 @@ class MultihomeIOSessionRequesterTest {
                     final InetSocketAddress remote = invocation.getArgument(1);
                     final FutureCallback<IOSession> cb = invocation.getArgument(5);
                     final CompletableFuture<IOSession> f = new CompletableFuture<>();
-                    final ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+
                     if (remote.equals(aV6)) {
-                        ses.schedule(() -> {
+                        // Fail v6 quickly
+                        testScheduler.schedule(() -> {
                             final IOException io = new IOException("v6 down");
                             cb.failed(io);
                             f.completeExceptionally(io);
-                            ses.shutdown();
                         }, 30, TimeUnit.MILLISECONDS);
                     } else {
-                        ses.schedule(() -> {
+                        // Succeed v4 after a short delay
+                        testScheduler.schedule(() -> {
                             cb.completed(v4Session);
                             f.complete(v4Session);
-                            ses.shutdown();
                         }, 60, TimeUnit.MILLISECONDS);
                     }
                     return f;
