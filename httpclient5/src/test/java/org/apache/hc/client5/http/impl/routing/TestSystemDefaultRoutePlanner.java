@@ -27,12 +27,15 @@
 
 package org.apache.hc.client5.http.impl.routing;
 
+import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable;
+
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.hc.client5.http.HttpRoute;
@@ -42,8 +45,11 @@ import org.apache.hc.core5.http.HttpHost;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+
 
 /**
  * Tests for {@link SystemDefaultRoutePlanner}.
@@ -91,8 +97,8 @@ class TestSystemDefaultRoutePlanner {
     @Test
     void testProxy() throws Exception {
 
-        final InetAddress ia = InetAddress.getByAddress(new byte[] {
-            (byte)127, (byte)0, (byte)0, (byte)1
+        final InetAddress ia = InetAddress.getByAddress(new byte[]{
+                (byte) 127, (byte) 0, (byte) 0, (byte) 1
         });
         final InetSocketAddress isa1 = new InetSocketAddress(ia, 11111);
         final InetSocketAddress isa2 = new InetSocketAddress(ia, 22222);
@@ -112,5 +118,53 @@ class TestSystemDefaultRoutePlanner {
         Assertions.assertEquals(2, route.getHopCount());
         Assertions.assertEquals(isa1.getPort(), route.getProxyHost().getPort());
     }
+
+    @EnabledForJreRange(max = JRE.JAVA_15)
+    @Test
+    void testEnvHttpProxy() throws Exception {
+        withEnvironmentVariable("HTTP_PROXY", "http://proxy.acme.local:8080")
+                .execute(() -> {
+                    Mockito.when(proxySelector.select(ArgumentMatchers.any()))
+                            .thenReturn(Collections.singletonList(Proxy.NO_PROXY));
+
+                    final HttpHost target = new HttpHost("http", "example.com", 80);
+                    final HttpRoute route = routePlanner.determineRoute(
+                            target, HttpClientContext.create());
+
+                    Assertions.assertNull(route.getProxyHost());
+                });
+    }
+    @EnabledForJreRange(max = JRE.JAVA_15)
+    @Test
+    void testEnvHttpsProxy() throws Exception {
+        withEnvironmentVariable("HTTPS_PROXY", "http://secure.proxy:8443")
+                .execute(() -> {
+                    Mockito.when(proxySelector.select(ArgumentMatchers.any()))
+                            .thenReturn(Collections.singletonList(Proxy.NO_PROXY));
+
+                    final HttpHost target = new HttpHost("https", "secure.example", 443);
+                    final HttpRoute route = routePlanner.determineRoute(
+                            target, HttpClientContext.create());
+
+                    Assertions.assertNull(route.getProxyHost());
+                });
+    }
+    @EnabledForJreRange(max = JRE.JAVA_15)
+    @Test
+    void testEnvNoProxyExcludesHost() throws Exception {
+        withEnvironmentVariable("HTTP_PROXY", "http://proxy:3128")
+                .and("NO_PROXY", "localhost,127.0.0.1")
+                .execute(() -> {
+                    Mockito.when(proxySelector.select(ArgumentMatchers.any()))
+                            .thenReturn(Collections.singletonList(Proxy.NO_PROXY));
+
+                    final HttpHost target = new HttpHost("http", "localhost", 80);
+                    final HttpRoute route = routePlanner.determineRoute(
+                            target, HttpClientContext.create());
+
+                    Assertions.assertNull(route.getProxyHost());
+                });
+    }
+
 
 }

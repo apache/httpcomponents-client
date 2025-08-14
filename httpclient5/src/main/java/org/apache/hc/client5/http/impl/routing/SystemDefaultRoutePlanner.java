@@ -27,12 +27,16 @@
 
 package org.apache.hc.client5.http.impl.routing;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.core5.annotation.Contract;
@@ -85,7 +89,7 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
         }
         if (proxySelectorInstance == null) {
             //The proxy selector can be "unset", so we must be able to deal with a null selector
-            return null;
+            return determineEnvProxy(target); // === env-fallback ===
         }
         final List<Proxy> proxies = proxySelectorInstance.select(targetURI);
         final Proxy p = chooseProxy(proxies);
@@ -100,7 +104,78 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
             result = new HttpHost(null, isa.getAddress(), isa.getHostString(), isa.getPort());
         }
 
+        if (result == null) {
+            result = determineEnvProxy(target);
+        }
+
         return result;
+    }
+    private static HttpHost determineEnvProxy(final HttpHost target) {
+        final boolean secure = "https".equalsIgnoreCase(target.getSchemeName());
+        HttpHost proxy = proxyFromEnv(secure ? "HTTPS_PROXY" : "HTTP_PROXY");
+        if (proxy == null && !secure) {
+            proxy = proxyFromEnv("HTTPS_PROXY"); // reuse HTTPS proxy for HTTP if only that exists
+        }
+        if (proxy != null && !isNoProxy(target)) {
+            return proxy;
+        }
+        return null;
+    }
+
+    private static HttpHost proxyFromEnv(final String var) {
+        String val = getenv(var);
+        if (val == null || val.isEmpty()) {
+            val = getenv(var.toLowerCase(Locale.ROOT));
+        }
+        if (val == null || val.isEmpty()) {
+            return null;
+        }
+        if (!val.contains("://")) {
+            val = "http://" + val;
+        }
+        try {
+            final URI uri = new URI(val);
+            final String host = uri.getHost();
+            final int port = uri.getPort() != -1
+                    ? uri.getPort()
+                    : ("https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80);
+            return new HttpHost(uri.getScheme(), InetAddress.getByName(host), port);
+        } catch (final Exception ignore) {
+            return null;
+        }
+    }
+
+    private static boolean isNoProxy(final HttpHost target) {
+        String list = getenv("NO_PROXY");
+        if (list == null || list.isEmpty()) {
+            list = getenv("no_proxy");
+        }
+        if (list == null || list.isEmpty()) {
+            return false;
+        }
+        final String host = target.getHostName().toLowerCase(Locale.ROOT);
+        final String hostPort = host + (target.getPort() != -1 ? ":" + target.getPort() : "");
+        for (String rule : list.split(",")) {
+            rule = rule.trim().toLowerCase(Locale.ROOT);
+            if (rule.isEmpty()) {
+                continue;
+            }
+            if (rule.equals(host) || rule.equals(hostPort)) {
+                return true; // exact
+            }
+            if (rule.startsWith("*.") && host.endsWith(rule.substring(1))) {
+                return true; // *.example.com
+            }
+            if (rule.endsWith("/16") && host.startsWith(rule.substring(0, rule.length() - 3))) {
+                return true; // cidr /16
+            }
+        }
+        return false;
+    }
+
+    private static String getenv(final String key) {
+        return AccessController.doPrivileged(
+                (PrivilegedAction<String>) () -> System.getenv(key));
     }
 
     private Proxy chooseProxy(final List<Proxy> proxies) {
