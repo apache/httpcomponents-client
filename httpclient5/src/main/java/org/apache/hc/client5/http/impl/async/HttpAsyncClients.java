@@ -33,6 +33,7 @@ import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
+import org.apache.hc.client5.http.impl.TooEarlyRetryStrategy;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.compat.ClassicToAsyncAdaptor;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
@@ -117,6 +118,25 @@ public final class HttpAsyncClients {
      */
     public static CloseableHttpAsyncClient createHttp2System() {
         return H2AsyncClientBuilder.create().useSystemProperties().build();
+    }
+
+    /**
+     * Build an async client with RFC 8470 handling baked in:
+     * <ul>
+     *   <li>Retry once on {@code 425 Too Early}.</li>
+     *   <li>Also retry {@code 429} / {@code 503} respecting {@code Retry-After}.</li>
+     *   <li>Retries only on idempotent methods (producer repeatability is assumed for these).</li>
+     * </ul>
+     */
+    public static CloseableHttpAsyncClient createDefaultTooEarlyAware() {
+        return customTooEarlyAware(true).build();
+    }
+
+    /**
+     * Same as {@link #createDefaultTooEarlyAware()} but also uses system properties.
+     */
+    public static CloseableHttpAsyncClient createSystemTooEarlyAware() {
+        return customTooEarlyAware(true).useSystemProperties().build();
     }
 
     private static HttpProcessor createMinimalProtocolProcessor() {
@@ -373,6 +393,16 @@ public final class HttpAsyncClients {
     public static CloseableHttpClient classic(final CloseableHttpAsyncClient client, final Timeout operationTimeout) {
         client.start();
         return new ClassicToAsyncAdaptor(client, operationTimeout);
+    }
+
+    /**
+     * Create a new {@link HttpAsyncClientBuilder} that preconfigures {@link TooEarlyRetryStrategy}.
+     *
+     * @param include429and503 when {@code true}, also retry {@code 429} and {@code 503} with {@code Retry-After}.
+     */
+    public static HttpAsyncClientBuilder customTooEarlyAware(final boolean include429and503) {
+        return HttpAsyncClientBuilder.create()
+                .setRetryStrategy(new TooEarlyRetryStrategy(include429and503));
     }
 
 }

@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.impl.classic;
 
+import org.apache.hc.client5.http.impl.TooEarlyRetryStrategy;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 
@@ -81,4 +82,34 @@ public final class HttpClients {
         return new MinimalHttpClient(connManager);
     }
 
+    /**
+     * Create a new {@link HttpClientBuilder} that preconfigures {@link TooEarlyRetryStrategy}.
+     *
+     * @param include429and503 when {@code true}, also retry {@code 429} and {@code 503} with {@code Retry-After}.
+     * @since 5.6
+     */
+    public static HttpClientBuilder customTooEarlyAware(final boolean include429and503) {
+        return HttpClientBuilder.create()
+                .setRetryStrategy(new TooEarlyRetryStrategy(include429and503));
+    }
+
+    /**
+     * Build a client with RFC 8470 handling baked in:
+     * <ul>
+     *   <li>Retry once on {@code 425 Too Early}.</li>
+     *   <li>Also retry {@code 429} / {@code 503} respecting {@code Retry-After}.</li>
+     *   <li>Retries only on idempotent methods and repeatable entities.</li>
+     * </ul>
+     * @since 5.6
+     */
+    public static CloseableHttpClient createDefaultTooEarlyAware() {
+        return customTooEarlyAware(true).build();
+    }
+
+    /**
+     * Same as {@link #createDefaultTooEarlyAware()} but also uses system properties.
+     */
+    public static CloseableHttpClient createSystemTooEarlyAware() {
+        return customTooEarlyAware(true).useSystemProperties().build();
+    }
 }
