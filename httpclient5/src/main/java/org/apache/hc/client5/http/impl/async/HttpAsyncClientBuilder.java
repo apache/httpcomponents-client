@@ -921,6 +921,11 @@ public class HttpAsyncClientBuilder {
         return HttpClientContext::castOrCreate;
     }
 
+    @Internal
+    public AsyncClientConnectionManager getConnManager() {
+        return connManager;
+    }
+
     @SuppressWarnings("deprecated")
     public CloseableHttpAsyncClient build() {
         AsyncClientConnectionManager connManagerCopy = this.connManager;
