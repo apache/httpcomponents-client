@@ -29,8 +29,15 @@ package org.apache.hc.client5.http.impl.classic;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 import org.apache.hc.client5.http.ClientProtocolException;
@@ -52,11 +59,11 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
+import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
@@ -65,23 +72,18 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Internal implementation of {@link CloseableHttpClient}.
- * <p>
- * Concurrent message exchanges executed by this client will get assigned to
- * separate connections leased from the connection pool.
- * </p>
- *
- * @since 4.3
- */
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 @Internal
 class InternalHttpClient extends CloseableHttpClient implements Configurable {
 
     private static final Logger LOG = LoggerFactory.getLogger(InternalHttpClient.class);
+
+    private static final ThreadFactory SCHEDULER_THREAD_FACTORY =
+            new DefaultThreadFactory("hc-classic-call-timeouts", true);
 
     private final HttpClientConnectionManager connManager;
     private final HttpRequestExecutor requestExecutor;
@@ -94,6 +96,8 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
     private final Function<HttpContext, HttpClientContext> contextAdaptor;
     private final RequestConfig defaultConfig;
     private final ConcurrentLinkedQueue<Closeable> closeables;
+
+    private final ScheduledExecutorService scheduledExecutorService;
 
     public InternalHttpClient(
             final HttpClientConnectionManager connManager,
@@ -119,9 +123,13 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
         this.contextAdaptor = contextAdaptor;
         this.defaultConfig = defaultConfig;
         this.closeables = closeables != null ? new ConcurrentLinkedQueue<>(closeables) : null;
+        this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(SCHEDULER_THREAD_FACTORY);
     }
 
-    private HttpRoute determineRoute(final HttpHost target, final HttpRequest request, final HttpContext context) throws HttpException {
+    private HttpRoute determineRoute(
+            final HttpHost target,
+            final org.apache.hc.core5.http.HttpRequest request,
+            final HttpContext context) throws HttpException {
         return this.routePlanner.determineRoute(target, request, context);
     }
 
@@ -169,21 +177,84 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
                     request.setAuthority(new URIAuthority(resolvedTarget));
                 }
             }
-            final HttpRoute route = determineRoute(
-                    resolvedTarget,
-                    request,
-                    localcontext);
+            final HttpRoute route = determineRoute(resolvedTarget, request, localcontext);
             final String exchangeId = ExecSupport.getNextExchangeId();
             localcontext.setExchangeId(exchangeId);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} preparing request execution", exchangeId);
             }
 
-            final ExecRuntime execRuntime = new InternalExecRuntime(LOG, connManager, requestExecutor,
+            final ExecRuntime execRuntime = new InternalExecRuntime(
+                    LOG, connManager, requestExecutor,
                     request instanceof CancellableDependency ? (CancellableDependency) request : null);
             final ExecChain.Scope scope = new ExecChain.Scope(exchangeId, route, request, execRuntime, localcontext);
-            final ClassicHttpResponse response = this.execChain.execute(ClassicRequestBuilder.copy(request).build(), scope);
-            return CloseableHttpResponse.adapt(response);
+
+            // Hard request timeout (call deadline)
+            final RequestConfig effectiveCfg = localcontext.getRequestConfig();
+            final Timeout requestTimeout = effectiveCfg != null ? effectiveCfg.getRequestTimeout() : null;
+
+            if (requestTimeout == null || requestTimeout.isDisabled()) {
+                final ClassicHttpResponse response =
+                        this.execChain.execute(ClassicRequestBuilder.copy(request).build(), scope);
+                return CloseableHttpResponse.adapt(response);
+            }
+
+            final long delayMs = requestTimeout.toMilliseconds();
+            if (delayMs <= 0L) {
+                throw new InterruptedIOException("Request timeout");
+            }
+
+            final Thread execThread = Thread.currentThread();
+            final AtomicBoolean terminal = new AtomicBoolean(false);
+            final AtomicBoolean timeoutFired = new AtomicBoolean(false);
+
+            final ScheduledFuture<?> timer = scheduledExecutorService.schedule(() -> {
+                if (terminal.compareAndSet(false, true)) {
+                    timeoutFired.set(true);
+                    try {
+                        // Hard-abort: close the endpoint to unblock any blocking I/O
+                        execRuntime.discardEndpoint();
+                    } catch (final Exception ignore) {
+                    }
+                    // Interrupt as an extra nudge for blocking waits (lease/read)
+                    execThread.interrupt();
+                }
+            }, delayMs, TimeUnit.MILLISECONDS);
+
+            try {
+                final ClassicHttpResponse response =
+                        this.execChain.execute(ClassicRequestBuilder.copy(request).build(), scope);
+
+                // If timeout already fired, surface timeout error
+                if (!terminal.compareAndSet(false, true)) {
+                    timer.cancel(false);
+                    // clear only if we fired the timeout
+                    if (timeoutFired.get() && Thread.currentThread().isInterrupted()) {
+                        Thread.interrupted();
+                    }
+                    throw new InterruptedIOException("Request timeout");
+                }
+
+                timer.cancel(false);
+                // clear interrupt if our timer fired just as we completed
+                if (timeoutFired.get() && Thread.currentThread().isInterrupted()) {
+                    Thread.interrupted();
+                }
+                return CloseableHttpResponse.adapt(response);
+
+            } catch (final IOException | RuntimeException ioEx) {
+                if (timeoutFired.get() || !terminal.compareAndSet(false, true)) {
+                    timer.cancel(false);
+                    if (timeoutFired.get() && Thread.currentThread().isInterrupted()) {
+                        Thread.interrupted();
+                    }
+                    throw new InterruptedIOException("Request timeout");
+                }
+                timer.cancel(false);
+                throw ioEx;
+
+            }
+
         } catch (final HttpException httpException) {
             throw new ClientProtocolException(httpException.getMessage(), httpException);
         }
@@ -215,6 +286,6 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
                 }
             }
         }
+        this.scheduledExecutorService.shutdownNow();
     }
-
 }
