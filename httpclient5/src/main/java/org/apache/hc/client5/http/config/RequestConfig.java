@@ -69,13 +69,15 @@ public class RequestConfig implements Cloneable {
 
     private final ExpectContinueTrigger expectContinueTrigger;
 
+    private final Timeout requestTimeout;
+
     /**
      * Intended for CDI compatibility
     */
     protected RequestConfig() {
         this(false, null, null, false, false, 0, false, null, null,
                 DEFAULT_CONNECTION_REQUEST_TIMEOUT, null, null, DEFAULT_CONN_KEEP_ALIVE, false, false, false, null,
-                ExpectContinueTrigger.ALWAYS);
+                ExpectContinueTrigger.ALWAYS, null);
     }
 
     RequestConfig(
@@ -96,7 +98,8 @@ public class RequestConfig implements Cloneable {
             final boolean hardCancellationEnabled,
             final boolean protocolUpgradeEnabled,
             final Path unixDomainSocket,
-            final ExpectContinueTrigger expectContinueTrigger) {
+            final ExpectContinueTrigger expectContinueTrigger,
+            final Timeout requestTimeout) {
         super();
         this.expectContinueEnabled = expectContinueEnabled;
         this.proxy = proxy;
@@ -116,6 +119,7 @@ public class RequestConfig implements Cloneable {
         this.protocolUpgradeEnabled = protocolUpgradeEnabled;
         this.unixDomainSocket = unixDomainSocket;
         this.expectContinueTrigger = expectContinueTrigger;
+        this.requestTimeout = requestTimeout;
     }
 
     /**
@@ -248,6 +252,22 @@ public class RequestConfig implements Cloneable {
         return expectContinueTrigger;
     }
 
+    /**
+     * Returns the hard end-to-end request timeout (call timeout / request deadline).
+     * The entire exchange must complete within this budget or the execution is aborted.
+     * <p>
+     * This timeout is independent of {@linkplain #getConnectTimeout() connect} and
+     * {@linkplain #getResponseTimeout() response} timeouts. Pass
+     * {@link org.apache.hc.core5.util.Timeout#DISABLED} to disable.
+     * </p>
+     *
+     * @return the configured request timeout; never {@code null}.
+     * @since 5.6
+     */
+    public Timeout getRequestTimeout() {
+        return requestTimeout;
+    }
+
     @Override
     protected RequestConfig clone() throws CloneNotSupportedException {
         return (RequestConfig) super.clone();
@@ -274,6 +294,7 @@ public class RequestConfig implements Cloneable {
         builder.append(", hardCancellationEnabled=").append(hardCancellationEnabled);
         builder.append(", protocolUpgradeEnabled=").append(protocolUpgradeEnabled);
         builder.append(", unixDomainSocket=").append(unixDomainSocket);
+        builder.append(", requestTimeout=").append(requestTimeout);
         builder.append("]");
         return builder.toString();
     }
@@ -300,7 +321,8 @@ public class RequestConfig implements Cloneable {
             .setContentCompressionEnabled(config.isContentCompressionEnabled())
             .setHardCancellationEnabled(config.isHardCancellationEnabled())
             .setProtocolUpgradeEnabled(config.isProtocolUpgradeEnabled())
-            .setUnixDomainSocket(config.getUnixDomainSocket());
+            .setUnixDomainSocket(config.getUnixDomainSocket())
+            .setRequestTimeout(config.getRequestTimeout());
     }
 
     public static class Builder {
@@ -323,6 +345,22 @@ public class RequestConfig implements Cloneable {
         private boolean protocolUpgradeEnabled;
         private Path unixDomainSocket;
         private ExpectContinueTrigger expectContinueTrigger;
+
+
+        /**
+         * Hard end-to-end request timeout (also known as a <em>call timeout</em> or
+         * <em>request deadline</em>). If the entire execution — including connection
+         * leasing, connection establishment, request transmission, and response
+         * processing — does not complete within this time budget, the execution is
+         * aborted and an {@link java.io.InterruptedIOException} is propagated.
+         * <p>
+         * This is independent of {@linkplain #getConnectTimeout() connect} and
+         * {@linkplain #getResponseTimeout() response} timeouts.
+         * Use {@link org.apache.hc.core5.util.Timeout#DISABLED} to disable.
+         * </p>
+         *
+         */
+        private Timeout requestTimeout;
 
         Builder() {
             super();
@@ -694,6 +732,25 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * Sets the hard end-to-end request timeout (also known as call timeout or request
+         * deadline). When set, the entire request execution — from connection leasing
+         * through connection establishment, request write, and response processing —
+         * must complete within this time budget or the execution will be aborted.
+         * <p>
+         * Pass {@link org.apache.hc.core5.util.Timeout#DISABLED} to turn this feature off.
+         * A non-positive timeout value is treated as an immediate expiry.
+         * </p>
+         *
+         * @param requestTimeout the request timeout to apply; use {@code Timeout.DISABLED} to disable
+         * @return this builder
+         * @since 5.6
+         */
+        public Builder setRequestTimeout(final Timeout requestTimeout) {
+            this.requestTimeout = requestTimeout;
+            return this;
+        }
+
         public RequestConfig build() {
             return new RequestConfig(
                     expectContinueEnabled,
@@ -713,7 +770,8 @@ public class RequestConfig implements Cloneable {
                     hardCancellationEnabled,
                     protocolUpgradeEnabled,
                     unixDomainSocket,
-                    expectContinueTrigger);
+                    expectContinueTrigger,
+                    requestTimeout);
         }
 
     }
