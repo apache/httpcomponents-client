@@ -437,4 +437,51 @@ class TestRedirectExec {
 
     }
 
+    @Test
+    void testPostMovedPermanentlyPreserveMethod() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+        final URI targetUri = new URI("http://localhost:80/stuff");
+        final ClassicHttpRequest request = ClassicRequestBuilder.post()
+                .setUri(targetUri)
+                .setEntity("stuff")
+                .build();
+
+        final HttpClientContext context = HttpClientContext.create();
+        context.setRequestConfig(RequestConfig.custom()
+                .setRedirectsEnabled(true)
+                .setRedirectMethodPolicy(org.apache.hc.client5.http.config.RedirectMethodPolicy.PRESERVE_METHOD)
+                .build());
+
+        final URI redirect1 = new URI("http://localhost:80/other-stuff");
+        final ClassicHttpResponse response1 = ClassicResponseBuilder.create(HttpStatus.SC_MOVED_PERMANENTLY)
+                .addHeader(HttpHeaders.LOCATION, redirect1.toASCIIString())
+                .build();
+        final ClassicHttpResponse response2 = ClassicResponseBuilder.create(HttpStatus.SC_OK).build();
+
+        Mockito.when(chain.proceed(
+                HttpRequestMatcher.matchesRequestUri(targetUri),
+                ArgumentMatchers.any())).thenReturn(response1);
+        Mockito.when(chain.proceed(
+                HttpRequestMatcher.matchesRequestUri(redirect1),
+                ArgumentMatchers.any())).thenReturn(response2);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
+        final ClassicHttpResponse finalResponse = redirectExec.execute(request, scope, chain);
+        Assertions.assertEquals(200, finalResponse.getCode());
+
+        final ArgumentCaptor<ClassicHttpRequest> reqCaptor = ArgumentCaptor.forClass(ClassicHttpRequest.class);
+        Mockito.verify(chain, Mockito.times(2)).proceed(reqCaptor.capture(), ArgumentMatchers.any());
+
+        final List<ClassicHttpRequest> allValues = reqCaptor.getAllValues();
+        Assertions.assertNotNull(allValues);
+        Assertions.assertEquals(2, allValues.size());
+        final ClassicHttpRequest request1 = allValues.get(0);
+        final ClassicHttpRequest request2 = allValues.get(1);
+        Assertions.assertSame(request, request1);
+        Assertions.assertEquals("POST", request1.getMethod());
+        Assertions.assertEquals("POST", request2.getMethod());
+        Assertions.assertNotNull(request2.getEntity());
+    }
+
+
 }

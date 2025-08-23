@@ -69,13 +69,15 @@ public class RequestConfig implements Cloneable {
 
     private final ExpectContinueTrigger expectContinueTrigger;
 
+    private final RedirectMethodPolicy redirectMethodPolicy;
+
     /**
      * Intended for CDI compatibility
     */
     protected RequestConfig() {
         this(false, null, null, false, false, 0, false, null, null,
                 DEFAULT_CONNECTION_REQUEST_TIMEOUT, null, null, DEFAULT_CONN_KEEP_ALIVE, false, false, false, null,
-                ExpectContinueTrigger.ALWAYS);
+                ExpectContinueTrigger.ALWAYS, null);
     }
 
     RequestConfig(
@@ -96,7 +98,8 @@ public class RequestConfig implements Cloneable {
             final boolean hardCancellationEnabled,
             final boolean protocolUpgradeEnabled,
             final Path unixDomainSocket,
-            final ExpectContinueTrigger expectContinueTrigger) {
+            final ExpectContinueTrigger expectContinueTrigger,
+            final RedirectMethodPolicy redirectMethodPolicy) {
         super();
         this.expectContinueEnabled = expectContinueEnabled;
         this.proxy = proxy;
@@ -116,6 +119,7 @@ public class RequestConfig implements Cloneable {
         this.protocolUpgradeEnabled = protocolUpgradeEnabled;
         this.unixDomainSocket = unixDomainSocket;
         this.expectContinueTrigger = expectContinueTrigger;
+        this.redirectMethodPolicy = redirectMethodPolicy;
     }
 
     /**
@@ -248,6 +252,13 @@ public class RequestConfig implements Cloneable {
         return expectContinueTrigger;
     }
 
+    /**
+     * @since 5.6
+     */
+    public RedirectMethodPolicy getRedirectMethodPolicy() {
+        return redirectMethodPolicy;
+    }
+
     @Override
     protected RequestConfig clone() throws CloneNotSupportedException {
         return (RequestConfig) super.clone();
@@ -274,6 +285,7 @@ public class RequestConfig implements Cloneable {
         builder.append(", hardCancellationEnabled=").append(hardCancellationEnabled);
         builder.append(", protocolUpgradeEnabled=").append(protocolUpgradeEnabled);
         builder.append(", unixDomainSocket=").append(unixDomainSocket);
+        builder.append(", redirectMethodPolicy=").append(redirectMethodPolicy);
         builder.append("]");
         return builder.toString();
     }
@@ -323,6 +335,7 @@ public class RequestConfig implements Cloneable {
         private boolean protocolUpgradeEnabled;
         private Path unixDomainSocket;
         private ExpectContinueTrigger expectContinueTrigger;
+        private RedirectMethodPolicy redirectMethodPolicy;
 
         Builder() {
             super();
@@ -334,6 +347,7 @@ public class RequestConfig implements Cloneable {
             this.hardCancellationEnabled = true;
             this.protocolUpgradeEnabled = true;
             this.expectContinueTrigger = ExpectContinueTrigger.ALWAYS;
+            this.redirectMethodPolicy = RedirectMethodPolicy.BROWSER_COMPAT;
         }
 
         /**
@@ -693,6 +707,17 @@ public class RequestConfig implements Cloneable {
             this.expectContinueTrigger = Args.notNull(trigger, "ExpectContinueTrigger");
             return this;
         }
+        /**
+         * Control method/body rewriting for 301/302.
+         * Default is {@link RedirectMethodPolicy#BROWSER_COMPAT}.
+         *
+         * @since 5.6
+         */
+        public Builder setRedirectMethodPolicy(final RedirectMethodPolicy policy) {
+            this.redirectMethodPolicy = Args.notNull(policy, "policy");
+            return this;
+        }
+
 
         public RequestConfig build() {
             return new RequestConfig(
@@ -713,7 +738,8 @@ public class RequestConfig implements Cloneable {
                     hardCancellationEnabled,
                     protocolUpgradeEnabled,
                     unixDomainSocket,
-                    expectContinueTrigger);
+                    expectContinueTrigger,
+                    redirectMethodPolicy);
         }
 
     }

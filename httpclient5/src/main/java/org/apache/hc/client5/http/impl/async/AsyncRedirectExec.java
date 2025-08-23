@@ -60,6 +60,7 @@ import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.hc.client5.http.config.RedirectMethodPolicy; // <<< ADDED
 
 /**
  * Request execution handler in the asynchronous request execution chain
@@ -147,8 +148,14 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                         case HttpStatus.SC_MOVED_PERMANENTLY:
                         case HttpStatus.SC_MOVED_TEMPORARILY:
                             if (Method.POST.isSame(request.getMethod())) {
-                                redirectBuilder = BasicRequestBuilder.get();
-                                state.currentEntityProducer = null;
+                                final RedirectMethodPolicy methodPolicy = config.getRedirectMethodPolicy();
+                                final boolean sameAuth = Objects.equals(currentScope.route.getTargetHost(), newTarget);
+                                if (methodPolicy == RedirectMethodPolicy.PRESERVE_METHOD || methodPolicy == RedirectMethodPolicy.PRESERVE_SAME_AUTH && sameAuth) {
+                                    redirectBuilder = BasicRequestBuilder.copy(currentScope.originalRequest);
+                                } else {
+                                    redirectBuilder = BasicRequestBuilder.get();
+                                    state.currentEntityProducer = null;
+                                }
                             } else {
                                 redirectBuilder = BasicRequestBuilder.copy(currentScope.originalRequest);
                             }

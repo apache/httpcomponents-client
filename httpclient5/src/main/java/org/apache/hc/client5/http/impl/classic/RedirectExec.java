@@ -59,6 +59,7 @@ import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.hc.client5.http.config.RedirectMethodPolicy; // <<< ADDED
 
 /**
  * Request execution handler in the classic request execution chain
@@ -146,7 +147,13 @@ public final class RedirectExec implements ExecChainHandler {
                         case HttpStatus.SC_MOVED_PERMANENTLY:
                         case HttpStatus.SC_MOVED_TEMPORARILY:
                             if (Method.POST.isSame(request.getMethod())) {
-                                redirectBuilder = ClassicRequestBuilder.get();
+                                final RedirectMethodPolicy methodPolicy = config.getRedirectMethodPolicy();
+                                final boolean sameAuth = Objects.equals(currentScope.route.getTargetHost(), newTarget);
+                                if (methodPolicy == RedirectMethodPolicy.PRESERVE_METHOD || methodPolicy == RedirectMethodPolicy.PRESERVE_SAME_AUTH && sameAuth) {
+                                    redirectBuilder = ClassicRequestBuilder.copy(currentScope.originalRequest);
+                                } else {
+                                    redirectBuilder = ClassicRequestBuilder.get();
+                                }
                             } else {
                                 redirectBuilder = ClassicRequestBuilder.copy(currentScope.originalRequest);
                             }
