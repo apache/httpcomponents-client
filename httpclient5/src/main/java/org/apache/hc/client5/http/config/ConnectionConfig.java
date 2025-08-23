@@ -149,7 +149,15 @@ public class ConnectionConfig implements Cloneable {
         }
 
         /**
-         * Determines the default socket timeout value for I/O operations.
+         * Determines the default socket timeout value for I/O operations on
+         * connections created by this configuration.
+         * A timeout value of zero is interpreted as an infinite timeout.
+         * <p>
+         * This value acts as a baseline at the connection management layer.
+         * This parameter overrides the socket timeout setting applied at the I/O layer
+         * and in its tuen can overridden by settings applied at the protocol layer
+         * for the duration of a message exchange.
+         * </p>
          * <p>
          * Default: {@code null} (undefined)
          * </p>
