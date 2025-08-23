@@ -233,6 +233,7 @@ public class HttpClientBuilder {
     private boolean authCachingDisabled;
     private boolean connectionStateDisabled;
     private boolean defaultUserAgentDisabled;
+    private boolean proxyAutodetectionDisabled;
     private ProxySelector proxySelector;
 
     private List<Closeable> closeables;
@@ -792,6 +793,19 @@ public class HttpClientBuilder {
     }
 
     /**
+     * Disables automatic proxy detection for clients created by this builder.
+     * <p>
+     * When disabled, and unless an explicit proxy or route planner is configured,
+     * the builder falls back to {@link org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner}.
+     * </p>
+     * @return this instance.
+     */
+    public final HttpClientBuilder disableProxyAutodetection() {
+        this.proxyAutodetectionDisabled = true;
+        return this;
+    }
+
+    /**
      * Sets the {@link ProxySelector} that will be used to select the proxies
      * to be used for establishing HTTP connections. If a non-null proxy selector is set,
      * it will take precedence over the proxy settings configured in the client.
@@ -1012,11 +1026,11 @@ public class HttpClientBuilder {
             }
             if (proxy != null) {
                 routePlannerCopy = new DefaultProxyRoutePlanner(proxy, schemePortResolverCopy);
-            } else if (this.proxySelector != null) {
-                routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, this.proxySelector);
-            } else if (systemProperties) {
-                final ProxySelector defaultProxySelector = AccessController.doPrivileged((PrivilegedAction<ProxySelector>) ProxySelector::getDefault);
-                routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, defaultProxySelector);
+            } else if (!this.proxyAutodetectionDisabled) {
+                final ProxySelector effectiveSelector = this.proxySelector != null
+                        ? this.proxySelector
+                        : AccessController.doPrivileged((PrivilegedAction<ProxySelector>) ProxySelector::getDefault);
+                routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, effectiveSelector);
             } else {
                 routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
             }
