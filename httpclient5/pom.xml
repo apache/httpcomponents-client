@@ -118,6 +118,11 @@
       <artifactId>zstd-jni</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-lambda</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

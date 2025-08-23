@@ -27,12 +27,22 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.net.ProxySelector;
 
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
+import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
+import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
+import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class TestHttpClientBuilder {
@@ -65,5 +75,88 @@ class TestHttpClientBuilder {
                 final ExecChain chain) throws IOException, HttpException {
             return chain.proceed(request, scope);
         }
+    }
+
+    @Test
+    void testDefaultUsesSystemDefaultRoutePlanner() throws Exception {
+        try (final InternalHttpClient client = (InternalHttpClient) HttpClients.custom().build()) {
+            final Object planner = getPrivateField(client, "routePlanner");
+            Assertions.assertNotNull(planner);
+            Assertions.assertInstanceOf(SystemDefaultRoutePlanner.class, planner, "Default should be SystemDefaultRoutePlanner (auto-detect proxies)");
+        }
+    }
+
+    @Test
+    void testDisableProxyAutodetectionFallsBackToDefaultRoutePlanner() throws Exception {
+        try (final InternalHttpClient client = (InternalHttpClient) HttpClients.custom()
+                .disableProxyAutodetection()
+                .build()) {
+            final Object planner = getPrivateField(client, "routePlanner");
+            Assertions.assertNotNull(planner);
+            Assertions.assertInstanceOf(DefaultRoutePlanner.class, planner, "disableProxyAutodetection() should restore DefaultRoutePlanner");
+        }
+    }
+
+    @Test
+    void testExplicitProxyWinsOverAutodetection() throws Exception {
+        try (final InternalHttpClient client = (InternalHttpClient) HttpClients.custom()
+                .setProxy(new HttpHost("http", "proxy.local", 8080))
+                .build()) {
+            final Object planner = getPrivateField(client, "routePlanner");
+            Assertions.assertNotNull(planner);
+            Assertions.assertInstanceOf(DefaultProxyRoutePlanner.class, planner, "Explicit proxy must take precedence");
+        }
+    }
+
+    @Test
+    void testCustomRoutePlannerIsRespected() throws Exception {
+        final HttpRoutePlanner custom = new HttpRoutePlanner() {
+            @Override
+            public org.apache.hc.client5.http.HttpRoute determineRoute(
+                    final HttpHost host, final HttpContext context) {
+                // trivial, never used in this test
+                return new org.apache.hc.client5.http.HttpRoute(host);
+            }
+        };
+        try (final InternalHttpClient client = (InternalHttpClient) HttpClients.custom()
+                .setRoutePlanner(custom)
+                .build()) {
+            final Object planner = getPrivateField(client, "routePlanner");
+            Assertions.assertSame(custom, planner, "Custom route planner must be used as-is");
+        }
+    }
+
+    @Test
+    void testProvidedProxySelectorIsUsedBySystemDefaultRoutePlanner() throws Exception {
+        class TouchProxySelector extends ProxySelector {
+            volatile boolean touched = false;
+            @Override
+            public java.util.List<java.net.Proxy> select(final java.net.URI uri) {
+                touched = true;
+                return java.util.Collections.singletonList(java.net.Proxy.NO_PROXY);
+            }
+            @Override
+            public void connectFailed(final java.net.URI uri, final java.net.SocketAddress sa, final IOException ioe) { }
+        }
+        final TouchProxySelector selector = new TouchProxySelector();
+
+        try (final InternalHttpClient client = (InternalHttpClient) HttpClients.custom()
+                .setProxySelector(selector)
+                .build()) {
+            final Object planner = getPrivateField(client, "routePlanner");
+            Assertions.assertInstanceOf(SystemDefaultRoutePlanner.class, planner);
+
+            // Call determineRoute on the planner directly to avoid making a real request
+            final SystemDefaultRoutePlanner sdrp = (SystemDefaultRoutePlanner) planner;
+            sdrp.determineRoute(new HttpHost("http", "example.com", 80), HttpClientContext.create());
+
+            Assertions.assertTrue(selector.touched, "Provided ProxySelector should be consulted");
+        }
+    }
+
+    private static Object getPrivateField(final Object target, final String name) throws Exception {
+        final Field f = target.getClass().getDeclaredField(name);
+        f.setAccessible(true);
+        return f.get(target);
     }
 }
