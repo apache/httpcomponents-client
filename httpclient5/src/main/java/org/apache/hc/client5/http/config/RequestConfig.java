@@ -543,6 +543,12 @@ public class RequestConfig implements Cloneable {
          * HTTP transports with message multiplexing.
          * </p>
          * <p>
+         * Please note that response timeout is not a deadline. Its absolute value
+         * can be exceeded, for example, in case of automatic request re-execution.
+         * Please make sure the automatic request re-execution policy has been
+         * configured appropriately.
+         * </p>
+         * <p>
          * This parameter may override a socket timeout configured at the connection
          * or I/O layers for the duration of a message execution. It is not a hard
          * deadline; its effective duration can be exceeded, for example, by automatic
