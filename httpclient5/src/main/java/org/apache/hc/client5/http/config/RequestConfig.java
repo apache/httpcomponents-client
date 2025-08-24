@@ -533,17 +533,20 @@ public class RequestConfig implements Cloneable {
         }
 
         /**
-         * Determines the timeout until arrival of a response from the opposite endpoint.
-         * A timeout value of zero is interpreted as an infinite timeout.
+         * Determines the timeout until arrival of a response from the opposite
+         * endpoint.
          * <p>
-         * Please note that response timeout may be unsupported by HTTP transports with
-         * message multiplexing.
+         * A timeout value of zero is interpreted as an infinite timeout.
          * </p>
          * <p>
-         * Please note that response timeout is not a deadline. Its absolute value can
-         * be exceeded, for example, in case of automatic request re-execution. Please
-         * make sure the automatic request re-execution policy has been configured
-         * appropriately.
+         * Please note that response timeout may be unsupported by
+         * HTTP transports with message multiplexing.
+         * </p>
+         * <p>
+         * Please note that response timeout is not a deadline. Its absolute value
+         * can be exceeded, for example, in case of automatic request re-execution.
+         * Please make sure the automatic request re-execution policy has been
+         * configured appropriately.
          * </p>
          * <p>
          * In classic (blocking) I/O execution, if this value is set, it will be applied
@@ -552,6 +555,9 @@ public class RequestConfig implements Cloneable {
          * {@link org.apache.hc.client5.http.config.ConnectionConfig.Builder#setSocketTimeout}.
          * If unset ({@code null}), the existing socket timeout of the reused connection
          * remains in effect.
+         * </p>
+         * <p>
+         * Default: {@code null}
          * </p>
          *
          * @return this instance.

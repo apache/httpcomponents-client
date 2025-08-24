@@ -163,6 +163,9 @@ public class ConnectionConfig implements Cloneable {
          * timeout for the duration of the request. If no response timeout is set, the
          * current socket timeout of the reused connection remains in effect.
          * </p>
+         * <p>
+         * Default: {@code null} (undefined)
+         * </p>
          *
          * @return this instance.
          */
