@@ -549,6 +549,13 @@ public class RequestConfig implements Cloneable {
          * configured appropriately.
          * </p>
          * <p>
+         * This parameter may override a socket timeout configured at the connection
+         * or I/O layers for the duration of a message execution. It is not a hard
+         * deadline; its effective duration can be exceeded, for example, by automatic
+         * request re-execution policies. Ensure such policies are configured
+         * appropriately.
+         * </p>
+         * <p>
          * Default: {@code null}
          * </p>
          *
