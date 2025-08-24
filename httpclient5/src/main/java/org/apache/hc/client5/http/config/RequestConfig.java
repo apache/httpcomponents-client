@@ -543,18 +543,11 @@ public class RequestConfig implements Cloneable {
          * HTTP transports with message multiplexing.
          * </p>
          * <p>
-         * Please note that response timeout is not a deadline. Its absolute value
-         * can be exceeded, for example, in case of automatic request re-execution.
-         * Please make sure the automatic request re-execution policy has been
-         * configured appropriately.
-         * </p>
-         * <p>
-         * In classic (blocking) I/O execution, if this value is set, it will be applied
-         * as the connection's {@code SO_TIMEOUT} for the duration of the request. This
-         * effectively overrides any default socket timeout configured via
-         * {@link org.apache.hc.client5.http.config.ConnectionConfig.Builder#setSocketTimeout}.
-         * If unset ({@code null}), the existing socket timeout of the reused connection
-         * remains in effect.
+         * This parameter may override a socket timeout configured at the connection
+         * or I/O layers for the duration of a message execution. It is not a hard
+         * deadline; its effective duration can be exceeded, for example, by automatic
+         * request re-execution policies. Ensure such policies are configured
+         * appropriately.
          * </p>
          * <p>
          * Default: {@code null}

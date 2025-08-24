@@ -153,15 +153,10 @@ public class ConnectionConfig implements Cloneable {
          * connections created by this configuration.
          * A timeout value of zero is interpreted as an infinite timeout.
          * <p>
-         * This value serves as the baseline timeout applied when a connection is first
-         * created and managed by the connection pool.
-         * </p>
-         * <p>
-         * Please note: in classic (blocking) I/O execution, if a request-level
-         * {@link org.apache.hc.client5.http.config.RequestConfig.Builder#setResponseTimeout}
-         * is specified, that value will temporarily override this default socket
-         * timeout for the duration of the request. If no response timeout is set, the
-         * current socket timeout of the reused connection remains in effect.
+         * This value acts as a baseline configured by the I/O layer. It can be
+         * overridden by settings applied at the connection layer, and in turn may be
+         * overridden by parameters applied at the protocol layer for the duration of
+         * a message execution.
          * </p>
          * <p>
          * Default: {@code null} (undefined)
