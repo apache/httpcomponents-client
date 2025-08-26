@@ -37,6 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -144,6 +145,8 @@ import org.apache.hc.core5.util.VersionInfo;
  * @since 4.3
  */
 public class HttpClientBuilder {
+
+    private static final TimeValue ONE_SECOND = TimeValue.ofSeconds(1L);
 
     private static class RequestInterceptorEntry {
 
@@ -1105,8 +1108,10 @@ public class HttpClientBuilder {
             }
             if (evictExpiredConnections || evictIdleConnections) {
                 if (connManagerCopy instanceof ConnPoolControl) {
+                    TimeValue sleepTime = maxIdleTime.divide(10, TimeUnit.NANOSECONDS);
+                    sleepTime = sleepTime.compareTo(ONE_SECOND) < 0 ? ONE_SECOND : sleepTime;
                     final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor((ConnPoolControl<?>) connManagerCopy,
-                            maxIdleTime, maxIdleTime);
+                            sleepTime, maxIdleTime);
                     closeablesCopy.add(() -> {
                         connectionEvictor.shutdown();
                         try {
