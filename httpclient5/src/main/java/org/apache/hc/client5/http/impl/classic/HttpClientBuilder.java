@@ -38,6 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -69,6 +70,7 @@ import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.DefaultUserTokenHandler;
 import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.impl.NoopUserTokenHandler;
+import org.apache.hc.client5.http.impl.VirtualThreadSupport;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
@@ -239,6 +241,14 @@ public class HttpClientBuilder {
     private ProxySelector proxySelector;
 
     private List<Closeable> closeables;
+
+    private boolean useVirtualThreads;
+    private String virtualThreadNamePrefix = "hc-vt-";
+    private ExecutorService virtualThreadExecutor;
+    private boolean shutdownVirtualThreadExecutor = true;
+    private TimeValue virtualThreadShutdownWait = TimeValue.ofSeconds(2);
+
+    private boolean virtualThreadRunHandler;
 
     public static HttpClientBuilder create() {
         return new HttpClientBuilder();
@@ -809,6 +819,130 @@ public class HttpClientBuilder {
     }
 
     /**
+     * Enables or disables execution of the transport layer on virtual threads (JDK&nbsp;21+).
+     * <p>
+     * When enabled and no custom executor is supplied via
+     * {@link #virtualThreadExecutor(java.util.concurrent.ExecutorService) virtualThreadExecutor(..)},
+     * the builder will create a per-task virtual-thread executor at build time.
+     * </p>
+     * <p>
+     * If virtual threads are not available at runtime and no custom executor is provided,
+     * {@link #build()} may throw {@link UnsupportedOperationException} depending on configuration.
+     * </p>
+     *
+     * @return this instance.
+     * @since 5.6
+     */
+    public HttpClientBuilder useVirtualThreads() {
+        this.useVirtualThreads = true;
+        return this;
+    }
+
+    /**
+     * Sets the thread name prefix for virtual threads created by this builder.
+     * <p>
+     * This prefix is only applied when the builder creates the virtual-thread executor itself.
+     * If a custom executor is supplied via {@link #virtualThreadExecutor(java.util.concurrent.ExecutorService)},
+     * the prefix is ignored.
+     * </p>
+     *
+     * @param prefix the desired name prefix; if {@code null}, {@code "hc-vt-"} is used.
+     * @return this instance.
+     * @since 5.6
+     */
+    public HttpClientBuilder virtualThreadNamePrefix(final String prefix) {
+        this.virtualThreadNamePrefix = prefix != null ? prefix : "hc-vt-";
+        return this;
+    }
+
+    /**
+     * Supplies a custom executor to run transport work (typically a per-task virtual-thread executor).
+     * <p>
+     * Passing a custom executor automatically enables virtual-thread execution. Ownership semantics are
+     * controlled by {@code shutdownOnClose}:
+     * </p>
+     * <ul>
+     *   <li>{@code true}: the client will shut down the executor during {@code close()}.</li>
+     *   <li>{@code false}: the executor is treated as shared and will <em>not</em> be shut down by the client.</li>
+     * </ul>
+     * <p>
+     * This method does not validate that the supplied executor actually creates virtual threads; callers are
+     * responsible for providing an appropriate executor.
+     * </p>
+     *
+     * @param exec the executor to use for transport work.
+     * @param shutdownOnClose whether the client should shut down the executor on close.
+     * @return this instance.
+     * @since 5.6
+     */
+    public HttpClientBuilder virtualThreadExecutor(final ExecutorService exec, final boolean shutdownOnClose) {
+        this.virtualThreadExecutor = exec;
+        this.shutdownVirtualThreadExecutor = shutdownOnClose;
+        this.useVirtualThreads = true; // ensure VT path is active
+        return this;
+    }
+
+    /**
+     * Supplies a custom executor to run transport work (typically a per-task virtual-thread executor).
+     * <p>
+     * Passing a custom executor automatically enables virtual-thread execution and treats the executor as
+     * <em>shared</em> (it will not be shut down by the client). To change ownership semantics, use
+     * {@link #virtualThreadExecutor(java.util.concurrent.ExecutorService, boolean)}.
+     * </p>
+     * <p>
+     * This method does not validate that the supplied executor actually creates virtual threads; callers are
+     * responsible for providing an appropriate executor.
+     * </p>
+     *
+     * @param exec the executor to use for transport work.
+     * @return this instance.
+     * @since 5.6
+     */
+    public final HttpClientBuilder virtualThreadExecutor(final ExecutorService exec) {
+        return virtualThreadExecutor(exec, false);
+    }
+
+    /**
+     * Configures the maximum time to wait for the virtual-thread executor to terminate during
+     * a graceful {@link CloseableHttpClient#close() close()} (i.e., {@code CloseMode.GRACEFUL}).
+     * <p>
+     * This value is only used when a virtual-thread executor is in use and the client owns it
+     * (i.e., {@code shutdownVirtualThreadExecutor == true}). For immediate close, the executor
+     * is shut down without waiting.
+     * </p>
+     *
+     * @param waitTime the time to await executor termination; may be {@code null} to use the default.
+     * @return this instance.
+     * @since 5.6
+     */
+    public final HttpClientBuilder virtualThreadShutdownWait(final TimeValue waitTime) {
+        this.virtualThreadShutdownWait = waitTime;
+        return this;
+    }
+
+
+    /**
+     * Configures the client to run the user-supplied {@link org.apache.hc.core5.http.io.HttpClientResponseHandler}
+     * <p>
+     * on a virtual thread as well as the transport layer. By default, the response handler runs on the caller thread.
+     * <p>
+     * <p>
+     * This has an effect only when virtual threads are enabled via {@link #useVirtualThreads()} or
+     * <p>
+     * {@link #virtualThreadExecutor(java.util.concurrent.ExecutorService)}.
+     * </p>
+     *
+     * @return this builder
+     * @since 5.6
+     */
+    public HttpClientBuilder virtualThreadsRunHandler() {
+        this.virtualThreadRunHandler = true;
+        return this;
+    }
+
+
+
+    /**
      * Request exec chain customization and extension.
      * <p>
      * For internal use.
@@ -1126,7 +1260,7 @@ public class HttpClientBuilder {
             closeablesCopy.add(connManagerCopy);
         }
 
-        return new InternalHttpClient(
+        final CloseableHttpClient base = new InternalHttpClient(
                 connManagerCopy,
                 requestExecCopy,
                 execChain,
@@ -1138,6 +1272,20 @@ public class HttpClientBuilder {
                 contextAdaptor(),
                 defaultRequestConfig != null ? defaultRequestConfig : RequestConfig.DEFAULT,
                 closeablesCopy);
+
+        // VT on? wrap, otherwise return base
+        if (useVirtualThreads) {
+            final ExecutorService vtExecToUse = virtualThreadExecutor != null
+                    ? virtualThreadExecutor
+                    : (VirtualThreadSupport.isAvailable()
+                    ? VirtualThreadSupport.newVirtualThreadPerTaskExecutor(virtualThreadNamePrefix)
+                    : null);
+            if (vtExecToUse != null) {
+                return new VirtualThreadCloseableHttpClient(base, vtExecToUse, shutdownVirtualThreadExecutor, virtualThreadShutdownWait, virtualThreadRunHandler);
+            }
+        }
+        return base;
+
     }
 
 }
