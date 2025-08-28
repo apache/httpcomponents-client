@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.async;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
@@ -35,9 +36,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import org.apache.hc.client5.http.HttpRoute;
@@ -75,9 +79,9 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
-import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -194,13 +198,13 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
     @Override
     protected <T> Future<T> doExecute(
-            final HttpHost target,
+            final HttpHost httpHost,
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpContext context,
             final FutureCallback<T> callback) {
-        final ComplexFuture<T> future = new ComplexFuture<>(callback);
+        final ComplexFuture<T> future = new ComplexFuture<T>(callback);
         try {
             if (!isRunning()) {
                 throw new CancellationException("Request execution cancelled");
@@ -218,18 +222,8 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
                 setupContext(clientContext);
 
-                final HttpHost resolvedTarget = target != null ? target : RoutingSupport.determineHost(request);
-                if (resolvedTarget != null) {
-                    if (request.getScheme() == null) {
-                        request.setScheme(resolvedTarget.getSchemeName());
-                    }
-                    if (request.getAuthority() == null) {
-                        request.setAuthority(new URIAuthority(resolvedTarget));
-                    }
-                }
-
                 final HttpRoute route = determineRoute(
-                        resolvedTarget,
+                        httpHost != null ? httpHost : RoutingSupport.determineHost(request),
                         request,
                         clientContext);
                 final String exchangeId = ExecSupport.getNextExchangeId();
@@ -242,6 +236,55 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                 final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(exchangeId, route, request, future,
                         clientContext, execRuntime, scheduler, new AtomicInteger(1));
                 final AtomicBoolean outputTerminated = new AtomicBoolean(false);
+                // ---- Hard request timeout: schedule & cleanup hooks
+                final AtomicReference<ScheduledFuture<?>> timeoutRef = new AtomicReference<>();
+                final Runnable cancelTimeout = () -> {
+                    final ScheduledFuture<?> t = timeoutRef.getAndSet(null);
+                    if (t != null) {
+                        t.cancel(false);
+                    }
+                };
+
+                final RequestConfig cfg = clientContext.getRequestConfigOrDefault();
+                final Timeout requestTimeout = cfg != null ? cfg.getRequestTimeout() : null;
+                if (requestTimeout != null && !requestTimeout.isDisabled()) {
+                    final long delayMs = requestTimeout.toMilliseconds();
+                    if (delayMs <= 0L) {
+                        // Fail immediately before starting the chain
+                        outputTerminated.set(true);
+                        final InterruptedIOException ex = new InterruptedIOException("Request timeout");
+                        try {
+                            execRuntime.discardEndpoint();
+                            responseConsumer.failed(ex);
+                        } finally {
+                            try {
+                                future.failed(ex);
+                            } finally {
+                                responseConsumer.releaseResources();
+                                requestProducer.releaseResources();
+                            }
+                        }
+                        return; // do not proceed with execution
+                    }
+                    final ScheduledFuture<?> task = scheduledExecutorService.schedule(() -> {
+                        if (!future.isDone()) {
+                            final InterruptedIOException ex = new InterruptedIOException("Request timeout");
+                            try {
+                                execRuntime.discardEndpoint();
+                                responseConsumer.failed(ex);
+                            } finally {
+                                try {
+                                    future.failed(ex);
+                                } finally {
+                                    responseConsumer.releaseResources();
+                                    requestProducer.releaseResources();
+                                }
+                            }
+                        }
+                    }, delayMs, TimeUnit.MILLISECONDS);
+                    timeoutRef.set(task);
+                }
+
                 executeImmediate(
                         BasicRequestBuilder.copy(request).build(),
                         entityDetails != null ? new AsyncEntityProducer() {
@@ -318,16 +361,19 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
                                             @Override
                                             public void completed(final T result) {
+                                                cancelTimeout.run();
                                                 future.completed(result);
                                             }
 
                                             @Override
                                             public void failed(final Exception ex) {
+                                                cancelTimeout.run();
                                                 future.failed(ex);
                                             }
 
                                             @Override
                                             public void cancelled() {
+                                                cancelTimeout.run();
                                                 future.cancel();
                                             }
 
@@ -343,6 +389,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
                             @Override
                             public void completed() {
+                                cancelTimeout.run();
                                 if (LOG.isDebugEnabled()) {
                                     LOG.debug("{} message exchange successfully completed", exchangeId);
                                 }
@@ -356,6 +403,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
                             @Override
                             public void failed(final Exception cause) {
+                                cancelTimeout.run();
                                 if (LOG.isDebugEnabled()) {
                                     LOG.debug("{} request failed: {}", exchangeId, cause.getMessage());
                                 }
