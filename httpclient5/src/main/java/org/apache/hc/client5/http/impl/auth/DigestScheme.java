@@ -471,7 +471,6 @@ public class DigestScheme implements AuthScheme, Serializable {
             params.add(new BasicNameValuePair("qop", qop == QualityOfProtection.AUTH_INT ? "auth-int" : "auth"));
             params.add(new BasicNameValuePair("nc", nc));
             params.add(new BasicNameValuePair("cnonce", cnonce));
-            params.add(new BasicNameValuePair("rspauth", hasha2));
         }
         if (algorithm != null) {
             params.add(new BasicNameValuePair("algorithm", algorithm));
