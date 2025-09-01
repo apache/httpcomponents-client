@@ -131,6 +131,11 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5-sse</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
@@ -268,6 +273,7 @@
 
   <modules>
     <module>httpclient5</module>
+    <module>httpclient5-sse</module>
     <module>httpclient5-observation</module>
     <module>httpclient5-fluent</module>
     <module>httpclient5-cache</module>
