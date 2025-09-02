@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.classic;
 
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Factory methods for {@link CloseableHttpClient} instances.
@@ -80,5 +81,76 @@ public final class HttpClients {
     public static MinimalHttpClient createMinimal(final HttpClientConnectionManager connManager) {
         return new MinimalHttpClient(connManager);
     }
+
+    /**
+     * Creates a client with default configuration executing transport on virtual threads (JDK 21+).
+     * <p>Response handlers run on the caller thread. If virtual threads are unavailable at runtime,
+     * this method falls back to classic execution (same as {@link #createDefault()}).</p>
+     * @since 5.6
+     */
+    public static CloseableHttpClient createVirtualThreadDefault() {
+        return HttpClientBuilder.create()
+                .useVirtualThreads()
+                .build();
+    }
+
+    /**
+     * Same as {@link #createVirtualThreadDefault()} but honors system properties.
+     * <p>If virtual threads are unavailable at runtime, falls back to classic execution.</p>
+     * @since 5.6
+     */
+    public static CloseableHttpClient createVirtualThreadSystem() {
+        return HttpClientBuilder.create()
+                .useSystemProperties()
+                .useVirtualThreads()
+                .build();
+    }
+
+    /**
+     * Returns a builder preconfigured to execute transport on virtual threads (JDK 21+).
+     * <p>If virtual threads are unavailable at runtime, the built client falls back to classic execution.</p>
+     * @since 5.6
+     */
+    public static HttpClientBuilder customVirtualThreads() {
+        return HttpClientBuilder.create()
+                .useVirtualThreads();
+    }
+
+    /**
+     * Returns a builder preconfigured to execute transport on virtual threads with a custom thread name prefix.
+     * <p>If virtual threads are unavailable at runtime, the built client falls back to classic execution and the
+     * prefix is ignored.</p>
+     * @since 5.6
+     */
+    public static HttpClientBuilder customVirtualThreads(final String namePrefix) {
+        return HttpClientBuilder.create()
+                .useVirtualThreads()
+                .virtualThreadNamePrefix(namePrefix);
+    }
+
+    /**
+     * Creates a virtual-thread client with a custom thread name prefix.
+     * <p>If virtual threads are unavailable at runtime, falls back to classic execution and the prefix is ignored.</p>
+     * @since 5.6
+     */
+    public static CloseableHttpClient createVirtualThreadDefault(final String namePrefix) {
+        return HttpClientBuilder.create()
+                .useVirtualThreads()
+                .virtualThreadNamePrefix(namePrefix)
+                .build();
+    }
+
+    /**
+     * Creates a virtual-thread client with a custom graceful-shutdown wait.
+     * @since 5.6
+     */
+    public static CloseableHttpClient createVirtualThreadDefault(final TimeValue shutdownWait) {
+        return HttpClientBuilder.create()
+                .useVirtualThreads()
+                .virtualThreadShutdownWait(shutdownWait)
+                .build();
+    }
+
+
 
 }
