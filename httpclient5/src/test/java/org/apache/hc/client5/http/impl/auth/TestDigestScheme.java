@@ -903,7 +903,7 @@ class TestDigestScheme {
     }
 
     @Test
-    void testRspAuthFieldAndQuoting() throws Exception {
+    void testRspAuthFieldNotPresentClient() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -921,7 +921,8 @@ class TestDigestScheme {
 
         final Map<String, String> table = parseAuthResponse(authResponse);
 
-        Assertions.assertNotNull(table.get("rspauth"));
+        Assertions.assertNotNull(table);
+        Assertions.assertNull(table.get("rspauth"));
     }
 
     @Test
