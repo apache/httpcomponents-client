@@ -43,6 +43,7 @@ import java.util.function.UnaryOperator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
+import org.apache.hc.client5.http.EarlyHintsListener;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
@@ -239,6 +240,8 @@ public class HttpClientBuilder {
     private ProxySelector proxySelector;
 
     private List<Closeable> closeables;
+
+    private EarlyHintsListener earlyHintsListener;
 
     public static HttpClientBuilder create() {
         return new HttpClientBuilder();
@@ -809,6 +812,22 @@ public class HttpClientBuilder {
     }
 
     /**
+     * Registers a global {@link org.apache.hc.client5.http.EarlyHintsListener}
+     * that will be notified when the client receives {@code 103 Early Hints}
+     * informational responses for any request executed by the built client.
+     *
+     * @param listener the listener to receive {@code 103 Early Hints} events,
+     *                 or {@code null} to remove the listener
+     * @return this builder
+     * @since 5.6
+     */
+    public final HttpClientBuilder setEarlyHintsListener(final EarlyHintsListener listener) {
+        this.earlyHintsListener = listener;
+        return this;
+    }
+
+
+    /**
      * Request exec chain customization and extension.
      * <p>
      * For internal use.
@@ -949,7 +968,7 @@ public class HttpClientBuilder {
 
         final NamedElementChain<ExecChainHandler> execChainDefinition = new NamedElementChain<>();
         execChainDefinition.addLast(
-                new MainClientExec(connManagerCopy, httpProcessor, reuseStrategyCopy, keepAliveStrategyCopy, userTokenHandlerCopy),
+                new MainClientExec(connManagerCopy, httpProcessor, reuseStrategyCopy, keepAliveStrategyCopy, userTokenHandlerCopy, earlyHintsListener),
                 ChainElement.MAIN_TRANSPORT.name());
         execChainDefinition.addFirst(
                 new ConnectExec(
