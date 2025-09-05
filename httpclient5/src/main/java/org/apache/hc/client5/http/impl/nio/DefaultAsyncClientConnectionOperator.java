@@ -37,6 +37,7 @@ import java.util.concurrent.Future;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
@@ -71,21 +72,14 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
     private final MultihomeIOSessionRequester sessionRequester;
     private final Lookup<TlsStrategy> tlsStrategyLookup;
 
-    /**
-     * Constructs a new {@code DefaultAsyncClientConnectionOperator}.
-     *
-     * <p><strong>Note:</strong> this class is marked {@code @Internal}; rely on it
-     * only if you are prepared for incompatible changes in a future major
-     * release.  Typical client code should use the high-level builders in
-     * {@code HttpAsyncClients} instead.</p>
-     */
-    protected DefaultAsyncClientConnectionOperator(
+    DefaultAsyncClientConnectionOperator(
             final Lookup<TlsStrategy> tlsStrategyLookup,
             final SchemePortResolver schemePortResolver,
-            final DnsResolver dnsResolver) {
+            final DnsResolver dnsResolver,
+            final ConnectionConfig defaultConnectionConfig) {
         this.tlsStrategyLookup = Args.notNull(tlsStrategyLookup, "TLS strategy lookup");
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
-        this.sessionRequester = new MultihomeIOSessionRequester(dnsResolver);
+        this.sessionRequester = new MultihomeIOSessionRequester(dnsResolver, defaultConnectionConfig);
     }
 
     @Override
