@@ -836,6 +836,11 @@ public class HttpClientBuilder {
     }
 
     @Internal
+    public HttpClientConnectionManager getConnManager() {
+        return connManager;
+    }
+
+    @Internal
     protected Function<HttpContext, HttpClientContext> contextAdaptor() {
         return HttpClientContext::castOrCreate;
     }
