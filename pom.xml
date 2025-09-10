@@ -62,7 +62,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <httpcore.version>5.4</httpcore.version>
+    <httpcore.version>5.4.1</httpcore.version>
     <log4j.version>2.25.3</log4j.version>
     <brotli4j.version>1.20.0</brotli4j.version>
     <conscrypt.version>2.5.2</conscrypt.version>
@@ -139,6 +139,11 @@
       <dependency>
         <groupId>org.apache.httpcomponents.client5</groupId>
         <artifactId>httpclient5-sse</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5-websocket</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -273,6 +278,7 @@
     <module>httpclient5-sse</module>
     <module>httpclient5-observation</module>
     <module>httpclient5-fluent</module>
+    <module>httpclient5-websocket</module>
     <module>httpclient5-cache</module>
     <module>httpclient5-testing</module>
   </modules>
@@ -494,6 +500,10 @@
             <group>
               <title>Apache HttpClient SSE</title>
               <packages>org.apache.hc.client5.http.sse*</packages>
+            </group>
+            <group>
+              <title>Apache HttpClient SSE</title>
+              <packages>org.apache.hc.client5.http.websocket*</packages>
             </group>
 
           </groups>
