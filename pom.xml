@@ -143,6 +143,11 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5-websocket</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
@@ -274,6 +279,7 @@
     <module>httpclient5-sse</module>
     <module>httpclient5-observation</module>
     <module>httpclient5-fluent</module>
+    <module>httpclient5-websocket</module>
     <module>httpclient5-cache</module>
     <module>httpclient5-testing</module>
   </modules>
@@ -547,6 +553,10 @@
             <group>
               <title>Apache HttpClient SSE</title>
               <packages>org.apache.hc.client5.http.sse*</packages>
+            </group>
+            <group>
+              <title>Apache HttpClient SSE</title>
+              <packages>org.apache.hc.client5.http.websocket*</packages>
             </group>
 
           </groups>
