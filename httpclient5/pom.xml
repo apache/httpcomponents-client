@@ -118,6 +118,10 @@
       <artifactId>zstd-jni</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>com.aayushatharva.brotli4j</groupId>
+      <artifactId>brotli4j</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

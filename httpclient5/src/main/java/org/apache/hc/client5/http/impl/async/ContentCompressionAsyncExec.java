@@ -38,9 +38,11 @@ import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.methods.InflatingAsyncDataConsumer;
+import org.apache.hc.client5.http.async.methods.InflatingBrotliDataConsumer;
 import org.apache.hc.client5.http.async.methods.InflatingGzipDataConsumer;
 import org.apache.hc.client5.http.async.methods.InflatingZstdDataConsumer;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
+import org.apache.hc.client5.http.impl.Brotli4jRuntime;
 import org.apache.hc.client5.http.impl.ZstdRuntime;
 import org.apache.hc.client5.http.impl.ContentCodingSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -98,6 +100,11 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
         if (ZstdRuntime.available()) {
             rb.register(ContentCoding.ZSTD.token(), InflatingZstdDataConsumer::new);
             tokens.add("zstd");
+        }
+
+        if (Brotli4jRuntime.available()) {
+            rb.register(ContentCoding.BROTLI.token(), InflatingBrotliDataConsumer::new);
+            tokens.add(ContentCoding.BROTLI.token());
         }
 
         this.decoders = rb.build();

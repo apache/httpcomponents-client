@@ -116,7 +116,7 @@ class TestContentCompressionAsyncExec {
         final HttpRequest request = new BasicHttpRequest(Method.GET, "/path");
         executeAndCapture(request);
         assertTrue(request.containsHeader(HttpHeaders.ACCEPT_ENCODING));
-        assertEquals("gzip, x-gzip, deflate, zstd", request.getFirstHeader(HttpHeaders.ACCEPT_ENCODING).getValue());
+        assertEquals("gzip, x-gzip, deflate, zstd, br", request.getFirstHeader(HttpHeaders.ACCEPT_ENCODING).getValue());
     }
 
     @Test
