@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -133,7 +134,18 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient impl
         }
         ioReactor.initiateShutdown();
         ioReactor.close(closeMode);
-        executorService.shutdownNow();
+        if (closeMode == CloseMode.GRACEFUL) {
+            executorService.shutdown();
+            try {
+                if (!executorService.awaitTermination(1, TimeUnit.SECONDS)) {
+                    executorService.shutdownNow();
+                }
+            } catch (final InterruptedException ignore) {
+                Thread.currentThread().interrupt();
+            }
+        } else {
+            executorService.shutdownNow();
+        }
         internalClose(closeMode);
     }
 
