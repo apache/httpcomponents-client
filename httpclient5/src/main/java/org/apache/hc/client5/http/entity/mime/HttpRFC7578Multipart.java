@@ -101,12 +101,19 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
                     writeBytes("=\"", out);
                     if (value != null) {
                         if (name.equalsIgnoreCase(MimeConsts.FIELD_PARAM_FILENAME_START)) {
-                            final String encodedValue = "UTF-8''" + PercentCodec.RFC5987.encode(value);
-                            writeBytes(encodedValue, StandardCharsets.US_ASCII, out);
+                            if (value.startsWith("UTF-8''")) {
+                                writeBytes(value, StandardCharsets.US_ASCII, out);
+                            } else {
+                                final StringBuilder sb = new StringBuilder(value.length() + 16);
+                                sb.append("UTF-8''");
+                                PercentCodec.RFC5987.encode(sb, value);
+                                writeBytes(sb.toString(), StandardCharsets.US_ASCII, out);
+                            }
                         } else if (name.equalsIgnoreCase(MimeConsts.FIELD_PARAM_FILENAME)) {
                             if (mode == HttpMultipartMode.EXTENDED) {
-                                final String encodedValue = PercentCodec.RFC5987.encode(value);
-                                writeBytes(encodedValue, StandardCharsets.US_ASCII, out);
+                                final StringBuilder sb = new StringBuilder(value.length() + 8);
+                                PercentCodec.RFC5987.encode(sb, value);
+                                writeBytes(sb.toString(), StandardCharsets.US_ASCII, out);
                             } else {
                                 // Default to ISO-8859-1 for RFC 7578 compliance in STRICT/LEGACY
                                 writeBytes(value, StandardCharsets.ISO_8859_1, out);
