@@ -401,6 +401,9 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 this.created = System.currentTimeMillis();
             } else {
                 this.conn.activate();
+                if (connectionConfig.getSocketTimeout() != null) {
+                    conn.setSocketTimeout(connectionConfig.getSocketTimeout());
+                }
             }
             this.leased = true;
             if (LOG.isDebugEnabled()) {

@@ -327,6 +327,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                             final ManagedAsyncClientConnection connection = poolEntry.getConnection();
                             if (connection != null) {
                                 connection.activate();
+                                if (connectionConfig.getSocketTimeout() != null) {
+                                    connection.setSocketTimeout(connectionConfig.getSocketTimeout());
+                                }
                             }
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("{} endpoint leased {}", id, ConnPoolSupport.formatStats(route, state, pool));
