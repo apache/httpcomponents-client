@@ -51,8 +51,8 @@ public interface TestClientBuilder {
 
     TestClientBuilder setConnectionManager(HttpClientConnectionManager connManager);
 
-    default TestClientBuilder addResponseInterceptorFirst(final HttpResponseInterceptor interceptor) {
-        return this;
+    default TestClientBuilder addResponseInterceptorFirst(HttpResponseInterceptor interceptor) {
+        throw new UnsupportedOperationException("Operation not supported by " + getProtocolLevel());
     }
 
     default TestClientBuilder addResponseInterceptorLast(HttpResponseInterceptor interceptor) {

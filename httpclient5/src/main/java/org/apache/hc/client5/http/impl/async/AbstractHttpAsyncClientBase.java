@@ -26,22 +26,28 @@
  */
 package org.apache.hc.client5.http.impl.async;
 
+import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOReactorStatus;
+import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
+abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient implements ConnectionInitiator {
 
     enum Status { READY, RUNNING, TERMINATED }
 
@@ -82,6 +88,17 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
 
     boolean isRunning() {
         return status.get() == Status.RUNNING;
+    }
+
+    @Override
+    public Future<IOSession> connect(
+            final NamedEndpoint remoteEndpoint,
+            final SocketAddress remoteAddress,
+            final SocketAddress localAddress,
+            final Timeout timeout,
+            final Object attachment,
+            final FutureCallback<IOSession> callback) {
+        return ioReactor.connect(remoteEndpoint, remoteAddress, localAddress, timeout, attachment, callback);
     }
 
     ConnectionInitiator getConnectionInitiator() {

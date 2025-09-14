@@ -31,8 +31,8 @@ import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.config.Http1Config;
@@ -45,6 +45,7 @@ final class MinimalTestClientBuilder implements TestAsyncClientBuilder {
 
     private final PoolingAsyncClientConnectionManagerBuilder connectionManagerBuilder;
 
+    private AsyncClientConnectionManager connectionManager;
     private Timeout timeout;
     private TlsStrategy tlsStrategy;
     private Http1Config http1Config;
@@ -62,6 +63,12 @@ final class MinimalTestClientBuilder implements TestAsyncClientBuilder {
     @Override
     public TestAsyncClientBuilder setTimeout(final Timeout timeout) {
         this.timeout = timeout;
+        return this;
+    }
+
+    @Override
+    public TestAsyncClientBuilder setConnectionManager(final AsyncClientConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
         return this;
     }
 
@@ -97,21 +104,21 @@ final class MinimalTestClientBuilder implements TestAsyncClientBuilder {
 
     @Override
     public TestAsyncClient build() throws Exception {
-        final PoolingAsyncClientConnectionManager connectionManager = connectionManagerBuilder
+        final AsyncClientConnectionManager connectionManagerCopy = connectionManager == null ? connectionManagerBuilder
                 .setTlsStrategy(tlsStrategy != null ? tlsStrategy : new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
                 .setDefaultConnectionConfig(ConnectionConfig.custom()
                         .setSocketTimeout(timeout)
                         .setConnectTimeout(timeout)
                         .build())
-                .build();
+                .build() : connectionManager;
         final CloseableHttpAsyncClient client = HttpAsyncClients.createMinimal(
-                        h2Config,
-                        http1Config,
-                        IOReactorConfig.custom()
-                                .setSoTimeout(timeout)
-                                .build(),
-                connectionManager);
-        return new TestAsyncClient(client, connectionManager);
+                h2Config,
+                http1Config,
+                IOReactorConfig.custom()
+                        .setSoTimeout(timeout)
+                        .build(),
+                connectionManagerCopy);
+        return new TestAsyncClient(client, connectionManagerCopy);
     }
 
 }
