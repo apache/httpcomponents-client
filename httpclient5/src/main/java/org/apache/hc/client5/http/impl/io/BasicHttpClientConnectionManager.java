@@ -44,6 +44,7 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
+import org.apache.hc.client5.http.impl.ConnectionHolder;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
@@ -56,6 +57,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
@@ -590,7 +592,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 .build();
     }
 
-    class InternalConnectionEndpoint extends ConnectionEndpoint implements Identifiable {
+    class InternalConnectionEndpoint extends ConnectionEndpoint implements ConnectionHolder, Identifiable {
 
         private final HttpRoute route;
         private final AtomicReference<ManagedHttpClientConnection> connRef;
@@ -701,6 +703,11 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 return new EndpointInfo(connection.getProtocolVersion(), connection.getSSLSession());
             }
             return null;
+        }
+
+        @Override
+        public HttpConnection get() {
+            return this.connRef.get();
         }
 
     }

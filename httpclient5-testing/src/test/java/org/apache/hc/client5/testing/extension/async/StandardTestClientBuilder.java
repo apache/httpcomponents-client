@@ -40,8 +40,8 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.Header;
@@ -60,6 +60,7 @@ final class StandardTestClientBuilder implements TestAsyncClientBuilder {
     private final PoolingAsyncClientConnectionManagerBuilder connectionManagerBuilder;
     private final HttpAsyncClientBuilder clientBuilder;
 
+    private AsyncClientConnectionManager connectionManager;
     private Timeout timeout;
     private TlsStrategy tlsStrategy;
 
@@ -76,6 +77,12 @@ final class StandardTestClientBuilder implements TestAsyncClientBuilder {
     @Override
     public TestAsyncClientBuilder setTimeout(final Timeout timeout) {
         this.timeout = timeout;
+        return this;
+    }
+
+    @Override
+    public TestAsyncClientBuilder setConnectionManager(final AsyncClientConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
         return this;
     }
 
@@ -179,21 +186,21 @@ final class StandardTestClientBuilder implements TestAsyncClientBuilder {
 
     @Override
     public TestAsyncClient build() throws Exception {
-        final PoolingAsyncClientConnectionManager connectionManager = connectionManagerBuilder
+        final AsyncClientConnectionManager connectionManagerCopy = connectionManager == null ? connectionManagerBuilder
                 .setTlsStrategy(tlsStrategy != null ? tlsStrategy : new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
                 .setDefaultConnectionConfig(ConnectionConfig.custom()
                         .setSocketTimeout(timeout)
                         .setConnectTimeout(timeout)
                         .build())
-                .build();
+                .build() : connectionManager;
         final CloseableHttpAsyncClient client = clientBuilder
                 .setIOReactorConfig(IOReactorConfig.custom()
                         .setSelectInterval(TimeValue.ofMilliseconds(10))
                         .setSoTimeout(timeout)
                         .build())
-                .setConnectionManager(connectionManager)
+                .setConnectionManager(connectionManagerCopy)
                 .build();
-        return new TestAsyncClient(client, connectionManager);
+        return new TestAsyncClient(client, connectionManagerCopy);
     }
 
 }

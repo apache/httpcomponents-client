@@ -129,6 +129,8 @@ class TestConnectionManagement extends AbstractIntegrationTestBase {
         final LeaseRequest leaseRequest2 = connManager.lease("id2", route, null);
         Assertions.assertThrows(TimeoutException.class, () -> leaseRequest2.get(Timeout.ofMilliseconds(10)));
 
+        // close and release the connection
+        // expect the next connection obtained to be closed
         endpoint1.close();
         connManager.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
         final LeaseRequest leaseRequest3 = connManager.lease("id2", route, null);
@@ -141,7 +143,7 @@ class TestConnectionManagement extends AbstractIntegrationTestBase {
             Assertions.assertEquals(HttpStatus.SC_OK, response2.getCode());
         }
 
-        // release connection after marking it for re-use
+        // release connection keeping it open
         // expect the next connection obtained to be open
         connManager.release(endpoint2, null, TimeValue.NEG_ONE_MILLISECOND);
 

@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
+import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.HttpHost;
@@ -43,16 +43,15 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorStatus;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.TimeValue;
 
 public class TestAsyncClient extends CloseableHttpAsyncClient {
 
     private final CloseableHttpAsyncClient client;
-    private final PoolingAsyncClientConnectionManager connectionManager;
+    private final AsyncClientConnectionManager connectionManager;
 
     public TestAsyncClient(final CloseableHttpAsyncClient client,
-                           final PoolingAsyncClientConnectionManager connectionManager) {
+                           final AsyncClientConnectionManager connectionManager) {
         this.client = Args.notNull(client, "Client");
         this.connectionManager = connectionManager;
     }
@@ -113,9 +112,9 @@ public class TestAsyncClient extends CloseableHttpAsyncClient {
         return (T) client;
     }
 
-    public PoolingAsyncClientConnectionManager getConnectionManager() {
-        Asserts.check(connectionManager != null, "Connection manager is not available");
-        return connectionManager;
+    @SuppressWarnings("unchecked")
+    public <T extends AsyncClientConnectionManager> T getConnectionManager() {
+        return (T) connectionManager;
     }
 
 }

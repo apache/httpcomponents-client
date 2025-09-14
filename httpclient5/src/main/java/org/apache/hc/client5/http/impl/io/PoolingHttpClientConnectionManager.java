@@ -43,6 +43,7 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
+import org.apache.hc.client5.http.impl.ConnectionHolder;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
 import org.apache.hc.client5.http.impl.PrefixedIncrementingId;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
@@ -58,6 +59,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
@@ -692,7 +694,7 @@ public class PoolingHttpClientConnectionManager
 
     private static final PrefixedIncrementingId INCREMENTING_ID = new PrefixedIncrementingId("ep-");
 
-    static class InternalConnectionEndpoint extends ConnectionEndpoint implements Identifiable {
+    static class InternalConnectionEndpoint extends ConnectionEndpoint implements ConnectionHolder, Identifiable {
 
         private final AtomicReference<PoolEntry<HttpRoute, ManagedHttpClientConnection>> poolEntryRef;
         private final String id;
@@ -807,6 +809,12 @@ public class PoolingHttpClientConnectionManager
                 }
             }
             return null;
+        }
+
+        @Override
+        public HttpConnection get() {
+            final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry = poolEntryRef.get();
+            return poolEntry != null ? poolEntry.getConnection() : null;
         }
 
     }
