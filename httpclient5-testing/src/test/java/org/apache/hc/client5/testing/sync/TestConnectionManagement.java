@@ -32,6 +32,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.ConnectionHolder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
@@ -42,6 +43,7 @@ import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
 import org.apache.hc.client5.testing.extension.sync.TestClient;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
@@ -322,6 +324,52 @@ class TestConnectionManagement extends AbstractIntegrationTestBase {
         // TTL expired now, connections are destroyed.
         Assertions.assertEquals(0, connManager.getTotalStats().getAvailable());
         Assertions.assertEquals(0, connManager.getStats(route).getAvailable());
+
+        connManager.close();
+    }
+
+    @Test
+    void testConnectionTimeoutSetting() throws Exception {
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
+
+        final Timeout connectionSocketTimeout = Timeout.ofMinutes(5);
+
+        final TestClient client = client();
+        final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
+        connManager.setMaxTotal(1);
+        connManager.setDefaultConnectionConfig(ConnectionConfig.custom()
+                .setSocketTimeout(connectionSocketTimeout)
+                .build());
+
+        final HttpRoute route = new HttpRoute(target, null, false);
+        final int rsplen = 8;
+        final String uri = "/random/" + rsplen;
+
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", target, uri);
+        final HttpClientContext context = HttpClientContext.create();
+
+        final LeaseRequest leaseRequest1 = connManager.lease("id1", route, null);
+        final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
+
+        connManager.connect(endpoint1, null, context);
+
+        // Modify socket timeout of the endpoint
+        endpoint1.setSocketTimeout(Timeout.ofSeconds(30));
+
+        try (final ClassicHttpResponse response1 = endpoint1.execute("id1", request, exec, context)) {
+            Assertions.assertEquals(HttpStatus.SC_OK, response1.getCode());
+        }
+
+        connManager.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
+
+        final LeaseRequest leaseRequest2 = connManager.lease("id2", route, null);
+        final ConnectionEndpoint endpoint2 = leaseRequest2.get(Timeout.ZERO_MILLISECONDS);
+        Assertions.assertTrue(endpoint2.isConnected());
+
+        final HttpConnection connection = ((ConnectionHolder) endpoint2).get();
+        Assertions.assertEquals(connectionSocketTimeout, connection.getSocketTimeout());
 
         connManager.close();
     }
