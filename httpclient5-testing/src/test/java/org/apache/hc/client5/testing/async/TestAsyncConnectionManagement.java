@@ -37,6 +37,7 @@ import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.ConnectionHolder;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
@@ -45,6 +46,7 @@ import org.apache.hc.client5.testing.extension.async.ClientProtocolLevel;
 import org.apache.hc.client5.testing.extension.async.ServerProtocolLevel;
 import org.apache.hc.client5.testing.extension.async.TestAsyncClient;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
@@ -89,11 +91,9 @@ class TestAsyncConnectionManagement extends AbstractIntegrationTestBase {
     void testReleaseConnection() throws Exception {
         final HttpHost target = startServer();
 
-        final PoolingAsyncClientConnectionManager connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .build();
-        configureClient(builder -> builder.setConnectionManager(connManager));
         final TestAsyncClient client = startClient();
 
+        final PoolingAsyncClientConnectionManager connManager = client.getConnectionManager();
         connManager.setMaxTotal(1);
 
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -159,11 +159,9 @@ class TestAsyncConnectionManagement extends AbstractIntegrationTestBase {
     void testReleaseConnectionWithTimeLimits() throws Exception {
         final HttpHost target = startServer();
 
-        final PoolingAsyncClientConnectionManager connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .build();
-        configureClient(builder -> builder.setConnectionManager(connManager));
         final TestAsyncClient client = startClient();
 
+        final PoolingAsyncClientConnectionManager connManager = client.getConnectionManager();
         connManager.setMaxTotal(1);
 
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -218,11 +216,9 @@ class TestAsyncConnectionManagement extends AbstractIntegrationTestBase {
     void testCloseExpiredIdleConnections() throws Exception {
         final HttpHost target = startServer();
 
-        final PoolingAsyncClientConnectionManager connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .build();
-        configureClient(builder -> builder.setConnectionManager(connManager));
         final TestAsyncClient client = startClient();
 
+        final PoolingAsyncClientConnectionManager connManager = client.getConnectionManager();
         connManager.setMaxTotal(1);
 
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -308,6 +304,54 @@ class TestAsyncConnectionManagement extends AbstractIntegrationTestBase {
         // TTL expired now, connections are destroyed.
         Assertions.assertEquals(0, connManager.getTotalStats().getAvailable());
         Assertions.assertEquals(0, connManager.getStats(route).getAvailable());
+
+        connManager.close();
+    }
+
+    @Test
+    void testConnectionTimeoutSetting() throws Exception {
+        final HttpHost target = startServer();
+
+        final TestAsyncClient client = startClient();
+
+        final Timeout connectionSocketTimeout = Timeout.ofMinutes(5);
+
+        final PoolingAsyncClientConnectionManager connManager = client.getConnectionManager();
+        connManager.setMaxTotal(1);
+        connManager.setDefaultConnectionConfig(ConnectionConfig.custom()
+                .setSocketTimeout(connectionSocketTimeout)
+                .build());
+
+        final HttpRoute route = new HttpRoute(target, null, false);
+
+        final SimpleHttpRequest request = SimpleRequestBuilder.get()
+                .setHttpHost(target)
+                .setPath("/")
+                .addHeader(HttpHeaders.HOST, target.toHostString())
+                .build();
+        final HttpClientContext context = HttpClientContext.create();
+
+        final Future<AsyncConnectionEndpoint> endpointFuture1 = connManager.lease("id1", route, null, TIMEOUT, null);
+        final AsyncConnectionEndpoint endpoint1 = endpointFuture1.get(LEASE_TIMEOUT.getDuration(), LEASE_TIMEOUT.getTimeUnit());
+
+        final Future<AsyncConnectionEndpoint> connectFuture1 = connManager.connect(endpoint1, client.getImplementation(), TIMEOUT, null, context, null);
+        final AsyncConnectionEndpoint openEndpoint1 = connectFuture1.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+
+        // Modify socket timeout of the endpoint
+        endpoint1.setSocketTimeout(Timeout.ofSeconds(30));
+
+        final Future<SimpleHttpResponse> responseFuture1 = openEndpoint1.execute("ex-1", SimpleRequestProducer.create(request), SimpleResponseConsumer.create(), null);
+        final SimpleHttpResponse response1 = responseFuture1.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+        Assertions.assertEquals(HttpStatus.SC_OK, response1.getCode());
+
+        connManager.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
+
+        final Future<AsyncConnectionEndpoint> endpointFuture2 = connManager.lease("id2", route, null, TIMEOUT, null);
+        final AsyncConnectionEndpoint endpoint2 = endpointFuture2.get(LEASE_TIMEOUT.getDuration(), LEASE_TIMEOUT.getTimeUnit());
+        Assertions.assertTrue(endpoint2.isConnected());
+
+        final HttpConnection connection = ((ConnectionHolder) endpoint2).get();
+        Assertions.assertEquals(connectionSocketTimeout, connection.getSocketTimeout());
 
         connManager.close();
     }

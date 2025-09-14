@@ -386,6 +386,9 @@ public class PoolingHttpClientConnectionManager
                         final ManagedHttpClientConnection conn = poolEntry.getConnection();
                         if (conn != null) {
                             conn.activate();
+                            if (connectionConfig.getSocketTimeout() != null) {
+                                conn.setSocketTimeout(connectionConfig.getSocketTimeout());
+                            }
                         } else {
                             poolEntry.assignConnection(connFactory.createConnection(null));
                         }
