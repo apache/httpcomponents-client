@@ -70,6 +70,7 @@ import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.ConnPoolControl;
+import org.apache.hc.core5.pool.DefaultDisposalCallback;
 import org.apache.hc.core5.pool.LaxConnPool;
 import org.apache.hc.core5.pool.ManagedConnPool;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
@@ -223,6 +224,7 @@ public class PoolingHttpClientConnectionManager
                         DEFAULT_MAX_TOTAL_CONNECTIONS,
                         timeToLive,
                         poolReusePolicy,
+                        new DefaultDisposalCallback<>(),
                         null) {
 
                     @Override

@@ -77,6 +77,7 @@ import org.apache.hc.core5.http2.nio.support.BasicPingHandler;
 import org.apache.hc.core5.http2.ssl.ApplicationProtocol;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.ConnPoolControl;
+import org.apache.hc.core5.pool.DefaultDisposalCallback;
 import org.apache.hc.core5.pool.LaxConnPool;
 import org.apache.hc.core5.pool.ManagedConnPool;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
@@ -181,6 +182,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                         DEFAULT_MAX_TOTAL_CONNECTIONS,
                         timeToLive,
                         poolReusePolicy,
+                        new DefaultDisposalCallback<>(),
                         null) {
 
                     @Override
