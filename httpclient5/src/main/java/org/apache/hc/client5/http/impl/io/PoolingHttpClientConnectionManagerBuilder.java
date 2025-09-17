@@ -38,6 +38,7 @@ import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.HttpHost;
@@ -91,6 +92,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     private int maxConnTotal;
     private int maxConnPerRoute;
+
+    private boolean offLockDisposalEnabled;
 
     public static PoolingHttpClientConnectionManagerBuilder create() {
         return new PoolingHttpClientConnectionManagerBuilder();
@@ -304,6 +307,16 @@ public class PoolingHttpClientConnectionManagerBuilder {
         return this;
     }
 
+    /**
+     * Enable/disable off-lock disposal.
+     * @since 5.6
+     */
+    @Experimental
+    public final PoolingHttpClientConnectionManagerBuilder setOffLockDisposalEnabled(final boolean enabled) {
+        this.offLockDisposalEnabled = enabled;
+        return this;
+    }
+
     @Internal
     protected HttpClientConnectionOperator createConnectionOperator(
             final SchemePortResolver schemePortResolver,
@@ -332,7 +345,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
                 poolConcurrencyPolicy,
                 poolReusePolicy,
                 null,
-                connectionFactory);
+                connectionFactory,
+                offLockDisposalEnabled);
         poolingmgr.setSocketConfigResolver(socketConfigResolver);
         poolingmgr.setConnectionConfigResolver(connectionConfigResolver);
         poolingmgr.setTlsConfigResolver(tlsConfigResolver);
