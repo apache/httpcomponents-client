@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
+import org.apache.hc.client5.http.EarlyHintsListener;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.classic.ExecChain;
@@ -78,6 +79,8 @@ public final class MainClientExec implements ExecChainHandler {
     private final UserTokenHandler userTokenHandler;
     private final ProtocolSwitchStrategy protocolSwitchStrategy;
 
+    private final EarlyHintsListener earlyHintsListener;
+
     /**
      * @since 4.4
      */
@@ -87,12 +90,23 @@ public final class MainClientExec implements ExecChainHandler {
             final ConnectionReuseStrategy reuseStrategy,
             final ConnectionKeepAliveStrategy keepAliveStrategy,
             final UserTokenHandler userTokenHandler) {
+        this(connectionManager, httpProcessor, reuseStrategy, keepAliveStrategy, userTokenHandler, null);
+    }
+
+    public MainClientExec(
+            final HttpClientConnectionManager connectionManager,
+            final HttpProcessor httpProcessor,
+            final ConnectionReuseStrategy reuseStrategy,
+            final ConnectionKeepAliveStrategy keepAliveStrategy,
+            final UserTokenHandler userTokenHandler,
+            final EarlyHintsListener earlyHintsListener) {
         this.connectionManager = Args.notNull(connectionManager, "Connection manager");
         this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
         this.reuseStrategy = Args.notNull(reuseStrategy, "Connection reuse strategy");
         this.keepAliveStrategy = Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
         this.userTokenHandler = Args.notNull(userTokenHandler, "User token handler");
         this.protocolSwitchStrategy = new ProtocolSwitchStrategy();
+        this.earlyHintsListener = earlyHintsListener;
     }
 
     @Override
@@ -121,6 +135,20 @@ public final class MainClientExec implements ExecChainHandler {
                     exchangeId,
                     request,
                     (r, connection, c) -> {
+                        // 103 Early Hints support (RFC 8297)
+                        if (r.getCode() == HttpStatus.SC_EARLY_HINTS) {
+                            if (earlyHintsListener != null) {
+                                try {
+                                    earlyHintsListener.onEarlyHints(r, c);
+                                } catch (final Exception ex) {
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug("{} early-hints listener failed: {}", exchangeId, ex.toString());
+                                    }
+                                }
+                            }
+                            return;
+                        }
+
                         if (r.getCode() == HttpStatus.SC_SWITCHING_PROTOCOLS) {
                             final ProtocolVersion upgradeProtocol = protocolSwitchStrategy.switchProtocol(r);
                             if (upgradeProtocol == null || !upgradeProtocol.getProtocol().equals("TLS")) {
