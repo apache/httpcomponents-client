@@ -384,4 +384,69 @@ class TestMultipartEntityBuilder {
         return elem.getParameterByName("boundary");
     }
 
+    @Test
+    void testMultipartWriteToRFC7578ModeWithFilenameStarPreEncodedPassThrough() throws Exception {
+        final String body = "hi";
+        // Pre-encoded RFC 5987 value (as produced by a previous stage)
+        final String preEncoded = "UTF-8''%F0%9F%90%99_inline-%E5%9B%BE%E5%83%8F_%E6%96%87%E4%BB%B6.png";
+
+        final List<NameValuePair> parameters = new ArrayList<>();
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, "test"));
+        // Provide pre-encoded value directly to filename* param
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME_START, preEncoded));
+
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
+                .setMode(HttpMultipartMode.EXTENDED)
+                .setBoundary("xxxxxxxxxxxxxxxxxxxxxxxx")
+                .addPart(new FormBodyPartBuilder()
+                        .setName("test")
+                        .setBody(new StringBody(body, ContentType.TEXT_PLAIN.withCharset(StandardCharsets.UTF_8)))
+                        .addField("Content-Disposition", "multipart/form-data", parameters)
+                        .build())
+                .buildEntity();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        entity.writeTo(out);
+        out.close();
+        final String wire = out.toString(StandardCharsets.ISO_8859_1.name());
+
+        // Pass-through EXACTLY the given value (no second prefix, no %25-escaping)
+        Assertions.assertTrue(wire.contains("filename*=\"" + preEncoded + "\""));
+        Assertions.assertFalse(wire.contains("UTF-8''UTF-8%27%27"));
+        Assertions.assertFalse(wire.contains("%25F0%9F%90%99")); // octopus emoji must not be re-escaped as %25F0...
+    }
+
+    @Test
+    void testExtendedModeAddBinaryBodyAddsFilenameAndFilenameStar_NoDoubleEncoding() throws Exception {
+        // Non-ASCII filename to trigger RFC 5987 behavior
+        final String filename = "🐙_图像_文件.png";
+        // Expected percent-encoded for both filename and filename*
+        final String pct = "%F0%9F%90%99_%E5%9B%BE%E5%83%8F_%E6%96%87%E4%BB%B6.png";
+
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
+                .setMode(HttpMultipartMode.EXTENDED)
+                .setBoundary("xxxxxxxxxxxxxxxxxxxxxxxx")
+                .addBinaryBody("attachments", new byte[]{1, 2}, ContentType.IMAGE_PNG, filename)
+                .buildEntity();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        entity.writeTo(out);
+        out.close();
+        final String wire = out.toString(StandardCharsets.ISO_8859_1.name());
+
+        // Base header
+        Assertions.assertTrue(wire.contains("Content-Disposition: form-data; name=\"attachments\""));
+
+        // filename param (percent-encoded for ASCII transport)
+        Assertions.assertTrue(wire.contains("filename=\"" + pct + "\""));
+
+        // filename* param (single RFC 5987 value, no double prefix / no %25-escaping)
+        Assertions.assertTrue(wire.contains("filename*=\"UTF-8''" + pct + "\""));
+
+        // Guard against regressions
+        Assertions.assertFalse(wire.contains("UTF-8''UTF-8%27%27"));
+        Assertions.assertFalse(wire.contains("%25F0%9F%90%99"));
+    }
+
+
 }
