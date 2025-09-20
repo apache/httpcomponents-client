@@ -1,8 +1,61 @@
 Release 5.5.1
 ------------------
 
+This is a maintenance release that fixes several defects in the connection management
+code and a regression in the DIGEST authentication reported since the previous release.
+It also upgrades HttpCore to version 5.3.6.
+
+
 Change Log
 -------------------
+
+* HTTPCLIENT-2391: Improved GRACEGUL shutdown of ExecutorService used internally by async
+  clients.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Bug fix: Use a 1 second timeout when closing out connections inside a connection pool lock.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Clarified the behavior of the protocol-level responseTimeout and the connection management
+  level socketTimeout and their interrelation.
+  Contributed by ChangYong <lcy9002 at naver.com>
+
+* Bug fix: Connection managers to ensure open connections have a socket timeout set based on
+  ConnectionConfig upon lease.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2393: Remove `rspauth` attribute from `Authorization` DIGEST header (#716)
+  RFC 7616 compliance: rspauth is server-side (Authentication-Info 3.5) only.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2386: Classic transport to use the connect timeout as a default if the TLS timeout has
+  not been explicitly set.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2384: Socket options related to TcpKeepAlive are ignored.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2371: Logging of request re-execution at INFO priority.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2379: Fixed a defect in H2SharingConnPool causing an IllegalStateException
+  when releasing the same connection from multiple threads. (#663)
+  Contributed by Arturo Bernal <abernal@apache.org>
+
+* Fixed the behavior of the `validateAfterInactivity` connection setting by the async
+  connection manager.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* HTTPCLIENT-2376: Fixed the problem with ContentCompressionExec not taking `acceptEncoding`
+  parameter into account.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2372: Normalize HttpHost port comparison to treat implicit default ports as
+  equal (#643).
+  Contributed by Arturo Bernal <abernal@apache.org>
+
+* Maven wrapper
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
 
 * Bump org.junit:junit-bom from 5.12.2 to 5.13.0 #639.
   Contributed by Gary Gregory <garydgregory at gmail.com>
