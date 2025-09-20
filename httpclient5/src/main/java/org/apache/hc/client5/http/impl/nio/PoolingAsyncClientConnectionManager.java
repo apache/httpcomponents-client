@@ -163,7 +163,18 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             final TimeValue timeToLive,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
-        this(new DefaultAsyncClientConnectionOperator(tlsStrategyLookup, schemePortResolver, dnsResolver),
+        this(tlsStrategyLookup,poolConcurrencyPolicy,poolReusePolicy,timeToLive,schemePortResolver,dnsResolver,ConnectionConfig.DEFAULT);
+    }
+
+    public PoolingAsyncClientConnectionManager(
+            final Lookup<TlsStrategy> tlsStrategyLookup,
+            final PoolConcurrencyPolicy poolConcurrencyPolicy,
+            final PoolReusePolicy poolReusePolicy,
+            final TimeValue timeToLive,
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver,
+            final ConnectionConfig connectionConfig) {
+        this(new DefaultAsyncClientConnectionOperator(tlsStrategyLookup, schemePortResolver, dnsResolver, connectionConfig),
                 poolConcurrencyPolicy, poolReusePolicy, timeToLive, false);
     }
 

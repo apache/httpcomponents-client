@@ -44,6 +44,15 @@ public class ConnectionConfig implements Cloneable {
 
     private static final Timeout DEFAULT_CONNECT_TIMEOUT = Timeout.ofMinutes(3);
 
+    /**
+     * @since 5.6
+     */
+    private static final TimeValue DEFAULT_HE_ATTEMPT_DELAY = TimeValue.ofMilliseconds(250);
+    /**
+     * @since 5.6
+     */
+    private static final TimeValue DEFAULT_HE_OTHER_FAMILY_DELAY = TimeValue.ofMilliseconds(50);
+
     public static final ConnectionConfig DEFAULT = new Builder().build();
 
     private final Timeout connectTimeout;
@@ -52,22 +61,47 @@ public class ConnectionConfig implements Cloneable {
     private final TimeValue timeToLive;
 
     /**
+     * @since 5.6
+     */
+    private final boolean staggeredConnectEnabled;
+    /**
+     * @since 5.6
+     */
+    private final TimeValue happyEyeballsAttemptDelay;
+    /**
+     * @since 5.6
+     */
+    private final TimeValue happyEyeballsOtherFamilyDelay;
+    /**
+     * @since 5.6
+     */
+    private final ProtocolFamilyPreference protocolFamilyPreference;
+
+    /**
      * Intended for CDI compatibility
      */
     protected ConnectionConfig() {
-        this(DEFAULT_CONNECT_TIMEOUT, null, null, null);
+        this(DEFAULT_CONNECT_TIMEOUT, null, null, null, false, DEFAULT_HE_ATTEMPT_DELAY, DEFAULT_HE_OTHER_FAMILY_DELAY, ProtocolFamilyPreference.INTERLEAVE);
     }
 
     ConnectionConfig(
             final Timeout connectTimeout,
             final Timeout socketTimeout,
             final TimeValue validateAfterInactivity,
-            final TimeValue timeToLive) {
+            final TimeValue timeToLive,
+            final boolean staggeredConnectEnabled,
+            final TimeValue happyEyeballsAttemptDelay,
+            final TimeValue happyEyeballsOtherFamilyDelay,
+            final ProtocolFamilyPreference protocolFamilyPreference) {
         super();
         this.connectTimeout = connectTimeout;
         this.socketTimeout = socketTimeout;
         this.validateAfterInactivity = validateAfterInactivity;
         this.timeToLive = timeToLive;
+        this.staggeredConnectEnabled = staggeredConnectEnabled;
+        this.happyEyeballsAttemptDelay = happyEyeballsAttemptDelay != null ? happyEyeballsAttemptDelay : DEFAULT_HE_ATTEMPT_DELAY;
+        this.happyEyeballsOtherFamilyDelay = happyEyeballsOtherFamilyDelay != null ? happyEyeballsOtherFamilyDelay : DEFAULT_HE_OTHER_FAMILY_DELAY;
+        this.protocolFamilyPreference = protocolFamilyPreference != null ? protocolFamilyPreference : ProtocolFamilyPreference.INTERLEAVE;
     }
 
     /**
@@ -98,6 +132,46 @@ public class ConnectionConfig implements Cloneable {
         return timeToLive;
     }
 
+    /**
+     * Whether staggered (Happy Eyeballs–style) connection attempts are enabled.
+     *
+     * @see Builder#setStaggeredConnectEnabled(boolean)
+     * @since 5.6
+     */
+    public boolean isStaggeredConnectEnabled() {
+        return staggeredConnectEnabled;
+    }
+
+    /**
+     * Delay between subsequent staggered connection attempts.
+     *
+     * @see Builder#setHappyEyeballsAttemptDelay(TimeValue)
+     * @since 5.6
+     */
+    public TimeValue getHappyEyeballsAttemptDelay() {
+        return happyEyeballsAttemptDelay;
+    }
+
+    /**
+     * Initial delay before launching the first address of the other protocol family.
+     *
+     * @see Builder#setHappyEyeballsOtherFamilyDelay(TimeValue)
+     * @since 5.6
+     */
+    public TimeValue getHappyEyeballsOtherFamilyDelay() {
+        return happyEyeballsOtherFamilyDelay;
+    }
+
+    /**
+     * Protocol family preference controlling address selection and ordering.
+     *
+     * @see Builder#setProtocolFamilyPreference(ProtocolFamilyPreference)
+     * @since 5.6
+     */
+    public ProtocolFamilyPreference getProtocolFamilyPreference() {
+        return protocolFamilyPreference;
+    }
+
     @Override
     protected ConnectionConfig clone() throws CloneNotSupportedException {
         return (ConnectionConfig) super.clone();
@@ -111,6 +185,10 @@ public class ConnectionConfig implements Cloneable {
         builder.append(", socketTimeout=").append(socketTimeout);
         builder.append(", validateAfterInactivity=").append(validateAfterInactivity);
         builder.append(", timeToLive=").append(timeToLive);
+        builder.append(", staggeredConnectEnabled=").append(staggeredConnectEnabled);
+        builder.append(", happyEyeballsAttemptDelay=").append(happyEyeballsAttemptDelay);
+        builder.append(", happyEyeballsOtherFamilyDelay=").append(happyEyeballsOtherFamilyDelay);
+        builder.append(", protocolFamilyPreference=").append(protocolFamilyPreference);
         builder.append("]");
         return builder.toString();
     }
@@ -124,7 +202,11 @@ public class ConnectionConfig implements Cloneable {
                 .setConnectTimeout(config.getConnectTimeout())
                 .setSocketTimeout(config.getSocketTimeout())
                 .setValidateAfterInactivity(config.getValidateAfterInactivity())
-                .setTimeToLive(config.getTimeToLive());
+                .setTimeToLive(config.getTimeToLive())
+                .setStaggeredConnectEnabled(config.isStaggeredConnectEnabled())
+                .setHappyEyeballsAttemptDelay(config.getHappyEyeballsAttemptDelay())
+                .setHappyEyeballsOtherFamilyDelay(config.getHappyEyeballsOtherFamilyDelay())
+                .setProtocolFamilyPreference(config.getProtocolFamilyPreference());
     }
 
     public static class Builder {
@@ -133,6 +215,12 @@ public class ConnectionConfig implements Cloneable {
         private Timeout connectTimeout;
         private TimeValue validateAfterInactivity;
         private TimeValue timeToLive;
+
+        // New fields (defaults)
+        private boolean staggeredConnectEnabled = false; // disabled by default
+        private TimeValue happyEyeballsAttemptDelay = DEFAULT_HE_ATTEMPT_DELAY;
+        private TimeValue happyEyeballsOtherFamilyDelay = DEFAULT_HE_OTHER_FAMILY_DELAY;
+        private ProtocolFamilyPreference protocolFamilyPreference = ProtocolFamilyPreference.INTERLEAVE;
 
         Builder() {
             super();
@@ -240,12 +328,62 @@ public class ConnectionConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * Enables or disables staggered (Happy Eyeballs–style) connection attempts.
+         *
+         * @since 5.6
+         * @return this instance.
+         */
+        public Builder setStaggeredConnectEnabled(final boolean enabled) {
+            this.staggeredConnectEnabled = enabled;
+            return this;
+        }
+
+        /**
+         * Sets the delay between staggered connection attempts.
+         *
+         * @since 5.6
+         * @return this instance.
+         */
+        public Builder setHappyEyeballsAttemptDelay(final TimeValue delay) {
+            this.happyEyeballsAttemptDelay = delay;
+            return this;
+        }
+
+        /**
+         * Sets the initial delay before launching the first address of the other
+         * protocol family (IPv6 vs IPv4) when interleaving attempts.
+         *
+         * @since 5.6
+         * @return this instance.
+         */
+        public Builder setHappyEyeballsOtherFamilyDelay(final TimeValue delay) {
+            this.happyEyeballsOtherFamilyDelay = delay;
+            return this;
+        }
+
+        /**
+         * Sets the protocol family preference that guides address selection and ordering.
+         *
+         * @since 5.6
+         * @return this instance.
+         */
+        public Builder setProtocolFamilyPreference(final ProtocolFamilyPreference preference) {
+            this.protocolFamilyPreference = preference;
+            return this;
+        }
+
         public ConnectionConfig build() {
             return new ConnectionConfig(
                     connectTimeout != null ? connectTimeout : DEFAULT_CONNECT_TIMEOUT,
                     socketTimeout,
                     validateAfterInactivity,
-                    timeToLive);
+                    timeToLive,
+                    staggeredConnectEnabled,
+                    happyEyeballsAttemptDelay != null ? happyEyeballsAttemptDelay : DEFAULT_HE_ATTEMPT_DELAY,
+                    happyEyeballsOtherFamilyDelay != null ? happyEyeballsOtherFamilyDelay : DEFAULT_HE_OTHER_FAMILY_DELAY,
+                    protocolFamilyPreference != null ? protocolFamilyPreference : ProtocolFamilyPreference.INTERLEAVE
+            );
         }
 
     }
