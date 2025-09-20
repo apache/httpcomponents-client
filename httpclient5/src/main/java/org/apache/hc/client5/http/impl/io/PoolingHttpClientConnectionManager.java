@@ -72,6 +72,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.pool.DefaultDisposalCallback;
+import org.apache.hc.core5.pool.DisposalCallback;
 import org.apache.hc.core5.pool.LaxConnPool;
 import org.apache.hc.core5.pool.ManagedConnPool;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
@@ -107,9 +108,12 @@ import org.slf4j.LoggerFactory;
  */
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class PoolingHttpClientConnectionManager
-    implements HttpClientConnectionManager, ConnPoolControl<HttpRoute> {
+        implements HttpClientConnectionManager, ConnPoolControl<HttpRoute> {
 
     private static final Logger LOG = LoggerFactory.getLogger(PoolingHttpClientConnectionManager.class);
+
+    private final DisposalCallback<ManagedHttpClientConnection> defaultDisposal;
+    private final OffLockDisposalCallback<ManagedHttpClientConnection> offLockDisposer;
 
     public static final int DEFAULT_MAX_TOTAL_CONNECTIONS = 25;
     public static final int DEFAULT_MAX_CONNECTIONS_PER_ROUTE = 5;
@@ -216,8 +220,26 @@ public class PoolingHttpClientConnectionManager
             final PoolReusePolicy poolReusePolicy,
             final TimeValue timeToLive,
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
+        this(httpClientConnectionOperator,poolConcurrencyPolicy,poolReusePolicy,timeToLive,connFactory,false);
+
+    }
+
+    @Internal
+    public PoolingHttpClientConnectionManager(
+            final HttpClientConnectionOperator httpClientConnectionOperator,
+            final PoolConcurrencyPolicy poolConcurrencyPolicy,
+            final PoolReusePolicy poolReusePolicy,
+            final TimeValue timeToLive,
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
+            final boolean offLockDisposalEnabled) {
         super();
         this.connectionOperator = Args.notNull(httpClientConnectionOperator, "Connection operator");
+
+        this.defaultDisposal = new DefaultDisposalCallback<>();
+        this.offLockDisposer = offLockDisposalEnabled ? new OffLockDisposalCallback<>(this.defaultDisposal) : null;
+        final DisposalCallback<ManagedHttpClientConnection> callbackForPool = offLockDisposalEnabled ? this.offLockDisposer : this.defaultDisposal;
+
+
         switch (poolConcurrencyPolicy != null ? poolConcurrencyPolicy : PoolConcurrencyPolicy.STRICT) {
             case STRICT:
                 this.pool = new StrictConnPool<HttpRoute, ManagedHttpClientConnection>(
@@ -225,7 +247,7 @@ public class PoolingHttpClientConnectionManager
                         DEFAULT_MAX_TOTAL_CONNECTIONS,
                         timeToLive,
                         poolReusePolicy,
-                        new DefaultDisposalCallback<>(),
+                        callbackForPool,
                         null) {
 
                     @Override
@@ -240,6 +262,7 @@ public class PoolingHttpClientConnectionManager
                         DEFAULT_MAX_CONNECTIONS_PER_ROUTE,
                         timeToLive,
                         poolReusePolicy,
+                        callbackForPool,
                         null) {
 
                     @Override
@@ -266,6 +289,8 @@ public class PoolingHttpClientConnectionManager
         this.pool = Args.notNull(pool, "Connection pool");
         this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
         this.closed = new AtomicBoolean(false);
+        this.defaultDisposal = null;
+        this.offLockDisposer = null;
     }
 
     @Override
@@ -280,6 +305,7 @@ public class PoolingHttpClientConnectionManager
                 LOG.debug("Shutdown connection pool {}", closeMode);
             }
             this.pool.close(closeMode);
+            drainDisposals();
             LOG.debug("Connection pool shut down");
         }
     }
@@ -386,6 +412,10 @@ public class PoolingHttpClientConnectionManager
                                 }
                             }
                         }
+
+                        // Single drain point under the lease lock.
+                        drainDisposals();
+
                         final ManagedHttpClientConnection conn = poolEntry.getConnection();
                         if (conn != null) {
                             conn.activate();
@@ -472,6 +502,7 @@ public class PoolingHttpClientConnectionManager
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} connection released {}", ConnPoolSupport.getId(endpoint), ConnPoolSupport.formatStats(entry.getRoute(), entry.getState(), pool));
             }
+            drainDisposals();
         }
     }
 
@@ -541,6 +572,7 @@ public class PoolingHttpClientConnectionManager
             return;
         }
         this.pool.closeIdle(idleTime);
+        drainDisposals();
     }
 
     @Override
@@ -550,6 +582,7 @@ public class PoolingHttpClientConnectionManager
         }
         LOG.debug("Closing expired connections");
         this.pool.closeExpired();
+        drainDisposals();
     }
 
     @Override
@@ -825,16 +858,17 @@ public class PoolingHttpClientConnectionManager
     }
 
     /**
-     * Method that can be called to determine whether the connection manager has been shut down and
-     * is closed or not.
+     * Returns whether this connection manager has been shut down.
      *
-     * @return {@code true} if the connection manager has been shut down and is closed, otherwise
-     * return {@code false}.
      * @since 5.4
      */
     public boolean isClosed() {
         return this.closed.get();
     }
 
-
+    private void drainDisposals() {
+        if (offLockDisposer != null) {
+            offLockDisposer.drain();
+        }
+    }
 }
