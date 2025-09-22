@@ -63,7 +63,7 @@ public class GssCredentials implements Credentials, Serializable {
 
     @Override
     public Principal getUserPrincipal() {
-        // TODO Can we extract this somehow ?
+        // TODO obtain from gssCredential
         return null;
     }
 
