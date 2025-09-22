@@ -32,7 +32,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Immutable class encapsulating GSS configuration options for the new mutual auth capable
- * for the new {@link SpnegoScheme}.
+ * {@link SpnegoScheme}.
  *
  * Unlike the deprecated {@link KerberosConfig}, this class uses explicit defaults, and
  * primitive booleans.
