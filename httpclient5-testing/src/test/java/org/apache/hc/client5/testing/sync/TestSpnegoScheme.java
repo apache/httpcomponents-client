@@ -291,7 +291,6 @@ public class TestSpnegoScheme extends AbstractIntegrationTestBase {
      * Tests that the client will stop connecting to the server if
      * the server still keep asking for a valid ticket.
      */
-    //@Disabled
     @Test
     void testDontTryToAuthenticateEndlessly() throws Exception {
         configureServer(t -> {
