@@ -265,6 +265,8 @@ public class HttpAsyncClientBuilder {
 
     private ProxySelector proxySelector;
 
+    private int maxQueuedRequests = -1;
+
     /**
      * Maps {@code Content-Encoding} tokens to decoder factories in insertion order.
      */
@@ -893,6 +895,22 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
+     * Sets a hard cap on the number of requests allowed to be queued/in-flight
+     * within the internal async execution pipeline. When the limit is reached,
+     * new submissions fail fast with {@link java.util.concurrent.RejectedExecutionException}.
+     * A value <= 0 means unlimited (default).
+     *
+     * @param max maximum number of queued requests; <= 0 to disable the cap
+     * @return this builder
+     * @since 5.6
+     */
+    public HttpAsyncClientBuilder setMaxQueuedRequests(final int max) {
+        this.maxQueuedRequests = max;
+        return this;
+    }
+
+
+    /**
      * Request exec chain customization and extension.
      * <p>
      * For internal use.
@@ -1217,7 +1235,8 @@ public class HttpAsyncClientBuilder {
                 credentialsProviderCopy,
                 contextAdaptor(),
                 defaultRequestConfig,
-                closeablesCopy);
+                closeablesCopy,
+                maxQueuedRequests);
     }
 
     private String getProperty(final String key, final String defaultValue) {
