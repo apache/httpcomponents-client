@@ -75,6 +75,7 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
     private final AsyncClientConnectionManager manager;
     private final HttpRoutePlanner routePlanner;
     private final TlsConfig tlsConfig;
+    private final int maxQueuedRequests;
 
     InternalHttpAsyncClient(
             final DefaultConnectingIOReactor ioReactor,
@@ -90,18 +91,20 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
             final CredentialsProvider credentialsProvider,
             final Function<HttpContext, HttpClientContext> contextAdaptor,
             final RequestConfig defaultConfig,
-            final List<Closeable> closeables) {
+            final List<Closeable> closeables,
+            final int maxQueuedRequests) {
         super(ioReactor, pushConsumerRegistry, threadFactory, execChain,
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider, contextAdaptor,
                 defaultConfig, closeables);
         this.manager = manager;
         this.routePlanner = routePlanner;
         this.tlsConfig = tlsConfig;
+        this.maxQueuedRequests = maxQueuedRequests;
     }
 
     @Override
     AsyncExecRuntime createAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
-        return new InternalHttpAsyncExecRuntime(LOG, manager, getConnectionInitiator(), pushHandlerFactory, tlsConfig);
+        return new InternalHttpAsyncExecRuntime(LOG, manager, getConnectionInitiator(), pushHandlerFactory, tlsConfig, maxQueuedRequests);
     }
 
     @Override
