@@ -28,6 +28,10 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.InterruptedIOException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.EndpointInfo;
@@ -40,8 +44,8 @@ import org.apache.hc.client5.http.impl.Operations;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
@@ -66,6 +70,9 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
     }
 
+    private static final ConcurrentMap<AsyncClientConnectionManager, AtomicInteger> QUEUE_COUNTERS =
+            new ConcurrentHashMap<>();
+
     private final Logger log;
     private final AsyncClientConnectionManager manager;
     private final ConnectionInitiator connectionInitiator;
@@ -77,6 +84,8 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     private final TlsConfig tlsConfig;
     private final AtomicReference<AsyncConnectionEndpoint> endpointRef;
     private final AtomicReference<ReUseData> reuseDataRef;
+    private final int maxQueued;
+    private final AtomicInteger sharedQueued;
 
     InternalHttpAsyncExecRuntime(
             final Logger log,
@@ -84,6 +93,16 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             final ConnectionInitiator connectionInitiator,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final TlsConfig tlsConfig) {
+        this(log, manager, connectionInitiator, pushHandlerFactory, tlsConfig, -1);
+    }
+
+    InternalHttpAsyncExecRuntime(
+            final Logger log,
+            final AsyncClientConnectionManager manager,
+            final ConnectionInitiator connectionInitiator,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
+            final TlsConfig tlsConfig,
+            final int maxQueued) {
         super();
         this.log = log;
         this.manager = manager;
@@ -92,6 +111,10 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         this.tlsConfig = tlsConfig;
         this.endpointRef = new AtomicReference<>();
         this.reuseDataRef = new AtomicReference<>();
+        this.maxQueued = maxQueued;
+        this.sharedQueued = maxQueued > 0
+                ? QUEUE_COUNTERS.computeIfAbsent(manager, m -> new AtomicInteger(0))
+                : null;
     }
 
     @Override
@@ -282,10 +305,41 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         return endpoint != null ? endpoint.getInfo() : null;
     }
 
+    private boolean tryAcquireSlot() {
+        if (sharedQueued == null) {
+            return true;
+        }
+        for (; ; ) {
+            final int q = sharedQueued.get();
+            if (q >= maxQueued) {
+                return false;
+            }
+            if (sharedQueued.compareAndSet(q, q + 1)) {
+                return true;
+            }
+        }
+    }
+
+    private void releaseSlot() {
+        if (sharedQueued != null) {
+            sharedQueued.decrementAndGet();
+        }
+    }
+
     @Override
     public Cancellable execute(
-            final String id, final AsyncClientExchangeHandler exchangeHandler, final HttpClientContext context) {
+            final String id,
+            final AsyncClientExchangeHandler exchangeHandler,
+            final HttpClientContext context) {
         final AsyncConnectionEndpoint endpoint = ensureValid();
+        if (sharedQueued != null && !tryAcquireSlot()) {
+            exchangeHandler.failed(new RejectedExecutionException(
+                    "Execution pipeline queue limit reached (max=" + maxQueued + ")"));
+            return Operations.nonCancellable();
+        }
+        final AsyncClientExchangeHandler actual = sharedQueued != null
+                ? AsyncClientExchangeHandlerProxy.newProxy(exchangeHandler, this::releaseSlot)
+                : exchangeHandler;
         if (endpoint.isConnected()) {
             if (log.isDebugEnabled()) {
                 log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
@@ -295,10 +349,10 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             if (responseTimeout != null) {
                 endpoint.setSocketTimeout(responseTimeout);
             }
-            endpoint.execute(id, exchangeHandler, pushHandlerFactory, context);
+            endpoint.execute(id, actual, pushHandlerFactory, context);
             if (context.getRequestConfigOrDefault().isHardCancellationEnabled()) {
                 return () -> {
-                    exchangeHandler.cancel();
+                    actual.cancel();
                     return true;
                 };
             }
@@ -311,7 +365,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                         log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
                     }
                     try {
-                        endpoint.execute(id, exchangeHandler, pushHandlerFactory, context);
+                        endpoint.execute(id, actual, pushHandlerFactory, context);
                     } catch (final RuntimeException ex) {
                         failed(ex);
                     }
@@ -319,12 +373,12 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
                 @Override
                 public void failed(final Exception ex) {
-                    exchangeHandler.failed(ex);
+                    actual.failed(ex);
                 }
 
                 @Override
                 public void cancelled() {
-                    exchangeHandler.failed(new InterruptedIOException());
+                    actual.failed(new InterruptedIOException());
                 }
 
             });
@@ -344,7 +398,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
     @Override
     public AsyncExecRuntime fork() {
-        return new InternalHttpAsyncExecRuntime(log, manager, connectionInitiator, pushHandlerFactory, tlsConfig);
+        return new InternalHttpAsyncExecRuntime(log, manager, connectionInitiator, pushHandlerFactory, tlsConfig, maxQueued);
     }
 
 }

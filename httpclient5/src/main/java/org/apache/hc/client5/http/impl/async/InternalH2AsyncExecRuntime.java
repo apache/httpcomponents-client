@@ -28,6 +28,10 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.InterruptedIOException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.EndpointInfo;
@@ -57,21 +61,38 @@ import org.slf4j.Logger;
 
 class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
 
+    private static final ConcurrentMap<InternalH2ConnPool, AtomicInteger> QUEUE_COUNTERS =
+            new ConcurrentHashMap<>();
+
     private final Logger log;
     private final InternalH2ConnPool connPool;
     private final HandlerFactory<AsyncPushConsumer> pushHandlerFactory;
     private final AtomicReference<Endpoint> sessionRef;
+    private final int maxQueued;
+    private final AtomicInteger sharedQueued;
     private volatile boolean reusable;
 
     InternalH2AsyncExecRuntime(
             final Logger log,
             final InternalH2ConnPool connPool,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
+        this(log, connPool, pushHandlerFactory, -1);
+    }
+
+    InternalH2AsyncExecRuntime(
+            final Logger log,
+            final InternalH2ConnPool connPool,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
+            final int maxQueued) {
         super();
         this.log = log;
         this.connPool = connPool;
         this.pushHandlerFactory = pushHandlerFactory;
         this.sessionRef = new AtomicReference<>();
+        this.maxQueued = maxQueued;
+        this.sharedQueued = maxQueued > 0
+                ? QUEUE_COUNTERS.computeIfAbsent(connPool, p -> new AtomicInteger(0))
+                : null;
     }
 
     @Override
@@ -246,12 +267,41 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
         return null;
     }
 
+    private boolean tryAcquireSlot() {
+        if (sharedQueued == null) {
+            return true;
+        }
+        for (; ; ) {
+            final int q = sharedQueued.get();
+            if (q >= maxQueued) {
+                return false;
+            }
+            if (sharedQueued.compareAndSet(q, q + 1)) {
+                return true;
+            }
+        }
+    }
+
+    private void releaseSlot() {
+        if (sharedQueued != null) {
+            sharedQueued.decrementAndGet();
+        }
+    }
+
     @Override
     public Cancellable execute(
             final String id,
             final AsyncClientExchangeHandler exchangeHandler, final HttpClientContext context) {
-        final ComplexCancellable complexCancellable = new ComplexCancellable();
         final Endpoint endpoint = ensureValid();
+        if (sharedQueued != null && !tryAcquireSlot()) {
+            exchangeHandler.failed(new RejectedExecutionException(
+                    "Execution pipeline queue limit reached (max=" + maxQueued + ")"));
+            return Operations.nonCancellable();
+        }
+        final AsyncClientExchangeHandler actual = sharedQueued != null
+                ? AsyncClientExchangeHandlerProxy.newProxy(exchangeHandler, this::releaseSlot)
+                : exchangeHandler;
+        final ComplexCancellable complexCancellable = new ComplexCancellable();
         final IOSession session = endpoint.session;
         if (session.isOpen()) {
             if (log.isDebugEnabled()) {
@@ -259,7 +309,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
             }
             context.setProtocolVersion(HttpVersion.HTTP_2);
             session.enqueue(
-                    new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, complexCancellable, context),
+                    new RequestExecutionCommand(actual, pushHandlerFactory, complexCancellable, context),
                     Command.Priority.NORMAL);
         } else {
             final HttpRoute route = endpoint.route;
@@ -276,19 +326,19 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
                         log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
                     }
                     context.setProtocolVersion(HttpVersion.HTTP_2);
-                    session.enqueue(
-                            new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, complexCancellable, context),
+                    ioSession.enqueue(
+                            new RequestExecutionCommand(actual, pushHandlerFactory, complexCancellable, context),
                             Command.Priority.NORMAL);
                 }
 
                 @Override
                 public void failed(final Exception ex) {
-                    exchangeHandler.failed(ex);
+                    actual.failed(ex);
                 }
 
                 @Override
                 public void cancelled() {
-                    exchangeHandler.failed(new InterruptedIOException());
+                    actual.failed(new InterruptedIOException());
                 }
 
             });
@@ -325,7 +375,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
 
     @Override
     public AsyncExecRuntime fork() {
-        return new InternalH2AsyncExecRuntime(log, connPool, pushHandlerFactory);
+        return new InternalH2AsyncExecRuntime(log, connPool, pushHandlerFactory, maxQueued);
     }
 
 }

@@ -67,8 +67,10 @@ import org.slf4j.LoggerFactory;
 public final class InternalH2AsyncClient extends InternalAbstractHttpAsyncClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(InternalH2AsyncClient.class);
+
     private final HttpRoutePlanner routePlanner;
     private final InternalH2ConnPool connPool;
+    private final int maxQueuedRequests;
 
     InternalH2AsyncClient(
             final DefaultConnectingIOReactor ioReactor,
@@ -82,21 +84,26 @@ public final class InternalH2AsyncClient extends InternalAbstractHttpAsyncClient
             final CookieStore cookieStore,
             final CredentialsProvider credentialsProvider,
             final RequestConfig defaultConfig,
-            final List<Closeable> closeables) {
+            final List<Closeable> closeables,
+            final int maxQueuedRequests) {
         super(ioReactor, pushConsumerRegistry, threadFactory, execChain,
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider, HttpClientContext::castOrCreate,
                 defaultConfig, closeables);
         this.connPool = connPool;
         this.routePlanner = routePlanner;
+        this.maxQueuedRequests = maxQueuedRequests;
     }
 
     @Override
     AsyncExecRuntime createAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
-        return new InternalH2AsyncExecRuntime(LOG, connPool, pushHandlerFactory);
+        return new InternalH2AsyncExecRuntime(LOG, connPool, pushHandlerFactory, maxQueuedRequests);
     }
 
     @Override
-    HttpRoute determineRoute(final HttpHost httpHost, final HttpRequest request, final HttpClientContext clientContext) throws HttpException {
+    HttpRoute determineRoute(
+            final HttpHost httpHost,
+            final HttpRequest request,
+            final HttpClientContext clientContext) throws HttpException {
         final HttpRoute route = routePlanner.determineRoute(httpHost, request, clientContext);
         if (route.isTunnelled()) {
             throw new HttpException("HTTP/2 tunneling not supported");
