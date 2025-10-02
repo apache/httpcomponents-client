@@ -53,6 +53,7 @@ import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
 
 /**
  * Client execution {@link HttpContext}. This class can be re-used for
@@ -201,6 +202,7 @@ public class HttpClientContext extends HttpCoreContext {
     private AuthCache authCache;
     private Object userToken;
     private RequestConfig requestConfig;
+    private HttpVersionPolicy versionPolicy;
 
     /**
      * Stores the {@code nextnonce} value provided by the server in an HTTP response.
@@ -486,6 +488,27 @@ public class HttpClientContext extends HttpCoreContext {
     @Internal
     public void setNextNonce(final String nextNonce) {
         this.nextNonce = nextNonce;
+    }
+
+    /**
+     * Represents the {@link HttpVersionPolicy} resolved for the target of the current route. The
+     * connection manager populates this attribute before the connection is established so that
+     * protocol interceptors can act on the effective TLS policy, for instance to advertise the
+     * matching ALPN protocol identifiers on a {@code CONNECT} request.
+     *
+     * @since 5.7
+     */
+    @Internal
+    public HttpVersionPolicy getHttpVersionPolicy() {
+        return versionPolicy;
+    }
+
+    /**
+     * @since 5.7
+     */
+    @Internal
+    public void setHttpVersionPolicy(final HttpVersionPolicy versionPolicy) {
+        this.versionPolicy = versionPolicy;
     }
 
     /**
