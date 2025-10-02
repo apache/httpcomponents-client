@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -47,6 +48,7 @@ import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.AlpnHeaderSupport;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.AuthenticationHandler;
 import org.apache.hc.client5.http.impl.routing.BasicRouteDirector;
@@ -76,6 +78,8 @@ import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
+import org.apache.hc.core5.http2.ssl.H2TlsSupport;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -426,6 +430,15 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                 final HttpRequest connect = new BasicHttpRequest(Method.CONNECT, nextHop, nextHop.toHostString());
                 connect.setVersion(HttpVersion.HTTP_1_1);
 
+                // RFC 7639: advertise the same ALPN protocols the tunnel's TLS layer will offer, derived
+                // from the target's HttpVersionPolicy published on the context by the connection manager,
+                // so the header cannot diverge from the protocol actually negotiated inside the tunnel.
+                if (scope.route.isSecure()) {
+                    final HttpVersionPolicy configured = clientContext.getHttpVersionPolicy();
+                    final HttpVersionPolicy versionPolicy = configured != null ? configured : HttpVersionPolicy.NEGOTIATE;
+                    connect.setHeader(AlpnHeaderSupport.formatValue(
+                            Arrays.asList(H2TlsSupport.selectApplicationProtocols(versionPolicy))));
+                }
                 proxyHttpProcessor.process(connect, null, clientContext);
                 authenticator.addAuthResponse(proxy, ChallengeType.PROXY, connect, proxyAuthExchange, clientContext);
 
