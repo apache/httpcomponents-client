@@ -50,6 +50,7 @@ import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -504,13 +505,17 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} connecting endpoint to {} ({})", ConnPoolSupport.getId(endpoint), firstHop, connectTimeout);
         }
+        final TlsConfig targetTlsConfig = resolveTlsConfig(route.getTargetHost());
+        if (context != null) {
+            HttpClientContext.cast(context).setHttpVersionPolicy(targetTlsConfig.getHttpVersionPolicy());
+        }
         final Object connectAttachment;
         if (route.isTunnelled()) {
             connectAttachment = null;
         } else if (attachment instanceof TlsConfig) {
             connectAttachment = attachment;
         } else {
-            connectAttachment = resolveTlsConfig(route.getTargetHost());
+            connectAttachment = targetTlsConfig;
         }
 
         final Future<ManagedAsyncClientConnection> connectFuture = connectionOperator.connect(

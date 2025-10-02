@@ -68,6 +68,7 @@ Protocol conformance
 - [RFC 6455](https://datatracker.ietf.org/doc/html/rfc6455) - The WebSocket Protocol
 - [RFC 7692](https://datatracker.ietf.org/doc/html/rfc7692) - Compression Extensions for WebSocket (permessage-deflate)
 - [RFC 8441](https://datatracker.ietf.org/doc/html/rfc8441) - Bootstrapping WebSockets with HTTP/2
+- [RFC 7639](https://datatracker.ietf.org/doc/html/rfc7639) - The ALPN HTTP Header Field
 
 Licensing
 ---------
