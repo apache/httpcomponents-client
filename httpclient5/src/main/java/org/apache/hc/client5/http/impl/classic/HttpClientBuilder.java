@@ -30,7 +30,9 @@ package org.apache.hc.client5.http.impl.classic;
 import java.io.Closeable;
 import java.net.ProxySelector;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,6 +42,7 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
+import org.apache.hc.client5.http.ConnectAlpnProvider;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -240,6 +243,8 @@ public class HttpClientBuilder {
     private boolean tlsRequired;
 
     private List<Closeable> closeables;
+
+    private ConnectAlpnProvider connectAlpnProvider;
 
     public static HttpClientBuilder create() {
         return new HttpClientBuilder();
@@ -824,6 +829,26 @@ public class HttpClientBuilder {
     }
 
     /**
+     * Configures the {@code ALPN} header  to be sent on {@code CONNECT}
+     * requests when establishing an HTTP tunnel through a proxy.
+     *
+     * <p>The supplied protocol IDs are advertised in the given order (preference order).
+     * If {@code ids} is {@code null} or empty, no {@code ALPN} header will be added.</p>
+     *
+     * <p>This is a convenience method equivalent to installing a {@link ConnectAlpnProvider}
+     * that always returns the same list.</p>
+     *
+     * @param ids ALPN protocol IDs to advertise (for example {@code "h2"} and {@code "http/1.1"})
+     * @return this builder
+     * @since 5.6
+     */
+    public HttpClientBuilder setConnectAlpn(final String... ids) {
+        final List<String> list = ids != null && ids.length > 0 ? Arrays.asList(ids) : Collections.emptyList();
+        this.connectAlpnProvider = (t, r) -> list;
+        return this;
+    }
+
+    /**
      * Request exec chain customization and extension.
      * <p>
      * For internal use.
@@ -977,7 +1002,8 @@ public class HttpClientBuilder {
                         new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
                         proxyAuthStrategyCopy,
                         schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,
-                        authCachingDisabled),
+                        authCachingDisabled,
+                        connectAlpnProvider),
                 ChainElement.CONNECT.name());
 
         execChainDefinition.addFirst(

@@ -30,7 +30,9 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.Closeable;
 import java.net.ProxySelector;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,6 +42,7 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
+import org.apache.hc.client5.http.ConnectAlpnProvider;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.EarlyHintsListener;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
@@ -275,6 +278,8 @@ public class HttpAsyncClientBuilder {
 
     private boolean tlsRequired;
 
+
+    private ConnectAlpnProvider connectAlpnProvider;
 
     /**
      * Maps {@code Content-Encoding} tokens to decoder factories in insertion order.
@@ -945,6 +950,26 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
+     * Configures the {@code ALPN} header  to be sent on {@code CONNECT}
+     * requests when establishing an HTTP tunnel through a proxy.
+     *
+     * <p>The supplied protocol IDs are advertised in the given order (preference order).
+     * If {@code ids} is {@code null} or empty, no {@code ALPN} header will be added.</p>
+     *
+     * <p>This is a convenience method equivalent to installing a {@link ConnectAlpnProvider}
+     * that always returns the same list.</p>
+     *
+     * @param ids ALPN protocol IDs to advertise (for example {@code "h2"} and {@code "http/1.1"})
+     * @return this builder
+     * @since 5.6
+     */
+    public HttpAsyncClientBuilder setConnectAlpn(final String... ids) {
+        final List<String> list = ids != null && ids.length > 0 ? Arrays.asList(ids) : Collections.emptyList();
+        this.connectAlpnProvider = (t, r) -> list;
+        return this;
+    }
+
+    /**
      * Registers a global {@link org.apache.hc.client5.http.EarlyHintsListener}
      * that will be notified when the client receives {@code 103 Early Hints}
      * informational responses for any request executed by the built client.
@@ -1103,7 +1128,8 @@ public class HttpAsyncClientBuilder {
                         new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
                         proxyAuthStrategyCopy,
                         schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,
-                        authCachingDisabled),
+                        authCachingDisabled,
+                        connectAlpnProvider),
                 ChainElement.CONNECT.name());
 
         if (earlyHintsListener != null) {
