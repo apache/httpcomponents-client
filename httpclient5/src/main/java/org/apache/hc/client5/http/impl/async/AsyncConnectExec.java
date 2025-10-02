@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -47,6 +48,8 @@ import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.impl.AlpnHeaderSupport;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.AuthenticationHandler;
 import org.apache.hc.client5.http.impl.routing.BasicRouteDirector;
@@ -55,6 +58,7 @@ import org.apache.hc.client5.http.routing.HttpRouteDirector;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.EntityDetails;
@@ -76,6 +80,8 @@ import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
+import org.apache.hc.core5.http2.ssl.H2TlsSupport;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,11 +105,23 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
     private final AuthCacheKeeper authCacheKeeper;
     private final HttpRouteDirector routeDirector;
 
+    private final Resolver<HttpHost, TlsConfig> tlsConfigResolver;
+
+
     public AsyncConnectExec(
             final HttpProcessor proxyHttpProcessor,
             final AuthenticationStrategy proxyAuthStrategy,
             final SchemePortResolver schemePortResolver,
             final boolean authCachingDisabled) {
+       this(proxyHttpProcessor, proxyAuthStrategy, schemePortResolver, authCachingDisabled, null);
+    }
+
+    public AsyncConnectExec(
+            final HttpProcessor proxyHttpProcessor,
+            final AuthenticationStrategy proxyAuthStrategy,
+            final SchemePortResolver schemePortResolver,
+            final boolean authCachingDisabled,
+            final Resolver<HttpHost, TlsConfig> tlsConfigResolver) {
         Args.notNull(proxyHttpProcessor, "Proxy HTTP processor");
         Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         this.proxyHttpProcessor = proxyHttpProcessor;
@@ -111,6 +129,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         this.authenticator = new AuthenticationHandler();
         this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(schemePortResolver);
         this.routeDirector = BasicRouteDirector.INSTANCE;
+        this.tlsConfigResolver = tlsConfigResolver;
     }
 
     static class State {
@@ -275,7 +294,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} create tunnel", exchangeId);
                 }
-                createTunnel(state, proxy, target, scope, new AsyncExecCallback() {
+                createTunnel(state, proxy, target, route, scope, new AsyncExecCallback() {
 
                     @Override
                     public AsyncDataConsumer handleResponse(final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
@@ -380,6 +399,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             final State state,
             final HttpHost proxy,
             final HttpHost nextHop,
+            final HttpRoute route,
             final AsyncExecChain.Scope scope,
             final AsyncExecCallback asyncExecCallback) {
 
@@ -426,6 +446,19 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                 final HttpRequest connect = new BasicHttpRequest(Method.CONNECT, nextHop, nextHop.toHostString());
                 connect.setVersion(HttpVersion.HTTP_1_1);
 
+                // RFC 7639: advertise the same ALPN protocols the tunnel's TLS layer will offer,
+                // derived from the target's HttpVersionPolicy so the header cannot diverge from the
+                // protocol actually negotiated inside the tunnel.
+                if (route.isSecure()) {
+                    final TlsConfig tlsConfig = tlsConfigResolver != null
+                            ? tlsConfigResolver.resolve(route.getTargetHost())
+                            : null;
+                    final HttpVersionPolicy versionPolicy = tlsConfig != null
+                            ? tlsConfig.getHttpVersionPolicy()
+                            : HttpVersionPolicy.NEGOTIATE;
+                    connect.setHeader(AlpnHeaderSupport.formatValue(
+                            Arrays.asList(H2TlsSupport.selectApplicationProtocols(versionPolicy))));
+                }
                 proxyHttpProcessor.process(connect, null, clientContext);
                 authenticator.addAuthResponse(proxy, ChallengeType.PROXY, connect, proxyAuthExchange, clientContext);
 
