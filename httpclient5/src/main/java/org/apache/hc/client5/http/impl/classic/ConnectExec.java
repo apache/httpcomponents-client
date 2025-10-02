@@ -163,18 +163,10 @@ public final class ConnectExec implements ExecChainHandler {
                         break;
 
                         case HttpRouteDirector.TUNNEL_PROXY: {
-                            // The most simple example for this case is a proxy chain
-                            // of two proxies, where P1 must be tunnelled to P2.
-                            // route: Source -> P1 -> P2 -> Target (3 hops)
-                            // fact:  Source -> P1 -> Target       (2 hops)
-                            final int hop = fact.getHopCount() - 1; // the hop to establish
-                            final boolean secure = createTunnelToProxy(route, hop, context);
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("{} tunnel to proxy created.", exchangeId);
-                            }
-                            tracker.tunnelProxy(route.getHopTarget(hop), secure);
+                            // Proxy chains are not supported by HttpClient.
+                            // Fail fast instead of attempting an untested tunnel to an intermediate proxy.
+                            throw new HttpException("Proxy chains are not supported.");
                         }
-                        break;
 
                         case HttpRouteDirector.LAYER_PROTOCOL:
                             execRuntime.upgradeTls(context);
