@@ -82,4 +82,12 @@ public final class StandardAuthScheme {
     @Deprecated
     public static final String KERBEROS = "Kerberos";
 
+
+    /**
+     * SCRAM with SHA-256 as defined by RFC 7804 / RFC 7677.
+     *
+     * @since 5.6
+     */
+    public static final String SCRAM_SHA_256 = "SCRAM-SHA-256";
+
 }
