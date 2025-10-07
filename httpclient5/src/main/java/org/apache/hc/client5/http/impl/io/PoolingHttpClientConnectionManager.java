@@ -392,6 +392,14 @@ public class PoolingHttpClientConnectionManager
                             }
                         }
                         if (poolEntry.hasConnection()) {
+                            final TimeValue idleTimeout = connectionConfig.getIdleTimeout();
+                            if (TimeValue.isPositive(idleTimeout)) {
+                                if (Deadline.calculate(poolEntry.getUpdated(), idleTimeout).isExpired()) {
+                                    poolEntry.discardConnection(CloseMode.GRACEFUL);
+                                }
+                            }
+                        }
+                        if (poolEntry.hasConnection()) {
                             final TimeValue timeValue = resolveValidateAfterInactivity(connectionConfig);
                             if (TimeValue.isNonNegative(timeValue)) {
                                 if (timeValue.getDuration() == 0
