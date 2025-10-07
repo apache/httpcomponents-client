@@ -301,6 +301,14 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                                 }
                             }
                             if (poolEntry.hasConnection()) {
+                                final TimeValue idleTimeout = connectionConfig.getIdleTimeout();
+                                if (TimeValue.isPositive(idleTimeout)) {
+                                    if (Deadline.calculate(poolEntry.getUpdated(), idleTimeout).isExpired()) {
+                                        poolEntry.discardConnection(CloseMode.GRACEFUL);
+                                    }
+                                }
+                            }
+                            if (poolEntry.hasConnection()) {
                                 final ManagedAsyncClientConnection connection = poolEntry.getConnection();
                                 final TimeValue timeValue = connectionConfig.getValidateAfterInactivity();
                                 if (connection.isOpen() && TimeValue.isNonNegative(timeValue)) {

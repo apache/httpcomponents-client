@@ -48,6 +48,7 @@ public class ConnectionConfig implements Cloneable {
 
     private final Timeout connectTimeout;
     private final Timeout socketTimeout;
+    private final Timeout idleTimeout;
     private final TimeValue validateAfterInactivity;
     private final TimeValue timeToLive;
 
@@ -55,17 +56,19 @@ public class ConnectionConfig implements Cloneable {
      * Intended for CDI compatibility
      */
     protected ConnectionConfig() {
-        this(DEFAULT_CONNECT_TIMEOUT, null, null, null);
+        this(DEFAULT_CONNECT_TIMEOUT, null, null, null, null);
     }
 
     ConnectionConfig(
             final Timeout connectTimeout,
             final Timeout socketTimeout,
+            final Timeout idleTimeout,
             final TimeValue validateAfterInactivity,
             final TimeValue timeToLive) {
         super();
         this.connectTimeout = connectTimeout;
         this.socketTimeout = socketTimeout;
+        this.idleTimeout = idleTimeout;
         this.validateAfterInactivity = validateAfterInactivity;
         this.timeToLive = timeToLive;
     }
@@ -82,6 +85,13 @@ public class ConnectionConfig implements Cloneable {
      */
     public Timeout getConnectTimeout() {
         return connectTimeout;
+    }
+
+    /**
+     * @see Builder#setIdleTimeout(Timeout)
+     */
+    public Timeout getIdleTimeout() {
+        return idleTimeout;
     }
 
     /**
@@ -109,6 +119,7 @@ public class ConnectionConfig implements Cloneable {
         builder.append("[");
         builder.append("connectTimeout=").append(connectTimeout);
         builder.append(", socketTimeout=").append(socketTimeout);
+        builder.append(", idleTimeout=").append(idleTimeout);
         builder.append(", validateAfterInactivity=").append(validateAfterInactivity);
         builder.append(", timeToLive=").append(timeToLive);
         builder.append("]");
@@ -131,6 +142,7 @@ public class ConnectionConfig implements Cloneable {
 
         private Timeout socketTimeout;
         private Timeout connectTimeout;
+        private Timeout idleTimeout;
         private TimeValue validateAfterInactivity;
         private TimeValue timeToLive;
 
@@ -195,6 +207,35 @@ public class ConnectionConfig implements Cloneable {
         }
 
         /**
+         * Determines the maximum period of idleness for a connection.
+         * Connections that are idle for longer than {@code idleTimeout} are no
+         * longer eligible for reuse.
+         * <p>
+         * A timeout value of zero is interpreted as an infinite timeout.
+         * </p>
+         * <p>
+         * Default: {@code null} (undefined)
+         * </p>
+         *
+         * @return this instance.
+         *
+         * @since 5.6
+         */
+        public Builder setIdleTimeout(final Timeout idleTimeout) {
+            this.idleTimeout = idleTimeout;
+            return this;
+        }
+
+        /**
+         * @return this instance.
+         * @see #setIdleTimeout(Timeout)
+         */
+        public Builder setIdleTimeout(final long idleTimeout, final TimeUnit timeUnit) {
+            this.idleTimeout = Timeout.of(idleTimeout, timeUnit);
+            return this;
+        }
+
+        /**
          * Defines period of inactivity after which persistent connections must
          * be re-validated prior to being leased to the consumer. Negative values passed
          * to this method disable connection validation.
@@ -244,6 +285,7 @@ public class ConnectionConfig implements Cloneable {
             return new ConnectionConfig(
                     connectTimeout != null ? connectTimeout : DEFAULT_CONNECT_TIMEOUT,
                     socketTimeout,
+                    idleTimeout,
                     validateAfterInactivity,
                     timeToLive);
         }
