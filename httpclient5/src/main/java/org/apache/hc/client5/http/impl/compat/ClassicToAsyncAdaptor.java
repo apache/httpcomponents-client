@@ -42,6 +42,8 @@ import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.nio.support.classic.ClassicToAsyncRequestProducer;
+import org.apache.hc.core5.http.nio.support.classic.ClassicToAsyncResponseConsumer;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Timeout;

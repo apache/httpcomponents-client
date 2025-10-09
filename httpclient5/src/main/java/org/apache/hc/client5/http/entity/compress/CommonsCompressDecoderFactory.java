@@ -39,6 +39,7 @@ import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.io.IOFunction;
 
 /**
  * A factory for creating InputStream instances, utilizing Apache Commons Compress.

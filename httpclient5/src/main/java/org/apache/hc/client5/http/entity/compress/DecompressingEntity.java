@@ -34,6 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
+import org.apache.hc.core5.io.IOFunction;
 import org.apache.hc.core5.util.Args;
 
 public class DecompressingEntity extends HttpEntityWrapper {
