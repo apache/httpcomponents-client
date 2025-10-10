@@ -70,6 +70,7 @@ import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.command.RequestExecutionCommand;
+import org.apache.hc.core5.http.nio.command.StaleCheckCommand;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
@@ -325,6 +326,17 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                                                 }
                                                 leaseCompleted(poolEntry);
                                             })), Command.Priority.IMMEDIATE);
+                                            return;
+                                        } else {
+                                            connection.submitCommand(new StaleCheckCommand(result -> {
+                                                if (!Boolean.TRUE.equals(result)) {
+                                                    if (LOG.isDebugEnabled()) {
+                                                        LOG.debug("{} connection {} is stale", id, ConnPoolSupport.getId(connection));
+                                                    }
+                                                    poolEntry.discardConnection(CloseMode.GRACEFUL);
+                                                }
+                                                leaseCompleted(poolEntry);
+                                            }), Command.Priority.IMMEDIATE);
                                             return;
                                         }
                                     }
