@@ -48,8 +48,8 @@ import java.nio.file.Path;
  * A factory for Unix domain sockets.
  * <p>
  * This implementation supports both the JDK16+ standard library implementation (JEP 380) and the JUnixSocket library.
- * It will automatically detect which implementation is available and use it. JUnixSocket is preferred, since it
- * supports the {@link java.net.Socket} API used by the classic client.
+ * It will automatically detect which implementation is available and use it; if both are available, the standard
+ * library implementation is preferred.
  * </p>
  *
  * @since 5.6
