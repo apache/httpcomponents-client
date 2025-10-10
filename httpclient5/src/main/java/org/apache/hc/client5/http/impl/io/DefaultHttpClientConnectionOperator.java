@@ -215,7 +215,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                     socket.bind(localAddress);
                 }
                 conn.bind(socket);
-                configureSocket(socket, socketConfig);
+                configureSocket(socket, socketConfig, true);
                 socket.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisecondsIntBound() : 0);
                 conn.bind(socket);
                 onAfterSocketConnect(context, endpointHost);
@@ -288,7 +288,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final Socket socket = unixDomainSocketFactory.connectSocket(newSocket, unixDomainSocket,
                 connectTimeout);
             conn.bind(socket);
-            configureSocket(socket, socketConfig);
+            configureSocket(socket, socketConfig, false);
             onAfterSocketConnect(context, endpointHost);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} {} connected to {}", ConnPoolSupport.getId(conn), endpointHost, unixDomainSocket);
@@ -312,14 +312,15 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
     }
 
     @SuppressWarnings("Since15")
-    private static void configureSocket(final Socket socket, final SocketConfig socketConfig) throws IOException {
+    private static void configureSocket(
+        final Socket socket,
+        final SocketConfig socketConfig,
+        final boolean isTcp
+    ) throws IOException {
         final Timeout socketTimeout = socketConfig.getSoTimeout();
         if (socketTimeout != null) {
             socket.setSoTimeout(socketTimeout.toMillisecondsIntBound());
         }
-        socket.setReuseAddress(socketConfig.isSoReuseAddress());
-        socket.setTcpNoDelay(socketConfig.isTcpNoDelay());
-        socket.setKeepAlive(socketConfig.isSoKeepAlive());
         if (socketConfig.getRcvBufSize() > 0) {
             socket.setReceiveBufferSize(socketConfig.getRcvBufSize());
         }
@@ -331,15 +332,21 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         if (linger >= 0) {
             socket.setSoLinger(true, linger);
         }
-        if (SUPPORTS_KEEPALIVE_OPTIONS) {
-            if (socketConfig.getTcpKeepIdle() > 0) {
-                Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPIDLE, socketConfig.getTcpKeepIdle());
-            }
-            if (socketConfig.getTcpKeepInterval() > 0) {
-                Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPINTERVAL, socketConfig.getTcpKeepInterval());
-            }
-            if (socketConfig.getTcpKeepCount() > 0) {
-                Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPCOUNT, socketConfig.getTcpKeepCount());
+        if (isTcp) {
+            socket.setReuseAddress(socketConfig.isSoReuseAddress());
+            socket.setTcpNoDelay(socketConfig.isTcpNoDelay());
+            socket.setKeepAlive(socketConfig.isSoKeepAlive());
+            if (SUPPORTS_KEEPALIVE_OPTIONS) {
+                if (socketConfig.getTcpKeepIdle() > 0) {
+                    Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPIDLE, socketConfig.getTcpKeepIdle());
+                }
+                if (socketConfig.getTcpKeepInterval() > 0) {
+                    Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPINTERVAL,
+                        socketConfig.getTcpKeepInterval());
+                }
+                if (socketConfig.getTcpKeepCount() > 0) {
+                    Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPCOUNT, socketConfig.getTcpKeepCount());
+                }
             }
         }
     }
