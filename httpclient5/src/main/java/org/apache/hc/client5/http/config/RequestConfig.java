@@ -127,11 +127,7 @@ public class RequestConfig implements Cloneable {
 
     /**
      * @see Builder#setProxy(HttpHost)
-     *
-     * @deprecated Use {@link org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner}
-     * or a custom {@link org.apache.hc.client5.http.routing.HttpRoutePlanner}.
      */
-    @Deprecated
     public HttpHost getProxy() {
         return proxy;
     }
@@ -372,10 +368,7 @@ public class RequestConfig implements Cloneable {
          * </p>
          *
          * @return this instance.
-         * @deprecated Use {@link org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner}
-         * or a custom {@link org.apache.hc.client5.http.routing.HttpRoutePlanner}.
          */
-        @Deprecated
         public Builder setProxy(final HttpHost proxy) {
             this.proxy = proxy;
             return this;
