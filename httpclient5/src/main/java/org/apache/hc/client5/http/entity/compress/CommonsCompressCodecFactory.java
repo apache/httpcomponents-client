@@ -73,7 +73,6 @@ final class CommonsCompressCodecFactory {
     private static final String CC_DEFLATE64 = "org.apache.commons.compress.compressors.deflate64.Deflate64CompressorInputStream";
 
     // Helper libs
-    private static final String H_BROTLI = "org.brotli.dec.BrotliInputStream";
     private static final String H_ZSTD = "com.github.luben.zstd.ZstdInputStream";
     private static final String H_XZ = "org.tukaani.xz.XZInputStream";
 
@@ -153,7 +152,7 @@ final class CommonsCompressCodecFactory {
         }
         switch (coding) {
             case BROTLI:
-                return isPresent(CC_BROTLI) && isPresent(H_BROTLI);
+                return isPresent(CC_BROTLI);
             case ZSTD:
                 return isPresent(CC_ZSTD) && isPresent(H_ZSTD);
             case XZ:

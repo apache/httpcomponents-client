@@ -80,7 +80,6 @@ public final class ContentCodecRegistry {
         // 2) Commons-Compress (optional) — reflectively wired
         if (CommonsCompressSupport.isPresent()) {
             for (final ContentCoding c : Arrays.asList(
-                    ContentCoding.BROTLI,
                     ContentCoding.ZSTD,
                     ContentCoding.XZ,
                     ContentCoding.LZMA,

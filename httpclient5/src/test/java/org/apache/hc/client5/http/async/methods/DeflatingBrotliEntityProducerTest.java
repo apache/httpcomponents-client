@@ -26,10 +26,12 @@
  */
 package org.apache.hc.client5.http.async.methods;
 
+import static org.apache.hc.client5.http.async.methods.DeflatingBrotliEntityProducer.BrotliMode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -38,11 +40,11 @@ import java.util.List;
 import com.aayushatharva.brotli4j.Brotli4jLoader;
 import com.aayushatharva.brotli4j.decoder.Decoder;
 import com.aayushatharva.brotli4j.decoder.DirectDecompress;
-import com.aayushatharva.brotli4j.encoder.Encoder;
 
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -75,7 +77,9 @@ class DeflatingBrotliEntityProducerTest {
         @Override
         public int write(final ByteBuffer src) {
             final int len = Math.min(src.remaining(), maxChunk);
-            if (len <= 0) return 0;
+            if (len <= 0) {
+                return 0;
+            }
             final byte[] tmp = new byte[len];
             src.get(tmp);
             sink.write(tmp, 0, len);
@@ -118,7 +122,7 @@ class DeflatingBrotliEntityProducerTest {
                         org.apache.hc.core5.http.ContentType.TEXT_PLAIN.withCharset(java.nio.charset.StandardCharsets.UTF_8)
                 );
         final DeflatingBrotliEntityProducer br =
-                new DeflatingBrotliEntityProducer(raw, 5, 22, Encoder.Mode.TEXT);
+                new DeflatingBrotliEntityProducer(raw, 5, 22, BrotliMode.TEXT);
 
         final ThrottledChannel ch = new ThrottledChannel(1024);
 
@@ -140,4 +144,140 @@ class DeflatingBrotliEntityProducerTest {
         assertEquals(-1, br.getContentLength());
         assertTrue(ch.ended(), "stream was not ended");
     }
+
+    private static final class CloseOnFirstUpstream implements AsyncEntityProducer {
+        private final byte[] data;
+        private boolean done;
+
+        CloseOnFirstUpstream(final byte[] data) {
+            this.data = data;
+        }
+
+        @Override
+        public void releaseResources() {
+        }
+
+        @Override
+        public String getContentType() {
+            return "text/plain";
+        }
+
+        @Override
+        public String getContentEncoding() {
+            return null;
+        }
+
+        @Override
+        public long getContentLength() {
+            return data.length;
+        }
+
+        @Override
+        public boolean isChunked() {
+            return false;
+        }
+
+        @Override
+        public java.util.Set<String> getTrailerNames() {
+            return java.util.Collections.emptySet();
+        }
+
+        @Override
+        public boolean isRepeatable() {
+            return true;
+        }
+
+        @Override
+        public void failed(final Exception e) {
+
+        }
+
+        @Override
+        public int available() {
+            return done ? 0 : 1;
+        }
+
+        @Override
+        public void produce(final DataStreamChannel ch) throws IOException {
+            if (!done) {
+                ch.write(ByteBuffer.wrap(data));
+                ch.endStream(Collections.emptyList()); // finish immediately
+                done = true;
+            }
+        }
+    }
+
+    private static final class BackpressuredChannel implements DataStreamChannel {
+        private final java.io.ByteArrayOutputStream sink = new ByteArrayOutputStream();
+        private final int maxChunk;
+        private boolean ended;
+        private boolean blockFirstWrite = true;
+
+        BackpressuredChannel(final int maxChunk) {
+            this.maxChunk = maxChunk;
+        }
+
+        @Override
+        public void requestOutput() { /* no-op */ }
+
+        @Override
+        public int write(final java.nio.ByteBuffer src) {
+            if (blockFirstWrite) {
+                blockFirstWrite = false;
+                return 0;
+            } // force pendingOut
+            final int len = Math.min(src.remaining(), maxChunk);
+            if (len <= 0) {
+                return 0;
+            }
+            final byte[] tmp = new byte[len];
+            src.get(tmp);
+            sink.write(tmp, 0, len);
+            return len;
+        }
+
+        @Override
+        public void endStream() {
+            endStream(Collections.<Header>emptyList());
+        }
+
+        @Override
+        public void endStream(final List<? extends Header> trailers) {
+            ended = true;
+        }
+
+        boolean ended() {
+            return ended;
+        }
+    }
+
+    @Test
+    void encoderProbePreventsStall() throws Exception {
+        final StringBuilder sb = new StringBuilder(128 * 1024);
+        for (int i = 0; i < 128 * 1024; i++) {
+            sb.append('x');
+        }
+        final byte[] payload = sb.toString().getBytes(StandardCharsets.UTF_8);
+
+        final AsyncEntityProducer upstream = new CloseOnFirstUpstream(payload);
+        final DeflatingBrotliEntityProducer br =
+                new DeflatingBrotliEntityProducer(upstream, 5, 22,
+                        DeflatingBrotliEntityProducer.BrotliMode.TEXT);
+
+        final BackpressuredChannel ch = new BackpressuredChannel(64);
+
+        br.produce(ch);
+
+        Assertions.assertTrue(
+                br.available() > 0,
+                "Producer has pending output but available()==0 (stall)");
+
+        // Drain to completion
+        while (br.available() > 0) {
+            br.produce(ch);
+        }
+        Assertions.assertTrue(ch.ended(), "Stream not ended");
+    }
+
+
 }

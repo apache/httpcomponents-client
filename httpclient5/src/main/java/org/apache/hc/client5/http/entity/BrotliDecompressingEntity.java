@@ -49,7 +49,7 @@ public class BrotliDecompressingEntity extends DecompressingEntity {
 
     public static boolean isAvailable() {
         try {
-            Class.forName("org.brotli.dec.BrotliInputStream");
+            Class.forName("com.aayushatharva.brotli4j.decoder.BrotliInputStream");
             return true;
         } catch (final ClassNotFoundException | NoClassDefFoundError e) {
             return false;

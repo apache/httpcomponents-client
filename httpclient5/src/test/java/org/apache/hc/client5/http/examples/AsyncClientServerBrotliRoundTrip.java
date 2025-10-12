@@ -34,11 +34,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Future;
 
 import com.aayushatharva.brotli4j.Brotli4jLoader;
+import com.aayushatharva.brotli4j.decoder.BrotliInputStream;
 import com.aayushatharva.brotli4j.encoder.BrotliOutputStream;
 
-import org.apache.commons.compress.compressors.CompressorException;
-import org.apache.commons.compress.compressors.CompressorInputStream;
-import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
@@ -66,18 +64,14 @@ import org.apache.hc.core5.io.CloseMode;
 
 /**
  * Async client/server demo with Brotli in both directions:
- * <p>
  * - Client sends a Brotli-compressed request body (Content-Encoding: br)
- * - Server decompresses request, then responds with a Brotli-compressed body
- * - Client checks the response Content-Encoding and decompresses if needed
- * <p>
- * Notes:
- * - Encoding uses brotli4j (native JNI); make sure matching native dependency is on the runtime classpath.
- * - Decoding here uses Commons Compress via CompressorStreamFactory("br").
+ * - Server decompresses request using brotli4j, then responds with a Brotli-compressed body
+ * - Client checks the response Content-Encoding and decompresses with brotli4j if needed
  */
 public final class AsyncClientServerBrotliRoundTrip {
 
     static {
+        // Ensure native libs are loaded once
         Brotli4jLoader.ensureAvailability();
     }
 
@@ -99,7 +93,6 @@ public final class AsyncClientServerBrotliRoundTrip {
             final String requestBody = "Hello Brotli world (round-trip)!";
             System.out.println("Request (plain): " + requestBody);
 
-            // --- client compresses request ---
             final byte[] reqCompressed = brotliCompress(requestBody.getBytes(StandardCharsets.UTF_8));
 
             final SimpleHttpRequest post = SimpleRequestBuilder.post(url)
@@ -131,15 +124,15 @@ public final class AsyncClientServerBrotliRoundTrip {
 
     /**
      * Server handler:
-     * - If request has Content-Encoding: br, decompress it
-     * - Echo the text back, but re-encode the response with Brotli (Content-Encoding: br)
+     * - If request has Content-Encoding: br, decompress it with brotli4j
+     * - Echo the text back, re-encoded with Brotli
      */
     private static final class EchoHandler implements HttpRequestHandler {
         @Override
         public void handle(
                 final ClassicHttpRequest request,
                 final ClassicHttpResponse response,
-                final HttpContext context) throws IOException {
+                final HttpContext context) {
 
             final HttpEntity entity = request.getEntity();
             if (entity == null) {
@@ -153,8 +146,7 @@ public final class AsyncClientServerBrotliRoundTrip {
                 final Header ce = request.getFirstHeader(HttpHeaders.CONTENT_ENCODING);
                 if (ce != null && BR.equalsIgnoreCase(ce.getValue())) {
                     try (final InputStream in = entity.getContent();
-                         final CompressorInputStream bin =
-                                 new CompressorStreamFactory().createCompressorInputStream(BR, in)) {
+                         final BrotliInputStream bin = new BrotliInputStream(in)) {
                         requestPlain = readAll(bin);
                     }
                 } else {
@@ -172,19 +164,13 @@ public final class AsyncClientServerBrotliRoundTrip {
                 response.addHeader(HttpHeaders.CONTENT_ENCODING, BR);
                 response.setEntity(new ByteArrayEntity(respCompressed, ContentType.APPLICATION_OCTET_STREAM));
 
-            } catch (final CompressorException ex) {
+            } catch (final Exception ex) {
                 response.setCode(HttpStatus.SC_BAD_REQUEST);
                 response.setEntity(new StringEntity("Invalid Brotli payload", StandardCharsets.UTF_8));
-            } catch (final Exception ex) {
-                response.setCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-                response.setEntity(new StringEntity("Server error", StandardCharsets.UTF_8));
             }
         }
     }
 
-    /**
-     * Utility: read entire stream into a byte[] (demo-only).
-     */
     private static byte[] readAll(final InputStream in) throws IOException {
         final ByteArrayOutputStream bos = new ByteArrayOutputStream();
         final byte[] buf = new byte[8192];
@@ -196,7 +182,7 @@ public final class AsyncClientServerBrotliRoundTrip {
     }
 
     /**
-     * Compress a byte[] with Brotli using brotli4j.
+     * Compress using brotli4j.
      */
     private static byte[] brotliCompress(final byte[] plain) throws IOException {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -207,14 +193,12 @@ public final class AsyncClientServerBrotliRoundTrip {
     }
 
     /**
-     * Decompress a Brotli-compressed byte[] using Commons Compress.
+     * Decompress using brotli4j.
      */
     private static byte[] brotliDecompress(final byte[] compressed) throws IOException {
         try (final InputStream in = new ByteArrayInputStream(compressed);
-             final CompressorInputStream bin = new CompressorStreamFactory().createCompressorInputStream(BR, in)) {
+             final BrotliInputStream bin = new BrotliInputStream(in)) {
             return readAll(bin);
-        } catch (final CompressorException e) {
-            throw new IOException("Failed to decompress Brotli data", e);
         }
     }
 }

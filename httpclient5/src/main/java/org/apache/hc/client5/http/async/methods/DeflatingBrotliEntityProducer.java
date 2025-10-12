@@ -32,50 +32,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.aayushatharva.brotli4j.encoder.Encoder;
-import com.aayushatharva.brotli4j.encoder.EncoderJNI;
-
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.util.Args;
 
 /**
- * {@code AsyncEntityProducer} that Brotli-compresses bytes from an upstream producer
- * on the fly and writes the compressed stream to the target {@link DataStreamChannel}.
- * <p>
- * Purely async/streaming: no {@code InputStream}/{@code OutputStream}. Back-pressure is
- * honored via {@link #available()} and the I/O reactor’s calls into {@link #produce(DataStreamChannel)}.
- * Trailers from the upstream producer are preserved and emitted once the compressed output
- * has been fully drained.
- * </p>
+ * Async Brotli deflater (reflection-based brotli4j). No compile-time dep.
  *
- * <h4>Content metadata</h4>
- * Returns {@code Content-Encoding: br}, {@code Content-Length: -1} and {@code chunked=true}.
- * Repeatability matches the upstream producer.
- *
- * <h4>Implementation notes</h4>
- * Uses Brotli4j’s {@code EncoderJNI.Wrapper}. JNI-owned output buffers are written directly
- * when possible; if the channel applies back-pressure, the unwritten tail is copied into
- * small pooled direct {@link java.nio.ByteBuffer}s to reduce allocation churn. Native
- * resources are released in {@link #releaseResources()}.
- * <p>
- * Ensure {@link com.aayushatharva.brotli4j.Brotli4jLoader#ensureAvailability()} has been
- * called once at startup; this class also invokes it in a static initializer as a safeguard.
- * </p>
- *
- * <h4>Usage</h4>
- * <pre>{@code
- * AsyncEntityProducer plain = new StringAsyncEntityProducer("hello", ContentType.TEXT_PLAIN);
- * AsyncEntityProducer br = new DeflatingBrotliEntityProducer(plain); // defaults q=5, lgwin=22
- * client.execute(new BasicRequestProducer(post, br),
- *                new BasicResponseConsumer<>(new StringAsyncEntityConsumer()),
- *                null);
- * }</pre>
- *
- * @see org.apache.hc.core5.http.nio.AsyncEntityProducer
- * @see org.apache.hc.core5.http.nio.DataStreamChannel
- * @see com.aayushatharva.brotli4j.encoder.EncoderJNI
  * @since 5.6
  */
 public final class DeflatingBrotliEntityProducer implements AsyncEntityProducer {
@@ -83,55 +47,64 @@ public final class DeflatingBrotliEntityProducer implements AsyncEntityProducer 
     private enum State { STREAMING, FINISHING, DONE }
 
     private final AsyncEntityProducer upstream;
-    private final EncoderJNI.Wrapper encoder;
+    // Reflective encoder instance (brotli4j EncoderJNI.Wrapper)
+    private final Object encoder;
 
     private ByteBuffer pendingOut;
     private List<? extends Header> pendingTrailers;
     private State state = State.STREAMING;
 
-    /**
-     * Create a producer with explicit Brotli params.
-     *
-     * @param upstream upstream entity producer whose bytes will be compressed
-     * @param quality  Brotli quality level (see brotli4j documentation)
-     * @param lgwin    Brotli window size log2 (see brotli4j documentation)
-     * @param mode     Brotli mode hint (GENERIC/TEXT/FONT)
-     * @throws IOException if the native encoder cannot be created
-     * @since 5.6
-     */
-    public DeflatingBrotliEntityProducer(
-            final AsyncEntityProducer upstream,
-            final int quality,
-            final int lgwin,
-            final Encoder.Mode mode) throws IOException {
-        this.upstream = Args.notNull(upstream, "upstream");
-        this.encoder = new EncoderJNI.Wrapper(256 * 1024, quality, lgwin, mode);
+    public enum BrotliMode {
+        GENERIC,
+        TEXT,
+        FONT;
     }
 
     /**
-     * Convenience constructor mapping {@code 0=GENERIC, 1=TEXT, 2=FONT}.
-     *
-     * @since 5.6
+     * Defaults: quality=5, lgwin=22, mode=GENERIC.
+     */
+    public DeflatingBrotliEntityProducer(final AsyncEntityProducer upstream) throws IOException {
+        this(upstream, 5, 22, BrotliMode.GENERIC);
+    }
+
+    /**
+     * Convenience: modeInt 0=GENERIC, 1=TEXT, 2=FONT.
      */
     public DeflatingBrotliEntityProducer(
             final AsyncEntityProducer upstream,
             final int quality,
             final int lgwin,
             final int modeInt) throws IOException {
-        this(upstream, quality, lgwin,
-                modeInt == 1 ? Encoder.Mode.TEXT :
-                        modeInt == 2 ? Encoder.Mode.FONT : Encoder.Mode.GENERIC);
+        this(upstream, quality, lgwin, modeInt == 1 ? BrotliMode.TEXT.name() : (modeInt == 2 ? BrotliMode.FONT.name() : BrotliMode.GENERIC.name()));
     }
 
     /**
-     * Create a producer with sensible defaults ({@code quality=5}, {@code lgwin=22}, {@code GENERIC}).
-     *
-     * @since 5.6
+     * Kept for compatibility with existing code/tests.
+     * Uses reflection under the hood; no EncoderJNI references here.
      */
-    public DeflatingBrotliEntityProducer(final AsyncEntityProducer upstream) throws IOException {
-        this(upstream, 5, 22, Encoder.Mode.GENERIC);
+    public DeflatingBrotliEntityProducer(
+            final AsyncEntityProducer upstream,
+            final int quality,
+            final int lgwin,
+            final BrotliMode mode) throws java.io.IOException {
+        this(upstream, quality, lgwin, mode != null ? mode.name() : "GENERIC");
     }
 
+    /**
+     * Fully reflective constructor used by the others.
+     */
+    public DeflatingBrotliEntityProducer(
+            final AsyncEntityProducer upstream,
+            final int quality,
+            final int lgwin,
+            final String modeName) throws IOException {
+        this.upstream = Args.notNull(upstream, "upstream");
+        try {
+            this.encoder = AsyncBrotli.newEncoder(256 * 1024, quality, lgwin, modeName);
+        } catch (final Exception e) {
+            throw new IOException("Brotli (brotli4j) not available", e);
+        }
+    }
 
     @Override
     public String getContentType() {
@@ -177,67 +150,13 @@ public final class DeflatingBrotliEntityProducer implements AsyncEntityProducer 
 
     @Override
     public void produce(final DataStreamChannel channel) throws IOException {
-        if (flushPending(channel)) {
-            return;
-        }
-
-        if (state == State.FINISHING) {
-            encoder.push(EncoderJNI.Operation.FINISH, 0);
-            if (drainEncoder(channel)) {
+        try {
+            if (flushPending(channel)) {
                 return;
             }
-            if (pendingTrailers == null) {
-                pendingTrailers = Collections.emptyList();
-            }
-            channel.endStream(pendingTrailers);
-            pendingTrailers = null;
-            state = State.DONE;
-            return;
-        }
 
-        upstream.produce(new DataStreamChannel() {
-            @Override
-            public void requestOutput() {
-                channel.requestOutput();
-            }
-
-            @Override
-            public int write(final ByteBuffer src) throws IOException {
-                int accepted = 0;
-                while (src.hasRemaining()) {
-                    final ByteBuffer in = encoder.getInputBuffer();
-                    if (!in.hasRemaining()) {
-                        encoder.push(EncoderJNI.Operation.PROCESS, 0);
-                        if (drainEncoder(channel)) {
-                            break;
-                        }
-                        continue;
-                    }
-                    final int xfer = Math.min(src.remaining(), in.remaining());
-                    final int lim = src.limit();
-                    src.limit(src.position() + xfer);
-                    in.put(src);
-                    src.limit(lim);
-                    accepted += xfer;
-
-                    encoder.push(EncoderJNI.Operation.PROCESS, xfer);
-                    if (drainEncoder(channel)) {
-                        break;
-                    }
-                }
-                return accepted;
-            }
-
-            @Override
-            public void endStream() throws IOException {
-                endStream(Collections.emptyList());
-            }
-
-            @Override
-            public void endStream(final List<? extends Header> trailers) throws IOException {
-                pendingTrailers = trailers;
-                state = State.FINISHING;
-                encoder.push(EncoderJNI.Operation.FINISH, 0);
+            if (state == State.FINISHING) {
+                AsyncBrotli.encPushFinish(encoder);
                 if (drainEncoder(channel)) {
                     return;
                 }
@@ -247,8 +166,76 @@ public final class DeflatingBrotliEntityProducer implements AsyncEntityProducer 
                 channel.endStream(pendingTrailers);
                 pendingTrailers = null;
                 state = State.DONE;
+                return;
             }
-        });
+
+            upstream.produce(new DataStreamChannel() {
+                @Override
+                public void requestOutput() {
+                    channel.requestOutput();
+                }
+
+                @Override
+                public int write(final ByteBuffer src) throws IOException {
+                    int accepted = 0;
+                    try {
+                        while (src.hasRemaining()) {
+                            final ByteBuffer in = AsyncBrotli.encInput(encoder);
+                            if (!in.hasRemaining()) {
+                                AsyncBrotli.encPushProcess(encoder, 0);
+                                if (drainEncoder(channel)) {
+                                    break;
+                                }
+                                continue;
+                            }
+                            final int xfer = Math.min(src.remaining(), in.remaining());
+                            final int lim = src.limit();
+                            src.limit(src.position() + xfer);
+                            in.put(src);
+                            src.limit(lim);
+                            accepted += xfer;
+
+                            AsyncBrotli.encPushProcess(encoder, xfer);
+                            if (drainEncoder(channel)) {
+                                break;
+                            }
+                        }
+                        return accepted;
+                    } catch (final Exception ex) {
+                        throw new IOException("Brotli encode failed", ex);
+                    }
+                }
+
+                @Override
+                public void endStream() throws IOException {
+                    endStream(Collections.emptyList());
+                }
+
+                @Override
+                public void endStream(final List<? extends Header> trailers) throws IOException {
+                    try {
+                        pendingTrailers = trailers;
+                        state = State.FINISHING;
+                        AsyncBrotli.encPushFinish(encoder);
+                        if (drainEncoder(channel)) {
+                            return;
+                        }
+                        if (pendingTrailers == null) {
+                            pendingTrailers = Collections.<Header>emptyList();
+                        }
+                        channel.endStream(pendingTrailers);
+                        pendingTrailers = null;
+                        state = State.DONE;
+                    } catch (final Exception ex) {
+                        throw new IOException("Brotli finalize failed", ex);
+                    }
+                }
+            });
+        } catch (final IOException ioe) {
+            throw ioe;
+        } catch (final Exception ex) {
+            throw new IOException("Brotli encode failed", ex);
+        }
     }
 
     @Override
@@ -259,7 +246,7 @@ public final class DeflatingBrotliEntityProducer implements AsyncEntityProducer 
     @Override
     public void releaseResources() {
         try {
-            encoder.destroy();
+            AsyncBrotli.encDestroy(encoder);
         } catch (final Throwable ignore) {
         }
         upstream.releaseResources();
@@ -267,7 +254,6 @@ public final class DeflatingBrotliEntityProducer implements AsyncEntityProducer 
         pendingTrailers = null;
         state = State.DONE;
     }
-
 
     private boolean flushPending(final DataStreamChannel channel) throws IOException {
         if (pendingOut != null && pendingOut.hasRemaining()) {
@@ -287,9 +273,9 @@ public final class DeflatingBrotliEntityProducer implements AsyncEntityProducer 
         return false;
     }
 
-    private boolean drainEncoder(final DataStreamChannel channel) throws IOException {
-        while (encoder.hasMoreOutput()) {
-            final ByteBuffer buf = encoder.pull();
+    private boolean drainEncoder(final DataStreamChannel channel) throws Exception {
+        while (AsyncBrotli.encHasMoreOutput(encoder)) {
+            final ByteBuffer buf = AsyncBrotli.encPull(encoder);
             if (buf == null || !buf.hasRemaining()) {
                 continue;
             }

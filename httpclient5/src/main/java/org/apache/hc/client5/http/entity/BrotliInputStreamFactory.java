@@ -28,8 +28,7 @@ package org.apache.hc.client5.http.entity;
 
 import java.io.IOException;
 import java.io.InputStream;
-
-import com.aayushatharva.brotli4j.decoder.BrotliInputStream;
+import java.lang.reflect.Constructor;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -60,6 +59,13 @@ public class BrotliInputStreamFactory implements InputStreamFactory {
 
     @Override
     public InputStream create(final InputStream inputStream) throws IOException {
-        return new BrotliInputStream(inputStream);
+        try {
+            // Prefer brotli4j if present
+            final Class<?> cls = Class.forName("com.aayushatharva.brotli4j.decoder.BrotliInputStream");
+            final Constructor<?> c = cls.getConstructor(InputStream.class);
+            return (InputStream) c.newInstance(inputStream);
+        } catch (final ReflectiveOperationException | NoClassDefFoundError e) {
+            throw new IOException("Brotli decoder not available", e);
+        }
     }
 }

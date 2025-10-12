@@ -198,4 +198,62 @@ class InflatingBrotliDataConsumerTest {
         final ContentCompressionAsyncExec exec = new ContentCompressionAsyncExec(map, false);
         assertNotNull(exec);
     }
+
+    @Test
+    void inflateBrotli_truncated_throws_onStreamEnd_java8() throws Exception {
+        final String seed = "Hello ✈ brotli 🎈!";
+        final StringBuilder sb = new StringBuilder(seed.length() * 5000);
+        for (int i = 0; i < 5000; i++) {
+            sb.append(seed);
+        }
+        final byte[] src = sb.toString().getBytes(StandardCharsets.UTF_8);
+
+        final Encoder.Parameters p = new Encoder.Parameters()
+                .setQuality(6).setWindow(22).setMode(Encoder.Mode.TEXT);
+        final byte[] good = Encoder.compress(src, p);
+
+        final int cut = Math.min(8, Math.max(1, good.length / 10));
+        final byte[] truncated = java.util.Arrays.copyOf(good, good.length - cut);
+
+        final InflatingBrotliDataConsumer inflating =
+                new InflatingBrotliDataConsumer(new AsyncEntityConsumer<Object>() {
+                    public void streamStart(final EntityDetails ed, final FutureCallback<Object> cb) {
+                    }
+
+                    public void updateCapacity(final CapacityChannel c) {
+                    }
+
+                    public void consume(final ByteBuffer srcBuf) {
+                    }
+
+                    public void streamEnd(final List<? extends Header> t) {
+                    }
+
+                    public void failed(final Exception cause) {
+                        org.junit.jupiter.api.Assertions.fail(cause);
+                    }
+
+                    public void releaseResources() {
+                    }
+
+                    public Object getContent() {
+                        return null;
+                    }
+                });
+
+        for (int off = 0; off < truncated.length; off += 1024) {
+            final int n = Math.min(1024, truncated.length - off);
+            inflating.consume(ByteBuffer.wrap(truncated, off, n));
+        }
+
+        try {
+            inflating.streamEnd(java.util.Collections.emptyList());
+            org.junit.jupiter.api.Assertions.fail("Expected truncation to be detected at streamEnd()");
+        } catch (final IOException expected) {
+            // ok
+        }
+    }
+
+
+
 }

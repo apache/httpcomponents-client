@@ -30,13 +30,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import com.aayushatharva.brotli4j.decoder.DecoderJNI;
-
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
-import org.apache.hc.core5.util.Asserts;
 
 /**
  * {@code AsyncDataConsumer} that inflates a Brotli-compressed byte stream and forwards
@@ -72,16 +69,15 @@ import org.apache.hc.core5.util.Asserts;
 public final class InflatingBrotliDataConsumer implements AsyncDataConsumer {
 
     private final AsyncDataConsumer downstream;
-    private final DecoderJNI.Wrapper decoder;
+    private final Object decoder; // brotli4j DecoderJNI.Wrapper (reflective)
     private volatile CapacityChannel capacity;
-
 
     public InflatingBrotliDataConsumer(final AsyncDataConsumer downstream) {
         this.downstream = downstream;
         try {
-            this.decoder = new DecoderJNI.Wrapper(8 * 1024);
-        } catch (final IOException e) {
-            throw new RuntimeException("Unable to initialize DecoderJNI", e);
+            this.decoder = AsyncBrotli.newDecoder(8 * 1024);
+        } catch (final Exception e) {
+            throw new RuntimeException("Brotli (brotli4j) not available", e);
         }
     }
 
@@ -93,87 +89,113 @@ public final class InflatingBrotliDataConsumer implements AsyncDataConsumer {
 
     @Override
     public void consume(final ByteBuffer src) throws IOException {
-        while (src.hasRemaining()) {
-            final ByteBuffer in = decoder.getInputBuffer();
-            final int xfer = Math.min(src.remaining(), in.remaining());
-            if (xfer == 0) {
-                decoder.push(0);
-                pump();
-                continue;
-            }
-            final int lim = src.limit();
-            src.limit(src.position() + xfer);
-            in.put(src);
-            src.limit(lim);
+        try {
+            while (src.hasRemaining()) {
+                final ByteBuffer in = AsyncBrotli.decInput(decoder);
+                final int xfer = Math.min(src.remaining(), in.remaining());
+                if (xfer == 0) {
+                    AsyncBrotli.decPush(decoder, 0);
+                    pump();
+                    continue;
+                }
+                final int lim = src.limit();
+                src.limit(src.position() + xfer);
+                in.put(src);
+                src.limit(lim);
 
-            decoder.push(xfer);
-            pump();
-        }
-        final CapacityChannel ch = this.capacity;
-        if (ch != null) {
-            ch.update(Integer.MAX_VALUE);
+                AsyncBrotli.decPush(decoder, xfer);
+                pump();
+            }
+            final CapacityChannel ch = this.capacity;
+            if (ch != null) {
+                ch.update(Integer.MAX_VALUE);
+            }
+        } catch (final Exception ex) {
+            throw new IOException("Brotli decode failed", ex);
         }
     }
 
     @Override
     public void streamEnd(final List<? extends Header> trailers) throws IOException, HttpException {
-        pump();
-        Asserts.check(decoder.getStatus() == DecoderJNI.Status.DONE || !decoder.hasOutput(),
-                "Truncated brotli stream");
-        downstream.streamEnd(trailers);
+        try {
+            // Bounded finish to avoid spins on truncated streams.
+            for (int i = 0; i < 8; i++) {
+                final String st = AsyncBrotli.decStatusName(decoder);
+                if ("DONE".equals(st)) {
+                    downstream.streamEnd(trailers);
+                    return;
+                }
+                if ("NEEDS_MORE_OUTPUT".equals(st)) {
+                    pump();                 // drain pending output
+                    continue;
+                }
+                if ("OK".equals(st)) {
+                    AsyncBrotli.decPush(decoder, 0); // advance without new input
+                    pump();
+                    continue;
+                }
+                if ("NEEDS_MORE_INPUT".equals(st)) {
+                    // End of input reached; decoder still wants bytes -> truncated
+                    throw new IOException("Truncated brotli stream");
+                }
+                throw new IOException("Brotli stream corrupted: " + st);
+            }
+            throw new IOException("Brotli stream did not reach DONE");
+        } catch (final IOException | HttpException e) {
+            throw e;
+        } catch (final Exception ex) {
+            throw new IOException("Brotli stream end failed", ex);
+        }
     }
+
 
     @Override
     public void releaseResources() {
-        try {
-            decoder.destroy();
-        } catch (final Throwable ignore) {
-        }
+        AsyncBrotli.decDestroy(decoder);
         downstream.releaseResources();
     }
 
-    private void pump() throws IOException {
+    private void pump() throws Exception {
         for (; ; ) {
-            switch (decoder.getStatus()) {
-                case OK:
-                    decoder.push(0);
-                    break;
-                case NEEDS_MORE_OUTPUT: {
-                    // Pull a decoder-owned buffer; copy before handing off.
-                    final ByteBuffer nativeBuf = decoder.pull();
+            final String st = AsyncBrotli.decStatusName(decoder);
+            if ("OK".equals(st)) {
+                AsyncBrotli.decPush(decoder, 0);
+                continue;
+            }
+            if ("NEEDS_MORE_OUTPUT".equals(st)) {
+                final ByteBuffer nativeBuf = AsyncBrotli.decPull(decoder);
+                if (nativeBuf != null && nativeBuf.hasRemaining()) {
+                    final ByteBuffer copy = ByteBuffer.allocateDirect(nativeBuf.remaining());
+                    copy.put(nativeBuf).flip();
+                    downstream.consume(copy);
+                }
+                continue;
+            }
+            if ("NEEDS_MORE_INPUT".equals(st)) {
+                if (AsyncBrotli.decHasOutput(decoder)) {
+                    final ByteBuffer nativeBuf = AsyncBrotli.decPull(decoder);
                     if (nativeBuf != null && nativeBuf.hasRemaining()) {
                         final ByteBuffer copy = ByteBuffer.allocateDirect(nativeBuf.remaining());
                         copy.put(nativeBuf).flip();
                         downstream.consume(copy);
+                        continue;
                     }
-                    break;
                 }
-                case NEEDS_MORE_INPUT:
-                    if (decoder.hasOutput()) {
-                        final ByteBuffer nativeBuf = decoder.pull();
-                        if (nativeBuf != null && nativeBuf.hasRemaining()) {
-                            final ByteBuffer copy = ByteBuffer.allocateDirect(nativeBuf.remaining());
-                            copy.put(nativeBuf).flip();
-                            downstream.consume(copy);
-                            break;
-                        }
-                    }
-                    return; // wait for more input
-                case DONE:
-                    if (decoder.hasOutput()) {
-                        final ByteBuffer nativeBuf = decoder.pull();
-                        if (nativeBuf != null && nativeBuf.hasRemaining()) {
-                            final ByteBuffer copy = ByteBuffer.allocateDirect(nativeBuf.remaining());
-                            copy.put(nativeBuf).flip();
-                            downstream.consume(copy);
-                            break;
-                        }
-                    }
-                    return;
-                default:
-                    // Corrupted stream
-                    throw new IOException("Brotli stream corrupted");
+                return; // wait for more input
             }
+            if ("DONE".equals(st)) {
+                if (AsyncBrotli.decHasOutput(decoder)) {
+                    final ByteBuffer nativeBuf = AsyncBrotli.decPull(decoder);
+                    if (nativeBuf != null && nativeBuf.hasRemaining()) {
+                        final ByteBuffer copy = ByteBuffer.allocateDirect(nativeBuf.remaining());
+                        copy.put(nativeBuf).flip();
+                        downstream.consume(copy);
+                        continue;
+                    }
+                }
+                return;
+            }
+            throw new IOException("Brotli stream corrupted");
         }
     }
 }
