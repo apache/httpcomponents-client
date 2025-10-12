@@ -33,9 +33,12 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
- * Utility that answers the question “Is Apache Commons Compress
- * on the class-path and in a usable state?”  Both the encoder and
- * decoder registries rely on this information.
+ * Lightweight guard that checks whether the Commons Compress factory
+ * class is loadable with the current class loader.
+ * <p>
+ * Used by the codec registry to decide if reflective wiring of optional
+ * codecs should even be attempted.
+ * </p>
  *
  * @since 5.6
  */
@@ -46,8 +49,11 @@ final class CommonsCompressSupport {
     private static final String CCSF =
             "org.apache.commons.compress.compressors.CompressorStreamFactory";
 
-    /** Non-instantiable. */
-    private CommonsCompressSupport() { }
+    /**
+     * Non-instantiable.
+     */
+    private CommonsCompressSupport() {
+    }
 
     /**
      * Returns {@code true} if the core Commons Compress class can be loaded
