@@ -24,42 +24,49 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.entity;
 
-import java.io.IOException;
-import java.io.InputStream;
+package org.apache.hc.client5.http.entity.compress;
 
-import com.aayushatharva.brotli4j.decoder.BrotliInputStream;
 
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
- * {@link InputStreamFactory} for handling Brotli Content Coded responses.
- * @deprecated See {@link org.apache.hc.client5.http.entity.compress.ContentCodecRegistry#decoder(org.apache.hc.client5.http.entity.compress.ContentCoding)}
- * @since 5.2
+ * Lightweight guard that checks whether the Commons Compress factory
+ * class is loadable with the current class loader.
+ * <p>
+ * Used by the codec registry to decide if reflective wiring of optional
+ * codecs should even be attempted.
+ * </p>
+ *
+ * @since 5.6
  */
+@Internal
 @Contract(threading = ThreadingBehavior.STATELESS)
-@Deprecated
-public class BrotliInputStreamFactory implements InputStreamFactory {
+final class CommonsCompressRuntime {
+
+    private static final String CCSF =
+            "org.apache.commons.compress.compressors.CompressorStreamFactory";
 
     /**
-     * Canonical token for the deflate content-coding.
-     * @since 5.6
+     * Non-instantiable.
      */
-    public static final String ENCODING = "br";
-
-    /**
-     * Default instance of {@link BrotliInputStreamFactory}.
-     */
-    private static final BrotliInputStreamFactory INSTANCE = new BrotliInputStreamFactory();
-
-    public static BrotliInputStreamFactory getInstance() {
-        return INSTANCE;
+    private CommonsCompressRuntime() {
     }
 
-    @Override
-    public InputStream create(final InputStream inputStream) throws IOException {
-        return new BrotliInputStream(inputStream);
+    /**
+     * Returns {@code true} if the core Commons Compress class can be loaded
+     * with the current class-loader, {@code false} otherwise.
+     */
+    static boolean available() {
+        try {
+            Class.forName(CCSF, false,
+                    CommonsCompressRuntime.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException | LinkageError ex) {
+            return false;
+        }
     }
 }
+

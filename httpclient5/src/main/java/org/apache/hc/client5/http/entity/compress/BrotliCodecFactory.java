@@ -27,40 +27,38 @@
 
 package org.apache.hc.client5.http.entity.compress;
 
+import java.io.BufferedOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import com.aayushatharva.brotli4j.decoder.BrotliInputStream;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.io.IOFunction;
 
 /**
- * Utility that answers the question “Is Apache Commons Compress
- * on the class-path and in a usable state?”  Both the encoder and
- * decoder registries rely on this information.
+ * Brotli Codecs factory.
  *
  * @since 5.6
  */
 @Internal
 @Contract(threading = ThreadingBehavior.STATELESS)
-final class CommonsCompressSupport {
-
-    private static final String CCSF =
-            "org.apache.commons.compress.compressors.CompressorStreamFactory";
-
-    /** Non-instantiable. */
-    private CommonsCompressSupport() { }
+final class BrotliCodecFactory {
 
     /**
-     * Returns {@code true} if the core Commons Compress class can be loaded
-     * with the current class-loader, {@code false} otherwise.
+     * Creates a lazy decoder that instantiates the Commons Compress stream.
      */
-    static boolean isPresent() {
-        try {
-            Class.forName(CCSF, false,
-                    CommonsCompressSupport.class.getClassLoader());
-            return true;
-        } catch (ClassNotFoundException | LinkageError ex) {
-            return false;
-        }
+    static IOFunction<InputStream, InputStream> decoder() {
+        return BrotliInputStream::new;
     }
-}
 
+    /**
+     * Creates a lazy encoder that instantiates the Commons Compress stream.
+     */
+    static IOFunction<OutputStream, OutputStream> encoder() {
+        return BufferedOutputStream::new;
+    }
+
+}

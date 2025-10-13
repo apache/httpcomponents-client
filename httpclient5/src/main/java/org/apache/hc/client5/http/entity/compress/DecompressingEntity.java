@@ -30,8 +30,6 @@ package org.apache.hc.client5.http.entity.compress;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
 import org.apache.hc.core5.io.IOFunction;
@@ -41,7 +39,6 @@ public class DecompressingEntity extends HttpEntityWrapper {
 
     private static final int BUF_SIZE = 8 * 1024;   // 8 KiB buffer
     private final IOFunction<InputStream, InputStream> decoder;
-    private final ReentrantLock lock = new ReentrantLock();
     private volatile InputStream cached;
 
     public DecompressingEntity(
@@ -62,15 +59,10 @@ public class DecompressingEntity extends HttpEntityWrapper {
 
         InputStream local = cached;
         if (local == null) {
-            lock.lock();
-            try {
-                if (cached == null) {
-                    cached = decoder.apply(super.getContent());
-                }
-                local = cached;
-            } finally {
-                lock.unlock();
+            if (cached == null) {
+                cached = decoder.apply(super.getContent());
             }
+            local = cached;
         }
         return local;
     }
