@@ -29,9 +29,10 @@ package org.apache.hc.client5.http.entity;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.aayushatharva.brotli4j.decoder.BrotliInputStream;
+
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.brotli.dec.BrotliInputStream;
 
 /**
  * {@link InputStreamFactory} for handling Brotli Content Coded responses.

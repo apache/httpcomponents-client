@@ -30,36 +30,39 @@ package org.apache.hc.client5.http.entity.compress;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Locale;
 
-import org.apache.commons.compress.compressors.CompressorException;
-import org.apache.commons.compress.compressors.CompressorStreamFactory;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.Internal;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
+import org.apache.hc.core5.io.IOFunction;
 import org.apache.hc.core5.util.Args;
 
+
 /**
- * Compresses the wrapped entity on-the-fly using Apache&nbsp;Commons Compress.
- *
- * <p>The codec is chosen by its IANA token (for example {@code "br"} or
- * {@code "zstd"}).  The helper JAR must be present at run-time; otherwise
- * {@link #writeTo(OutputStream)} will throw {@link IOException}.</p>
+ * Streaming wrapper that compresses the enclosed {@link HttpEntity} on write.
+ * <p>
+ * The actual compressor is supplied as an {@link IOFunction}&lt;OutputStream,OutputStream&gt;
+ * and is resolved by the caller (for example via reflective factories). This keeps
+ * compression back-ends fully optional and avoids hard classpath dependencies.
+ * </p>
+ * <p>
+ * The entity reports the configured {@code Content-Encoding} token and streams
+ * the content; length is unknown ({@code -1}), and the entity is chunked.
+ * </p>
  *
  * @since 5.6
  */
-@Internal
-@Contract(threading = ThreadingBehavior.STATELESS)
-public final class CommonsCompressingEntity extends HttpEntityWrapper {
+public final class CompressingEntity extends HttpEntityWrapper {
 
-    private final String coding;                     // lower-case
-    private final CompressorStreamFactory factory = new CompressorStreamFactory();
+    private final IOFunction<OutputStream, OutputStream> encoder;
+    private final String coding; // lower-case token for header reporting
 
-    CommonsCompressingEntity(final HttpEntity src, final String coding) {
+    public CompressingEntity(
+            final HttpEntity src,
+            final String coding,
+            final IOFunction<OutputStream, OutputStream> encoder) {
         super(src);
-        this.coding = coding.toLowerCase(Locale.ROOT);
+        this.encoder = Args.notNull(encoder, "Stream encoder");
+        this.coding = Args.notNull(coding, "Content coding").toLowerCase(java.util.Locale.ROOT);
     }
 
     @Override
@@ -69,8 +72,8 @@ public final class CommonsCompressingEntity extends HttpEntityWrapper {
 
     @Override
     public long getContentLength() {
-        return -1;
-    }   // streaming
+        return -1; // streaming
+    }
 
     @Override
     public boolean isChunked() {
@@ -78,17 +81,23 @@ public final class CommonsCompressingEntity extends HttpEntityWrapper {
     }
 
     @Override
-    public InputStream getContent() {          // Pull-mode is not supported
+    public InputStream getContent() {
         throw new UnsupportedOperationException("Compressed entity is write-only");
     }
 
     @Override
     public void writeTo(final OutputStream out) throws IOException {
         Args.notNull(out, "Output stream");
-        try (OutputStream cos = factory.createCompressorOutputStream(coding, out)) {
-            super.writeTo(cos);
-        } catch (final CompressorException | LinkageError ex) {
-            throw new IOException("Unable to compress using coding '" + coding + '\'', ex);
+        final OutputStream wrapped = encoder.apply(out);
+        try {
+            super.writeTo(wrapped);
+        } finally {
+            // Close the wrapped stream to flush trailers/footers if any.
+            try {
+                wrapped.close();
+            } catch (final IOException ignore) {
+                // best effort
+            }
         }
     }
 }

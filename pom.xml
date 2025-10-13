@@ -146,11 +146,6 @@
         <version>${log4j.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.brotli</groupId>
-        <artifactId>dec</artifactId>
-        <version>${brotli.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.conscrypt</groupId>
         <artifactId>conscrypt-openjdk-uber</artifactId>
         <version>${conscrypt.version}</version>
