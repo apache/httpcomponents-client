@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.protocol;
 
 import java.io.IOException;
 
+import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -39,6 +40,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
@@ -65,7 +67,12 @@ public final class RequestUpgrade implements HttpRequestInterceptor {
 
         final HttpClientContext clientContext = HttpClientContext.cast(context);
         final RequestConfig requestConfig = clientContext.getRequestConfigOrDefault();
-        if (requestConfig.isProtocolUpgradeEnabled()) {
+        final RouteInfo route = clientContext.getHttpRoute();
+        final String scheme = request.getScheme();
+        if (scheme != null && !URIScheme.HTTP.same(scheme)) {
+            return;
+        }
+        if (requestConfig.isProtocolUpgradeEnabled() && (route == null || route.getProxyHost() == null)) {
             final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : clientContext.getProtocolVersion();
             if (!request.containsHeader(HttpHeaders.UPGRADE) &&
                     !request.containsHeader(HttpHeaders.CONNECTION) &&

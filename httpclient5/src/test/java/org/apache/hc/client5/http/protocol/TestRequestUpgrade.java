@@ -30,10 +30,13 @@ package org.apache.hc.client5.http.protocol;
 import javax.net.ssl.SSLSession;
 
 import org.apache.hc.client5.http.HeadersMatcher;
+import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.hamcrest.MatcherAssert;
@@ -136,4 +139,64 @@ class TestRequestUpgrade {
         Assertions.assertFalse(trace.containsHeader(HttpHeaders.UPGRADE));
     }
 
+    @Test
+    void doesNotAddUpgradeHeadersWhenProxyPresent() throws Exception {
+        final RequestUpgrade interceptor = new RequestUpgrade();
+
+        final HttpHost target = new HttpHost("http", "example.com", 80);
+        final HttpHost proxy = new HttpHost("http", "proxy.local", 8080);
+
+        final HttpClientContext ctx = HttpClientContext.create();
+        final HttpRoute route = new HttpRoute(target, null, proxy, false);
+        ctx.setRoute(route);
+        ctx.setRequestConfig(RequestConfig.custom()
+                .setProtocolUpgradeEnabled(true)
+                .build());
+
+        final BasicClassicHttpRequest request = new BasicClassicHttpRequest("GET", "/");
+        request.setScheme("http");
+
+        interceptor.process(request, null, ctx);
+
+        Assertions.assertNull(request.getFirstHeader(HttpHeaders.UPGRADE), "Upgrade header must be absent over proxy");
+        Assertions.assertNull(request.getFirstHeader(HttpHeaders.CONNECTION), "Connection: upgrade must be absent over proxy");
+    }
+
+    @Test
+    void doesNotAddUpgradeHeadersWhenSchemeIsHttps() throws Exception {
+        final RequestUpgrade interceptor = new RequestUpgrade();
+
+        final HttpClientContext ctx = HttpClientContext.create();
+        ctx.setRequestConfig(RequestConfig.custom()
+                .setProtocolUpgradeEnabled(true)
+                .build());
+
+        final BasicClassicHttpRequest request = new BasicClassicHttpRequest("GET", "/");
+        request.setVersion(HttpVersion.HTTP_1_1);
+        request.setScheme("https");
+
+        interceptor.process(request, null, ctx);
+
+        Assertions.assertNull(request.getFirstHeader(HttpHeaders.UPGRADE));
+        Assertions.assertNull(request.getFirstHeader(HttpHeaders.CONNECTION));
+    }
+
+    @Test
+    void addsUpgradeHeadersWhenSchemeIsHttp() throws Exception {
+        final RequestUpgrade interceptor = new RequestUpgrade();
+
+        final HttpClientContext ctx = HttpClientContext.create();
+        ctx.setRequestConfig(RequestConfig.custom()
+                .setProtocolUpgradeEnabled(true)
+                .build());
+
+        final BasicClassicHttpRequest request = new BasicClassicHttpRequest("GET", "/");
+        request.setVersion(HttpVersion.HTTP_1_1);
+        request.setScheme("http");
+
+        interceptor.process(request, null, ctx);
+
+        Assertions.assertNotNull(request.getFirstHeader(HttpHeaders.UPGRADE));
+        Assertions.assertNotNull(request.getFirstHeader(HttpHeaders.CONNECTION));
+    }
 }
