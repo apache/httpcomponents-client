@@ -32,8 +32,10 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http2.priority.PriorityValue;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
@@ -70,12 +72,17 @@ public class RequestConfig implements Cloneable {
     private final ExpectContinueTrigger expectContinueTrigger;
 
     /**
+     * HTTP/2 Priority header value to emit when using H2+. Null means “don’t emit”.
+     */
+    private final PriorityValue h2Priority;
+
+    /**
      * Intended for CDI compatibility
     */
     protected RequestConfig() {
         this(false, null, null, false, false, 0, false, null, null,
                 DEFAULT_CONNECTION_REQUEST_TIMEOUT, null, null, DEFAULT_CONN_KEEP_ALIVE, false, false, false, null,
-                ExpectContinueTrigger.ALWAYS);
+                ExpectContinueTrigger.ALWAYS, null);
     }
 
     RequestConfig(
@@ -96,7 +103,8 @@ public class RequestConfig implements Cloneable {
             final boolean hardCancellationEnabled,
             final boolean protocolUpgradeEnabled,
             final Path unixDomainSocket,
-            final ExpectContinueTrigger expectContinueTrigger) {
+            final ExpectContinueTrigger expectContinueTrigger,
+            final PriorityValue h2Priority) {
         super();
         this.expectContinueEnabled = expectContinueEnabled;
         this.proxy = proxy;
@@ -116,6 +124,7 @@ public class RequestConfig implements Cloneable {
         this.protocolUpgradeEnabled = protocolUpgradeEnabled;
         this.unixDomainSocket = unixDomainSocket;
         this.expectContinueTrigger = expectContinueTrigger;
+        this.h2Priority = h2Priority;
     }
 
     /**
@@ -244,6 +253,15 @@ public class RequestConfig implements Cloneable {
         return expectContinueTrigger;
     }
 
+    /**
+     * Returns the HTTP/2+ priority preference for this request or {@code null} if unset.
+     * @since 5.6
+     */
+    @Experimental
+    public PriorityValue getH2Priority() {
+        return h2Priority;
+    }
+
     @Override
     protected RequestConfig clone() throws CloneNotSupportedException {
         return (RequestConfig) super.clone();
@@ -296,7 +314,8 @@ public class RequestConfig implements Cloneable {
             .setContentCompressionEnabled(config.isContentCompressionEnabled())
             .setHardCancellationEnabled(config.isHardCancellationEnabled())
             .setProtocolUpgradeEnabled(config.isProtocolUpgradeEnabled())
-            .setUnixDomainSocket(config.getUnixDomainSocket());
+            .setUnixDomainSocket(config.getUnixDomainSocket())
+            .setH2Priority(config.getH2Priority());
     }
 
     public static class Builder {
@@ -319,6 +338,7 @@ public class RequestConfig implements Cloneable {
         private boolean protocolUpgradeEnabled;
         private Path unixDomainSocket;
         private ExpectContinueTrigger expectContinueTrigger;
+        private PriorityValue h2Priority;
 
         Builder() {
             super();
@@ -691,6 +711,16 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * Sets HTTP/2+ request priority. If {@code null}, the header is not emitted.
+         * @since 5.6
+         */
+        @Experimental
+        public Builder setH2Priority(final PriorityValue priority) {
+            this.h2Priority = priority;
+            return this;
+        }
+
         public RequestConfig build() {
             return new RequestConfig(
                     expectContinueEnabled,
@@ -710,7 +740,8 @@ public class RequestConfig implements Cloneable {
                     hardCancellationEnabled,
                     protocolUpgradeEnabled,
                     unixDomainSocket,
-                    expectContinueTrigger);
+                    expectContinueTrigger,
+                    h2Priority);
         }
 
     }

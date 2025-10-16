@@ -64,6 +64,7 @@ import org.apache.hc.client5.http.impl.auth.ScramSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider;
 import org.apache.hc.client5.http.impl.nio.MultihomeConnectionInitiator;
 import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
+import org.apache.hc.client5.http.protocol.H2RequestPriority;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.protocol.RequestAddCookies;
 import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
@@ -71,6 +72,7 @@ import org.apache.hc.client5.http.protocol.RequestExpectContinue;
 import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.function.Callback;
@@ -216,6 +218,8 @@ public class H2AsyncClientBuilder {
 
     private Decorator<IOSession> ioSessionDecorator;
 
+    private boolean priorityHeaderDisabled;
+
     public static H2AsyncClientBuilder create() {
         return new H2AsyncClientBuilder();
     }
@@ -309,6 +313,16 @@ public class H2AsyncClientBuilder {
      */
     public final H2AsyncClientBuilder setIoSessionDecorator(final Decorator<IOSession> ioSessionDecorator) {
         this.ioSessionDecorator = ioSessionDecorator;
+        return this;
+    }
+
+    /**
+     * Disable installing the HTTP/2 Priority header interceptor by default.
+     * @since 5.6
+     */
+    @Experimental
+    public final H2AsyncClientBuilder disableRequestPriority() {
+        this.priorityHeaderDisabled = true;
         return this;
     }
 
@@ -699,6 +713,7 @@ public class H2AsyncClientBuilder {
         return this;
     }
 
+
     /**
      * Request exec chain customization and extension.
      * <p>
@@ -762,6 +777,11 @@ public class H2AsyncClientBuilder {
                 }
             }
         }
+
+        if (!priorityHeaderDisabled) {
+            b.addLast(H2RequestPriority.INSTANCE);
+        }
+
         b.addAll(
                 new H2RequestTargetHost(),
                 new RequestDefaultHeaders(defaultHeaders),

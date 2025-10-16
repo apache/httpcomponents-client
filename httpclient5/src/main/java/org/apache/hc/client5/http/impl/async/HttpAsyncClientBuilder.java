@@ -78,6 +78,7 @@ import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
+import org.apache.hc.client5.http.protocol.H2RequestPriority;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.protocol.RequestAddCookies;
@@ -87,6 +88,7 @@ import org.apache.hc.client5.http.protocol.RequestUpgrade;
 import org.apache.hc.client5.http.protocol.RequestValidateTrace;
 import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.function.Callback;
@@ -268,6 +270,9 @@ public class HttpAsyncClientBuilder {
     private ProxySelector proxySelector;
 
     private EarlyHintsListener earlyHintsListener;
+
+    private boolean priorityHeaderDisabled;
+
 
     /**
      * Maps {@code Content-Encoding} tokens to decoder factories in insertion order.
@@ -897,6 +902,16 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
+     * Disable installing the HTTP/2 Priority header interceptor by default.
+     * @since 5.6
+     */
+    @Experimental
+    public final HttpAsyncClientBuilder disableRequestPriority() {
+        this.priorityHeaderDisabled = true;
+        return this;
+    }
+
+    /**
      * Registers a global {@link org.apache.hc.client5.http.EarlyHintsListener}
      * that will be notified when the client receives {@code 103 Early Hints}
      * informational responses for any request executed by the built client.
@@ -1037,6 +1052,10 @@ public class HttpAsyncClientBuilder {
                     b.addLast(entry.interceptor);
                 }
             }
+        }
+
+        if (!priorityHeaderDisabled) {
+            b.addLast(H2RequestPriority.INSTANCE);
         }
 
         final HttpProcessor httpProcessor = b.build();
