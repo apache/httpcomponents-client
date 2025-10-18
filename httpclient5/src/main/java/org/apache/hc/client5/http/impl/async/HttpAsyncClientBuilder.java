@@ -43,6 +43,7 @@ import java.util.function.UnaryOperator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
+import org.apache.hc.client5.http.EarlyHintsListener;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
@@ -265,6 +266,8 @@ public class HttpAsyncClientBuilder {
     private List<Closeable> closeables;
 
     private ProxySelector proxySelector;
+
+    private EarlyHintsListener earlyHintsListener;
 
     /**
      * Maps {@code Content-Encoding} tokens to decoder factories in insertion order.
@@ -894,6 +897,22 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
+     * Registers a global {@link org.apache.hc.client5.http.EarlyHintsListener}
+     * that will be notified when the client receives {@code 103 Early Hints}
+     * informational responses for any request executed by the built client.
+     *
+     * @param listener the listener to receive {@code 103 Early Hints} events,
+     *                 or {@code null} to remove the listener
+     * @return this builder
+     * @since 5.6
+     */
+    public final HttpAsyncClientBuilder setEarlyHintsListener(final EarlyHintsListener listener) {
+        this.earlyHintsListener = listener;
+        return this;
+    }
+
+
+    /**
      * Request exec chain customization and extension.
      * <p>
      * For internal use.
@@ -1034,6 +1053,11 @@ public class HttpAsyncClientBuilder {
                         schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,
                         authCachingDisabled),
                 ChainElement.CONNECT.name());
+
+        if (earlyHintsListener != null) {
+            addExecInterceptorBefore(ChainElement.PROTOCOL.name(), "early-hints",
+                    new EarlyHintsAsyncExec(earlyHintsListener));
+        }
 
         execChainDefinition.addFirst(
                 new AsyncProtocolExec(
