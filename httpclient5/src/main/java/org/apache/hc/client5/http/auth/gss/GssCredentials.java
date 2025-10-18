@@ -24,9 +24,12 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.auth;
+package org.apache.hc.client5.http.auth.gss;
 
-import org.apache.hc.client5.http.auth.gss.GssCredentials;
+import java.io.Serializable;
+import java.security.Principal;
+
+import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.ietf.jgss.GSSCredential;
@@ -34,25 +37,39 @@ import org.ietf.jgss.GSSCredential;
 /**
  * Kerberos specific {@link Credentials} representation based on {@link GSSCredential}.
  *
- * @since 4.4
+ * @since 5.5
  *
- * The original KerberosCredentials class has been renamed to
- * org.apache.hc.client5.http.auth.gss.GssCredentials.
- *
- * @deprecated Do not use. The old GGS based experimental authentication schemes are no longer
- * supported.
- * Use org.apache.hc.client5.http.impl.auth.gss.SpnegoScheme, or consider using Basic or Bearer
- * authentication with TLS instead.
- * @see org.apache.hc.client5.http.impl.auth.gss.SpnegoScheme
- * @see org.apache.hc.client5.http.auth.gss.GssConfig
- * @see org.apache.hc.client5.http.auth.gss.GssCredentials
  */
-@Deprecated
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class KerberosCredentials extends GssCredentials {
+public class GssCredentials implements Credentials, Serializable {
 
-    public KerberosCredentials(final GSSCredential gssCredential) {
-        super(gssCredential);
+    private static final long serialVersionUID = 487421613855550713L;
+
+    /** GSSCredential  */
+    private final GSSCredential gssCredential;
+
+    /**
+     * Constructor with GSSCredential argument
+     *
+     * @param gssCredential
+     */
+    public GssCredentials(final GSSCredential gssCredential) {
+        this.gssCredential = gssCredential;
+    }
+
+    public GSSCredential getGSSCredential() {
+        return gssCredential;
+    }
+
+    @Override
+    public Principal getUserPrincipal() {
+        // TODO obtain from gssCredential
+        return null;
+    }
+
+    @Override
+    public char[] getPassword() {
+        return null;
     }
 
 }
