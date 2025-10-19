@@ -138,9 +138,6 @@ public final class ContentCompressionExec implements ExecChainHandler {
                         throw new HttpException("Unsupported Content-Encoding: " + codec);
                     }
                 }
-                response.removeHeaders(HttpHeaders.CONTENT_LENGTH);
-                response.removeHeaders(HttpHeaders.CONTENT_ENCODING);
-                response.removeHeaders(HttpHeaders.CONTENT_MD5);
             }
         }
         return response;

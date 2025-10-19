@@ -43,8 +43,8 @@ import org.apache.hc.client5.http.async.methods.InflatingGzipDataConsumer;
 import org.apache.hc.client5.http.async.methods.InflatingZstdDataConsumer;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
 import org.apache.hc.client5.http.impl.Brotli4jRuntime;
-import org.apache.hc.client5.http.impl.ZstdRuntime;
 import org.apache.hc.client5.http.impl.ContentCodingSupport;
+import org.apache.hc.client5.http.impl.ZstdRuntime;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -150,9 +150,6 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
                             throw new HttpException("Unsupported Content-Encoding: " + codec);
                         }
                     }
-                    rsp.removeHeaders(HttpHeaders.CONTENT_ENCODING);
-                    rsp.removeHeaders(HttpHeaders.CONTENT_LENGTH);
-                    rsp.removeHeaders(HttpHeaders.CONTENT_MD5);
                     return downstream;
                 }
 
