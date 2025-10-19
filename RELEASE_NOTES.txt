@@ -1,25 +1,118 @@
-Release 5.6-alpha1
+Release 5.6 ALPHA1
 ------------------
+
+This is the first ALPHA release in the 5.6 release series. It adds several features
+such as transport content decompression and content compression for the async transport,
+support for Unix sockets, experimental support for SCRAM-SHA-256 authentication scheme,
+and Micrometer/OTel observations & metrics.
+
+Commons Compress, Brotli codec, and ZStd codec are optional dependencies and get
+wired into the execution pipeline only if present on the classpath.
+
+
+Notable changes and features included in the 5.6 series:
+
+* Unix domain socket support.
+
+* Support for pluggable content codecs via Commons-Compress in the classic transport.
+  (optional).
+
+* Support for transparent content decompression and content compression with `deflate`,
+  `gzip`, `zstd` (optional), and `brotli` (optional) codecs in the async transport.
+
+* Micrometer/OTel observations & metrics (optinal).
+
+* Off-lock connection disposal by the classic pooling connection manager. Experimental.
+
+* SCRAM-SHA-256 authentication scheme (RFC 7804), Experimental.
+
+
+Compatibility notes:
+
+* As of this version, HttpClient uses BUILTIN HostnameVerificationPolicy by default, delegating
+  host verification to JSSE security manager. One must explicitly configure the TLS strategy
+  to continue using the hostname verifier shipped with HttpClient.
+
+* Five-second TCP keep-alive is now enabled by default.
 
 Change Log
 -------------------
 
-* Bump org.junit:junit-bom from 5.12.2 to 5.13.3 #639, #650, #670.
+* RequestConfig: Un-deprecate #setProxy.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* Stale connection check support in PoolingAsyncClientConnectionManager.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* ConnectionConfig: `#idleTimeout` support.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* HTTPCLIENT-1822: Support for async transparent content decompression and content
+  compression with `brotli` codec (#720).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* SCRAM-SHA-256 authentication scheme (RFC 7804) (#718).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Off-lock connection disposal in PoolingHttpClientConnectionManager (#726).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Add SPKI pinning TLS decorator (#715).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2387: Micrometer/OTel observations & metrics (#706).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Clarification of the behavior of the protocol level `responseTimeout` and the connection
+  management level `socketTimeout` and their interrelation.
+  Contributed by ChangYong <lcy9002 at naver.com>
+
+* HTTPCLIENT-1822: Support for async transparent content decompression and content
+  compression with `zstd` codec (#703).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-1822: Support for async transparent content decompression and content
+  compression with `gzip` codec (#700).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Enable new TcpKeepAlive options on Java 8.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* Unsupported content encoding to be treated as an error.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1822: Support for async transparent content decompression and content
+  compression with `deflate` codec.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2385: Default managed connection implementations now have public constructors
+  marked as internal (#692).
+  Contributed by winfriedgerlach <158032591+winfriedgerlach at users.noreply.github.com>
+
+* HTTPCLIENT-2383: Bypass sensitive-header check in LaxRedirectStrategy (#676).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Enable JEP 380 UDS support for sync client.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* HTTPCLIENT-2375 Support for pluggable Commons-Compress encoders (#657).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-1843: Support for pluggable Commons-Compress decoders (#651).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Switched HostnameVerificationPolicy to BUILTIN by default
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Omit cookie spec registry when cookie management is disabled.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* java.nio.file.Body-based MIME body (#641).
   Contributed by Gary Gregory <garydgregory at gmail.com>
 
-* Bump testcontainers.version from 1.20.6 to 1.21.3 #638, #655 #669.
-  Contributed by Gary Gregory <garydgregory at gmail.com>
+* Unix domain socket support.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
 
-* Add org.apache.hc.client5.http.entity.mime.PathBody
-  Add org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder.addBinaryBody(String, File)
-  Add org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder.addBinaryBody(String, Path, ContentType, String)
-  Contributed by Gary Gregory <garydgregory at gmail.com>
-
-* Bump log4j.version from 2.24.3 to 2.25.0 #656.
-  Contributed by Gary Gregory <garydgregory at gmail.com>
-
-* Bump com.github.luben:zstd-jni from 1.5.7-3 to 1.5.7-4 #668.
-  Contributed by Gary Gregory <garydgregory at gmail.com>
 
 
 Release 5.5
