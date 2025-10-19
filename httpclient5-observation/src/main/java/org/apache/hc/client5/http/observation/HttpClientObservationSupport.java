@@ -57,7 +57,7 @@ import org.apache.hc.core5.util.Args;
  *       connection pool gauges.</li>
  * </ul>
  *
- * <h3>Optional dependencies</h3>
+ * <p><strong>Optional dependencies</strong></p>
  * <p>
  * Micrometer and OpenTelemetry are <em>optional</em> dependencies. Use the
  * overloads that accept explicit registries (recommended) or the convenience
@@ -66,7 +66,7 @@ import org.apache.hc.core5.util.Args;
  * will be required.
  * </p>
  *
- * <h3>Typical usage (classic client)</h3>
+ * <p><strong>Typical usage (classic client)</strong></p>
  * <pre>{@code
  * ObservationRegistry obs = ObservationRegistry.create();
  * MeterRegistry meters = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
@@ -80,7 +80,7 @@ import org.apache.hc.core5.util.Args;
  * CloseableHttpClient client = b.build();
  * }</pre>
  *
- * <h3>What gets installed</h3>
+ * <p><strong>What gets installed</strong></p>
  * <ul>
  *   <li>An <em>observation</em> interceptor (if {@code obsReg} is non-null)
  *       that surrounds each execution with a start/stop span.</li>

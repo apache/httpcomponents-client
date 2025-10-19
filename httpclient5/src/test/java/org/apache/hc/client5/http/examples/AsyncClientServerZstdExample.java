@@ -79,14 +79,14 @@ import org.apache.hc.core5.io.CloseMode;
  * deterministic zstd payloads for demonstration and tests; the client side does not depend
  * on it and relies solely on HttpComponents.</p>
  *
- * <h3>What this demonstrates</h3>
+ * <p><strong>What this demonstrates</strong></p>
  * <ul>
  *   <li>How to validate transparent zstd decoding without hitting external endpoints.</li>
  *   <li>That the async client strips {@code Content-Encoding} on success.</li>
  *   <li>No special client wiring is required beyond enabling content compression (on by default).</li>
  * </ul>
  *
- * <h3>Expected output</h3>
+ * <p><strong>Expected output</strong></p>
  * <pre>{@code
  * status=200
  * content-encoding=(stripped by client)

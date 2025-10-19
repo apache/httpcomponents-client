@@ -47,7 +47,7 @@ import org.apache.hc.core5.http.nio.CapacityChannel;
  * normally do not instantiate it directly—enable content compression (default) and let
  * {@code ContentCompressionAsyncExec} wire it automatically.</p>
  *
- * <h3>Behavior</h3>
+ * <p><strong>Behavior</strong></p>
  * <ul>
  *   <li>Streams decompression as data arrives; does not require the full message in memory.</li>
  *   <li>Updates the downstream with plain bytes; the client removes the original
@@ -55,20 +55,6 @@ import org.apache.hc.core5.http.nio.CapacityChannel;
  *   <li>On malformed input it throws an {@link java.io.IOException} with a descriptive message.</li>
  *   <li>{@link #releaseResources()} must be called to free native resources.</li>
  * </ul>
- *
- * <h3>Typical wiring (automatic)</h3>
- * <pre>{@code
- * // Enabled by default; when the response has Content-Encoding: zstd
- * // the execution chain wraps the application consumer:
- * client = HttpAsyncClients.createDefault();
- * }</pre>
- *
- * <h3>Direct use (advanced)</h3>
- * <pre>{@code
- * AsyncDataConsumer app = ...; // where you want plain bytes
- * AsyncDataConsumer zstd = new InflatingZstdDataConsumer(app);
- * // feed zstd.consume(ByteBuffer) with compressed bytes
- * }</pre>
  *
  * @since 5.6
  */

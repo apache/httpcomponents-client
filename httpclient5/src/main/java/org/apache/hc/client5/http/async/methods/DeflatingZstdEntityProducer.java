@@ -59,24 +59,9 @@ import org.apache.hc.core5.util.Args;
  *   <li>{@link #isChunked()} returns {@code true} (requests are typically sent chunked).</li>
  * </ul>
  *
- * <h3>Usage</h3>
- * <pre>{@code
- * AsyncEntityProducer plain = new StringAsyncEntityProducer("payload", ContentType.TEXT_PLAIN);
- * AsyncEntityProducer zstd  = new DeflatingZstdEntityProducer(plain);
- *
- * SimpleHttpRequest req = SimpleRequestBuilder.post("http://localhost/echo")
- *     .setHeader(HttpHeaders.CONTENT_ENCODING, "zstd") // inform the server
- *     .build();
- *
- * client.execute(
- *     new BasicRequestProducer(req, zstd),
- *     new BasicResponseConsumer<>(new StringAsyncEntityConsumer()),
- *     null);
- * }</pre>
- *
- * <h3>Behavior</h3>
+ * <p><strong>Behavior</strong></p>
  * <ul>
- *   <li><b>Streaming & back-pressure:</b> compressed output is staged in direct
+ *   <li><b>Streaming &amp; back-pressure:</b> compressed output is staged in direct
  *       {@link java.nio.ByteBuffer}s and written only when the channel accepts bytes.
  *       When {@code DataStreamChannel.write(...)} returns {@code 0}, the producer pauses and
  *       requests another output turn.</li>
@@ -88,16 +73,16 @@ import org.apache.hc.core5.util.Args;
  *   <li><b>Resources:</b> invoke {@link #releaseResources()} to free native compressor resources.</li>
  * </ul>
  *
- * <h3>Constructors</h3>
+ * <p><strong>Constructors</strong></p>
  * <ul>
  *   <li>{@code DeflatingZstdEntityProducer(delegate)} – uses a default compression level.</li>
  *   <li>{@code DeflatingZstdEntityProducer(delegate, level)} – explicitly sets the zstd level.</li>
  * </ul>
  *
- * <h3>Thread-safety</h3>
+ * <p><strong>Thread-safety</strong></p>
  * <p>Not thread-safe; one instance per message exchange.</p>
  *
- * <h3>Runtime dependency</h3>
+ * <p><strong>Runtime dependency</strong></p>
  * <p>Requires {@code com.github.luben:zstd-jni} on the classpath.</p>
  *
  * @see org.apache.hc.client5.http.async.methods.InflatingZstdDataConsumer

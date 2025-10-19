@@ -46,7 +46,7 @@ import org.apache.hc.core5.util.Args;
  * </ul>
  * The {@code prefix} and any common tags come from {@link MetricConfig}.
  *
- * <h3>Usage</h3>
+ * <p><strong>Usage</strong></p>
  * <pre>{@code
  * MeterRegistry meters = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
  * MetricConfig mc = MetricConfig.builder().prefix("http_client").build();

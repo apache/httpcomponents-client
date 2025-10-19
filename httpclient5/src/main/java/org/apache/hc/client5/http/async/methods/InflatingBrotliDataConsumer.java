@@ -48,7 +48,7 @@ import org.apache.hc.core5.util.Asserts;
  * downstream consumer (which may retain them).
  * </p>
  *
- * <h4>Implementation notes</h4>
+ * <p><strong>Implementation notes</strong></p>
  * Uses Brotli4j’s {@code DecoderJNI.Wrapper}. Native resources are released in
  * {@link #releaseResources()}. Throws an {@link java.io.IOException} if the stream is
  * truncated or corrupted.
@@ -56,13 +56,6 @@ import org.apache.hc.core5.util.Asserts;
  * Ensure {@link com.aayushatharva.brotli4j.Brotli4jLoader#ensureAvailability()} has been
  * called once at startup; this class also invokes it in a static initializer as a safeguard.
  * </p>
- *
- * <h4>Usage</h4>
- * <pre>{@code
- * AsyncDataConsumer textConsumer = new StringAsyncEntityConsumer();
- * AsyncDataConsumer brInflating  = new InflatingBrotliDataConsumer(textConsumer);
- * client.execute(producer, new BasicResponseConsumer<>(brInflating), null);
- * }</pre>
  *
  * @see org.apache.hc.core5.http.nio.AsyncDataConsumer
  * @see org.apache.hc.core5.http.nio.CapacityChannel

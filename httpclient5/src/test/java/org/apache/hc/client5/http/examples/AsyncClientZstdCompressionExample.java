@@ -72,14 +72,14 @@ import org.apache.hc.core5.io.CloseMode;
  * is compressed <strong>on the fly</strong> as it is streamed to the wire (no {@code InputStream}
  * in the client pipeline).</p>
  *
- * <h3>What it demonstrates</h3>
+ * <p><strong>What it demonstrates</strong></p>
  * <ul>
  *   <li>How to send a POST request whose entity is compressed with <b>zstd</b> while streaming.</li>
  *   <li>How to advertise the request coding with {@code Content-Encoding: zstd}.</li>
  *   <li>Chunked transfer with proper back-pressure handling on the client side.</li>
  * </ul>
  *
- * <h3>Outline</h3>
+ * <p><strong>Outline</strong></p>
  * <ol>
  *   <li>Start an embedded classic server that accepts {@code /echo} and, if present,
  *       decodes {@code Content-Encoding: zstd} before reading the text; it replies with
@@ -90,14 +90,14 @@ import org.apache.hc.core5.io.CloseMode;
  *   <li>Read the echoed response as a string (normal, uncompressed text).</li>
  * </ol>
  *
- * <h3>Expected output</h3>
+ * <p><strong>Expected output</strong></p>
  * <pre>{@code
  * Request : Hello Zstandard request body!
  * Status  : 200
  * Response: echo: Hello Zstandard request body!
  * }</pre>
  *
- * <h3>Notes</h3>
+ * <p><strong>Notes</strong></p>
  * <ul>
  *   <li>The <em>client</em> path is fully NIO and ByteBuffer-based; no {@code InputStream} is used.</li>
  *   <li>The embedded server in this example uses Apache Commons Compress <em>only</em> to decode

@@ -43,34 +43,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 
 /**
- * <h1>RequestTraceInterceptor</h1>
- *
- * <p>This class serves as an interceptor for HTTP TRACE requests, ensuring they adhere to specific security and protocol guidelines.</p>
- *
- * <p><strong>Responsibilities:</strong></p>
- * <ul>
- *   <li>Validates TRACE requests by checking for sensitive headers such as {@code Authorization} and {@code Cookie}.</li>
- *   <li>Ensures that TRACE requests do not contain a request body, throwing a {@link ProtocolException} if a body is present.</li>
- * </ul>
- *
- * <p><strong>Thread Safety:</strong> This class is stateless and therefore thread-safe, as indicated by its {@code ThreadingBehavior.STATELESS} annotation.</p>
- *
- * <p><strong>Interceptor Behavior:</strong></p>
- * <ul>
- *   <li>If the HTTP method is TRACE, the interceptor throws a {@link ProtocolException} if any {@code Authorization} or {@code Cookie} headers are present to prevent sensitive data leakage.</li>
- *   <li>If a TRACE request contains a body, a {@link ProtocolException} is thrown.</li>
- * </ul>
- *
- * @version 5.4
- * @see HttpRequestInterceptor
- * @see HttpException
- * @see IOException
- * @see ProtocolException
- * @see Method#TRACE
- * @see HttpHeaders#AUTHORIZATION
- * @see HttpHeaders#COOKIE
- *//**
- * <h1>RequestTraceInterceptor</h1>
+ * <strong>RequestTraceInterceptor</strong>
  *
  * <p>This class serves as an interceptor for HTTP TRACE requests, ensuring they adhere to specific security and protocol guidelines.</p>
  *

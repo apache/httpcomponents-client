@@ -50,11 +50,11 @@ import org.apache.hc.core5.util.Args;
  * has been fully drained.
  * </p>
  *
- * <h4>Content metadata</h4>
+ * <p><strong>Content metadata</strong></p>
  * Returns {@code Content-Encoding: br}, {@code Content-Length: -1} and {@code chunked=true}.
  * Repeatability matches the upstream producer.
  *
- * <h4>Implementation notes</h4>
+ * <p><strong>Implementation notes</strong></p>
  * Uses Brotli4j’s {@code EncoderJNI.Wrapper}. JNI-owned output buffers are written directly
  * when possible; if the channel applies back-pressure, the unwritten tail is copied into
  * small pooled direct {@link java.nio.ByteBuffer}s to reduce allocation churn. Native
@@ -63,15 +63,6 @@ import org.apache.hc.core5.util.Args;
  * Ensure {@link com.aayushatharva.brotli4j.Brotli4jLoader#ensureAvailability()} has been
  * called once at startup; this class also invokes it in a static initializer as a safeguard.
  * </p>
- *
- * <h4>Usage</h4>
- * <pre>{@code
- * AsyncEntityProducer plain = new StringAsyncEntityProducer("hello", ContentType.TEXT_PLAIN);
- * AsyncEntityProducer br = new DeflatingBrotliEntityProducer(plain); // defaults q=5, lgwin=22
- * client.execute(new BasicRequestProducer(post, br),
- *                new BasicResponseConsumer<>(new StringAsyncEntityConsumer()),
- *                null);
- * }</pre>
  *
  * @see org.apache.hc.core5.http.nio.AsyncEntityProducer
  * @see org.apache.hc.core5.http.nio.DataStreamChannel

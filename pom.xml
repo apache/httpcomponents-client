@@ -286,9 +286,9 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
           <links>
-            <link>https://hc.apache.org/httpcomponents-core-5.0.x/httpcore5/apidocs/</link>
-            <link>https://hc.apache.org/httpcomponents-core-5.0.x/httpcore5-h2/apidocs/</link>
-            <link>${project.url}/httpclient5/apidocs/</link>
+            <link>https://hc.apache.org/httpcomponents-core-5.3.x/current/httpcore5/apidocs/</link>
+            <link>https://hc.apache.org/httpcomponents-core-5.3.x/current/httpcore5-h2/apidocs/</link>
+            <link>https://hc.apache.org/httpcomponents-client-5.5.x/current/httpclient5/apidocs/</link>
           </links>
         </configuration>
       </plugin>
@@ -456,7 +456,7 @@
           <quiet>true</quiet>
           <notimestamp>true</notimestamp>
           <links>
-            <link>https://hc.apache.org/httpcomponents-core-5.0.x/httpcore5/apidocs/</link>
+            <link>https://hc.apache.org/httpcomponents-core-5.3.x/current/httpcore5/apidocs/</link>
             <link>https://hc.apache.org/httpcomponents-core-5.0.x/httpcore5-h2/apidocs/</link>
             <link>${project.url}/httpclient5/apidocs/</link>
           </links>
