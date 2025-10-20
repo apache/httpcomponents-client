@@ -61,7 +61,11 @@ import org.slf4j.LoggerFactory;
  * @since 4.2
  *
  * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
- * supported. Consider using Basic or Bearer authentication with TLS instead.
+ * supported. Use org.apache.hc.client5.http.impl.auth.gss.SpnegoScheme, or consider using Basic or
+ * Bearer authentication with TLS instead.
+ * @see org.apache.hc.client5.http.impl.auth.gss.SpnegoScheme
+ * @see BasicScheme
+ * @see BearerScheme
  */
 @Deprecated
 public abstract class GGSSchemeBase implements AuthScheme {
@@ -138,6 +142,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
         final GSSManager manager = getManager();
         final GSSName serverName = manager.createName(serviceName + "@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
 
+        
         final GSSContext gssContext = createGSSContext(manager, oid, serverName, gssCredential);
         if (input != null) {
             return gssContext.initSecContext(input, 0, input.length);
@@ -182,8 +187,8 @@ public abstract class GGSSchemeBase implements AuthScheme {
 
         final Credentials credentials = credentialsProvider.getCredentials(
                 new AuthScope(host, null, getName()), context);
-        if (credentials instanceof org.apache.hc.client5.http.auth.KerberosCredentials) {
-            this.gssCredential = ((org.apache.hc.client5.http.auth.KerberosCredentials) credentials).getGSSCredential();
+        if (credentials instanceof org.apache.hc.client5.http.auth.gss.GssCredentials) {
+            this.gssCredential = ((org.apache.hc.client5.http.auth.gss.GssCredentials) credentials).getGSSCredential();
         } else {
             this.gssCredential = null;
         }

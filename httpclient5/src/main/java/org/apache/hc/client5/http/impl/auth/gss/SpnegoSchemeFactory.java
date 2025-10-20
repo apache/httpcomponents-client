@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.auth;
+package org.apache.hc.client5.http.impl.auth.gss;
 
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
@@ -36,40 +36,36 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
- * {@link AuthSchemeFactory} implementation that creates and initializes
- * {@link KerberosScheme} instances.
+ * {@link AuthSchemeFactory} implementation that creates and initialises
+ * {@link SpnegoScheme} instances.
  * <p>
- * Please note this class is considered experimental and may be discontinued or removed
- * in the future.
+ * This replaces the old deprecated {@link org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory}
  * </p>
  *
- * @since 4.2
+ * @since 5.5
  *
- * @deprecated Do not use. The old GGS based experimental authentication schemes are no longer
- * supported. Use org.apache.hc.client5.http.impl.auth.gss.SpnegoSchemeFactory, or consider using
- * Basic or Bearer authentication with TLS instead.
- * @see org.apache.hc.client5.http.impl.auth.gss.SpnegoSchemeFactory
- * @see BasicSchemeFactory
- * @see BearerSchemeFactory
+ * @see SPNegoSchemeFactory
  */
-@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
 @Experimental
-public class KerberosSchemeFactory implements AuthSchemeFactory {
+public class SpnegoSchemeFactory implements AuthSchemeFactory {
 
     /**
      * Singleton instance for the default configuration.
      */
-    public static final KerberosSchemeFactory DEFAULT = new KerberosSchemeFactory(org.apache.hc.client5.http.auth.KerberosConfig.DEFAULT,
+    public static final SpnegoSchemeFactory DEFAULT = new SpnegoSchemeFactory(org.apache.hc.client5.http.auth.gss.GssConfig.DEFAULT,
             SystemDefaultDnsResolver.INSTANCE);
 
-    private final org.apache.hc.client5.http.auth.KerberosConfig config;
+    public static final SpnegoSchemeFactory LEGACY = new SpnegoSchemeFactory(org.apache.hc.client5.http.auth.gss.GssConfig.LEGACY,
+        SystemDefaultDnsResolver.INSTANCE);
+
+    private final org.apache.hc.client5.http.auth.gss.GssConfig config;
     private final DnsResolver dnsResolver;
 
     /**
-     * @since 5.0
+     * @since 5.5
      */
-    public KerberosSchemeFactory(final org.apache.hc.client5.http.auth.KerberosConfig config, final DnsResolver dnsResolver) {
+    public SpnegoSchemeFactory(final org.apache.hc.client5.http.auth.gss.GssConfig config, final DnsResolver dnsResolver) {
         super();
         this.config = config;
         this.dnsResolver = dnsResolver;
@@ -77,7 +73,7 @@ public class KerberosSchemeFactory implements AuthSchemeFactory {
 
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new KerberosScheme(this.config, this.dnsResolver);
+        return new SpnegoScheme(this.config, this.dnsResolver);
     }
 
 }

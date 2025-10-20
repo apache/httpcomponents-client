@@ -121,8 +121,7 @@ public class AuthenticationHandler {
     }
 
     /**
-     * Determines whether the given response represents an authentication challenge, without
-     * changing the {@link AuthExchange} state.
+     * Determines whether the response is 401/407 response depending to the challengeType
      *
      * @param challengeType the challenge type (target or proxy).
      * @param response the response message head.
@@ -364,7 +363,7 @@ public class AuthenticationHandler {
 
     /**
      * Generates a response to the authentication challenge based on the actual {@link AuthExchange} state
-     * and adds it to the given {@link HttpRequest} message .
+     * and adds it to the given {@link HttpRequest} message.
      *
      * @param host the hostname of the opposite endpoint.
      * @param challengeType the challenge type (target or proxy).

@@ -121,19 +121,31 @@
       <build>
         <plugins>
 
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-failsafe-plugin</artifactId>
-            <version>${hc.surefire.version}</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>integration-test</goal>
-                  <goal>verify</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${hc.surefire.version}</version>
+                        <configuration>
+                            <jdkToolchain>
+                                <version>25</version>
+                            </jdkToolchain>
+                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                                                        <configuration>
+                            <jdkToolchain>
+                                <version>25</version>
+                            </jdkToolchain>
+                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
 
         </plugins>
       </build>

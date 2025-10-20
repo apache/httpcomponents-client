@@ -35,9 +35,10 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  *
  *  @since 4.6
  *
- * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
- * supported. Consider using Basic or Bearer authentication with TLS instead.
- *
+ * @deprecated Do not use. The old GGS based experimental authentication schemes are no longer
+ * supported.
+ * @see org.apache.hc.client5.http.impl.auth.gss.SpnegoScheme
+ * @see org.apache.hc.client5.http.auth.gss.GssConfig
  */
 @Deprecated
 @Contract(threading = ThreadingBehavior.IMMUTABLE)

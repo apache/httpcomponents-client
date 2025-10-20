@@ -26,18 +26,29 @@
  */
 package org.apache.hc.client5.testing.compatibility;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.stream.Stream;
+
+import javax.security.auth.Subject;
+
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.testing.compatibility.async.CachingHttpAsyncClientCompatibilityTest;
 import org.apache.hc.client5.testing.compatibility.async.HttpAsyncClientCompatibilityTest;
 import org.apache.hc.client5.testing.compatibility.async.HttpAsyncClientHttp1CompatibilityTest;
 import org.apache.hc.client5.testing.compatibility.async.HttpAsyncClientProxyCompatibilityTest;
+import org.apache.hc.client5.testing.compatibility.spnego.SpnegoTestUtil;
 import org.apache.hc.client5.testing.compatibility.sync.CachingHttpClientCompatibilityTest;
 import org.apache.hc.client5.testing.compatibility.sync.HttpClientCompatibilityTest;
+import org.apache.hc.client5.testing.compatibility.sync.HttpClientCompatibilityTest2;
 import org.apache.hc.client5.testing.compatibility.sync.HttpClientProxyCompatibilityTest;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.testcontainers.containers.GenericContainer;
@@ -49,10 +60,23 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class ApacheHTTPDSquidCompatibilityIT {
 
     private static Network NETWORK = Network.newNetwork();
+    private static final Path KEYTAB_DIR = SpnegoTestUtil.createKeytabDir();
+
     @Container
-    static final GenericContainer<?> HTTPD_CONTAINER = ContainerImages.apacheHttpD(NETWORK);
+    static final GenericContainer<?> KDC = ContainerImages.KDC(NETWORK, KEYTAB_DIR);
     @Container
-    static final GenericContainer<?> SQUID = ContainerImages.squid(NETWORK);
+    static final GenericContainer<?> HTTPD_CONTAINER = ContainerImages.apacheHttpD(NETWORK, KEYTAB_DIR, KDC);
+    @Container
+    static final GenericContainer<?> SQUID = ContainerImages.squid(NETWORK, KEYTAB_DIR, KDC);
+
+    private static Path KRB5_CONF_PATH;
+    private static Subject spnegoSubject;
+
+    @BeforeAll
+    static void init() throws IOException {
+        KRB5_CONF_PATH = SpnegoTestUtil.prepareKrb5Conf(KDC.getHost() + ":" + KDC.getMappedPort(ContainerImages.KDC_PORT));
+        spnegoSubject = SpnegoTestUtil.loginFromKeytab("testclient", KEYTAB_DIR.resolve("testclient.keytab"));
+    }
 
     static HttpHost targetContainerHost() {
         return new HttpHost(URIScheme.HTTP.id, HTTPD_CONTAINER.getHost(), HTTPD_CONTAINER.getMappedPort(ContainerImages.HTTP_PORT));
@@ -74,193 +98,431 @@ class ApacheHTTPDSquidCompatibilityIT {
         return new HttpHost(URIScheme.HTTP.id, SQUID.getHost(), SQUID.getMappedPort(ContainerImages.PROXY_PORT));
     }
 
-    static HttpHost proxyPwProtectedContainerHost() {
+    static HttpHost proxyAuthenticatedContainerHost() {
         return new HttpHost(URIScheme.HTTP.id, SQUID.getHost(), SQUID.getMappedPort(ContainerImages.PROXY_PW_PROTECTED_PORT));
     }
 
     @AfterAll
     static void cleanup() {
+        try {
+            // Let tail -F for squid logs catch up
+            Thread.sleep(5 * 1000);
+        } catch (final InterruptedException e) {
+            // Do nothring
+        }
         SQUID.close();
         HTTPD_CONTAINER.close();
+        KDC.close();
         NETWORK.close();
+        try {
+            Files.delete(KRB5_CONF_PATH);
+            Files.delete(KRB5_CONF_PATH.getParent());
+            try ( Stream<Path> dirStream = Files.walk(KEYTAB_DIR)) {
+                dirStream
+                    .filter(Files::isRegularFile)
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+            }
+        } catch (final IOException e) {
+            //We leave some files around in tmp
+        }
     }
 
     @Nested
-    @DisplayName("Classic client: HTTP/1.1, plain, direct connection")
-    class ClassicDirectHttp extends HttpClientCompatibilityTest {
+    @DisplayName("Classic client: HTTP/1.1, plain, password, direct connection")
+    class ClassicDirectHttpPw extends HttpClientCompatibilityTest {
 
-        public ClassicDirectHttp() throws Exception {
-            super(targetContainerHost(), null, null);
+        public ClassicDirectHttpPw() throws Exception {
+            super(targetContainerHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                null,
+                null);
         }
 
     }
 
     @Nested
-    @DisplayName("Classic client: HTTP/1.1, plain, connection via proxy")
+    @DisplayName("Classic client: HTTP/1.1, plain, SPNEGO, direct connection")
+    class ClassicDirectHttpSpnego extends HttpClientCompatibilityTest {
+
+        public ClassicDirectHttpSpnego() throws Exception {
+            super(targetContainerHost(),
+                SpnegoTestUtil.createCredentials(spnegoSubject),
+                null,
+                null);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Classic client: HTTP/1.1, plain, SPNEGO, direct connection, doAs")
+    class ClassicDirectHttpSpnegDoAs extends HttpClientCompatibilityTest2 {
+
+        public ClassicDirectHttpSpnegDoAs() throws Exception {
+            super(targetContainerHost(),
+                null,
+                null,
+                null,
+                spnegoSubject);
+        }
+
+    }
+    
+    @Nested
+    @DisplayName("Classic client: HTTP/1.1, plain, password, connection via proxy")
     class ClassicViaProxyHttp extends HttpClientCompatibilityTest {
 
         public ClassicViaProxyHttp() throws Exception {
-            super(targetInternalHost(), proxyContainerHost(), null);
+            super(targetInternalHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyContainerHost(),
+                null);
         }
 
     }
 
     @Nested
-    @DisplayName("Classic client: HTTP/1.1, plain, connection via password protected proxy")
-    class ClassicViaPwProtectedProxyHttp extends HttpClientCompatibilityTest {
+    @DisplayName("Classic client: HTTP/1.1, TLS, password, direct connection")
+    class ClassicDirectHttpTlsPw extends HttpClientCompatibilityTest {
 
-        public ClassicViaPwProtectedProxyHttp() throws Exception {
-            super(targetInternalHost(), proxyPwProtectedContainerHost(), new UsernamePasswordCredentials("squid", "nopassword".toCharArray()));
+        public ClassicDirectHttpTlsPw() throws Exception {
+            super(targetContainerTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                null,
+                null);
         }
 
     }
 
     @Nested
-    @DisplayName("Classic client: HTTP/1.1, TLS, direct connection")
-    class ClassicDirectHttpTls extends HttpClientCompatibilityTest {
+    @DisplayName("Classic client: HTTP/1.1, TLS, SPNEGO, direct connection")
+    class ClassicDirectHttpTlsSpnego extends HttpClientCompatibilityTest {
 
-        public ClassicDirectHttpTls() throws Exception {
-            super(targetContainerTlsHost(), null, null);
+        public ClassicDirectHttpTlsSpnego() throws Exception {
+            super(targetContainerTlsHost(),
+                SpnegoTestUtil.createCredentials(spnegoSubject),
+                null,
+                null);
         }
 
     }
 
     @Nested
-    @DisplayName("Classic client: HTTP/1.1, TLS, connection via proxy (tunnel)")
+    @DisplayName("Classic client: HTTP/1.1, TLS, password, connection via proxy (tunnel)")
     class ClassicViaProxyHttpTls extends HttpClientCompatibilityTest {
 
         public ClassicViaProxyHttpTls() throws Exception {
-            super(targetInternalTlsHost(), proxyContainerHost(), null);
+            super(targetInternalTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyContainerHost(),
+                null);
         }
 
     }
 
     @Nested
-    @DisplayName("Classic client: HTTP/1.1, TLS, connection via password protected proxy (tunnel)")
+    @DisplayName("Classic client: HTTP/1.1, TLS, password, connection via password protected proxy (tunnel)")
     class ClassicViaPwProtectedProxyHttpTls extends HttpClientCompatibilityTest {
 
         public ClassicViaPwProtectedProxyHttpTls() throws Exception {
-            super(targetInternalTlsHost(), proxyPwProtectedContainerHost(), new UsernamePasswordCredentials("squid", "nopassword".toCharArray()));
+            super(targetInternalTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyAuthenticatedContainerHost(),
+                new UsernamePasswordCredentials("squid", "nopassword".toCharArray()));
         }
 
     }
 
     @Nested
-    @DisplayName("Async client: HTTP/1.1, plain, direct connection")
-    class AsyncDirectHttp1 extends HttpAsyncClientHttp1CompatibilityTest {
+    @DisplayName("Classic client: HTTP/1.1, TLS, password, connection via SPNEGO protected proxy (tunnel)")
+    class ClassicViaSpnegoProtectedProxyHttpTls extends HttpClientCompatibilityTest {
 
-        public AsyncDirectHttp1() throws Exception {
-            super(targetContainerHost(), null, null);
+        public ClassicViaSpnegoProtectedProxyHttpTls() throws Exception {
+            super(targetInternalTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyAuthenticatedContainerHost(),
+                SpnegoTestUtil.createCredentials(spnegoSubject));
         }
 
     }
 
     @Nested
-    @DisplayName("Async client: HTTP/1.1, plain, connection via proxy")
+    @DisplayName("Async client: HTTP/1.1, plain, password, direct connection")
+    class AsyncDirectHttp1Pw extends HttpAsyncClientHttp1CompatibilityTest {
+
+        public AsyncDirectHttp1Pw() throws Exception {
+            super(targetContainerHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                null,
+                null);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Async client: HTTP/1.1, plain, SPNEGO, direct connection")
+    class AsyncDirectHttp1Spnego extends HttpAsyncClientHttp1CompatibilityTest {
+
+        public AsyncDirectHttp1Spnego() throws Exception {
+            super(targetContainerHost(),
+                SpnegoTestUtil.createCredentials(spnegoSubject),
+                null,
+                null);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Async client: HTTP/1.1, plain, SPNEGO, direct connection DOAS")
+    class AsyncDirectHttp1SpnegoDoAs extends HttpAsyncClientHttp1CompatibilityTest {
+
+        public AsyncDirectHttp1SpnegoDoAs() throws Exception {
+            super(targetContainerHost(),
+                SpnegoTestUtil.createCredentials(spnegoSubject),
+                null,
+                null,
+                spnegoSubject);
+        }
+
+    }
+    
+    @Nested
+    @DisplayName("Async client: HTTP/1.1, plain, password, connection via proxy")
     class AsyncViaProxyHttp1 extends HttpAsyncClientHttp1CompatibilityTest {
 
         public AsyncViaProxyHttp1() throws Exception {
-            super(targetInternalHost(), proxyContainerHost(), null);
+            super(targetInternalHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyContainerHost(),
+                null);
         }
 
     }
 
     @Nested
-    @DisplayName("Async client: HTTP/1.1, plain, connection via password protected proxy")
-    class AsyncViaPwProtectedProxyHttp1 extends HttpAsyncClientHttp1CompatibilityTest {
+    @DisplayName("Async client: HTTP/1.1, plain, password, connection via password protected proxy")
+    class AsyncViaPwProtectedProxyHttp1Pw extends HttpAsyncClientHttp1CompatibilityTest {
 
-        public AsyncViaPwProtectedProxyHttp1() throws Exception {
-            super(targetInternalHost(), proxyPwProtectedContainerHost(), new UsernamePasswordCredentials("squid", "nopassword".toCharArray()));
+        public AsyncViaPwProtectedProxyHttp1Pw() throws Exception {
+            super(targetInternalHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyAuthenticatedContainerHost(),
+                new UsernamePasswordCredentials("squid", "nopassword".toCharArray()));
         }
 
     }
 
     @Nested
-    @DisplayName("Async client: HTTP/1.1, TLS, direct connection")
-    class AsyncDirectHttp1Tls extends HttpAsyncClientHttp1CompatibilityTest {
+    @DisplayName("Async client: HTTP/1.1, plain, passwsord, connection via SPNEGO protected proxy")
+    class AsyncViaPwProtectedProxyHttp1Spnego extends HttpAsyncClientHttp1CompatibilityTest {
 
-        public AsyncDirectHttp1Tls() throws Exception {
-            super(targetContainerTlsHost(), null, null);
+        public AsyncViaPwProtectedProxyHttp1Spnego() throws Exception {
+            super(targetInternalHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyAuthenticatedContainerHost(),
+                SpnegoTestUtil.createCredentials(spnegoSubject));
         }
 
     }
 
     @Nested
-    @DisplayName("Async client: HTTP/1.1, TLS, connection via proxy (tunnel)")
+    @DisplayName("Async client: HTTP/1.1, TLS, password, direct connection")
+    class AsyncDirectHttp1TlsPw extends HttpAsyncClientHttp1CompatibilityTest {
+
+        public AsyncDirectHttp1TlsPw() throws Exception {
+            super(targetContainerTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                null,
+                null);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Async client: HTTP/1.1, TLS, SPNEGO, direct connection")
+    class AsyncDirectHttp1TlsSpnego extends HttpAsyncClientHttp1CompatibilityTest {
+
+        public AsyncDirectHttp1TlsSpnego() throws Exception {
+            super(targetContainerTlsHost(),
+                SpnegoTestUtil.createCredentials(spnegoSubject),
+                null,
+                null);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Async client: HTTP/1.1, TLS, password, connection via proxy (tunnel)")
     class AsyncViaProxyHttp1Tls extends HttpAsyncClientHttp1CompatibilityTest {
 
         public AsyncViaProxyHttp1Tls() throws Exception {
-            super(targetInternalTlsHost(), proxyContainerHost(), null);
+            super(targetInternalTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyContainerHost(),
+                null);
         }
 
     }
 
     @Nested
-    @DisplayName("Async client: HTTP/1.1, TLS, connection via password protected proxy (tunnel)")
-    class AsyncViaPwProtectedProxyHttp1Tls extends HttpAsyncClientHttp1CompatibilityTest {
+    @DisplayName("Async client: HTTP/1.1, TLS, password, connection via password protected proxy (tunnel)")
+    class AsyncViaPwProtectedProxyHttp1TlsPw extends HttpAsyncClientHttp1CompatibilityTest {
 
-        public AsyncViaPwProtectedProxyHttp1Tls() throws Exception {
-            super(targetInternalTlsHost(), proxyPwProtectedContainerHost(), new UsernamePasswordCredentials("squid", "nopassword".toCharArray()));
+        public AsyncViaPwProtectedProxyHttp1TlsPw() throws Exception {
+            super(targetInternalTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyAuthenticatedContainerHost(),
+                new UsernamePasswordCredentials("squid", "nopassword".toCharArray()));
         }
 
     }
 
     @Nested
-    @DisplayName("Async client: HTTP/2, plain, direct connection")
-    class AsyncDirectHttp2 extends HttpAsyncClientCompatibilityTest {
+    @DisplayName("Async client: HTTP/1.1, TLS, password, connection via SPNEGO protected proxy (tunnel)")
+    class AsyncViaPwProtectedProxyHttp1TlsSpnego extends HttpAsyncClientHttp1CompatibilityTest {
 
-        public AsyncDirectHttp2() throws Exception {
-            super(HttpVersionPolicy.FORCE_HTTP_2, targetContainerHost(), null, null);
+        public AsyncViaPwProtectedProxyHttp1TlsSpnego() throws Exception {
+            super(targetInternalTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyAuthenticatedContainerHost(),
+                SpnegoTestUtil.createCredentials(spnegoSubject));
         }
 
     }
 
     @Nested
-    @DisplayName("Async client: HTTP/2, TLS, direct connection")
-    class AsyncDirectHttp2Tls extends HttpAsyncClientCompatibilityTest {
+    @DisplayName("Async client: HTTP/2, plain, password, direct connection")
+    class AsyncDirectHttp2Pw extends HttpAsyncClientCompatibilityTest {
 
-        public AsyncDirectHttp2Tls() throws Exception {
-            super(HttpVersionPolicy.FORCE_HTTP_2, targetContainerTlsHost(), null, null);
+        public AsyncDirectHttp2Pw() throws Exception {
+            super(HttpVersionPolicy.FORCE_HTTP_2, targetContainerHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                null,
+                null);
         }
 
     }
 
     @Nested
-    @DisplayName("Async client: HTTP/2, TLS, connection via proxy (tunnel)")
+    @DisplayName("Async client: HTTP/2, plain, SPNEGO, direct connection")
+    class AsyncDirectHttp2Spnego extends HttpAsyncClientCompatibilityTest {
+
+        public AsyncDirectHttp2Spnego() throws Exception {
+            super(HttpVersionPolicy.FORCE_HTTP_2,
+                targetContainerHost(),
+                SpnegoTestUtil.createCredentials(spnegoSubject),
+                null,
+                null);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Async client: HTTP/2, TLS, password, direct connection")
+    class AsyncDirectHttp2TlsPw extends HttpAsyncClientCompatibilityTest {
+
+        public AsyncDirectHttp2TlsPw() throws Exception {
+            super(HttpVersionPolicy.FORCE_HTTP_2,
+                targetContainerTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                null,
+                null);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Async client: HTTP/2, TLS, SPNEGO, direct connection")
+    class AsyncDirectHttp2TlsSpnego extends HttpAsyncClientCompatibilityTest {
+
+        public AsyncDirectHttp2TlsSpnego() throws Exception {
+            super(HttpVersionPolicy.FORCE_HTTP_2,
+                targetContainerTlsHost(),
+                SpnegoTestUtil.createCredentials(spnegoSubject),
+                null,
+                null);
+        }
+
+    }
+    @Nested
+    @DisplayName("Async client: HTTP/2, TLS, password, connection via proxy (tunnel)")
     class AsyncViaProxyHttp2Tls extends HttpAsyncClientCompatibilityTest {
 
         public AsyncViaProxyHttp2Tls() throws Exception {
-            super(HttpVersionPolicy.FORCE_HTTP_2, targetInternalTlsHost(), proxyContainerHost(), null);
+            super(HttpVersionPolicy.FORCE_HTTP_2,
+                targetInternalTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyContainerHost(), null);
         }
 
     }
 
     @Nested
-    @DisplayName("Async client: HTTP/2, TLS, connection via password protected proxy (tunnel)")
+    @DisplayName("Async client: HTTP/2, TLS, password, connection via password protected proxy (tunnel)")
     class AsyncViaPwProtectedProxyHttp2Tls extends HttpAsyncClientCompatibilityTest {
 
         public AsyncViaPwProtectedProxyHttp2Tls() throws Exception {
-            super(HttpVersionPolicy.FORCE_HTTP_2, targetInternalTlsHost(), proxyPwProtectedContainerHost(), new UsernamePasswordCredentials("squid", "nopassword".toCharArray()));
+            super(HttpVersionPolicy.FORCE_HTTP_2,
+                targetInternalTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyAuthenticatedContainerHost(),
+                new UsernamePasswordCredentials("squid", "nopassword".toCharArray()));
         }
 
     }
 
     @Nested
-    @DisplayName("Async client: protocol negotiate, TLS, connection via proxy (tunnel)")
+    @DisplayName("Async client: HTTP/2, TLS, password, connection via SPNEGO protected proxy (tunnel)")
+    class AsyncViaPwProtectedProxyHttp2TlsSpnego extends HttpAsyncClientCompatibilityTest {
+
+        public AsyncViaPwProtectedProxyHttp2TlsSpnego() throws Exception {
+            super(HttpVersionPolicy.FORCE_HTTP_2,
+                targetInternalTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyAuthenticatedContainerHost(),
+                SpnegoTestUtil.createCredentials(spnegoSubject));
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Async client: protocol negotiate, TLS, password, connection via proxy (tunnel)")
     class AsyncViaProxyHttpNegotiateTls extends HttpAsyncClientCompatibilityTest {
 
         public AsyncViaProxyHttpNegotiateTls() throws Exception {
-            super(HttpVersionPolicy.NEGOTIATE, targetInternalTlsHost(), proxyContainerHost(), null);
+            super(HttpVersionPolicy.NEGOTIATE,
+                targetInternalTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyContainerHost(),
+                null);
         }
 
     }
 
     @Nested
-    @DisplayName("Async client: protocol negotiate, TLS, connection via password protected proxy (tunnel)")
+    @DisplayName("Async client: protocol negotiate, TLS, password, connection via password protected proxy (tunnel)")
     class AsyncViaPwProtectedProxyHttpNegotiateTls extends HttpAsyncClientCompatibilityTest {
 
         public AsyncViaPwProtectedProxyHttpNegotiateTls() throws Exception {
-            super(HttpVersionPolicy.NEGOTIATE, targetInternalTlsHost(), proxyPwProtectedContainerHost(), new UsernamePasswordCredentials("squid", "nopassword".toCharArray()));
+            super(HttpVersionPolicy.NEGOTIATE,
+                targetInternalTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyAuthenticatedContainerHost(),
+                new UsernamePasswordCredentials("squid", "nopassword".toCharArray()));
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Async client: protocol negotiate, TLS, password, connection via SPNEGO protected proxy (tunnel)")
+    class AsyncViaPwProtectedProxyHttpNegotiateTlsSpnego extends HttpAsyncClientCompatibilityTest {
+
+        public AsyncViaPwProtectedProxyHttpNegotiateTlsSpnego() throws Exception {
+            super(HttpVersionPolicy.NEGOTIATE,
+                targetInternalTlsHost(),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                proxyAuthenticatedContainerHost(),
+                SpnegoTestUtil.createCredentials(spnegoSubject));
         }
 
     }
@@ -330,7 +592,7 @@ class ApacheHTTPDSquidCompatibilityIT {
     class HttpClientProxy extends HttpClientProxyCompatibilityTest {
 
         public HttpClientProxy() throws Exception {
-            super(targetInternalTlsHost(), proxyPwProtectedContainerHost());
+            super(targetInternalTlsHost(), proxyAuthenticatedContainerHost());
         }
 
     }
@@ -340,7 +602,7 @@ class ApacheHTTPDSquidCompatibilityIT {
     class AsyncClientProxy extends HttpAsyncClientProxyCompatibilityTest {
 
         public AsyncClientProxy() throws Exception {
-            super(targetInternalTlsHost(), proxyPwProtectedContainerHost());
+            super(targetInternalTlsHost(), proxyAuthenticatedContainerHost());
         }
 
     }

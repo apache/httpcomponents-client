@@ -27,9 +27,12 @@
 package org.apache.hc.client5.testing.compatibility.async;
 
 import java.util.Queue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
+
+import javax.security.auth.Subject;
 
 import org.apache.hc.client5.http.ContextBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
@@ -38,11 +41,15 @@ import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.auth.gss.GssCredentials;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.Result;
+import org.apache.hc.client5.testing.compatibility.spnego.SpnegoAuthenticationStrategy;
+import org.apache.hc.client5.testing.compatibility.spnego.SpnegoTestUtil;
 import org.apache.hc.client5.testing.extension.async.HttpAsyncClientResource;
+import org.apache.hc.client5.testing.util.SecurityUtils;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
@@ -54,29 +61,64 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+
 public abstract class HttpAsyncClientCompatibilityTest {
 
     static final Timeout TIMEOUT = Timeout.ofSeconds(5);
     static final Timeout LONG_TIMEOUT = Timeout.ofSeconds(30);
 
     private final HttpVersionPolicy versionPolicy;
-    private final HttpHost target;
+    protected final HttpHost target;
     @RegisterExtension
     private final HttpAsyncClientResource clientResource;
     private final BasicCredentialsProvider credentialsProvider;
+    protected final Credentials targetCreds;
+    protected String secretPath = "/private/big-secret.txt";
+    protected Subject doAs;
 
     public HttpAsyncClientCompatibilityTest(
             final HttpVersionPolicy versionPolicy,
             final HttpHost target,
+            final Credentials targetCreds,
             final HttpHost proxy,
             final Credentials proxyCreds) throws Exception {
+        this(versionPolicy, target, targetCreds, proxy, proxyCreds, null);
+    }
+    
+    public HttpAsyncClientCompatibilityTest(
+            final HttpVersionPolicy versionPolicy,
+            final HttpHost target,
+            final Credentials targetCreds,
+            final HttpHost proxy,
+            final Credentials proxyCreds,
+            final Subject doAs) throws Exception {
+        this.doAs = doAs;
         this.versionPolicy = versionPolicy;
         this.target = target;
-        this.clientResource = new HttpAsyncClientResource(versionPolicy);
-        this.clientResource.configure(builder -> builder.setProxy(proxy));
+        this.targetCreds = targetCreds;
         this.credentialsProvider = new BasicCredentialsProvider();
-        if (proxy != null && proxyCreds != null) {
-            this.credentialsProvider.setCredentials(new AuthScope(proxy), proxyCreds);
+        this.clientResource = new HttpAsyncClientResource(versionPolicy);
+        if (targetCreds != null || doAs != null) {
+            if (targetCreds instanceof GssCredentials || doAs != null) {
+                secretPath = "/private_spnego/big-secret.txt";
+                this.clientResource.configure(builder -> builder
+                    .setTargetAuthenticationStrategy(new SpnegoAuthenticationStrategy())
+                    .setDefaultAuthSchemeRegistry(SpnegoTestUtil.getDefaultSpnegoSchemeRegistry()));
+            }
+        }
+        if (proxy != null) {
+            this.clientResource.configure(builder -> builder.setProxy(proxy));
+            if (proxyCreds != null) {
+                this.setCredentials(new AuthScope(proxy), proxyCreds);
+                if (proxyCreds instanceof GssCredentials) {
+                    // We disable Mutual Auth, because Squid does not support it.
+                    // There is no way to set separate scheme registry for target/proxy,
+                    // but that's not a problem as SPNEGO cannot be proxied anyway.
+                    this.clientResource.configure(builder ->
+                    builder.setProxyAuthenticationStrategy(new SpnegoAuthenticationStrategy())
+                    .setDefaultAuthSchemeRegistry(SpnegoTestUtil.getLegacySpnegoSchemeRegistry()));
+                }
+            }
         }
     }
 
@@ -90,7 +132,7 @@ public abstract class HttpAsyncClientCompatibilityTest {
                 .build();
     }
 
-    void addCredentials(final AuthScope authScope, final Credentials credentials) {
+    void setCredentials(final AuthScope authScope, final Credentials credentials) {
         credentialsProvider.setCredentials(authScope, credentials);
     }
 
@@ -176,15 +218,15 @@ public abstract class HttpAsyncClientCompatibilityTest {
 
     @Test
     void test_auth_failure_wrong_auth_scope() throws Exception {
-        addCredentials(
+        setCredentials(
                 new AuthScope("http", "otherhost", -1, "Restricted Files", null),
-                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
+                targetCreds);
         final CloseableHttpAsyncClient client = client();
         final HttpClientContext context = context();
 
         final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
                 .setHttpHost(target)
-                .setPath("/private/big-secret.txt")
+                .setPath(secretPath)
                 .build();
         final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
         final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -194,7 +236,7 @@ public abstract class HttpAsyncClientCompatibilityTest {
 
     @Test
     void test_auth_failure_wrong_auth_credentials() throws Exception {
-        addCredentials(
+        setCredentials(
                 new AuthScope(target),
                 new UsernamePasswordCredentials("testuser", "wrong password".toCharArray()));
         final CloseableHttpAsyncClient client = client();
@@ -202,7 +244,7 @@ public abstract class HttpAsyncClientCompatibilityTest {
 
         final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
                 .setHttpHost(target)
-                .setPath("/private/big-secret.txt")
+                .setPath(secretPath)
                 .build();
         final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
         final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -212,20 +254,37 @@ public abstract class HttpAsyncClientCompatibilityTest {
 
     @Test
     void test_auth_success() throws Exception {
-        addCredentials(
-                new AuthScope(target),
-                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
+        if (doAs != null) {
+            SecurityUtils.callAs(doAs, () -> {
         final CloseableHttpAsyncClient client = client();
         final HttpClientContext context = context();
 
         final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
                 .setHttpHost(target)
-                .setPath("/private/big-secret.txt")
+                .setPath(secretPath)
                 .build();
         final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
         final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
         Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
         assertProtocolVersion(context);
+        return 0;
+            });
+    } else {
+        setCredentials(
+                new AuthScope(target),
+                targetCreds);
+        final CloseableHttpAsyncClient client = client();
+        final HttpClientContext context = context();
+
+        final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
+                .setHttpHost(target)
+                .setPath(secretPath)
+                .build();
+        final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
+        final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        assertProtocolVersion(context);
+    }
     }
 
 }
