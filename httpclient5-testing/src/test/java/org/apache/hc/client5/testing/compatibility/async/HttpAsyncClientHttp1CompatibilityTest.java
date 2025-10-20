@@ -28,6 +28,8 @@ package org.apache.hc.client5.testing.compatibility.async;
 
 import java.util.concurrent.Future;
 
+import javax.security.auth.Subject;
+
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
@@ -54,6 +56,15 @@ public abstract class HttpAsyncClientHttp1CompatibilityTest extends HttpAsyncCli
         super(HttpVersionPolicy.FORCE_HTTP_1, target, targetCreds, proxy, proxyCreds);
     }
 
+    public HttpAsyncClientHttp1CompatibilityTest(
+            final HttpHost target,
+            final Credentials targetCreds,
+            final HttpHost proxy,
+            final Credentials proxyCreds,
+            final Subject doAs) throws Exception {
+        super(HttpVersionPolicy.FORCE_HTTP_1, target, targetCreds, proxy, proxyCreds, doAs);
+    }
+    
     @Test
     void test_auth_success_no_keep_alive() throws Exception {
         setCredentials(

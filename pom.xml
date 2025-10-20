@@ -406,6 +406,8 @@
         <version>${hc.surefire.version}</version>
         <configuration>
           <excludedGroups>slow</excludedGroups>
+                      <configuration><jdkToolchain><version>25</version></jdkToolchain></configuration>
+<redirectTestOutputToFile>true</redirectTestOutputToFile>
         </configuration>
       </plugin>
     </plugins>
@@ -423,6 +425,9 @@
             <version>${hc.surefire.version}</version>
               <configuration combine.self="override">
                 <groups>slow</groups>
+                      <configuration><jdkToolchain><version>25</version></jdkToolchain></configuration>
+<redirectTestOutputToFile>true</redirectTestOutputToFile>
+
               </configuration>
           </plugin>
 

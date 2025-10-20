@@ -136,6 +136,10 @@
         <version>3.2.5</version>
         <configuration>
           <useModulePath>false</useModulePath>
+                      <configuration><jdkToolchain><version>25</version></jdkToolchain>
+                      <redirectTestOutputToFile>true</redirectTestOutputToFile>
+</configuration>
+
         </configuration>
       </plugin>
       <plugin>

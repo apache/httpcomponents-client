@@ -42,6 +42,7 @@ import org.apache.hc.client5.testing.compatibility.async.HttpAsyncClientProxyCom
 import org.apache.hc.client5.testing.compatibility.spnego.SpnegoTestUtil;
 import org.apache.hc.client5.testing.compatibility.sync.CachingHttpClientCompatibilityTest;
 import org.apache.hc.client5.testing.compatibility.sync.HttpClientCompatibilityTest;
+import org.apache.hc.client5.testing.compatibility.sync.HttpClientCompatibilityTest2;
 import org.apache.hc.client5.testing.compatibility.sync.HttpClientProxyCompatibilityTest;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
@@ -154,6 +155,20 @@ class ApacheHTTPDSquidCompatibilityIT {
     }
 
     @Nested
+    @DisplayName("Classic client: HTTP/1.1, plain, SPNEGO, direct connection, doAs")
+    class ClassicDirectHttpSpnegDoAs extends HttpClientCompatibilityTest2 {
+
+        public ClassicDirectHttpSpnegDoAs() throws Exception {
+            super(targetContainerHost(),
+                null,
+                null,
+                null,
+                spnegoSubject);
+        }
+
+    }
+    
+    @Nested
     @DisplayName("Classic client: HTTP/1.1, plain, password, connection via proxy")
     class ClassicViaProxyHttp extends HttpClientCompatibilityTest {
 
@@ -257,6 +272,20 @@ class ApacheHTTPDSquidCompatibilityIT {
 
     }
 
+    @Nested
+    @DisplayName("Async client: HTTP/1.1, plain, SPNEGO, direct connection DOAS")
+    class AsyncDirectHttp1SpnegoDoAs extends HttpAsyncClientHttp1CompatibilityTest {
+
+        public AsyncDirectHttp1SpnegoDoAs() throws Exception {
+            super(targetContainerHost(),
+                SpnegoTestUtil.createCredentials(spnegoSubject),
+                null,
+                null,
+                spnegoSubject);
+        }
+
+    }
+    
     @Nested
     @DisplayName("Async client: HTTP/1.1, plain, password, connection via proxy")
     class AsyncViaProxyHttp1 extends HttpAsyncClientHttp1CompatibilityTest {

@@ -319,6 +319,8 @@ public abstract class GssSchemeBase implements AuthScheme {
             final Oid oid,
             final GSSName peerName,
             final GSSCredential gssCredential) throws GSSException {
+        LOG.error("XXXX", new Exception("XXXX"));
+        (new Exception("XXXX")).printStackTrace();
         final GSSContext gssContext = manager.createContext(peerName.canonicalize(oid), oid, gssCredential,
                 GSSContext.DEFAULT_LIFETIME);
         gssContext.requestMutualAuth(config.isRequestMutualAuth());

@@ -27,9 +27,12 @@
 package org.apache.hc.client5.testing.compatibility.async;
 
 import java.util.Queue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
+
+import javax.security.auth.Subject;
 
 import org.apache.hc.client5.http.ContextBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
@@ -46,6 +49,7 @@ import org.apache.hc.client5.testing.Result;
 import org.apache.hc.client5.testing.compatibility.spnego.SpnegoAuthenticationStrategy;
 import org.apache.hc.client5.testing.compatibility.spnego.SpnegoTestUtil;
 import org.apache.hc.client5.testing.extension.async.HttpAsyncClientResource;
+import org.apache.hc.client5.testing.util.SecurityUtils;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
@@ -56,6 +60,7 @@ import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
 
 public abstract class HttpAsyncClientCompatibilityTest {
 
@@ -69,6 +74,7 @@ public abstract class HttpAsyncClientCompatibilityTest {
     private final BasicCredentialsProvider credentialsProvider;
     protected final Credentials targetCreds;
     protected String secretPath = "/private/big-secret.txt";
+    protected Subject doAs;
 
     public HttpAsyncClientCompatibilityTest(
             final HttpVersionPolicy versionPolicy,
@@ -76,14 +82,24 @@ public abstract class HttpAsyncClientCompatibilityTest {
             final Credentials targetCreds,
             final HttpHost proxy,
             final Credentials proxyCreds) throws Exception {
+        this(versionPolicy, target, targetCreds, proxy, proxyCreds, null);
+    }
+    
+    public HttpAsyncClientCompatibilityTest(
+            final HttpVersionPolicy versionPolicy,
+            final HttpHost target,
+            final Credentials targetCreds,
+            final HttpHost proxy,
+            final Credentials proxyCreds,
+            final Subject doAs) throws Exception {
+        this.doAs = doAs;
         this.versionPolicy = versionPolicy;
         this.target = target;
         this.targetCreds = targetCreds;
         this.credentialsProvider = new BasicCredentialsProvider();
         this.clientResource = new HttpAsyncClientResource(versionPolicy);
-        if (targetCreds != null) {
-            //this.setCredentials(new AuthScope(target), targetCreds);
-            if (targetCreds instanceof GssCredentials) {
+        if (targetCreds != null || doAs != null) {
+            if (targetCreds instanceof GssCredentials || doAs != null) {
                 secretPath = "/private_spnego/big-secret.txt";
                 this.clientResource.configure(builder -> builder
                     .setTargetAuthenticationStrategy(new SpnegoAuthenticationStrategy())
@@ -238,6 +254,22 @@ public abstract class HttpAsyncClientCompatibilityTest {
 
     @Test
     void test_auth_success() throws Exception {
+        if (doAs != null) {
+            SecurityUtils.callAs(doAs, () -> {
+        final CloseableHttpAsyncClient client = client();
+        final HttpClientContext context = context();
+
+        final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
+                .setHttpHost(target)
+                .setPath(secretPath)
+                .build();
+        final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
+        final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        assertProtocolVersion(context);
+        return 0;
+            });
+    } else {
         setCredentials(
                 new AuthScope(target),
                 targetCreds);
@@ -252,6 +284,7 @@ public abstract class HttpAsyncClientCompatibilityTest {
         final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
         Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
         assertProtocolVersion(context);
+    }
     }
 
 }
