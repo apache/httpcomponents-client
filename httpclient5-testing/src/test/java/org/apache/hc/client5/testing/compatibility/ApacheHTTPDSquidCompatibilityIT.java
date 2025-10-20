@@ -135,6 +135,7 @@ class ApacheHTTPDSquidCompatibilityIT {
             super(targetContainerHost(),
                 new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
                 null,
+                null,
                 null);
         }
 
@@ -148,7 +149,8 @@ class ApacheHTTPDSquidCompatibilityIT {
             super(targetContainerHost(),
                 SpnegoTestUtil.createCredentials(spnegoSubject),
                 null,
-                null);
+                null,
+                spnegoSubject);
         }
 
     }
@@ -161,6 +163,7 @@ class ApacheHTTPDSquidCompatibilityIT {
             super(targetInternalHost(),
                 new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
                 proxyContainerHost(),
+                null,
                 null);
         }
 
@@ -173,6 +176,7 @@ class ApacheHTTPDSquidCompatibilityIT {
         public ClassicDirectHttpTlsPw() throws Exception {
             super(targetContainerTlsHost(),
                 new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
+                null,
                 null,
                 null);
         }
@@ -187,7 +191,8 @@ class ApacheHTTPDSquidCompatibilityIT {
             super(targetContainerTlsHost(),
                 SpnegoTestUtil.createCredentials(spnegoSubject),
                 null,
-                null);
+                null,
+                spnegoSubject);
         }
 
     }
@@ -200,6 +205,7 @@ class ApacheHTTPDSquidCompatibilityIT {
             super(targetInternalTlsHost(),
                 new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
                 proxyContainerHost(),
+                null,
                 null);
         }
 
@@ -213,7 +219,8 @@ class ApacheHTTPDSquidCompatibilityIT {
             super(targetInternalTlsHost(),
                 new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
                 proxyAuthenticatedContainerHost(),
-                new UsernamePasswordCredentials("squid", "nopassword".toCharArray()));
+                new UsernamePasswordCredentials("squid", "nopassword".toCharArray()),
+                null);
         }
 
     }
@@ -226,7 +233,8 @@ class ApacheHTTPDSquidCompatibilityIT {
             super(targetInternalTlsHost(),
                 new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()),
                 proxyAuthenticatedContainerHost(),
-                SpnegoTestUtil.createCredentials(spnegoSubject));
+                SpnegoTestUtil.createCredentials(spnegoSubject),
+                null);
         }
 
     }

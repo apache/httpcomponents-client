@@ -27,6 +27,10 @@
 package org.apache.hc.client5.testing.compatibility.sync;
 
 
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+
+import javax.security.auth.Subject;
+
 import org.apache.hc.client5.http.ContextBuilder;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -41,6 +45,7 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.compatibility.spnego.SpnegoAuthenticationStrategy;
 import org.apache.hc.client5.testing.compatibility.spnego.SpnegoTestUtil;
 import org.apache.hc.client5.testing.extension.sync.HttpClientResource;
+import org.apache.hc.client5.testing.util.SecurityUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -59,16 +64,18 @@ public abstract class HttpClientCompatibilityTest {
     private final HttpClientResource clientResource;
     private final CredentialsStore credentialsProvider;
     private final Credentials targetCreds;
+    private Subject callAs;
     private String secretPath = "/private/big-secret.txt";
 
-    public HttpClientCompatibilityTest(final HttpHost target, final Credentials targetCreds, final HttpHost proxy, final Credentials proxyCreds) throws Exception {
+    public HttpClientCompatibilityTest(final HttpHost target, final Credentials targetCreds, final HttpHost proxy, final Credentials proxyCreds, final Subject callAs) throws Exception {
         this.target = target;
         this.targetCreds = targetCreds;
+        this.callAs = callAs;
         this.credentialsProvider = new BasicCredentialsProvider();
         this.clientResource = new HttpClientResource();
-        if (targetCreds != null) {
+        if (targetCreds != null || callAs != null) {
             //this.setCredentials(new AuthScope(target), targetCreds);
-            if (targetCreds instanceof GssCredentials) {
+            if (targetCreds instanceof GssCredentials || callAs != null) {
                 secretPath = "/private_spnego/big-secret.txt";
                 this.clientResource.configure(builder -> builder
                     .setTargetAuthenticationStrategy(new SpnegoAuthenticationStrategy())
@@ -183,6 +190,19 @@ public abstract class HttpClientCompatibilityTest {
     void test_correct_target_credentials() throws Exception {
         setCredentials(
                 new AuthScope(target), targetCreds);
+        test_correct_target_credentials_int();
+    }
+
+    @Test
+    void test_correct_target_credentials_call_as() throws Exception {
+        assumeFalse(callAs == null);
+        SecurityUtils.callAs(callAs, () -> {
+         test_correct_target_credentials_int();
+         return 0;
+        });
+    }
+
+    private void test_correct_target_credentials_int() throws Exception {
         final CloseableHttpClient client = client();
         final HttpClientContext context = context();
 
@@ -197,6 +217,19 @@ public abstract class HttpClientCompatibilityTest {
     void test_correct_target_credentials_no_keep_alive() throws Exception {
         setCredentials(
                 new AuthScope(target), targetCreds);
+        test_correct_target_credentials_no_keep_alive_int();
+    }
+
+    @Test
+    void test_correct_target_credentials_no_keep_alive_call_as() throws Exception {
+        assumeFalse(callAs == null);
+        SecurityUtils.callAs(callAs, () -> {
+         test_correct_target_credentials_int();
+         return 0;
+        });
+    }
+
+    private void test_correct_target_credentials_no_keep_alive_int() throws Exception {
         final CloseableHttpClient client = client();
         final HttpClientContext context = context();
 
@@ -208,5 +241,4 @@ public abstract class HttpClientCompatibilityTest {
             EntityUtils.consume(response.getEntity());
         }
     }
-
 }
