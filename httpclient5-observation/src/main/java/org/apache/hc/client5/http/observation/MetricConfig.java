@@ -52,7 +52,7 @@ public final class MetricConfig {
     public final Duration slo;
 
     /**
-     * Percentiles to publish (e.g., 0.95, 0.99). Empty => none.
+     * Percentiles to publish (e.g., 0.95, 0.99). Empty - none.
      */
     public final double[] percentiles;
 
