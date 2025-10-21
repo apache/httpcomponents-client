@@ -24,7 +24,9 @@ Notable changes and features included in the 5.6 series:
 
 * Off-lock connection disposal by the classic pooling connection manager. Experimental.
 
-* SCRAM-SHA-256 authentication scheme (RFC 7804), Experimental.
+* SCRAM-SHA-256 authentication scheme (RFC 7804). Experimental.
+
+* Request Priority support (RFC 9218). Experimental.
 
 
 Compatibility notes:
