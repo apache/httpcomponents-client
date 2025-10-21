@@ -27,21 +27,16 @@
 
 package org.apache.hc.client5.http.protocol;
 
-import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.hc.client5.http.config.ExpectContinueTrigger;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElements;
-import org.apache.hc.core5.http.HttpConnectionMetrics;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.impl.BasicEndpointDetails;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
-import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -124,94 +119,4 @@ class TestRequestExpectContinue {
         Assertions.assertEquals(0, request.getHeaders().length);
     }
 
-
-    @Test
-    void testRequestExpectContinueIfReused() throws Exception {
-        final HttpClientContext context = HttpClientContext.create();
-        final RequestConfig config = RequestConfig.custom()
-                .setExpectContinueEnabled(true)
-                .setExpectContinueTrigger(ExpectContinueTrigger.IF_REUSED)
-                .build();
-        context.setRequestConfig(config);
-
-        final HttpConnectionMetrics metrics = new HttpConnectionMetrics() {
-            @Override
-            public long getRequestCount() {
-                return 1;
-            }
-
-            @Override
-            public long getResponseCount() {
-                return 0;
-            }
-
-            @Override
-            public long getSentBytesCount() {
-                return 0;
-            }
-
-            @Override
-            public long getReceivedBytesCount() {
-                return 0;
-            }
-        };
-
-        final BasicEndpointDetails reused = new BasicEndpointDetails(
-                new InetSocketAddress("localhost", 0),
-                new InetSocketAddress("localhost", 80),
-                metrics,
-                Timeout.ofSeconds(30));
-        context.setEndpointDetails(reused);
-
-        final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
-        request.setEntity(new StringEntity("data", StandardCharsets.US_ASCII));
-
-        new RequestExpectContinue().process(request, request.getEntity(), context);
-
-        final Header header = request.getFirstHeader(HttpHeaders.EXPECT);
-        Assertions.assertNotNull(header);
-        Assertions.assertEquals(HeaderElements.CONTINUE, header.getValue());
-    }
-
-    @Test
-    void testNoExpectContinueFreshConnectionWithIfReused() throws Exception {
-        final HttpClientContext context = HttpClientContext.create();
-        final RequestConfig cfg = RequestConfig.custom()
-                .setExpectContinueEnabled(true)
-                .setExpectContinueTrigger(ExpectContinueTrigger.IF_REUSED)
-                .build();
-        context.setRequestConfig(cfg);
-
-        // fresh endpoint: requestCount == 0
-        context.setEndpointDetails(new BasicEndpointDetails(
-                new InetSocketAddress("localhost", 0),
-                new InetSocketAddress("localhost", 80),
-                null,
-                Timeout.ofSeconds(30)));
-
-        final ClassicHttpRequest req = new BasicClassicHttpRequest("POST", "/");
-        req.setEntity(new StringEntity("data", StandardCharsets.US_ASCII));
-
-        new RequestExpectContinue().process(req, req.getEntity(), context);
-
-        Assertions.assertNull(req.getFirstHeader(HttpHeaders.EXPECT));
-    }
-
-    @Test
-    void testHeaderAlreadyPresentIsNotDuplicated() throws Exception {
-        final HttpClientContext context = HttpClientContext.create();
-        final RequestConfig cfg = RequestConfig.custom()
-                .setExpectContinueEnabled(true)
-                .build();                      // default trigger = ALWAYS
-        context.setRequestConfig(cfg);
-
-        final ClassicHttpRequest req = new BasicClassicHttpRequest("POST", "/");
-        req.setEntity(new StringEntity("data", StandardCharsets.US_ASCII));
-        req.addHeader(HttpHeaders.EXPECT, HeaderElements.CONTINUE); // pre-existing
-
-        new RequestExpectContinue().process(req, req.getEntity(), context);
-
-        final Header[] headers = req.getHeaders(HttpHeaders.EXPECT);
-        Assertions.assertEquals(1, headers.length);                 // no duplicates
-    }
 }

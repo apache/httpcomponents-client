@@ -36,7 +36,6 @@ import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http2.priority.PriorityValue;
-import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
@@ -68,9 +67,6 @@ public class RequestConfig implements Cloneable {
     private final boolean hardCancellationEnabled;
     private final boolean protocolUpgradeEnabled;
     private final Path unixDomainSocket;
-
-    private final ExpectContinueTrigger expectContinueTrigger;
-
     /**
      * HTTP/2 Priority header value to emit when using H2+. Null means “don’t emit”.
      */
@@ -82,7 +78,7 @@ public class RequestConfig implements Cloneable {
     protected RequestConfig() {
         this(false, null, null, false, false, 0, false, null, null,
                 DEFAULT_CONNECTION_REQUEST_TIMEOUT, null, null, DEFAULT_CONN_KEEP_ALIVE, false, false, false, null,
-                ExpectContinueTrigger.ALWAYS, null);
+                null);
     }
 
     RequestConfig(
@@ -103,7 +99,6 @@ public class RequestConfig implements Cloneable {
             final boolean hardCancellationEnabled,
             final boolean protocolUpgradeEnabled,
             final Path unixDomainSocket,
-            final ExpectContinueTrigger expectContinueTrigger,
             final PriorityValue h2Priority) {
         super();
         this.expectContinueEnabled = expectContinueEnabled;
@@ -123,7 +118,6 @@ public class RequestConfig implements Cloneable {
         this.hardCancellationEnabled = hardCancellationEnabled;
         this.protocolUpgradeEnabled = protocolUpgradeEnabled;
         this.unixDomainSocket = unixDomainSocket;
-        this.expectContinueTrigger = expectContinueTrigger;
         this.h2Priority = h2Priority;
     }
 
@@ -249,10 +243,6 @@ public class RequestConfig implements Cloneable {
         return unixDomainSocket;
     }
 
-    public ExpectContinueTrigger getExpectContinueTrigger() {
-        return expectContinueTrigger;
-    }
-
     /**
      * Returns the HTTP/2+ priority preference for this request or {@code null} if unset.
      * @since 5.6
@@ -288,6 +278,7 @@ public class RequestConfig implements Cloneable {
         builder.append(", hardCancellationEnabled=").append(hardCancellationEnabled);
         builder.append(", protocolUpgradeEnabled=").append(protocolUpgradeEnabled);
         builder.append(", unixDomainSocket=").append(unixDomainSocket);
+        builder.append(", h2Priority=").append(h2Priority);
         builder.append("]");
         return builder.toString();
     }
@@ -337,7 +328,6 @@ public class RequestConfig implements Cloneable {
         private boolean hardCancellationEnabled;
         private boolean protocolUpgradeEnabled;
         private Path unixDomainSocket;
-        private ExpectContinueTrigger expectContinueTrigger;
         private PriorityValue h2Priority;
 
         Builder() {
@@ -349,7 +339,6 @@ public class RequestConfig implements Cloneable {
             this.contentCompressionEnabled = true;
             this.hardCancellationEnabled = true;
             this.protocolUpgradeEnabled = true;
-            this.expectContinueTrigger = ExpectContinueTrigger.ALWAYS;
         }
 
         /**
@@ -698,20 +687,6 @@ public class RequestConfig implements Cloneable {
         }
 
         /**
-         * Defines under which circumstances the client should add the
-         * {@code Expect: 100-continue} header to entity-enclosing requests.
-         *
-         * @param trigger expectation-continue trigger strategy
-         * @return this builder
-         * @see ExpectContinueTrigger
-         * @since 5.6
-         */
-        public Builder setExpectContinueTrigger(final ExpectContinueTrigger trigger) {
-            this.expectContinueTrigger = Args.notNull(trigger, "ExpectContinueTrigger");
-            return this;
-        }
-
-        /**
          * Sets HTTP/2+ request priority. If {@code null}, the header is not emitted.
          * @since 5.6
          */
@@ -740,7 +715,6 @@ public class RequestConfig implements Cloneable {
                     hardCancellationEnabled,
                     protocolUpgradeEnabled,
                     unixDomainSocket,
-                    expectContinueTrigger,
                     h2Priority);
         }
 
