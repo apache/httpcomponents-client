@@ -62,7 +62,7 @@ import org.slf4j.LoggerFactory;
  * This class is derived from the old {@link org.apache.hc.client5.http.impl.auth.GGSSchemeBase}
  * class, which was deprecated in 5.3.
  *
- * @since 5.5
+ * @since 5.6
  *
  * @see GGSSchemeBase
  */

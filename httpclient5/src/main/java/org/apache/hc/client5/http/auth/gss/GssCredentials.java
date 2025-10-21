@@ -37,7 +37,7 @@ import org.ietf.jgss.GSSCredential;
 /**
  * Kerberos specific {@link Credentials} representation based on {@link GSSCredential}.
  *
- * @since 5.5
+ * @since 5.6
  *
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)

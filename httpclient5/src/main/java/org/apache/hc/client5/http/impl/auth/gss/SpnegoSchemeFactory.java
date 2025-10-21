@@ -42,7 +42,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * This replaces the old deprecated {@link org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory}
  * </p>
  *
- * @since 5.5
+ * @since 5.6
  *
  * @see SPNegoSchemeFactory
  */
@@ -63,7 +63,7 @@ public class SpnegoSchemeFactory implements AuthSchemeFactory {
     private final DnsResolver dnsResolver;
 
     /**
-     * @since 5.5
+     * @since 5.6
      */
     public SpnegoSchemeFactory(final org.apache.hc.client5.http.auth.gss.GssConfig config, final DnsResolver dnsResolver) {
         super();

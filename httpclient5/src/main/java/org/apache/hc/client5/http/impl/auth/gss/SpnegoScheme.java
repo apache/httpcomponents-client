@@ -78,7 +78,7 @@ import org.ietf.jgss.Oid;
  * }
  * </pre>
  *
- * @since 5.5
+ * @since 5.6
  */
 public class SpnegoScheme extends GssSchemeBase {
 

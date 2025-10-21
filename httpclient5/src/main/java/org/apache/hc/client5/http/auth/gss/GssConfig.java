@@ -40,7 +40,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  * Compared to {@link KerberosConfig} stripPort has been changed to addPort, and the default is now
  * false (same effect). The default for useCanonicalHostname has been changed to false from true.
  *
- * @since 5.5
+ * @since 5.6
  *
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
