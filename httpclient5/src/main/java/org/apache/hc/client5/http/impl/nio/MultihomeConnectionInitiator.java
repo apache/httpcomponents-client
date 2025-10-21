@@ -31,6 +31,8 @@ import java.net.SocketAddress;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.SystemDefaultDnsResolver;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -54,8 +56,19 @@ public final class MultihomeConnectionInitiator implements ConnectionInitiator {
     public MultihomeConnectionInitiator(
             final ConnectionInitiator connectionInitiator,
             final DnsResolver dnsResolver) {
+        this(connectionInitiator, dnsResolver, null);
+    }
+
+    /**
+     * @since 5.6
+     */
+    public MultihomeConnectionInitiator(
+            final ConnectionInitiator connectionInitiator,
+            final DnsResolver dnsResolver,
+            final ConnectionConfig connectionConfig) {
         this.connectionInitiator = Args.notNull(connectionInitiator, "Connection initiator");
-        this.sessionRequester = new MultihomeIOSessionRequester(dnsResolver);
+        final DnsResolver effectiveResolver = dnsResolver != null ? dnsResolver : SystemDefaultDnsResolver.INSTANCE;
+        this.sessionRequester = new MultihomeIOSessionRequester(effectiveResolver, connectionConfig);
     }
 
     @Override
