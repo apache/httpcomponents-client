@@ -26,17 +26,26 @@
  */
 package org.apache.hc.client5.testing.compatibility.sync;
 
+
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+
+import javax.security.auth.Subject;
+
 import org.apache.hc.client5.http.ContextBuilder;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.auth.gss.GssCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpOptions;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.testing.compatibility.spnego.SpnegoAuthenticationStrategy;
+import org.apache.hc.client5.testing.compatibility.spnego.SpnegoTestUtil;
 import org.apache.hc.client5.testing.extension.sync.HttpClientResource;
+import org.apache.hc.client5.testing.util.SecurityUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -54,14 +63,38 @@ public abstract class HttpClientCompatibilityTest {
     @RegisterExtension
     private final HttpClientResource clientResource;
     private final CredentialsStore credentialsProvider;
+    private final Credentials targetCreds;
+    private Subject callAs;
+    private String secretPath = "/private/big-secret.txt";
 
-    public HttpClientCompatibilityTest(final HttpHost target, final HttpHost proxy, final Credentials proxyCreds) throws Exception {
+    public HttpClientCompatibilityTest(final HttpHost target, final Credentials targetCreds, final HttpHost proxy, final Credentials proxyCreds, final Subject callAs) throws Exception {
         this.target = target;
-        this.clientResource = new HttpClientResource();
-        this.clientResource.configure(builder -> builder.setProxy(proxy));
+        this.targetCreds = targetCreds;
+        this.callAs = callAs;
         this.credentialsProvider = new BasicCredentialsProvider();
-        if (proxy != null && proxyCreds != null) {
-            this.addCredentials(new AuthScope(proxy), proxyCreds);
+        this.clientResource = new HttpClientResource();
+        if (targetCreds != null || callAs != null) {
+            //this.setCredentials(new AuthScope(target), targetCreds);
+            if (targetCreds instanceof GssCredentials || callAs != null) {
+                secretPath = "/private_spnego/big-secret.txt";
+                this.clientResource.configure(builder -> builder
+                    .setTargetAuthenticationStrategy(new SpnegoAuthenticationStrategy())
+                    .setDefaultAuthSchemeRegistry(SpnegoTestUtil.getDefaultSpnegoSchemeRegistry()));
+            }
+        }
+        if (proxy != null) {
+            this.clientResource.configure(builder -> builder.setProxy(proxy));
+            if (proxyCreds != null) {
+                this.setCredentials(new AuthScope(proxy), proxyCreds);
+                if (proxyCreds instanceof GssCredentials) {
+                    // We disable Mutual Auth, because Squid does not support it.
+                    // There is no way to set separate scheme registry for target/proxy,
+                    // but that's not a problem as SPNEGO cannot be proxied anyway.
+                    this.clientResource.configure(builder ->
+                    builder.setProxyAuthenticationStrategy(new SpnegoAuthenticationStrategy())
+                    .setDefaultAuthSchemeRegistry(SpnegoTestUtil.getLegacySpnegoSchemeRegistry()));
+                }
+            }
         }
     }
 
@@ -75,7 +108,7 @@ public abstract class HttpClientCompatibilityTest {
                 .build();
     }
 
-    void addCredentials(final AuthScope authScope, final Credentials credentials) {
+    void setCredentials(final AuthScope authScope, final Credentials credentials) {
         credentialsProvider.setCredentials(authScope, credentials);
     }
 
@@ -123,14 +156,14 @@ public abstract class HttpClientCompatibilityTest {
 
     @Test
     void test_wrong_target_auth_scope() throws Exception {
-        addCredentials(
+        setCredentials(
                 new AuthScope("http", "otherhost", -1, "Restricted Files", null),
                 new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
 
         final CloseableHttpClient client = client();
         final HttpClientContext context = context();
 
-        final ClassicHttpRequest request = new HttpGet("/private/big-secret.txt");
+        final ClassicHttpRequest request = new HttpGet(secretPath);
         try (ClassicHttpResponse response = client.executeOpen(target, request, context)) {
             Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             EntityUtils.consume(response.getEntity());
@@ -139,14 +172,14 @@ public abstract class HttpClientCompatibilityTest {
 
     @Test
     void test_wrong_target_credentials() throws Exception {
-        addCredentials(
+        setCredentials(
                 new AuthScope(target),
                 new UsernamePasswordCredentials("testuser", "wrong password".toCharArray()));
 
         final CloseableHttpClient client = client();
         final HttpClientContext context = context();
 
-        final ClassicHttpRequest request = new HttpGet("/private/big-secret.txt");
+        final ClassicHttpRequest request = new HttpGet(secretPath);
         try (ClassicHttpResponse response = client.executeOpen(target, request, context)) {
             Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             EntityUtils.consume(response.getEntity());
@@ -155,13 +188,25 @@ public abstract class HttpClientCompatibilityTest {
 
     @Test
     void test_correct_target_credentials() throws Exception {
-        addCredentials(
-                new AuthScope(target),
-                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
+        setCredentials(
+                new AuthScope(target), targetCreds);
+        test_correct_target_credentials_int();
+    }
+
+    @Test
+    void test_correct_target_credentials_call_as() throws Exception {
+        assumeFalse(callAs == null);
+        SecurityUtils.callAs(callAs, () -> {
+         test_correct_target_credentials_int();
+         return 0;
+        });
+    }
+
+    private void test_correct_target_credentials_int() throws Exception {
         final CloseableHttpClient client = client();
         final HttpClientContext context = context();
 
-        final ClassicHttpRequest request = new HttpGet("/private/big-secret.txt");
+        final ClassicHttpRequest request = new HttpGet(secretPath);
         try (ClassicHttpResponse response = client.executeOpen(target, request, context)) {
             Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             EntityUtils.consume(response.getEntity());
@@ -170,13 +215,25 @@ public abstract class HttpClientCompatibilityTest {
 
     @Test
     void test_correct_target_credentials_no_keep_alive() throws Exception {
-        addCredentials(
-                new AuthScope(target),
-                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
+        setCredentials(
+                new AuthScope(target), targetCreds);
+        test_correct_target_credentials_no_keep_alive_int();
+    }
+
+    @Test
+    void test_correct_target_credentials_no_keep_alive_call_as() throws Exception {
+        assumeFalse(callAs == null);
+        SecurityUtils.callAs(callAs, () -> {
+         test_correct_target_credentials_int();
+         return 0;
+        });
+    }
+
+    private void test_correct_target_credentials_no_keep_alive_int() throws Exception {
         final CloseableHttpClient client = client();
         final HttpClientContext context = context();
 
-        final ClassicHttpRequest request = ClassicRequestBuilder.get("/private/big-secret.txt")
+        final ClassicHttpRequest request = ClassicRequestBuilder.get(secretPath)
                 .addHeader(HttpHeaders.CONNECTION, "close")
                 .build();
         try (ClassicHttpResponse response = client.executeOpen(target, request, context)) {
@@ -184,5 +241,4 @@ public abstract class HttpClientCompatibilityTest {
             EntityUtils.consume(response.getEntity());
         }
     }
-
 }
