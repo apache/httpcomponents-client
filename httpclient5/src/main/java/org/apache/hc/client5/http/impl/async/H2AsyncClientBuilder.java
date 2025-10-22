@@ -29,8 +29,6 @@ package org.apache.hc.client5.http.impl.async;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -754,7 +752,7 @@ public class H2AsyncClientBuilder {
         String userAgentCopy = this.userAgent;
         if (userAgentCopy == null) {
             if (systemProperties) {
-                userAgentCopy = getProperty("http.agent", null);
+                userAgentCopy = System.getProperty("http.agent", null);
             }
             if (userAgentCopy == null) {
                 userAgentCopy = VersionInfo.getSoftwareInfo("Apache-HttpAsyncClient",
@@ -979,10 +977,6 @@ public class H2AsyncClientBuilder {
                 credentialsProviderCopy,
                 defaultRequestConfig,
                 closeablesCopy);
-    }
-
-    private static String getProperty(final String key, final String defaultValue) {
-        return AccessController.doPrivileged((PrivilegedAction<String>) () -> System.getProperty(key, defaultValue));
     }
 
     static class IdleConnectionEvictor implements Closeable {

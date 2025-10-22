@@ -27,9 +27,6 @@
 
 package org.apache.hc.client5.http.ssl;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-
 import javax.net.ssl.HostnameVerifier;
 
 import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
@@ -49,16 +46,12 @@ public final class HttpsSupport {
         return s.split(" *, *");
     }
 
-    private static String getProperty(final String key) {
-        return AccessController.doPrivileged((PrivilegedAction<String>) () -> System.getProperty(key));
-    }
-
     public static String[] getSystemProtocols() {
-        return split(getProperty("https.protocols"));
+        return split(System.getProperty("https.protocols"));
     }
 
     public static String[] getSystemCipherSuits() {
-        return split(getProperty("https.cipherSuites"));
+        return split(System.getProperty("https.cipherSuites"));
     }
 
     public static HostnameVerifier getDefaultHostnameVerifier() {
