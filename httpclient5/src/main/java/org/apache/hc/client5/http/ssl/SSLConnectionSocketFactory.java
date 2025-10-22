@@ -33,9 +33,6 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -66,7 +63,6 @@ import org.apache.hc.core5.io.Closer;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
@@ -279,19 +275,7 @@ public class SSLConnectionSocketFactory implements org.apache.hc.client5.http.so
         if (LOG.isDebugEnabled()) {
             LOG.debug("Connecting socket to {} with timeout {}", remoteAddress, connectTimeout);
         }
-        // Run this under a doPrivileged to support lib users that run under a SecurityManager this allows granting connect permissions
-        // only to this library
-        try {
-            AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> {
-                sock.connect(remoteAddress, Timeout.defaultsToDisabled(connectTimeout).toMillisecondsIntBound());
-                return null;
-            });
-        } catch (final PrivilegedActionException e) {
-            Asserts.check(e.getCause() instanceof IOException,
-                    "method contract violation only checked exceptions are wrapped: " + e.getCause());
-            // only checked exceptions are wrapped - error and RTExceptions are rethrown by doPrivileged
-            throw (IOException) e.getCause();
-        }
+        sock.connect(remoteAddress, Timeout.defaultsToDisabled(connectTimeout).toMillisecondsIntBound());
     }
 
     @Override

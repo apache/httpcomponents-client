@@ -29,8 +29,6 @@ package org.apache.hc.client5.http.impl.async;
 
 import java.io.Closeable;
 import java.net.ProxySelector;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -1001,7 +999,7 @@ public class HttpAsyncClientBuilder {
         String userAgentCopy = this.userAgent;
         if (userAgentCopy == null) {
             if (systemProperties) {
-                userAgentCopy = getProperty("http.agent", null);
+                userAgentCopy = System.getProperty("http.agent", null);
             }
             if (userAgentCopy == null) {
                 userAgentCopy = VersionInfo.getSoftwareInfo("Apache-HttpAsyncClient",
@@ -1121,7 +1119,7 @@ public class HttpAsyncClientBuilder {
             } else if (this.proxySelector != null) {
                 routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, this.proxySelector);
             } else if (systemProperties) {
-                final ProxySelector defaultProxySelector = AccessController.doPrivileged((PrivilegedAction<ProxySelector>) ProxySelector::getDefault);
+                final ProxySelector defaultProxySelector = ProxySelector.getDefault();
                 routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, defaultProxySelector);
             } else {
                 routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
@@ -1159,7 +1157,7 @@ public class HttpAsyncClientBuilder {
         ConnectionReuseStrategy reuseStrategyCopy = this.reuseStrategy;
         if (reuseStrategyCopy == null) {
             if (systemProperties) {
-                final String s = getProperty("http.keepAlive", "true");
+                final String s = System.getProperty("http.keepAlive", "true");
                 if ("true".equalsIgnoreCase(s)) {
                     reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
                 } else {
@@ -1263,10 +1261,6 @@ public class HttpAsyncClientBuilder {
                 contextAdaptor(),
                 defaultRequestConfig,
                 closeablesCopy);
-    }
-
-    private String getProperty(final String key, final String defaultValue) {
-        return AccessController.doPrivileged((PrivilegedAction<String>) () -> System.getProperty(key, defaultValue));
     }
 
 }

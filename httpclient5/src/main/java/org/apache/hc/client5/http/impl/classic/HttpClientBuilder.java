@@ -29,8 +29,6 @@ package org.apache.hc.client5.http.impl.classic;
 
 import java.io.Closeable;
 import java.net.ProxySelector;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -1023,7 +1021,7 @@ public class HttpClientBuilder {
             } else if (this.proxySelector != null) {
                 routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, this.proxySelector);
             } else if (systemProperties) {
-                final ProxySelector defaultProxySelector = AccessController.doPrivileged((PrivilegedAction<ProxySelector>) ProxySelector::getDefault);
+                final ProxySelector defaultProxySelector = ProxySelector.getDefault();
                 routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, defaultProxySelector);
             } else {
                 routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
