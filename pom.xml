@@ -82,7 +82,7 @@
     <zstd.jni.version>1.5.7-4</zstd.jni.version>
     <micrometer.version>1.15.2</micrometer.version>
     <micrometer.tracing.version>1.5.2</micrometer.tracing.version>
-    <otel.version>1.52.0</otel.version>     <!-- already used elsewhere -->
+    <otel.version>1.55.0</otel.version>     <!-- already used elsewhere -->
     <commons-compress.version>1.26.2</commons-compress.version>
   </properties>
 
