@@ -47,7 +47,6 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import javax.net.ssl.SSLException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
@@ -55,7 +54,6 @@ import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hc.core5.util.ReflectionUtils.determineJRELevel;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
@@ -97,23 +95,20 @@ public class TestTlsHandshakeTimeout {
 
     @SuppressWarnings("deprecation")
     private static void assertTimeout(final ClassicHttpRequest request, final HttpClient client) {
-        final long startTime = System.nanoTime();
-        final Exception ex = assertThrows(Exception.class, () -> client.execute(request));
-        final Duration actualTime = Duration.of(System.nanoTime() - startTime, ChronoUnit.NANOS);
+        // There is a bug in Java 11, and some releases of Java 8: after the
+        // handshake times out, the SSLSocket implementation performs a
+        // blocking read on the socket to wait for close_notify or alert. This
+        // operation blocks until the read times out, which means that TLS
+        // handshakes take twice as long to time out on Java 11. Without a
+        // workaround, the only option is to skip the timeout assertions on
+        // older versions of Java.
+        assumeFalse(determineJRELevel() <= 11, "TLS handshake timeouts are buggy on Java 11 and earlier");
 
-        if (determineJRELevel() == 8) {
-            assertInstanceOf(SSLException.class, ex);
-        } else {
-            assertInstanceOf(ConnectTimeoutException.class, ex);
-        }
+        final long startTime = System.nanoTime();
+        final ConnectTimeoutException ex = assertThrows(ConnectTimeoutException.class, () -> client.execute(request));
         assertTrue(ex.getMessage().contains("Read timed out"), ex.getMessage());
 
-        // There is a bug in Java 11: after the handshake times out, the SSLSocket implementation performs a blocking
-        // read on the socket to wait for close_notify or alert. This operation blocks until the read times out,
-        // which means that TLS handshakes take twice as long to time out on Java 11. Without a workaround, the only
-        // option is to skip the timeout duration assertions on Java 11.
-        assumeFalse(determineJRELevel() == 11, "TLS handshake timeouts are buggy on Java 11");
-
+        final Duration actualTime = Duration.of(System.nanoTime() - startTime, ChronoUnit.NANOS);
         assertTrue(actualTime.toMillis() > EXPECTED_TIMEOUT.toMillis() / 2,
             format("Handshake attempt timed out too soon (only %,d out of %,d ms)",
                 actualTime.toMillis(),
