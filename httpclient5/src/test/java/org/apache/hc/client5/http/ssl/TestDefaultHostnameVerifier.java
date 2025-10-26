@@ -204,8 +204,8 @@ class TestDefaultHostnameVerifier {
         final InputStream in = new ByteArrayInputStream(CertificatesToPlayWith.X509_MULTIPLE_SUBJECT_ALT);
         final X509Certificate x509 = (X509Certificate) cf.generateCertificate(in);
 
-        Assertions.assertEquals("CN=localhost, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=CH",
-                x509.getSubjectDN().getName());
+        Assertions.assertEquals("CN=localhost,OU=Unknown,O=Unknown,L=Unknown,ST=Unknown,C=CH",
+                x509.getSubjectX500Principal().getName());
 
         impl.verify("localhost.localdomain", x509);
         impl.verify("127.0.0.1", x509);
@@ -382,7 +382,7 @@ class TestDefaultHostnameVerifier {
         final InputStream in = new ByteArrayInputStream(CertificatesToPlayWith.SUBJECT_ALT_IP_ONLY);
         final X509Certificate x509 = (X509Certificate) cf.generateCertificate(in);
 
-        Assertions.assertEquals("CN=www.foo.com", x509.getSubjectDN().getName());
+        Assertions.assertEquals("CN=www.foo.com", x509.getSubjectX500Principal().getName());
 
         impl.verify("127.0.0.1", x509);
         impl.verify("www.foo.com", x509);
@@ -572,7 +572,7 @@ class TestDefaultHostnameVerifier {
         Assertions.assertEquals("2001:0db8:85a3:0000:0000:8a2e:0370:7334", sn.getValue(), "IP address should match after conversion");
     }
 
-
+    @SuppressWarnings("deprecation")
     private X509Certificate generateX509Certificate(final List<List<?>> entries) {
         return new X509Certificate() {
 

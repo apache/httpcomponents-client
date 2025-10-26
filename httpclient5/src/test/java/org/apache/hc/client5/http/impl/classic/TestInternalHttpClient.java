@@ -245,6 +245,6 @@ class TestInternalHttpClient {
                 Mockito.any(),
                 Mockito.<HttpClientContext>any())).thenThrow(new ProtocolException());
         Assertions.assertThrows(ClientProtocolException.class, () ->
-                client.execute(null, request, context));
+                client.executeOpen(null, request, context));
     }
 }

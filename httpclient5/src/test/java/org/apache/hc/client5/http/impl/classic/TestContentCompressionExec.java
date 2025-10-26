@@ -31,7 +31,6 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.EntityBuilder;
-import org.apache.hc.client5.http.entity.GzipDecompressingEntity;
 import org.apache.hc.client5.http.entity.compress.DecompressingEntity;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -232,8 +231,7 @@ class TestContentCompressionExec {
         impl.execute(request, scope, execChain);
 
         final HttpEntity entity = response.getEntity();
-        Assertions.assertNotNull(entity);
-        Assertions.assertFalse(entity instanceof GzipDecompressingEntity);
+        Assertions.assertSame(original, entity);
     }
 
 }

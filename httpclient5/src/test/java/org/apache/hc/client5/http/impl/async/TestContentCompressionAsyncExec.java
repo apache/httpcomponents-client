@@ -40,6 +40,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.LinkedHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.UnaryOperator;
 
 import org.apache.hc.client5.http.HttpRoute;
@@ -99,7 +100,9 @@ class TestContentCompressionAsyncExec {
                 req,
                 dependency,
                 context,
-                execRuntime);   // 6-arg deprecated ctor
+                execRuntime,
+                null,
+                new AtomicInteger());
 
         impl = new ContentCompressionAsyncExec();   // default = deflate
     }

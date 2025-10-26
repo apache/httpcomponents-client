@@ -68,12 +68,12 @@ public class AsyncClientCustomSSL {
                     // disabling trust verification, however this still potentially allows
                     // for man-in-the-middle attacks.
                     final X509Certificate cert = chain[0];
-                    return "CN=httpbin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
+                    return "CN=httpbin.org".equalsIgnoreCase(cert.getSubjectX500Principal().getName());
                 })
                 .build();
         final TlsStrategy tlsStrategy = ClientTlsStrategyBuilder.create()
                 .setSslContext(sslContext)
-                .build();
+                .buildAsync();
 
         final PoolingAsyncClientConnectionManager cm = PoolingAsyncClientConnectionManagerBuilder.create()
                 .setTlsStrategy(tlsStrategy)

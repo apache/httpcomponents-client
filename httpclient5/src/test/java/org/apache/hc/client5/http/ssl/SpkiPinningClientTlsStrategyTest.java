@@ -36,6 +36,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PublicKey;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
@@ -45,6 +46,7 @@ import java.util.Set;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.security.auth.x500.X500Principal;
 
@@ -219,7 +221,7 @@ class SpkiPinningClientTlsStrategyTest {
         assertThrows(SSLException.class, () -> s.verifySession("\uDC00bad", session));
     }
 
-
+    @SuppressWarnings("deprecation")
     private static final class X509WithKey extends X509Certificate {
         private final PublicKey key;
 
@@ -379,6 +381,7 @@ class SpkiPinningClientTlsStrategyTest {
         }
     }
 
+    @SuppressWarnings({"deprecation", "removal"})
     private static final class FakeSession implements SSLSession {
         private final X509Certificate[] chain;
 
@@ -387,13 +390,13 @@ class SpkiPinningClientTlsStrategyTest {
         }
 
         @Override
-        public java.security.cert.Certificate[] getPeerCertificates() {
+        public Certificate[] getPeerCertificates() {
             return chain;
         }
 
         @Override
-        public javax.security.cert.X509Certificate[] getPeerCertificateChain() {
-            return new javax.security.cert.X509Certificate[0];
+        public javax.security.cert.X509Certificate[] getPeerCertificateChain() throws SSLPeerUnverifiedException {
+            throw new UnsupportedOperationException();
         }
 
         @Override

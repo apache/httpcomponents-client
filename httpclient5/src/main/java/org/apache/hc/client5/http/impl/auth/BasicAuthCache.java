@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -194,10 +195,13 @@ public class BasicAuthCache implements AuthCache {
         final AuthData authData = this.map.get(key(host.getSchemeName(), host, pathPrefix));
         if (authData != null) {
             try {
-                final AuthScheme authScheme = authData.clazz.newInstance();
+                final AuthScheme authScheme = authData.clazz.getConstructor().newInstance();
                 ((StateHolder<Object>) authScheme).restore(authData.state);
                 return authScheme;
-            } catch (final IllegalAccessException | InstantiationException ex) {
+            } catch (final IllegalAccessException |
+                           InstantiationException |
+                           NoSuchMethodException |
+                           InvocationTargetException ex) {
                 if (LOG.isWarnEnabled()) {
                     LOG.warn("Unexpected error while reading auth scheme state", ex);
                 }

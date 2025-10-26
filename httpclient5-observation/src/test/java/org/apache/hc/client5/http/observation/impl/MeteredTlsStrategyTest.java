@@ -170,6 +170,7 @@ class MeteredTlsStrategyTest {
         assertTrue(reg.find("tls.tls.handshakes").counter().count() >= 1.0d);
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     void recordsErrorOutcome_bothApis() {
         final MeterRegistry reg = new SimpleMeterRegistry();
