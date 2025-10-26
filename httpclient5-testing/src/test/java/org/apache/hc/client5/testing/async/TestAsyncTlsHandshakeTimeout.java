@@ -38,6 +38,7 @@ import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.client5.testing.tls.TlsHandshakeTimeoutServer;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.TimeValue;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -57,6 +58,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 public class TestAsyncTlsHandshakeTimeout {
     private static final Duration EXPECTED_TIMEOUT = Duration.ofMillis(500);
 
+    @Tag("slow")
     @Timeout(5)
     @ParameterizedTest
     @ValueSource(strings = { "false", "true" })
