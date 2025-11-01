@@ -80,7 +80,7 @@
     <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer,jdk.net.ExtendedSocketOptions,jdk.net.Sockets</hc.animal-sniffer.signature.ignores>
     <commons.compress.version>1.28.0</commons.compress.version>
     <zstd.jni.version>1.5.7-6</zstd.jni.version>
-    <micrometer.version>1.15.2</micrometer.version>
+    <micrometer.version>1.15.5</micrometer.version>
     <micrometer.tracing.version>1.5.5</micrometer.tracing.version>
     <otel.version>1.55.0</otel.version>     <!-- already used elsewhere -->
     <commons-compress.version>1.26.2</commons-compress.version>
