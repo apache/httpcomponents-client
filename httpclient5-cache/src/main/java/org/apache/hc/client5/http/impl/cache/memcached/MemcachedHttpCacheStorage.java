@@ -39,6 +39,7 @@ import org.apache.hc.client5.http.impl.cache.AbstractBinaryCacheStorage;
 import org.apache.hc.client5.http.impl.cache.CacheConfig;
 import org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializer;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
 
 import net.spy.memcached.CASResponse;
 import net.spy.memcached.CASValue;
@@ -88,6 +89,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
 
     private final MemcachedClientIF client;
     private final KeyHashingScheme keyHashingScheme;
+    private final TimeValue memcachedTtl;
 
     /**
      * Create a storage backend talking to a <i>memcached</i> instance
@@ -157,10 +159,44 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
             final CacheConfig config,
             final HttpCacheEntrySerializer<byte[]> serializer,
             final KeyHashingScheme keyHashingScheme) {
+        this(client, config, serializer, keyHashingScheme, TimeValue.ZERO_MILLISECONDS);
+    }
+
+    /**
+     * Create a storage backend using the given <i>memcached</i> client and
+     * applying the given cache configuration, serialization, and hashing
+     * mechanisms.
+     * <p>
+     * The {@code memcachedTtl} parameter controls the TTL used when
+     * storing entries in the backing memcached instance. A value of
+     * {@code TimeValue.ZERO_MILLISECONDS} disables TTL in memcached
+     * (entries never expire there and are only evicted by memcached
+     * itself).
+     * </p>
+     *
+     * @param client           how to talk to <i>memcached</i>
+     * @param config           apply HTTP cache-related options
+     * @param serializer       alternative serialization mechanism
+     * @param keyHashingScheme how to map higher-level logical "storage keys"
+     *                         onto "cache keys" suitable for use with memcached
+     * @param memcachedTtl     TTL to pass to memcached; non-negative. Zero
+     *                         means "no expiration" at the memcached level.
+     *
+     * @since 5.6
+     */
+    public MemcachedHttpCacheStorage(
+            final MemcachedClientIF client,
+            final CacheConfig config,
+            final HttpCacheEntrySerializer<byte[]> serializer,
+            final KeyHashingScheme keyHashingScheme,
+            final TimeValue memcachedTtl) {
         super((config != null ? config : CacheConfig.DEFAULT).getMaxUpdateRetries(),
                 serializer != null ? serializer : HttpByteArrayCacheEntrySerializer.INSTANCE);
         this.client = Args.notNull(client, "Memcached client");
         this.keyHashingScheme = keyHashingScheme;
+        final TimeValue ttl = TimeValue.defaultsTo(memcachedTtl, TimeValue.ZERO_MILLISECONDS);
+        Args.check(TimeValue.isNonNegative(ttl), "Memcached TTL may not be negative");
+        this.memcachedTtl = ttl;
     }
 
     @Override
@@ -171,7 +207,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
     @Override
     protected void store(final String storageKey, final byte[] storageObject) throws ResourceIOException {
         try {
-            client.set(storageKey, 0, storageObject);
+            client.set(storageKey, memcachedTtl.toSecondsIntBound(), storageObject);
         } catch (final CancellationException ex) {
             throw new MemcachedOperationCancellationException(ex);
         }
