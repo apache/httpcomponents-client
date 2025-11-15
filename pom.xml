@@ -84,6 +84,7 @@
     <micrometer.tracing.version>1.5.5</micrometer.tracing.version>
     <otel.version>1.55.0</otel.version>     <!-- already used elsewhere -->
     <commons-compress.version>1.26.2</commons-compress.version>
+    <caffeine.version>2.9.3</caffeine.version>  <!-- java 8. current version 3.2.3 -->
   </properties>
 
   <dependencyManagement>
@@ -256,6 +257,11 @@
         <artifactId>brotli4j</artifactId>
         <version>${brotli4j.version}</version>
         <optional>true</optional>
+      </dependency>
+      <dependency>
+        <groupId>com.github.ben-manes.caffeine</groupId>
+        <artifactId>caffeine</artifactId>
+        <version>${caffeine.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
