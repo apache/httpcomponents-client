@@ -28,23 +28,25 @@ package org.apache.hc.client5.http.impl.cache.memcached;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
-
-import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
-import org.apache.hc.client5.http.cache.ResourceIOException;
-import org.apache.hc.client5.http.impl.cache.AbstractBinaryCacheStorage;
-import org.apache.hc.client5.http.impl.cache.CacheConfig;
-import org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializer;
-import org.apache.hc.core5.util.Args;
+import java.util.function.BiFunction;
 
 import net.spy.memcached.CASResponse;
 import net.spy.memcached.CASValue;
 import net.spy.memcached.MemcachedClient;
 import net.spy.memcached.MemcachedClientIF;
 import net.spy.memcached.OperationTimeoutException;
+import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
+import org.apache.hc.client5.http.cache.ResourceIOException;
+import org.apache.hc.client5.http.impl.cache.AbstractBinaryCacheStorage;
+import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializer;
+import org.apache.hc.core5.util.Args;
 
 /**
  * <p>
@@ -88,6 +90,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
 
     private final MemcachedClientIF client;
     private final KeyHashingScheme keyHashingScheme;
+    private final BiFunction<String, Instant, Duration> expiryResolver;
 
     /**
      * Create a storage backend talking to a <i>memcached</i> instance
@@ -119,7 +122,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
      * @since 5.2
      */
     public MemcachedHttpCacheStorage(final MemcachedClientIF cache) {
-        this(cache, CacheConfig.DEFAULT, HttpByteArrayCacheEntrySerializer.INSTANCE, SHA256KeyHashingScheme.INSTANCE);
+        this(cache, CacheConfig.DEFAULT, HttpByteArrayCacheEntrySerializer.INSTANCE, SHA256KeyHashingScheme.INSTANCE, null);
     }
 
     /**
@@ -137,7 +140,18 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
             final CacheConfig config,
             final HttpCacheEntrySerializer<byte[]> serializer,
             final KeyHashingScheme keyHashingScheme) {
-        this((MemcachedClientIF) client, config, serializer, keyHashingScheme);
+        this(client, config, serializer, keyHashingScheme, null);
+    }
+
+    /**
+     * @since 5.2
+     */
+    public MemcachedHttpCacheStorage(
+            final MemcachedClientIF client,
+            final CacheConfig config,
+            final HttpCacheEntrySerializer<byte[]> serializer,
+            final KeyHashingScheme keyHashingScheme) {
+        this(client, config, serializer, keyHashingScheme, null);
     }
 
     /**
@@ -150,17 +164,20 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
      * @param serializer       alternative serialization mechanism
      * @param keyHashingScheme how to map higher-level logical "storage keys"
      *                         onto "cache keys" suitable for use with memcached
-     * @since 5.2
+     * @param expiryResolver   resolver for cache entry expiry
+     * @since 5.6
      */
     public MemcachedHttpCacheStorage(
             final MemcachedClientIF client,
             final CacheConfig config,
             final HttpCacheEntrySerializer<byte[]> serializer,
-            final KeyHashingScheme keyHashingScheme) {
+            final KeyHashingScheme keyHashingScheme,
+            final BiFunction<String, Instant, Duration> expiryResolver) {
         super((config != null ? config : CacheConfig.DEFAULT).getMaxUpdateRetries(),
                 serializer != null ? serializer : HttpByteArrayCacheEntrySerializer.INSTANCE);
         this.client = Args.notNull(client, "Memcached client");
         this.keyHashingScheme = keyHashingScheme;
+        this.expiryResolver = expiryResolver;
     }
 
     @Override
@@ -170,8 +187,21 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
 
     @Override
     protected void store(final String storageKey, final byte[] storageObject) throws ResourceIOException {
+        store(storageKey, null, storageObject);
+    }
+
+    @Override
+    protected void store(final String storageKey, final Instant expectedExpiry, final byte[] storageObject) throws ResourceIOException {
+        int exp = 0;
+        final Duration validityduration = expiryResolver != null ? expiryResolver.apply(storageKey, expectedExpiry) : null;
+        if (validityduration != null) {
+            final long expSeconds = validityduration.getSeconds();
+            if (expSeconds > 0) {
+                exp = (int) expSeconds;
+            }
+        }
         try {
-            client.set(storageKey, 0, storageObject);
+            client.set(storageKey, exp, storageObject);
         } catch (final CancellationException ex) {
             throw new MemcachedOperationCancellationException(ex);
         }
