@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -60,6 +61,13 @@ public abstract class AbstractSerializingCacheStorage<T, CAS> implements HttpCac
 
     protected abstract void store(String storageKey, T storageObject) throws ResourceIOException;
 
+    /**
+     * @since 5.6
+     */
+    protected void store(final String storageKey, final Instant expectedExpiry, final T storageObject) throws ResourceIOException {
+        store(storageKey, storageObject);
+    }
+
     protected abstract T restore(String storageKey) throws ResourceIOException;
 
     protected abstract CAS getForUpdateCAS(String storageKey) throws ResourceIOException;
@@ -76,7 +84,8 @@ public abstract class AbstractSerializingCacheStorage<T, CAS> implements HttpCac
     public final void putEntry(final String key, final HttpCacheEntry entry) throws ResourceIOException {
         final String storageKey = digestToStorageKey(key);
         final T storageObject = serializer.serialize(new HttpCacheStorageEntry(key, entry));
-        store(storageKey, storageObject);
+        final Instant expires = entry.getExpires();
+        store(storageKey, expires, storageObject);
     }
 
     @Override
