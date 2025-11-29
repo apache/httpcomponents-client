@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.classic;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
@@ -56,7 +57,6 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
@@ -65,18 +65,10 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Internal implementation of {@link CloseableHttpClient}.
- * <p>
- * Concurrent message exchanges executed by this client will get assigned to
- * separate connections leased from the connection pool.
- * </p>
- *
- * @since 4.3
- */
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 @Internal
 class InternalHttpClient extends CloseableHttpClient implements Configurable {
@@ -95,7 +87,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
     private final RequestConfig defaultConfig;
     private final ConcurrentLinkedQueue<Closeable> closeables;
 
-    public InternalHttpClient(
+    InternalHttpClient(
             final HttpClientConnectionManager connManager,
             final HttpRequestExecutor requestExecutor,
             final ExecChainElement execChain,
@@ -121,7 +113,10 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
         this.closeables = closeables != null ? new ConcurrentLinkedQueue<>(closeables) : null;
     }
 
-    private HttpRoute determineRoute(final HttpHost target, final HttpRequest request, final HttpContext context) throws HttpException {
+    private HttpRoute determineRoute(
+            final HttpHost target,
+            final org.apache.hc.core5.http.HttpRequest request,
+            final HttpContext context) throws HttpException {
         return this.routePlanner.determineRoute(target, request, context);
     }
 
@@ -151,6 +146,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
         Args.notNull(request, "HTTP request");
         try {
             final HttpClientContext localcontext = contextAdaptor.apply(context);
+
             RequestConfig config = null;
             if (request instanceof Configurable) {
                 config = ((Configurable) request).getConfig();
@@ -169,21 +165,32 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
                     request.setAuthority(new URIAuthority(resolvedTarget));
                 }
             }
-            final HttpRoute route = determineRoute(
-                    resolvedTarget,
-                    request,
-                    localcontext);
+            final HttpRoute route = determineRoute(resolvedTarget, request, localcontext);
             final String exchangeId = ExecSupport.getNextExchangeId();
             localcontext.setExchangeId(exchangeId);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} preparing request execution", exchangeId);
             }
 
-            final ExecRuntime execRuntime = new InternalExecRuntime(LOG, connManager, requestExecutor,
-                    request instanceof CancellableDependency ? (CancellableDependency) request : null);
+            final RequestConfig effectiveCfg = localcontext.getRequestConfig();
+            final Timeout requestTimeout = effectiveCfg != null ? effectiveCfg.getRequestTimeout() : null;
+
+            final ExecRuntime execRuntime = new InternalExecRuntime(
+                    LOG,
+                    connManager,
+                    requestExecutor,
+                    request instanceof CancellableDependency ? (CancellableDependency) request : null,
+                    requestTimeout);
+
             final ExecChain.Scope scope = new ExecChain.Scope(exchangeId, route, request, execRuntime, localcontext);
-            final ClassicHttpResponse response = this.execChain.execute(ClassicRequestBuilder.copy(request).build(), scope);
+
+            final ClassicHttpResponse response =
+                    this.execChain.execute(ClassicRequestBuilder.copy(request).build(), scope);
             return CloseableHttpResponse.adapt(response);
+
+        } catch (final InterruptedIOException ioEx) {
+            // treat our deadline violations as I/O timeouts
+            throw ioEx;
         } catch (final HttpException httpException) {
             throw new ClientProtocolException(httpException.getMessage(), httpException);
         }
@@ -216,5 +223,4 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             }
         }
     }
-
 }

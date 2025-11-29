@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -68,11 +69,22 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     private volatile Object state;
     private volatile TimeValue validDuration;
 
+    private final long deadlineMillis;
+
     InternalExecRuntime(
             final Logger log,
             final HttpClientConnectionManager manager,
             final HttpRequestExecutor requestExecutor,
             final CancellableDependency cancellableDependency) {
+        this(log, manager, requestExecutor, cancellableDependency, null);
+    }
+
+    InternalExecRuntime(
+            final Logger log,
+            final HttpClientConnectionManager manager,
+            final HttpRequestExecutor requestExecutor,
+            final CancellableDependency cancellableDependency,
+            final Timeout requestTimeout) {
         super();
         this.log = log;
         this.manager = manager;
@@ -80,6 +92,12 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         this.cancellableDependency = cancellableDependency;
         this.endpointRef = new AtomicReference<>();
         this.validDuration = TimeValue.NEG_ONE_MILLISECOND;
+        if (requestTimeout != null && !requestTimeout.isDisabled()) {
+            final long now = System.currentTimeMillis();
+            this.deadlineMillis = now + requestTimeout.toMilliseconds();
+        } else {
+            this.deadlineMillis = 0L;
+        }
     }
 
     @Override
@@ -92,13 +110,30 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         return endpointRef.get() != null;
     }
 
+    private Timeout resolveTimeout(final Timeout stageTimeout) throws InterruptedIOException {
+        if (deadlineMillis == 0L) {
+            return stageTimeout;
+        }
+        final long now = System.currentTimeMillis();
+        final long remainingMillis = deadlineMillis - now;
+        if (remainingMillis <= 0L) {
+            throw new InterruptedIOException("Request timeout");
+        }
+        if (stageTimeout == null || stageTimeout.isDisabled()) {
+            return Timeout.ofMilliseconds(remainingMillis);
+        }
+        final long stageMillis = stageTimeout.toMilliseconds();
+        return Timeout.ofMilliseconds(Math.min(stageMillis, remainingMillis));
+    }
+
     @Override
     public void acquireEndpoint(
             final String id, final HttpRoute route, final Object object, final HttpClientContext context) throws IOException {
         Args.notNull(route, "Route");
         if (endpointRef.get() == null) {
             final RequestConfig requestConfig = context.getRequestConfigOrDefault();
-            final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
+            final Timeout configuredTimeout = requestConfig.getConnectionRequestTimeout();
+            final Timeout connectionRequestTimeout = resolveTimeout(configuredTimeout);
             if (log.isDebugEnabled()) {
                 log.debug("{} acquiring endpoint ({})", id, connectionRequestTimeout);
             }
@@ -157,7 +192,8 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         }
         final RequestConfig requestConfig = context.getRequestConfigOrDefault();
         @SuppressWarnings("deprecation")
-        final Timeout connectTimeout = requestConfig.getConnectTimeout();
+        final Timeout configuredConnectTimeout = requestConfig.getConnectTimeout();
+        final Timeout connectTimeout = resolveTimeout(configuredConnectTimeout);
         if (log.isDebugEnabled()) {
             log.debug("{} connecting endpoint ({})", ConnPoolSupport.getId(endpoint), connectTimeout);
         }
@@ -223,8 +259,9 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             throw new RequestFailedException("Request aborted");
         }
         final RequestConfig requestConfig = context.getRequestConfigOrDefault();
-        final Timeout responseTimeout = requestConfig.getResponseTimeout();
-        if (responseTimeout != null) {
+        final Timeout configuredResponseTimeout = requestConfig.getResponseTimeout();
+        final Timeout responseTimeout = resolveTimeout(configuredResponseTimeout);
+        if (responseTimeout != null && !responseTimeout.isDisabled()) {
             endpoint.setSocketTimeout(responseTimeout);
         }
         if (log.isDebugEnabled()) {
@@ -305,8 +342,18 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     @Override
-    public ExecRuntime fork(final CancellableDependency cancellableDependency) {
-        return new InternalExecRuntime(log, manager, requestExecutor, cancellableDependency);
+    public ExecRuntime fork(final CancellableDependency newDependency) {
+        final Timeout remainingTimeout;
+        if (deadlineMillis == 0L) {
+            remainingTimeout = null;
+        } else {
+            final long now = System.currentTimeMillis();
+            final long remainingMillis = deadlineMillis - now;
+            remainingTimeout = remainingMillis > 0L
+                    ? Timeout.ofMilliseconds(remainingMillis)
+                    : Timeout.ZERO_MILLISECONDS;
+        }
+        return new InternalExecRuntime(log, manager, requestExecutor, newDependency, remainingTimeout);
     }
 
 }

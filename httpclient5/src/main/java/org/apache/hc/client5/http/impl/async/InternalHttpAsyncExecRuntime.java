@@ -78,6 +78,8 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     private final AtomicReference<AsyncConnectionEndpoint> endpointRef;
     private final AtomicReference<ReUseData> reuseDataRef;
 
+    private volatile long deadlineMillis;
+
     InternalHttpAsyncExecRuntime(
             final Logger log,
             final AsyncClientConnectionManager manager,
@@ -92,11 +94,35 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         this.tlsConfig = tlsConfig;
         this.endpointRef = new AtomicReference<>();
         this.reuseDataRef = new AtomicReference<>();
+        this.deadlineMillis = 0L;
     }
 
     @Override
     public boolean isEndpointAcquired() {
         return endpointRef.get() != null;
+    }
+
+    private Timeout resolveTimeout(final Timeout stageTimeout, final HttpClientContext context) throws InterruptedIOException {
+        final RequestConfig requestConfig = context.getRequestConfigOrDefault();
+        final Timeout requestTimeout = requestConfig.getRequestTimeout();
+        if (requestTimeout == null || requestTimeout.isDisabled()) {
+            return stageTimeout;
+        }
+        final long now = System.currentTimeMillis();
+        long deadline = deadlineMillis;
+        if (deadline == 0L) {
+            deadline = now + requestTimeout.toMilliseconds();
+            deadlineMillis = deadline;
+        }
+        final long remainingMillis = deadline - now;
+        if (remainingMillis <= 0L) {
+            throw new InterruptedIOException("Request timeout");
+        }
+        if (stageTimeout == null || stageTimeout.isDisabled()) {
+            return Timeout.ofMilliseconds(remainingMillis);
+        }
+        final long stageMillis = stageTimeout.toMilliseconds();
+        return Timeout.ofMilliseconds(Math.min(stageMillis, remainingMillis));
     }
 
     @Override
@@ -108,7 +134,14 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             final FutureCallback<AsyncExecRuntime> callback) {
         if (endpointRef.get() == null) {
             final RequestConfig requestConfig = context.getRequestConfigOrDefault();
-            final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
+            final Timeout configuredTimeout = requestConfig.getConnectionRequestTimeout();
+            final Timeout connectionRequestTimeout;
+            try {
+                connectionRequestTimeout = resolveTimeout(configuredTimeout, context);
+            } catch (final InterruptedIOException ex) {
+                callback.failed(ex);
+                return Operations.nonCancellable();
+            }
             if (log.isDebugEnabled()) {
                 log.debug("{} acquiring endpoint ({})", id, connectionRequestTimeout);
             }
@@ -219,7 +252,14 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         }
         final RequestConfig requestConfig = context.getRequestConfigOrDefault();
         @SuppressWarnings("deprecation")
-        final Timeout connectTimeout = requestConfig.getConnectTimeout();
+        final Timeout configuredConnectTimeout = requestConfig.getConnectTimeout();
+        final Timeout connectTimeout;
+        try {
+            connectTimeout = resolveTimeout(configuredConnectTimeout, context);
+        } catch (final InterruptedIOException ex) {
+            callback.failed(ex);
+            return Operations.nonCancellable();
+        }
         if (log.isDebugEnabled()) {
             log.debug("{} connecting endpoint ({})", ConnPoolSupport.getId(endpoint), connectTimeout);
         }
@@ -291,8 +331,15 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                 log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
             }
             final RequestConfig requestConfig = context.getRequestConfigOrDefault();
-            final Timeout responseTimeout = requestConfig.getResponseTimeout();
-            if (responseTimeout != null) {
+            final Timeout configuredResponseTimeout = requestConfig.getResponseTimeout();
+            final Timeout responseTimeout;
+            try {
+                responseTimeout = resolveTimeout(configuredResponseTimeout, context);
+            } catch (final InterruptedIOException ex) {
+                exchangeHandler.failed(ex);
+                return Operations.nonCancellable();
+            }
+            if (responseTimeout != null && !responseTimeout.isDisabled()) {
                 endpoint.setSocketTimeout(responseTimeout);
             }
             endpoint.execute(id, exchangeHandler, pushHandlerFactory, context);
@@ -311,7 +358,15 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                         log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
                     }
                     try {
+                        final RequestConfig requestConfig = context.getRequestConfigOrDefault();
+                        final Timeout configuredResponseTimeout = requestConfig.getResponseTimeout();
+                        final Timeout responseTimeout = resolveTimeout(configuredResponseTimeout, context);
+                        if (responseTimeout != null && !responseTimeout.isDisabled()) {
+                            endpoint.setSocketTimeout(responseTimeout);
+                        }
                         endpoint.execute(id, exchangeHandler, pushHandlerFactory, context);
+                    } catch (final InterruptedIOException ex) {
+                        exchangeHandler.failed(ex);
                     } catch (final RuntimeException ex) {
                         failed(ex);
                     }
@@ -344,7 +399,10 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
     @Override
     public AsyncExecRuntime fork() {
-        return new InternalHttpAsyncExecRuntime(log, manager, connectionInitiator, pushHandlerFactory, tlsConfig);
+        final InternalHttpAsyncExecRuntime clone =
+                new InternalHttpAsyncExecRuntime(log, manager, connectionInitiator, pushHandlerFactory, tlsConfig);
+        clone.deadlineMillis = this.deadlineMillis;
+        return clone;
     }
 
 }
