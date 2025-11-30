@@ -212,7 +212,7 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
         return future;
     }
 
-    // The IOReactor does not support AFUNIXSocketChannel from JUnixSocket, so if a Unix domain socket was configured,
+        // The IOReactor does not support AFUNIXSocketChannel from JUnixSocket, so if a Unix domain socket was configured,
     // we must use JEP 380 sockets and addresses.
     private static SocketAddress createUnixSocketAddress(final Path socketPath) {
         try {
