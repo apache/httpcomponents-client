@@ -28,30 +28,28 @@
   <parent>
     <groupId>org.apache.httpcomponents.client5</groupId>
     <artifactId>httpclient5-parent</artifactId>
-    <version>5.7-alpha1-SNAPSHOT</version>
+    <version>5.6-alpha2-SNAPSHOT</version>
   </parent>
-  <artifactId>httpclient5-testing</artifactId>
-  <name>Apache HttpClient Integration Tests</name>
-  <description>Apache HttpClient integration tests</description>
+  <artifactId>httpclient5-websocket</artifactId>
+  <name>Apache HttpClient Socket</name>
+  <inceptionYear>2011</inceptionYear>
+  <description>Apache HttpComponents Client Socket</description>
   <packaging>jar</packaging>
 
   <properties>
-    <Automatic-Module-Name>org.apache.httpcomponents.client5.httpclient5.testing</Automatic-Module-Name>
+    <Automatic-Module-Name>org.apache.httpcomponents.client5.httpclient5.socket</Automatic-Module-Name>
   </properties>
 
   <dependencies>
     <dependency>
-      <groupId>org.apache.httpcomponents.core5</groupId>
-      <artifactId>httpcore5-testing</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents.core5</groupId>
-      <artifactId>httpcore5-reactive</artifactId>
-      <scope>test</scope>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5</artifactId>
+      <scope>test</scope>
+      <classifier>tests</classifier>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -60,33 +58,12 @@
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
-      <optional>true</optional>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents.client5</groupId>
-      <artifactId>httpclient5-cache</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents.client5</groupId>
-      <artifactId>httpclient5-fluent</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents.client5</groupId>
-      <artifactId>httpclient5-websocket</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.kohlschutter.junixsocket</groupId>
-      <artifactId>junixsocket-core</artifactId>
-      <scope>test</scope>
-      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -104,29 +81,17 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>io.reactivex.rxjava3</groupId>
-      <artifactId>rxjava</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <scope>test</scope>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+      <version>9.4.54.v20240208</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlet</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty.websocket</groupId>
       <artifactId>websocket-server</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty.http2</groupId>
@@ -134,31 +99,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <profiles>
-    <profile>
-      <id>docker</id>
-      <build>
-        <plugins>
-
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-failsafe-plugin</artifactId>
-            <version>${hc.surefire.version}</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>integration-test</goal>
-                  <goal>verify</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
   <reporting>
     <plugins>
@@ -178,5 +118,16 @@
       </plugin>
     </plugins>
   </reporting>
-
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.github.siom79.japicmp</groupId>
+        <artifactId>japicmp-maven-plugin</artifactId>
+        <version>0.21.2</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
