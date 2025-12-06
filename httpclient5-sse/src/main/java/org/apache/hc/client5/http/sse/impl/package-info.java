@@ -52,6 +52,6 @@
  *   <li>{@link org.apache.hc.client5.http.sse.impl.SseParser}</li>
  * </ul>
  *
- * @since 5.6
+ * @since 5.7
  */
 package org.apache.hc.client5.http.sse.impl;

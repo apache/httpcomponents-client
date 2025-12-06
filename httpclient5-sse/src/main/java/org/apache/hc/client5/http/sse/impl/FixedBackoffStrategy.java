@@ -47,7 +47,7 @@ import org.apache.hc.client5.http.sse.EventSourceConfig;
  *
  * @see BackoffStrategy
  * @see EventSourceConfig
- * @since 5.6
+ * @since 5.7
  */
 public final class FixedBackoffStrategy implements BackoffStrategy {
 
@@ -60,7 +60,7 @@ public final class FixedBackoffStrategy implements BackoffStrategy {
      * Creates a fixed-delay backoff strategy.
      *
      * @param delayMs constant delay in milliseconds (negative values are coerced to {@code 0})
-     * @since 5.6
+     * @since 5.7
      */
     public FixedBackoffStrategy(final long delayMs) {
         this.delayMs = Math.max(0L, delayMs);
@@ -76,7 +76,7 @@ public final class FixedBackoffStrategy implements BackoffStrategy {
      * @param previousDelayMs   last delay used (ignored)
      * @param serverRetryHintMs server-provided retry delay in ms, or {@code null}
      * @return delay in milliseconds (always {@code >= 0})
-     * @since 5.6
+     * @since 5.7
      */
     @Override
     public long nextDelayMs(final int attempt, final long previousDelayMs, final Long serverRetryHintMs) {

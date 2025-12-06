@@ -165,7 +165,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
      * @param keyHashingScheme how to map higher-level logical "storage keys"
      *                         onto "cache keys" suitable for use with memcached
      * @param expiryResolver   resolver for cache entry expiry
-     * @since 5.6
+     * @since 5.7
      */
     public MemcachedHttpCacheStorage(
             final MemcachedClientIF client,

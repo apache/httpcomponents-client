@@ -43,7 +43,7 @@ import org.apache.hc.client5.http.sse.BackoffStrategy;
  *
  * <p>Stateless and thread-safe.</p>
  *
- * @since 5.6
+ * @since 5.7
  */
 public final class NoBackoffStrategy implements BackoffStrategy {
 
@@ -55,7 +55,7 @@ public final class NoBackoffStrategy implements BackoffStrategy {
      * @param previousDelayMs   last delay used (unused)
      * @param serverRetryHintMs server-provided retry hint (unused)
      * @return {@code 0}
-     * @since 5.6
+     * @since 5.7
      */
     @Override
     public long nextDelayMs(final int attempt, final long previousDelayMs, final Long serverRetryHintMs) {
@@ -69,7 +69,7 @@ public final class NoBackoffStrategy implements BackoffStrategy {
      * @param previousDelayMs   last delay used (unused)
      * @param serverRetryHintMs server-provided retry hint (unused)
      * @return {@code false}
-     * @since 5.6
+     * @since 5.7
      */
     @Override
     public boolean shouldReconnect(final int attempt, final long previousDelayMs, final Long serverRetryHintMs) {

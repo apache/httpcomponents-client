@@ -49,7 +49,7 @@ import org.apache.hc.client5.http.sse.BackoffStrategy;
  *
  * <p>This strategy is stateless and thread-safe.</p>
  *
- * @since 5.6
+ * @since 5.7
  */
 public final class ExponentialJitterBackoff implements BackoffStrategy {
 
@@ -80,7 +80,7 @@ public final class ExponentialJitterBackoff implements BackoffStrategy {
      * @param maxMs  maximum delay in milliseconds (will be coerced to &ge; baseMs)
      * @param factor exponential growth factor (will be coerced to &ge; 1.0)
      * @param minMs  minimum delay in milliseconds (will be coerced to &ge; 0)
-     * @since 5.6
+     * @since 5.7
      */
     public ExponentialJitterBackoff(final long baseMs, final long maxMs, final double factor, final long minMs) {
         this.baseMs = Math.max(1, baseMs);
@@ -108,7 +108,7 @@ public final class ExponentialJitterBackoff implements BackoffStrategy {
      * @param serverRetryHintMs value from server {@code retry:} (ms) or HTTP {@code Retry-After}
      *                          converted to ms; {@code null} if none
      * @return delay in milliseconds (&ge; 0)
-     * @since 5.6
+     * @since 5.7
      */
     @Override
     public long nextDelayMs(final int attempt, final long previousDelayMs, final Long serverRetryHintMs) {

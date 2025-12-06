@@ -55,7 +55,7 @@ package org.apache.hc.client5.http.sse;
  *       closed (either by {@link EventSource#cancel()} or after giving up on reconnects).</li>
  * </ul>
  *
- * @since 5.6
+ * @since 5.7
  */
 @FunctionalInterface
 public interface EventSourceListener {
@@ -66,14 +66,14 @@ public interface EventSourceListener {
      * @param id   the event id, or {@code null} if not present
      * @param type the event type, or {@code null} (treat as {@code "message"})
      * @param data the event data (never {@code null})
-     * @since 5.6
+     * @since 5.7
      */
     void onEvent(String id, String type, String data);
 
     /**
      * Called when the SSE stream is opened and ready to receive events.
      *
-     * @since 5.6
+     * @since 5.7
      */
     default void onOpen() {
     }
@@ -81,7 +81,7 @@ public interface EventSourceListener {
     /**
      * Called once when the stream is permanently closed (no further reconnects).
      *
-     * @since 5.6
+     * @since 5.7
      */
     default void onClosed() {
     }
@@ -95,7 +95,7 @@ public interface EventSourceListener {
      *
      * @param t              the failure cause (never {@code null})
      * @param willReconnect  {@code true} if a reconnect has been scheduled
-     * @since 5.6
+     * @since 5.7
      */
     default void onFailure(final Throwable t, final boolean willReconnect) {
     }

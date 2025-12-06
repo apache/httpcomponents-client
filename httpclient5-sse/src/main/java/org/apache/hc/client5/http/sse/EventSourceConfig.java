@@ -48,7 +48,7 @@ import org.apache.hc.client5.http.sse.impl.ExponentialJitterBackoff;
  * <h3>Thread-safety</h3>
  * <p>Instances are immutable and thread-safe.</p>
  *
- * @since 5.6
+ * @since 5.7
  */
 public final class EventSourceConfig {
 
@@ -58,7 +58,7 @@ public final class EventSourceConfig {
      * <p>See {@link BackoffStrategy} for the contract. The default is
      * {@link ExponentialJitterBackoff} with base=1000 ms, max=30000 ms, factor=2.0, min=250 ms.</p>
      *
-     * @since 5.6
+     * @since 5.7
      */
     public final BackoffStrategy backoff;
 
@@ -70,7 +70,7 @@ public final class EventSourceConfig {
      *   <li>{@code >0}: number of attempts after the initial connect.</li>
      * </ul>
      *
-     * @since 5.6
+     * @since 5.7
      */
     public final int maxReconnects;
 
@@ -81,7 +81,7 @@ public final class EventSourceConfig {
      *   <li>{@link #maxReconnects} = {@code -1} (unlimited)</li>
      * </ul>
      *
-     * @since 5.6
+     * @since 5.7
      */
     public static final EventSourceConfig DEFAULT = builder().build();
 
@@ -94,7 +94,7 @@ public final class EventSourceConfig {
      * Creates a new builder initialized with sensible defaults.
      *
      * @return a new {@link Builder}
-     * @since 5.6
+     * @since 5.7
      */
     public static Builder builder() {
         return new Builder();
@@ -105,7 +105,7 @@ public final class EventSourceConfig {
      *
      * <p>Not thread-safe.</p>
      *
-     * @since 5.6
+     * @since 5.7
      */
     public static final class Builder {
         private BackoffStrategy backoff =
@@ -118,7 +118,7 @@ public final class EventSourceConfig {
          * @param backoff non-null strategy implementation (e.g., {@link ExponentialJitterBackoff}
          *          or a custom {@link BackoffStrategy})
          * @return this builder
-         * @since 5.6
+         * @since 5.7
          */
         public Builder backoff(final BackoffStrategy backoff) {
             this.backoff = Objects.requireNonNull(backoff, "backoff");
@@ -132,7 +132,7 @@ public final class EventSourceConfig {
          *
          * @param nmaxReconnects max attempts
          * @return this builder
-         * @since 5.6
+         * @since 5.7
          */
         public Builder maxReconnects(final int nmaxReconnects) {
             this.maxReconnects = nmaxReconnects;
@@ -143,7 +143,7 @@ public final class EventSourceConfig {
          * Builds an immutable {@link EventSourceConfig}.
          *
          * @return the config
-         * @since 5.6
+         * @since 5.7
          */
         public EventSourceConfig build() {
             return new EventSourceConfig(backoff, maxReconnects);

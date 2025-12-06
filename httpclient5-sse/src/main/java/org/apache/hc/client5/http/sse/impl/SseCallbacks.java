@@ -37,7 +37,7 @@ import org.apache.hc.core5.annotation.Internal;
  * public API. Methods may be invoked on I/O or decoder threads;
  * implementations must be lightweight and non-blocking.</p>
  *
- * @since 5.6
+ * @since 5.7
  */
 @Internal
 public interface SseCallbacks {

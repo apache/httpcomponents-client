@@ -56,7 +56,7 @@ import org.apache.hc.core5.http.nio.entity.AbstractCharAsyncEntityConsumer;
  * <p><strong>Thread-safety:</strong> Not thread-safe. One instance is expected to be
  * used by a single decoding flow on an I/O thread.</p>
  *
- * @since 5.6
+ * @since 5.7
  */
 @Internal
 public final class SseEntityConsumer extends AbstractCharAsyncEntityConsumer<Void>

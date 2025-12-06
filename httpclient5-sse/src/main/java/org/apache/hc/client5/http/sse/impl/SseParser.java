@@ -36,7 +36,7 @@ package org.apache.hc.client5.http.sse.impl;
  *       string allocation. Can be slightly faster at very high rates.</li>
  * </ul>
  *
- * @since 5.6
+ * @since 5.7
  */
 public enum SseParser {
     /**

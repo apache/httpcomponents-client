@@ -62,7 +62,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * <p>This class is used internally by {@code DefaultEventSource}.</p>
  *
- * @since 5.6
+ * @since 5.7
  */
 @Internal
 public final class SseResponseConsumer implements AsyncResponseConsumer<Void> {

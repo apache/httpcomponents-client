@@ -86,7 +86,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p><strong>Internal:</strong> this class is not part of the public API and can change without notice.</p>
  *
- * @since 5.6
+ * @since 5.7
  */
 @Internal
 public final class DefaultEventSource implements EventSource {

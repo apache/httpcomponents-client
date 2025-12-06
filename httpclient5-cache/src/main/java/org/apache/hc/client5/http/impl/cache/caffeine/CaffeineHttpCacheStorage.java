@@ -55,7 +55,7 @@ import org.apache.hc.core5.util.Args;
  * <p>Please refer to the Caffeine documentation for details on how to
  * configure the cache itself.</p>
  *
- * @since 5.6
+ * @since 5.7
  */
 public class CaffeineHttpCacheStorage<T> extends AbstractSerializingCacheStorage<T, T> {
 

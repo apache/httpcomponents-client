@@ -60,7 +60,7 @@ import org.apache.hc.core5.util.Args;
  *     .build();
  * }</pre>
  *
- * @since 5.6
+ * @since 5.7
  */
 public final class SseExecutorBuilder {
 

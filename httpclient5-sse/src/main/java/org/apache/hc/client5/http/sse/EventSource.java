@@ -49,7 +49,7 @@ import org.apache.hc.core5.annotation.Contract;
  * id is remembered by the implementation and can be sent on subsequent reconnects
  * so the server can resume the stream.</p>
  *
- * @since 5.6
+ * @since 5.7
  */
 @Contract
 public interface EventSource {
@@ -62,7 +62,7 @@ public interface EventSource {
      *   <li>Reconnects: implementation-specific and driven by configuration.</li>
      * </ul>
      *
-     * @since 5.6
+     * @since 5.7
      */
     void start();
 
@@ -74,7 +74,7 @@ public interface EventSource {
      *       {@code onClosed()} exactly once.</li>
      * </ul>
      *
-     * @since 5.6
+     * @since 5.7
      */
     void cancel();
 
@@ -82,7 +82,7 @@ public interface EventSource {
      * Returns the last seen event id or {@code null} if none has been observed.
      *
      * @return the last event id, or {@code null}
-     * @since 5.6
+     * @since 5.7
      */
     String lastEventId();
 
@@ -91,7 +91,7 @@ public interface EventSource {
      * or reconnect attempt. Passing {@code null} clears the value.
      *
      * @param id the id to send, or {@code null} to clear
-     * @since 5.6
+     * @since 5.7
      */
     void setLastEventId(String id);
 
@@ -101,7 +101,7 @@ public interface EventSource {
      *
      * @param name  header name (non-null)
      * @param value header value (may be empty but not null)
-     * @since 5.6
+     * @since 5.7
      */
     void setHeader(String name, String value);
 
@@ -109,7 +109,7 @@ public interface EventSource {
      * Removes a previously set request header for subsequent (re)connects.
      *
      * @param name header name to remove (non-null)
-     * @since 5.6
+     * @since 5.7
      */
     void removeHeader(String name);
 
@@ -119,7 +119,7 @@ public interface EventSource {
      * by the caller without affecting the {@code EventSource}.
      *
      * @return copy of headers to be sent
-     * @since 5.6
+     * @since 5.7
      */
     Map<String, String> getHeaders();
 
@@ -128,7 +128,7 @@ public interface EventSource {
      * Implementations may report {@code false} during backoff between reconnects.
      *
      * @return {@code true} if the transport is open and events may be received
-     * @since 5.6
+     * @since 5.7
      */
     boolean isConnected();
 }

@@ -62,7 +62,7 @@ public abstract class AbstractSerializingCacheStorage<T, CAS> implements HttpCac
     protected abstract void store(String storageKey, T storageObject) throws ResourceIOException;
 
     /**
-     * @since 5.6
+     * @since 5.7
      */
     protected void store(final String storageKey, final Instant expectedExpiry, final T storageObject) throws ResourceIOException {
         store(storageKey, storageObject);

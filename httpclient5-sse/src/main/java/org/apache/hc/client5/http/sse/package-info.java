@@ -130,6 +130,6 @@
  * and the concrete entity consumers) are not part of the public API and may
  * change without notice.</p>
  *
- * @since 5.6
+ * @since 5.7
  */
 package org.apache.hc.client5.http.sse;
