@@ -36,18 +36,6 @@
   <description>Optional Micrometer / OpenTelemetry support for HttpClient </description>
   <packaging>jar</packaging>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>io.opentelemetry</groupId>
-        <artifactId>opentelemetry-bom</artifactId>
-        <version>1.49.0</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <properties>
     <Automatic-Module-Name>org.apache.httpcomponents.client5.observation</Automatic-Module-Name>
   </properties>
@@ -87,15 +75,21 @@
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-prometheus</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-sdk</artifactId>
-      <scope>runtime</scope>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-tracing</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-tracing-bridge-otel</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -111,13 +105,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-tracing</artifactId>
-      <version>${micrometer.tracing.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
