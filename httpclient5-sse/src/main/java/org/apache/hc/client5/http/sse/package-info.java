@@ -54,7 +54,7 @@
  * </ul>
  *
  * <h2>Quick start</h2>
- * <pre>{@code
+ * <pre>
  * import java.net.URI;
  * import java.util.Collections;
  * import org.apache.hc.client5.http.sse.*;
@@ -62,23 +62,23 @@
  * SseExecutor exec = SseExecutor.newInstance(); // shared async client
  *
  * EventSourceListener listener = new EventSourceListener() {
- *   @Override public void onOpen() { System.out.println("open"); }
- *   @Override public void onEvent(String id, String type, String data) {
+ *   &#64;Override public void onOpen() { System.out.println("open"); }
+ *   &#64;Override public void onEvent(String id, String type, String data) {
  *     System.out.println(type + " id=" + id + " data=" + data);
  *   }
- *   @Override public void onClosed() { System.out.println("closed"); }
- *   @Override public void onFailure(Throwable t, boolean willReconnect) {
+ *   &#64;Override public void onClosed() { System.out.println("closed"); }
+ *   &#64;Override public void onFailure(Throwable t, boolean willReconnect) {
  *     t.printStackTrace();
  *   }
  * };
  *
  * EventSource es = exec.open(URI.create("https://example.com/stream"),
- *                            Collections.<String,String>emptyMap(),
+ *                            Collections.&lt;String,String&gt;emptyMap(),
  *                            listener);
  * es.start();
  *
  * Runtime.getRuntime().addShutdownHook(new Thread(es::cancel));
- * }</pre>
+ * </pre>
  *
  * <h2>Configuration</h2>
  * <ul>

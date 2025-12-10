@@ -51,7 +51,7 @@
     <tag>5.7-alpha1-SNAPSHOT</tag>
   </scm>
 
- <distributionManagement>
+  <distributionManagement>
     <site>
       <id>apache.website</id>
       <name>Apache HttpComponents Website</name>
@@ -490,6 +490,15 @@
               <title>Apache HttpClient Windows features</title>
               <packages>org.apache.hc.client5.http.impl.win*</packages>
             </group>
+            <group>
+              <title>Apache HttpClient Observations</title>
+              <packages>org.apache.hc.client5.http.observation*</packages>
+            </group>
+            <group>
+              <title>Apache HttpClient SSE</title>
+              <packages>org.apache.hc.client5.http.sse*</packages>
+            </group>
+
           </groups>
         </configuration>
         <reportSets>

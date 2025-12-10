@@ -33,7 +33,7 @@ package org.apache.hc.client5.http.sse;
  * <p>Implementations should keep handlers lightweight and non-blocking.
  * If you need to do heavy work, offload to your own executor.</p>
  *
- * <h3>Invocation & threading</h3>
+ * <h3>Invocation &amp; threading</h3>
  * <ul>
  *   <li>Methods may be invoked on an internal callback executor supplied to the
  *       {@code EventSource} (or on the caller thread if none was supplied).
