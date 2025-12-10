@@ -44,7 +44,7 @@ public enum SseParser {
      */
     CHAR,
     /**
-     * ByteBuffer → byte-level framing & minimal decode.
+     * ByteBuffer → byte-level framing &amp; minimal decode.
      */
     BYTE
 }

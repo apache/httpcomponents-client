@@ -38,7 +38,6 @@ import org.apache.hc.core5.annotation.Internal;
  *   <li>{@code retry} is parsed without creating a substring; only {@code data/event/id} values
  *       create substrings when needed.</li>
  * </ul>
- * </p>
  */
 @Internal
 public final class ServerSentEventReader {

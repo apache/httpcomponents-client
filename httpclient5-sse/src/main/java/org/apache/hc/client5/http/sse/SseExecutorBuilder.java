@@ -77,6 +77,8 @@ public final class SseExecutorBuilder {
     /**
      * Supplies a custom async HTTP client. The caller owns its lifecycle and
      * {@link SseExecutor#close()} will close it.
+     * @param client the client to use
+     * @return this builder
      */
     public SseExecutorBuilder setHttpClient(final CloseableHttpAsyncClient client) {
         this.client = Args.notNull(client, "HTTP Async Client");
@@ -86,6 +88,8 @@ public final class SseExecutorBuilder {
     /**
      * Sets the scheduler to use for reconnect delays. If not provided, the internal shared
      * scheduler is used.
+     * @param scheduler the scheduler to use
+     * @return this builder
      */
     public SseExecutorBuilder setScheduler(final ScheduledExecutorService scheduler) {
         this.scheduler = scheduler;
@@ -95,6 +99,8 @@ public final class SseExecutorBuilder {
     /**
      * Sets the executor used to dispatch {@link EventSourceListener} callbacks.
      * If not provided, callbacks run inline on the I/O thread.
+     * @param callbackExecutor the executor to use
+     * @return this builder
      */
     public SseExecutorBuilder setCallbackExecutor(final Executor callbackExecutor) {
         this.callbackExecutor = callbackExecutor;
@@ -103,6 +109,8 @@ public final class SseExecutorBuilder {
 
     /**
      * Sets the default reconnect/backoff configuration applied to opened streams.
+     * @param cfg the reconnect configuration
+     * @return this builder
      */
     public SseExecutorBuilder setEventSourceConfig(final EventSourceConfig cfg) {
         this.config = Args.notNull(cfg, "EventSourceConfig");
@@ -111,6 +119,8 @@ public final class SseExecutorBuilder {
 
     /**
      * Replaces the default headers (sent on every opened stream).
+     * @param headers the headers to use
+     * @return this builder
      */
     public SseExecutorBuilder setDefaultHeaders(final Map<String, String> headers) {
         this.defaultHeaders.clear();
@@ -122,6 +132,9 @@ public final class SseExecutorBuilder {
 
     /**
      * Adds or replaces a single default header.
+     * @param name the header name
+     * @param value the header value
+     * @return this builder
      */
     public SseExecutorBuilder addDefaultHeader(final String name, final String value) {
         this.defaultHeaders.put(Args.notNull(name, "name"), value);
@@ -131,6 +144,8 @@ public final class SseExecutorBuilder {
     /**
      * Chooses the parser strategy: {@link SseParser#CHAR} (spec-level, default)
      * or {@link SseParser#BYTE} (byte-level framing with minimal decoding).
+     * @param parser the parser strategy to use
+     * @return this builder
      */
     public SseExecutorBuilder setParserStrategy(final SseParser parser) {
         this.parserStrategy = parser != null ? parser : SseParser.CHAR;
@@ -139,6 +154,7 @@ public final class SseExecutorBuilder {
 
     /**
      * Builds the {@link SseExecutor}.
+     * @return a new {@link SseExecutor}
      */
     public SseExecutor build() {
         final CloseableHttpAsyncClient c = (client != null) ? client : SseExecutor.getSharedClient();

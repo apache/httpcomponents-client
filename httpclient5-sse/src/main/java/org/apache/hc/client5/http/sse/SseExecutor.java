@@ -126,6 +126,7 @@ public final class SseExecutor {
      *
      * <p>Use this when you want to set defaults such as headers, backoff,
      * parser strategy (char vs. byte), or custom executors for scheduling and callbacks.</p>
+     * @return a new {@link SseExecutorBuilder}
      */
     public static SseExecutorBuilder custom() {
         return new SseExecutorBuilder();
@@ -137,6 +138,7 @@ public final class SseExecutor {
      * <p>Streams opened by this executor will share one underlying {@link CloseableHttpAsyncClient}
      * instance. {@link #close()} will be a no-op; call {@link #closeSharedClient()} to
      * explicitly shut the shared client down (for tests / application shutdown).</p>
+     * @return a new {@link SseExecutor}
      */
     public static SseExecutor newInstance() {
         final CloseableHttpAsyncClient c = getSharedClient();
@@ -152,6 +154,8 @@ public final class SseExecutor {
      * @param client an already constructed async client
      * @throws NullPointerException  if {@code client} is {@code null}
      * @throws IllegalStateException if the client is shutting down or shut down
+     * @return a new {@link SseExecutor}
+     *
      */
     public static SseExecutor newInstance(final CloseableHttpAsyncClient client) {
         Args.notNull(client, "HTTP Async Client");
@@ -164,6 +168,7 @@ public final class SseExecutor {
      * Closes and clears the shared async client, if present.
      *
      * <p>Useful for tests or orderly application shutdown.</p>
+     * @throws IOException if closing the client fails
      */
     public static void closeSharedClient() throws IOException {
         LOCK.lock();
@@ -213,6 +218,7 @@ public final class SseExecutor {
     /**
      * Closes the underlying async client if this executor does <em>not</em> use
      * the process-wide shared client. No-op otherwise.
+     * @throws IOException if closing the client fails
      */
     public void close() throws IOException {
         if (!isSharedClient) {
@@ -225,6 +231,7 @@ public final class SseExecutor {
      *
      * @param uri      target SSE endpoint (must produce {@code text/event-stream})
      * @param listener event callbacks
+     * @return the created {@link EventSource}
      */
     public EventSource open(final URI uri, final EventSourceListener listener) {
         return open(uri, this.defaultHeaders, listener, this.defaultConfig,
@@ -237,6 +244,7 @@ public final class SseExecutor {
      * @param uri      target SSE endpoint
      * @param headers  extra request headers (merged with executor defaults)
      * @param listener event callbacks
+     * @return the created {@link EventSource}
      */
     public EventSource open(final URI uri,
                             final Map<String, String> headers,
@@ -252,6 +260,7 @@ public final class SseExecutor {
      * @param headers  extra request headers (merged with executor defaults)
      * @param listener event callbacks
      * @param config   reconnect/backoff config
+     * @return the created {@link EventSource}
      */
     public EventSource open(final URI uri,
                             final Map<String, String> headers,
@@ -271,6 +280,7 @@ public final class SseExecutor {
      * @param parser           parsing strategy ({@link SseParser#CHAR} or {@link SseParser#BYTE})
      * @param scheduler        scheduler for reconnects (nullable → internal shared scheduler)
      * @param callbackExecutor executor for listener callbacks (nullable → run inline)
+     * @return the created {@link EventSource}
      */
     public EventSource open(final URI uri,
                             final Map<String, String> headers,
@@ -292,6 +302,7 @@ public final class SseExecutor {
 
     /**
      * Returns the underlying {@link CloseableHttpAsyncClient}.
+     * @return the client
      */
     public CloseableHttpAsyncClient getClient() {
         return client;

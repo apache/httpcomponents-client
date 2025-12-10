@@ -38,7 +38,7 @@ public interface BackoffStrategy {
      * @param attempt           consecutive reconnect attempt number (1-based)
      * @param previousDelayMs   last delay used (0 for first attempt)
      * @param serverRetryHintMs value from server 'retry:' (ms) or HTTP Retry-After, or null if none
-     * @return delay in milliseconds (>= 0)
+     * @return delay in milliseconds, greater than or equal to {@code 0}
      */
     long nextDelayMs(int attempt, long previousDelayMs, Long serverRetryHintMs);
 
@@ -49,7 +49,7 @@ public interface BackoffStrategy {
      * @param attempt           consecutive reconnect attempt number (1-based)
      * @param previousDelayMs   last delay used (0 for first attempt)
      * @param serverRetryHintMs value from server 'retry:' (ms) or HTTP Retry-After, or null if none
-     * @return true to reconnect, false to stop
+     * @return {@code true} to reconnect, {@code false} to stop
      */
     default boolean shouldReconnect(final int attempt, final long previousDelayMs, final Long serverRetryHintMs) {
         return true;
