@@ -34,6 +34,17 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.pool.DisposalCallback;
 
+/**
+ * {@link DisposalCallback} that defers graceful connection disposal so it can
+ * be executed outside core pool synchronization.
+ * <p>
+ * Calls with {@link CloseMode#IMMEDIATE} are delegated directly to the
+ * underlying callback on the caller thread. All other modes are queued and
+ * later disposed with {@link CloseMode#GRACEFUL} when {@link #drain()} is
+ * invoked by {@link PoolingHttpClientConnectionManager}.
+ *
+ * @since 5.6
+ */
 @Internal
 final class OffLockDisposalCallback<T extends ModalCloseable> implements DisposalCallback<T> {
 
