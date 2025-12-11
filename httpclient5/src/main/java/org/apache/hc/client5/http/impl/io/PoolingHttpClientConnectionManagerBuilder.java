@@ -46,6 +46,7 @@ import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.util.TimeValue;
@@ -308,7 +309,17 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Enable/disable off-lock disposal.
+     * Enable or disable off-lock connection disposal for blocking I/O pools.
+     * <p>
+     * When enabled, graceful connection closes are deferred and performed
+     * outside the core pool synchronization in
+     * {@link PoolingHttpClientConnectionManager}. This reduces the time spent
+     * holding internal locks at the cost of slightly more complex disposal
+     * logic. Immediate closes  {@link CloseMode#IMMEDIATE} are still executed
+     * on the caller thread.
+     *
+     * @param enabled {@code true} to enable off-lock disposal, {@code false} to disable
+     * @return this builder
      * @since 5.6
      */
     @Experimental
@@ -316,6 +327,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
         this.offLockDisposalEnabled = enabled;
         return this;
     }
+
 
     @Internal
     protected HttpClientConnectionOperator createConnectionOperator(
