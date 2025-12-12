@@ -86,6 +86,7 @@ import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolEntry;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.pool.PoolStats;
+import org.apache.hc.core5.pool.RouteSegmentedConnPool;
 import org.apache.hc.core5.pool.StrictConnPool;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
@@ -207,6 +208,14 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                     }
 
                 };
+                break;
+            case OFFLOCK:
+                managedConnPool = new RouteSegmentedConnPool<>(
+                        DEFAULT_MAX_CONNECTIONS_PER_ROUTE,
+                        DEFAULT_MAX_TOTAL_CONNECTIONS,
+                        timeToLive,
+                        poolReusePolicy,
+                        new DefaultDisposalCallback<>());
                 break;
             default:
                 throw new IllegalArgumentException("Unexpected PoolConcurrencyPolicy value: " + poolConcurrencyPolicy);
