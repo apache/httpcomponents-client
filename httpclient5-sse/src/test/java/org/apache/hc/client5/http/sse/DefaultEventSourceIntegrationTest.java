@@ -40,6 +40,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.sse.impl.SseParser;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Supplier;
@@ -51,7 +52,6 @@ import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorStatus;
@@ -102,10 +102,11 @@ final class DefaultEventSourceIntegrationTest {
         final AsyncResponseConsumer<Void> c = fake.lastConsumer;
         assertNotNull(c, "consumer captured");
 
+        final HttpContext context = HttpClientContext.create();
         c.consumeResponse(
                 new BasicHttpResponse(HttpStatus.SC_OK, "OK"),
                 new TestEntityDetails("text/event-stream"),
-                new BasicHttpContext(),                                   // FIX: concrete HttpContext
+                context,
                 new FutureCallback<Void>() {
                     @Override
                     public void completed(final Void result) {
