@@ -51,7 +51,7 @@ import org.apache.hc.core5.util.Args;
  * MeterRegistry meters = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
  * MetricConfig mc = MetricConfig.builder().prefix("http_client").build();
  *
- * HttpClientBuilder b = HttpClients.custom()
+ * HttpClientBuilder b = HttpClients.builder()
  *     .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create().build());
  *
  * // after the connection manager is attached to the builder:

@@ -28,11 +28,11 @@ package org.apache.hc.client5.http.observation.example;
 
 import java.util.EnumSet;
 
-import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.core.instrument.Metrics;
-
+import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
+import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -41,12 +41,10 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.observation.HttpClientObservationSupport;
 import org.apache.hc.client5.http.observation.MetricConfig;
 import org.apache.hc.client5.http.observation.ObservingOptions;
-
 import org.apache.hc.client5.http.observation.impl.MeteredDnsResolver;
 import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
-import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 
 public final class DnsMetricsDemo {
 
@@ -82,7 +80,7 @@ public final class DnsMetricsDemo {
                 .setDnsResolver(meteredResolver)
                 .build();
 
-        final HttpClientBuilder builder = HttpClients.custom()
+        final HttpClientBuilder builder = HttpClients.builder()
                 .setConnectionManager(cm);
 
         // record http timers/counters + pool gauges

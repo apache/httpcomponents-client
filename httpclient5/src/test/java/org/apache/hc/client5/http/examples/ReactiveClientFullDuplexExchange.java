@@ -32,8 +32,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Observable;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpResponse;
@@ -47,9 +50,6 @@ import org.apache.hc.core5.reactive.ReactiveResponseConsumer;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.reactivestreams.Publisher;
 
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.Observable;
-
 /**
  * This example demonstrates a reactive, full-duplex HTTP/1.1 message exchange using RxJava.
  */
@@ -60,7 +60,8 @@ public class ReactiveClientFullDuplexExchange {
         final MinimalHttpAsyncClient client = HttpAsyncClients.createMinimal(
                 H2Config.DEFAULT,
                 Http1Config.DEFAULT,
-                IOReactorConfig.DEFAULT);
+                IOReactorConfig.DEFAULT,
+                PoolingAsyncClientConnectionManagerBuilder.create().build());
 
         client.start();
 

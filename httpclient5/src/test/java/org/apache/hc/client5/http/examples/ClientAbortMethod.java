@@ -44,7 +44,7 @@ import org.apache.logging.log4j.core.util.Log4jThreadFactory;
 public class ClientAbortMethod {
 
     public static void main(final String[] args) throws Exception {
-        try (final CloseableHttpClient httpclient = HttpClients.createDefault()) {
+        try (final CloseableHttpClient httpclient = HttpClients.create()) {
             final HttpGet httpget = new HttpGet("http://httpbin.org/get");
 
             final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1,

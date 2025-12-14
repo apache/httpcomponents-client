@@ -53,7 +53,7 @@ public class ClientExecuteSOCKS {
                         .setSocksProxyAddress(socksaddr)
                         .build())
                 .build();
-        try (final CloseableHttpClient httpclient = HttpClients.custom()
+        try (final CloseableHttpClient httpclient = HttpClients.builder()
                 .setConnectionManager(cm)
                 .build()) {
 

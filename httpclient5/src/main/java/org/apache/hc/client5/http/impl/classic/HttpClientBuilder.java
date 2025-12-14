@@ -227,7 +227,7 @@ public class HttpClientBuilder {
     private boolean evictIdleConnections;
     private TimeValue maxIdleTime;
 
-    private boolean systemProperties;
+    private boolean ignoreSystemProperties;
     private boolean redirectHandlingDisabled;
     private boolean automaticRetriesDisabled;
     private boolean contentCompressionDisabled;
@@ -727,7 +727,20 @@ public class HttpClientBuilder {
      * @return this instance.
      */
     public final HttpClientBuilder useSystemProperties() {
-        this.systemProperties = true;
+        this.ignoreSystemProperties = false;
+        return this;
+    }
+
+    /**
+     * Ignore system properties when creating and configuring default
+     * implementations.
+     *
+     * @return this instance.
+     *
+     * @since 5.7
+     */
+    public final HttpClientBuilder ignoreSystemProperties() {
+        this.ignoreSystemProperties = true;
         return this;
     }
 
@@ -854,14 +867,14 @@ public class HttpClientBuilder {
         HttpClientConnectionManager connManagerCopy = this.connManager;
         if (connManagerCopy == null) {
             final PoolingHttpClientConnectionManagerBuilder connectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
-            if (systemProperties) {
+            if (!ignoreSystemProperties) {
                 connectionManagerBuilder.useSystemProperties();
             }
             connManagerCopy = connectionManagerBuilder.build();
         }
         ConnectionReuseStrategy reuseStrategyCopy = this.reuseStrategy;
         if (reuseStrategyCopy == null) {
-            if (systemProperties) {
+            if (!ignoreSystemProperties) {
                 final String s = System.getProperty("http.keepAlive", "true");
                 if ("true".equalsIgnoreCase(s)) {
                     reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
@@ -896,7 +909,7 @@ public class HttpClientBuilder {
 
         String userAgentCopy = this.userAgent;
         if (userAgentCopy == null) {
-            if (systemProperties) {
+            if (!ignoreSystemProperties) {
                 userAgentCopy = System.getProperty("http.agent");
             }
             if (userAgentCopy == null && !defaultUserAgentDisabled) {
@@ -1020,7 +1033,7 @@ public class HttpClientBuilder {
                 routePlannerCopy = new DefaultProxyRoutePlanner(proxy, schemePortResolverCopy);
             } else if (this.proxySelector != null) {
                 routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, this.proxySelector);
-            } else if (systemProperties) {
+            } else if (!ignoreSystemProperties) {
                 final ProxySelector defaultProxySelector = ProxySelector.getDefault();
                 routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, defaultProxySelector);
             } else {
@@ -1099,7 +1112,7 @@ public class HttpClientBuilder {
 
         CredentialsProvider defaultCredentialsProvider = this.credentialsProvider;
         if (defaultCredentialsProvider == null) {
-            if (systemProperties) {
+            if (!ignoreSystemProperties) {
                 defaultCredentialsProvider = new SystemDefaultCredentialsProvider();
             } else {
                 defaultCredentialsProvider = new BasicCredentialsProvider();

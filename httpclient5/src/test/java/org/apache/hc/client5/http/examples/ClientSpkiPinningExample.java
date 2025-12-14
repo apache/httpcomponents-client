@@ -65,7 +65,7 @@ public class ClientSpkiPinningExample {
                         .setTlsSocketStrategy(pinning) // classic path
                         .build();
 
-        try (final CloseableHttpClient httpclient = HttpClients.custom()
+        try (final CloseableHttpClient httpclient = HttpClients.builder()
                 .setConnectionManager(cm)
                 .build()) {
 

@@ -48,7 +48,7 @@ import org.apache.hc.core5.io.CloseMode;
 public class AsyncClientAuthentication {
 
     public static void main(final String[] args) throws Exception {
-        final CloseableHttpAsyncClient httpclient = HttpAsyncClients.custom()
+        final CloseableHttpAsyncClient httpclient = HttpAsyncClients.builder()
                 .setDefaultCredentialsProvider(CredentialsProviderBuilder.create()
                         .add(new HttpHost("httpbin.org", 80), "user", "passwd".toCharArray())
                         .build())

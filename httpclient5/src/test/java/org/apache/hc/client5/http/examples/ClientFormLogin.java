@@ -46,7 +46,7 @@ public class ClientFormLogin {
 
     public static void main(final String[] args) throws Exception {
         final BasicCookieStore cookieStore = new BasicCookieStore();
-        try (final CloseableHttpClient httpclient = HttpClients.custom()
+        try (final CloseableHttpClient httpclient = HttpClients.builder()
                 .setDefaultCookieStore(cookieStore)
                 .build()) {
             final HttpGet httpget = new HttpGet("https://someportal/");

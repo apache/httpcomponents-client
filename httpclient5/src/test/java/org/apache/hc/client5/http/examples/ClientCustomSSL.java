@@ -76,7 +76,7 @@ public class ClientCustomSSL {
                         .setSupportedProtocols(TLS.V_1_3)
                         .build())
                 .build();
-        try (CloseableHttpClient httpclient = HttpClients.custom()
+        try (CloseableHttpClient httpclient = HttpClients.builder()
                 .setConnectionManager(cm)
                 .build()) {
 

@@ -56,7 +56,7 @@ public class AsyncClientConnectionEviction {
                 .setSoTimeout(Timeout.ofSeconds(5))
                 .build();
 
-        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        final CloseableHttpAsyncClient client = HttpAsyncClients.builder()
                 .setIOReactorConfig(ioReactorConfig)
                 .evictExpiredConnections()
                 .evictIdleConnections(TimeValue.ofSeconds(10))

@@ -176,7 +176,7 @@ class EarlyHintsAsyncExecTest {
             }
         };
 
-        try (final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        try (final CloseableHttpAsyncClient client = HttpAsyncClients.builder()
                 .setEarlyHintsListener(listener)
                 .build()) {
 

@@ -85,7 +85,7 @@ class TimerExecTest {
                 .build();
 
         final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create().build();
-        final HttpClientBuilder b = HttpClients.custom().setConnectionManager(cm);
+        final HttpClientBuilder b = HttpClients.builder().setConnectionManager(cm);
 
         // Attach the timer interceptor under test
         b.addExecInterceptorFirst("timer", new TimerExec(meters, opts, mc));

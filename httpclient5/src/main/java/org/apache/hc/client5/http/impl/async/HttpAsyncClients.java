@@ -72,24 +72,52 @@ public final class HttpAsyncClients {
     }
 
     /**
-     * Creates builder object for construction of custom
-     * {@link CloseableHttpAsyncClient} instances.
+     * @since 5.7
      */
-    public static HttpAsyncClientBuilder custom() {
+    public static HttpAsyncClientBuilder builder() {
         return HttpAsyncClientBuilder.create();
     }
 
     /**
-     * Creates {@link CloseableHttpAsyncClient} instance with default configuration.
+     * Creates {@link CloseableHttpAsyncClient} instance with default
+     * configuration.
+     *
+     * @since 5.7
      */
-    public static CloseableHttpAsyncClient createDefault() {
+    public static CloseableHttpAsyncClient create() {
         return HttpAsyncClientBuilder.create().build();
+    }
+
+    /**
+     * Creates builder object for construction of custom
+     * {@link CloseableHttpAsyncClient} instances.
+     *
+     * @deprecated Use {@link #builder()}
+     * @see HttpAsyncClientBuilder#ignoreSystemProperties()
+     */
+    @Deprecated
+    public static HttpAsyncClientBuilder custom() {
+        return HttpAsyncClientBuilder.create().ignoreSystemProperties();
+    }
+
+    /**
+     * Creates {@link CloseableHttpAsyncClient} instance with default configuration.
+     *
+     * @deprecated Use {@link #create()}
+     * @see HttpAsyncClientBuilder#ignoreSystemProperties()
+     */
+    @Deprecated
+    public static CloseableHttpAsyncClient createDefault() {
+        return HttpAsyncClientBuilder.create().ignoreSystemProperties().build();
     }
 
     /**
      * Creates {@link CloseableHttpAsyncClient} instance with default
      * configuration and system properties.
+     *
+     * @deprecated Use {@link #create()}
      */
+    @Deprecated
     public static CloseableHttpAsyncClient createSystem() {
         return HttpAsyncClientBuilder.create().useSystemProperties().build();
     }
@@ -97,24 +125,54 @@ public final class HttpAsyncClients {
     /**
      * Creates builder object for construction of custom HTTP/2
      * {@link CloseableHttpAsyncClient} instances optimized for HTTP/2 protocol
-     * and message multiplexing
+     * and message multiplexing.
+     *
+     * @since 5.7
      */
-    public static H2AsyncClientBuilder customHttp2() {
-        return H2AsyncClientBuilder.create();
+    public static HttpAsyncClientBuilder http2Builder() {
+        return HttpAsyncClientBuilder.create();
     }
 
     /**
      * Creates HTTP/2 {@link CloseableHttpAsyncClient} instance with default configuration
      * optimized for HTTP/2 protocol and message multiplexing.
+     *
+     * @since 5.7
      */
+    public static CloseableHttpAsyncClient http2Create() {
+        return HttpAsyncClientBuilder.create().build();
+    }
+
+    /**
+     * Creates builder object for construction of custom HTTP/2
+     * {@link CloseableHttpAsyncClient} instances optimized for HTTP/2 protocol
+     * and message multiplexing
+     *
+     * @deprecated Use {@link #http2Builder()}
+     */
+    @Deprecated
+    public static H2AsyncClientBuilder customHttp2() {
+        return H2AsyncClientBuilder.create().ignoreSystemProperties();
+    }
+
+    /**
+     * Creates HTTP/2 {@link CloseableHttpAsyncClient} instance with default configuration
+     * optimized for HTTP/2 protocol and message multiplexing.
+     *
+     * @deprecated Use {@link #http2Create()}
+     */
+    @Deprecated
     public static CloseableHttpAsyncClient createHttp2Default() {
-        return H2AsyncClientBuilder.create().build();
+        return H2AsyncClientBuilder.create().ignoreSystemProperties().build();
     }
 
     /**
      * Creates HTTP/2 {@link CloseableHttpAsyncClient} instance with default configuration and
      * system properties optimized for HTTP/2 protocol and message multiplexing.
+     *
+     * @deprecated Use {@link #http2Create()}
      */
+    @Deprecated
     public static CloseableHttpAsyncClient createHttp2System() {
         return H2AsyncClientBuilder.create().useSystemProperties().build();
     }
@@ -227,20 +285,28 @@ public final class HttpAsyncClients {
      * Creates {@link MinimalHttpAsyncClient} instance optimized for
      * HTTP/1.1 and HTTP/2 message transport without advanced HTTP protocol
      * functionality.
+     *
+     * @deprecated Use {@link #createMinimal(H2Config, Http1Config, IOReactorConfig, AsyncClientConnectionManager)}
      */
+    @Deprecated
     public static MinimalHttpAsyncClient createMinimal(
             final H2Config h2Config,
             final Http1Config h1Config,
             final IOReactorConfig ioReactorConfig) {
         return createMinimal(h2Config, h1Config, ioReactorConfig,
-                PoolingAsyncClientConnectionManagerBuilder.create().build());
+                PoolingAsyncClientConnectionManagerBuilder.create()
+                        .ignoreSystemProperties()
+                        .build());
     }
 
     /**
      * Creates {@link MinimalHttpAsyncClient} instance optimized for
      * HTTP/1.1 and HTTP/2 message transport without advanced HTTP protocol
      * functionality.
+     *
+     * @deprecated Use {@link #createMinimal(H2Config, Http1Config, IOReactorConfig, AsyncClientConnectionManager)}
      */
+    @Deprecated
     public static MinimalHttpAsyncClient createMinimal(final H2Config h2Config, final Http1Config h1Config) {
         return createMinimal(HttpVersionPolicy.NEGOTIATE, h2Config, h1Config, IOReactorConfig.DEFAULT);
     }
@@ -249,7 +315,10 @@ public final class HttpAsyncClients {
      * Creates {@link MinimalHttpAsyncClient} instance optimized for
      * HTTP/1.1 and HTTP/2 message transport without advanced HTTP protocol
      * functionality.
+     *
+     * @deprecated Use {@link #createMinimal(AsyncClientConnectionManager)}
      */
+    @Deprecated
     public static MinimalHttpAsyncClient createMinimal() {
         return createMinimal(H2Config.DEFAULT, Http1Config.DEFAULT);
     }
@@ -321,17 +390,23 @@ public final class HttpAsyncClients {
     /**
      * Creates {@link MinimalH2AsyncClient} instance optimized for HTTP/2 multiplexing message
      * transport without advanced HTTP protocol functionality.
+     *
+     * @deprecated Use {@link #createHttp2Minimal(H2Config, IOReactorConfig, TlsStrategy)}
      */
+    @Deprecated
     public static MinimalH2AsyncClient createHttp2Minimal(
             final H2Config h2Config,
             final IOReactorConfig ioReactorConfig) {
-        return createHttp2Minimal(h2Config, ioReactorConfig, DefaultClientTlsStrategy.createDefault());
+        return createHttp2Minimal(h2Config, ioReactorConfig, DefaultClientTlsStrategy.create());
     }
 
     /**
      * Creates {@link MinimalH2AsyncClient} instance optimized for HTTP/2 multiplexing message
      * transport without advanced HTTP protocol functionality.
+     *
+     * @deprecated Use {@link #createHttp2Minimal(H2Config, IOReactorConfig, TlsStrategy)}
      */
+    @Deprecated
     public static MinimalH2AsyncClient createHttp2Minimal(final H2Config h2Config) {
         return createHttp2Minimal(h2Config, IOReactorConfig.DEFAULT);
     }
@@ -339,7 +414,10 @@ public final class HttpAsyncClients {
     /**
      * Creates {@link MinimalH2AsyncClient} instance optimized for HTTP/2 multiplexing message
      * transport without advanced HTTP protocol functionality.
+     *
+     * @deprecated Use {@link #createHttp2Minimal(H2Config, IOReactorConfig, TlsStrategy)}
      */
+    @Deprecated
     public static MinimalH2AsyncClient createHttp2Minimal() {
         return createHttp2Minimal(H2Config.DEFAULT);
     }

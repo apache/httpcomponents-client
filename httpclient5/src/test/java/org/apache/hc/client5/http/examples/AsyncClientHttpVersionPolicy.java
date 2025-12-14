@@ -64,7 +64,7 @@ public class AsyncClientHttpVersionPolicy {
                         .setVersionPolicy(HttpVersionPolicy.NEGOTIATE)
                         .build())
                 .build();
-        try (final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        try (final CloseableHttpAsyncClient client = HttpAsyncClients.builder()
                 .setConnectionManager(cm)
                 .build()) {
 

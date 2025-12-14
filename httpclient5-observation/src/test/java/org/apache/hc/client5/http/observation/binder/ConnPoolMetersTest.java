@@ -44,7 +44,7 @@ class ConnPoolMetersTest {
         final MeterRegistry reg = new SimpleMeterRegistry();
 
         final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create().build();
-        final HttpClientBuilder b = HttpClients.custom().setConnectionManager(cm);
+        final HttpClientBuilder b = HttpClients.builder().setConnectionManager(cm);
 
         ConnPoolMeters.bindTo(b, reg);
 
@@ -59,7 +59,7 @@ class ConnPoolMetersTest {
     @Test
     void noExceptionIfNoPool() {
         final MeterRegistry reg = new SimpleMeterRegistry();
-        final HttpClientBuilder b = HttpClients.custom(); // no CM set
+        final HttpClientBuilder b = HttpClients.builder(); // no CM set
         // should not throw
         ConnPoolMeters.bindTo(b, reg);
         // and nothing registered

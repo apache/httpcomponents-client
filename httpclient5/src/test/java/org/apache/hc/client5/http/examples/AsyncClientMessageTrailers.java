@@ -57,7 +57,7 @@ public class AsyncClientMessageTrailers {
                 .setSoTimeout(Timeout.ofSeconds(5))
                 .build();
 
-        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        final CloseableHttpAsyncClient client = HttpAsyncClients.builder()
                 .setIOReactorConfig(ioReactorConfig)
                 .addExecInterceptorAfter(ChainElement.PROTOCOL.name(), "custom", (request, entityProducer, scope, chain, asyncExecCallback) -> {
                     // Send MD5 hash in a trailer by decorating the original entity producer

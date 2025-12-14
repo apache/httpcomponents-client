@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
@@ -66,7 +67,8 @@ public class AsyncClientFullDuplexExchange {
         final MinimalHttpAsyncClient client = HttpAsyncClients.createMinimal(
                 H2Config.DEFAULT,
                 Http1Config.DEFAULT,
-                IOReactorConfig.DEFAULT);
+                IOReactorConfig.DEFAULT,
+                PoolingAsyncClientConnectionManagerBuilder.create().build());
 
         client.start();
 

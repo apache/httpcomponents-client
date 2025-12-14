@@ -53,7 +53,7 @@ public class AsyncClientHttpExchange {
                 .setSoTimeout(Timeout.ofSeconds(5))
                 .build();
 
-        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        final CloseableHttpAsyncClient client = HttpAsyncClients.builder()
                 .setIOReactorConfig(ioReactorConfig)
                 .build();
 

@@ -84,7 +84,7 @@ public class AsyncIoByteCounterExecTest {
                 .tagLevel(ObservingOptions.TagLevel.LOW)
                 .build();
 
-        final HttpAsyncClientBuilder b = HttpAsyncClients.custom();
+        final HttpAsyncClientBuilder b = HttpAsyncClients.builder();
         // Attach the async IO byte counter interceptor under test
         b.addExecInterceptorFirst("io", new AsyncIoByteCounterExec(meters, opts, mc));
 

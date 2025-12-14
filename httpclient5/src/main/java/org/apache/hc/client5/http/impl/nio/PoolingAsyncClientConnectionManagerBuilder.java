@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.ssl.ConscryptClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
 import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.function.Resolver;
@@ -45,6 +46,7 @@ import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.pool.ConnPoolListener;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.ReflectionUtils;
 import org.apache.hc.core5.util.TimeValue;
 
@@ -52,10 +54,8 @@ import org.apache.hc.core5.util.TimeValue;
  * Builder for {@link PoolingAsyncClientConnectionManager} instances.
  * <p>
  * When a particular component is not explicitly set this class will
- * use its default implementation. System properties will be taken
- * into account when configuring the default implementations when
- * {@link #useSystemProperties()} method is called prior to calling
- * {@link #build()}.
+ * use its default implementation. The following system are taken into
+ * account.
  * </p>
  * <ul>
  *  <li>ssl.TrustManagerFactory.algorithm</li>
@@ -82,7 +82,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     private PoolConcurrencyPolicy poolConcurrencyPolicy;
     private PoolReusePolicy poolReusePolicy;
 
-    private boolean systemProperties;
+    private boolean ignoreSystemProperties;
 
     private int maxConnTotal;
     private int maxConnPerRoute;
@@ -267,7 +267,20 @@ public class PoolingAsyncClientConnectionManagerBuilder {
      * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder useSystemProperties() {
-        this.systemProperties = true;
+        this.ignoreSystemProperties = false;
+        return this;
+    }
+
+    /**
+     * Ignore system properties when creating and configuring default
+     * implementations.
+     *
+     * @return this instance.
+     *
+     * @since 5.7
+     */
+    public final PoolingAsyncClientConnectionManagerBuilder ignoreSystemProperties() {
+        this.ignoreSystemProperties = true;
         return this;
     }
 
@@ -308,16 +321,16 @@ public class PoolingAsyncClientConnectionManagerBuilder {
             tlsStrategyCopy = tlsStrategy;
         } else {
             if (ReflectionUtils.determineJRELevel() <= 8 && ConscryptClientTlsStrategy.isSupported()) {
-                if (systemProperties) {
-                    tlsStrategyCopy = ConscryptClientTlsStrategy.getSystemDefault();
+                if (!ignoreSystemProperties) {
+                    tlsStrategyCopy = ConscryptClientTlsStrategy.create();
                 } else {
-                    tlsStrategyCopy = ConscryptClientTlsStrategy.getDefault();
+                    tlsStrategyCopy = new ConscryptClientTlsStrategy(SSLContexts.createDefault(), HostnameVerificationPolicy.BUILTIN, null);
                 }
             } else {
-                if (systemProperties) {
-                    tlsStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
+                if (!ignoreSystemProperties) {
+                    tlsStrategyCopy = DefaultClientTlsStrategy.create();
                 } else {
-                    tlsStrategyCopy = DefaultClientTlsStrategy.createDefault();
+                    tlsStrategyCopy = new DefaultClientTlsStrategy(SSLContexts.createDefault(), HostnameVerificationPolicy.BUILTIN, null);
                 }
             }
         }

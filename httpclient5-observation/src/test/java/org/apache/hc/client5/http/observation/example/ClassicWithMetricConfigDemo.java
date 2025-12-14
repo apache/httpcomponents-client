@@ -69,7 +69,7 @@ public final class ClassicWithMetricConfigDemo {
                 .build();
 
         // 4) client + enable metrics
-        final HttpClientBuilder b = HttpClients.custom();
+        final HttpClientBuilder b = HttpClients.builder();
         HttpClientObservationSupport.enable(b, obs, reg, opts, mc);
 
         try (final CloseableHttpClient client = b.build()) {

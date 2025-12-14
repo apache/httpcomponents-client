@@ -64,7 +64,7 @@ public final class SpanSamplingDemo {
                 })
                 .build();
 
-        final HttpClientBuilder b = HttpClients.custom();
+        final HttpClientBuilder b = HttpClients.builder();
         HttpClientObservationSupport.enable(b, obs, reg, opts, mc);
 
         try (final CloseableHttpClient client = b.build()) {

@@ -215,7 +215,7 @@ public class ClientConfiguration {
 
         // Create an HttpClient with the given custom dependencies and configuration.
 
-        try (final CloseableHttpClient httpclient = HttpClients.custom()
+        try (final CloseableHttpClient httpclient = HttpClients.builder()
                 .setConnectionManager(connManager)
                 .setDefaultCookieStore(cookieStore)
                 .setDefaultCredentialsProvider(credentialsProvider)

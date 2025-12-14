@@ -86,7 +86,7 @@ public class IoByteCounterExecTest {
                 .build();
 
         final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create().build();
-        final HttpClientBuilder b = HttpClients.custom().setConnectionManager(cm);
+        final HttpClientBuilder b = HttpClients.builder().setConnectionManager(cm);
 
         // Attach the IO byte counter interceptor under test
         b.addExecInterceptorFirst("io", new IoByteCounterExec(meters, opts, mc));

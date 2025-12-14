@@ -42,8 +42,8 @@ import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBu
 import org.apache.hc.client5.http.sse.EventSource;
 import org.apache.hc.client5.http.sse.EventSourceConfig;
 import org.apache.hc.client5.http.sse.EventSourceListener;
-import org.apache.hc.client5.http.sse.impl.ExponentialJitterBackoff;
 import org.apache.hc.client5.http.sse.SseExecutor;
+import org.apache.hc.client5.http.sse.impl.ExponentialJitterBackoff;
 import org.apache.hc.client5.http.sse.impl.SseParser;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
@@ -67,7 +67,6 @@ public final class ClientSseExample {
 
         final PoolingAsyncClientConnectionManager connMgr =
                 PoolingAsyncClientConnectionManagerBuilder.create()
-                        .useSystemProperties()
                         .setMessageMultiplexing(true)      // HTTP/2 stream multiplexing
                         .setMaxConnPerRoute(32)
                         .setMaxConnTotal(256)
@@ -84,7 +83,6 @@ public final class ClientSseExample {
                         .setPushEnabled(false)
                         .setMaxConcurrentStreams(256)
                         .build())
-                .useSystemProperties()
                 .evictExpiredConnections()
                 .evictIdleConnections(TimeValue.ofMinutes(1))
                 .build();

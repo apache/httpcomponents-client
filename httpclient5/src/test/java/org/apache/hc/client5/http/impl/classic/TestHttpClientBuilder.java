@@ -40,7 +40,7 @@ class TestHttpClientBuilder {
     @Test
     void testAddInterceptorFirstDoesNotThrow() throws IOException {
         // HTTPCLIENT-2083
-        HttpClients.custom()
+        HttpClients.builder()
                 .addExecInterceptorFirst("first", NopExecChainHandler.INSTANCE)
                 .build()
                 .close();
@@ -49,7 +49,7 @@ class TestHttpClientBuilder {
     @Test
     void testAddInterceptorLastDoesNotThrow() throws IOException {
         // HTTPCLIENT-2083
-        HttpClients.custom()
+        HttpClients.builder()
                 .addExecInterceptorLast("last", NopExecChainHandler.INSTANCE)
                 .build()
                 .close();

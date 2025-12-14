@@ -78,7 +78,7 @@ public class AsyncClientCustomSSL {
         final PoolingAsyncClientConnectionManager cm = PoolingAsyncClientConnectionManagerBuilder.create()
                 .setTlsStrategy(tlsStrategy)
                 .build();
-        try (final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        try (final CloseableHttpAsyncClient client = HttpAsyncClients.builder()
                 .setConnectionManager(cm)
                 .build()) {
 

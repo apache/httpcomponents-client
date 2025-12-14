@@ -83,7 +83,7 @@ public final class TlsMetricsDemo {
                         .setTlsStrategy(meteredTls)
                         .build();
 
-        final HttpAsyncClientBuilder builder = HttpAsyncClients.custom()
+        final HttpAsyncClientBuilder builder = HttpAsyncClients.builder()
                 .setConnectionManager(cm);
 
         // Enable HTTP metrics (timers/counters, IO, etc.)

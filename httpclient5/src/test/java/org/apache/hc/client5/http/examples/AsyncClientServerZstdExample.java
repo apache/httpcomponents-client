@@ -108,7 +108,7 @@ public final class AsyncClientServerZstdExample {
         final int port = server.getLocalPort();
         final String url = "http://localhost:" + port + "/echo";
 
-        try (final CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
+        try (final CloseableHttpAsyncClient client = HttpAsyncClients.create()) {
             client.start();
 
             final String requestBody = "Hello Zstandard world!";
