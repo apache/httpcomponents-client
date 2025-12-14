@@ -76,7 +76,7 @@
     <rxjava.version>2.2.21</rxjava.version>
     <testcontainers.version>1.21.1</testcontainers.version>
     <api.comparison.version>5.3</api.comparison.version>
-    <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer</hc.animal-sniffer.signature.ignores>
+    <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer,jdk.net.ExtendedSocketOptions,jdk.net.Sockets</hc.animal-sniffer.signature.ignores>
   </properties>
 
   <dependencyManagement>

@@ -31,11 +31,14 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import javax.net.ssl.SSLSocket;
 
+import jdk.net.ExtendedSocketOptions;
+import jdk.net.Sockets;
 import org.apache.hc.client5.http.ConnectExceptionSupport;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -58,7 +61,6 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.Closer;
-import org.apache.hc.core5.io.SocketSupport;
 import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
@@ -78,6 +80,11 @@ import org.slf4j.LoggerFactory;
 public class DefaultHttpClientConnectionOperator implements HttpClientConnectionOperator {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultHttpClientConnectionOperator.class);
+
+    @SuppressWarnings("Since15")
+    private static final boolean SUPPORTS_KEEPALIVE_OPTIONS = Sockets.supportedOptions(Socket.class)
+            .containsAll(Arrays.asList(ExtendedSocketOptions.TCP_KEEPIDLE, ExtendedSocketOptions.TCP_KEEPINTERVAL,
+                    ExtendedSocketOptions.TCP_KEEPCOUNT));
 
     static final DetachedSocketFactory PLAIN_SOCKET_FACTORY = socksProxy -> socksProxy == null ? new Socket() : new Socket(socksProxy);
 
@@ -145,6 +152,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         connect(conn, host, null, localAddress, timeout, socketConfig, null, context);
     }
 
+    @SuppressWarnings("Since15")
     @Override
     public void connect(
             final ManagedHttpClientConnection conn,
@@ -199,14 +207,17 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 if (socketConfig.getSndBufSize() > 0) {
                     socket.setSendBufferSize(socketConfig.getSndBufSize());
                 }
-                if (socketConfig.getTcpKeepIdle() > 0) {
-                    SocketSupport.setOption(socket, SocketSupport.TCP_KEEPIDLE, socketConfig.getTcpKeepIdle());
-                }
-                if (socketConfig.getTcpKeepInterval() > 0) {
-                    SocketSupport.setOption(socket, SocketSupport.TCP_KEEPINTERVAL, socketConfig.getTcpKeepInterval());
-                }
-                if (socketConfig.getTcpKeepCount() > 0) {
-                    SocketSupport.setOption(socket, SocketSupport.TCP_KEEPCOUNT, socketConfig.getTcpKeepCount());
+                if (SUPPORTS_KEEPALIVE_OPTIONS) {
+                    if (socketConfig.getTcpKeepIdle() > 0) {
+                        Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPIDLE, socketConfig.getTcpKeepIdle());
+                    }
+                    if (socketConfig.getTcpKeepInterval() > 0) {
+                        Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPINTERVAL,
+                                socketConfig.getTcpKeepInterval());
+                    }
+                    if (socketConfig.getTcpKeepCount() > 0) {
+                        Sockets.setOption(socket, ExtendedSocketOptions.TCP_KEEPCOUNT, socketConfig.getTcpKeepCount());
+                    }
                 }
                 final int linger = socketConfig.getSoLinger().toMillisecondsIntBound();
                 if (linger >= 0) {
