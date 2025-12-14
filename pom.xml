@@ -62,7 +62,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <httpcore.version>5.4-alpha1</httpcore.version>
+    <httpcore.version>5.4</httpcore.version>
     <log4j.version>2.25.0</log4j.version>
     <brotli4j.version>1.20.0</brotli4j.version>
     <conscrypt.version>2.5.2</conscrypt.version>
