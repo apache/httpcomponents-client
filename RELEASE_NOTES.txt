@@ -1,10 +1,10 @@
-Release 5.6 ALPHA1
+Release 5.6
 ------------------
 
-This is the first ALPHA release in the 5.6 release series. It adds several features
-such as transport content decompression and content compression for the async transport,
-support for Unix sockets, experimental support for SCRAM-SHA-256 authentication scheme,
-and Micrometer/OTel observations & metrics.
+This is the first GA release in the 5.6 release series. It adds several features such as
+transport content decompression and content compression for the async transport, support
+for Unix sockets, experimental support for SCRAM-SHA-256 authentication scheme, and
+Micrometer/OTel observations & metrics.
 
 Commons Compress, Brotli codec, and ZStd codec are optional dependencies and get
 wired into the execution pipeline only if present on the classpath.
@@ -28,6 +28,8 @@ Notable changes and features included in the 5.6 series:
 
 * Request Priority support (RFC 9218). Experimental.
 
+* OFFLOCK connection pool concurrency policy. Experimental.
+
 
 Compatibility notes:
 
@@ -36,6 +38,31 @@ Compatibility notes:
   to continue using the hostname verifier shipped with HttpClient.
 
 * Five-second TCP keep-alive is now enabled by default.
+
+Change Log
+-------------------
+
+* Limit the length of the content codec list that can be processed automatically.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Upgraded HttpCore to version 5.4
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* OFFLOCK connection pool concurrency policy backed by RouteSegmentedConnPool (#765).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+
+
+Release 5.6 ALPHA1
+------------------
+
+This is the first ALPHA release in the 5.6 release series. It adds several features
+such as transport content decompression and content compression for the async transport,
+support for Unix sockets, experimental support for SCRAM-SHA-256 authentication scheme,
+and Micrometer/OTel observations & metrics.
+
+Commons Compress, Brotli codec, and ZStd codec are optional dependencies and get
+wired into the execution pipeline only if present on the classpath.
 
 Change Log
 -------------------
