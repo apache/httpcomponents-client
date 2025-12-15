@@ -54,6 +54,7 @@ import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.message.BasicHeaderValueParser;
@@ -77,14 +78,18 @@ import org.brotli.dec.BrotliInputStream;
 @Internal
 public final class ContentCompressionExec implements ExecChainHandler {
 
+    public static final int MAX_CODEC_LIST_LEN = 5;
+
     private final Header acceptEncoding;
     private final Lookup<InputStreamFactory> decoderRegistry;
     private final boolean ignoreUnknown;
+    private final int maxCodecListLen;
 
     public ContentCompressionExec(
             final List<String> acceptEncoding,
             final Lookup<InputStreamFactory> decoderRegistry,
-            final boolean ignoreUnknown) {
+            final boolean ignoreUnknown,
+            final int maxCodecListLen) {
 
         final boolean brotliSupported = decoderRegistry == null && BrotliDecompressingEntity.isAvailable();
         if (acceptEncoding != null) {
@@ -112,10 +117,22 @@ public final class ContentCompressionExec implements ExecChainHandler {
             this.decoderRegistry = builder.build();
         }
         this.ignoreUnknown = ignoreUnknown;
+        this.maxCodecListLen = maxCodecListLen;
+    }
+
+    public ContentCompressionExec(
+            final List<String> acceptEncoding,
+            final Lookup<InputStreamFactory> decoderRegistry,
+            final boolean ignoreUnknown) {
+        this(acceptEncoding, decoderRegistry, ignoreUnknown, MAX_CODEC_LIST_LEN);
     }
 
     public ContentCompressionExec(final boolean ignoreUnknown) {
-        this(null, null, ignoreUnknown);
+        this(null, null, ignoreUnknown, MAX_CODEC_LIST_LEN);
+    }
+
+    public ContentCompressionExec(final int maxCodecListLen) {
+        this(null, null, true, maxCodecListLen);
     }
 
     /**
@@ -128,7 +145,7 @@ public final class ContentCompressionExec implements ExecChainHandler {
      * </ul>
      */
     public ContentCompressionExec() {
-        this(null, null, true);
+        this(null, null, true, MAX_CODEC_LIST_LEN);
     }
 
 
@@ -158,6 +175,9 @@ public final class ContentCompressionExec implements ExecChainHandler {
             if (contentEncoding != null) {
                 final ParserCursor cursor = new ParserCursor(0, contentEncoding.length());
                 final HeaderElement[] codecs = BasicHeaderValueParser.INSTANCE.parseElements(contentEncoding, cursor);
+                if (maxCodecListLen > 0 && codecs.length > maxCodecListLen) {
+                    throw new ProtocolException("Codec list exceeds maximum of " + maxCodecListLen + " elements");
+                }
                 for (final HeaderElement codec : codecs) {
                     final String codecname = codec.getName().toLowerCase(Locale.ROOT);
                     final InputStreamFactory decoderFactory = decoderRegistry.lookup(codecname);
