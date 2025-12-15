@@ -1,3 +1,24 @@
+Release 5.5.2
+------------------
+
+This is a maintenance release that fixes incompatibility with the 5.4 branch
+of HttpCore.
+
+
+Change Log
+-------------------
+
+* Limit the length of the content codec list that can be processed automatically.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fixed incompatibility with HttpCore 5.4
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2403: Mutual authentication check not performed for proxies (#745).
+  Contributed by Istvan Toth <stoty at apache.org>
+
+
+
 Release 5.5.1
 ------------------
 
@@ -13,7 +34,7 @@ Change Log
   clients.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* Bug fix: Use a 1 second timeout when closing out connections inside a connection pool lock.
+* Bug fix: Use a 1-second timeout when closing out connections inside a connection pool lock.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * Clarified the behavior of the protocol-level responseTimeout and the connection management
@@ -146,7 +167,7 @@ Release 5.5 ALPHA1
 ------------------
 
 This is the first ALPHA release in the 5.5 release series. It adds several experimental
-features and improvements such as request multiplexing over a shared HTTP/2 connection
+features and improvements, such as request multiplexing over a shared HTTP/2 connection
 and the Classic API facade acting as a compatibility bridge between classic I/O client
 services and the asynchronous message transport used internally.
 
