@@ -44,9 +44,10 @@ public final class JettyEchoServer {
 
     public void start() throws Exception {
         // Ephemeral port
-        final ServerConnector connector = new ServerConnector(server);
-        connector.setPort(0);
-        server.setConnectors(new Connector[]{connector});
+        try (ServerConnector connector = new ServerConnector(server)) {
+            connector.setPort(0);
+            server.setConnectors(new Connector[]{connector});
+        }
 
         // Context + WebSocket servlet at /echo
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
