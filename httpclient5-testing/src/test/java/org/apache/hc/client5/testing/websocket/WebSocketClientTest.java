@@ -93,18 +93,12 @@ final class WebSocketClientTest {
         return URI.create("ws://localhost:" + port + path);
     }
 
-    /**
-     * Build a client and ensure it is started before use.
-     */
     private static CloseableWebSocketClient newClient() {
         final CloseableWebSocketClient client = WebSocketClientBuilder.create().build();
         client.start(); // start reactor threads
         return client;
     }
 
-    /**
-     * Standard echo (uncompressed); ensures basic end-to-end is healthy.
-     */
     @Test
     void echo_uncompressed() throws Exception {
         final URI uri = uri(port, "/echo");
@@ -246,12 +240,6 @@ final class WebSocketClientTest {
         }
     }
 
-    /**
-     * Client enforces maxMessageSize: server sends a too-large message → client closes with 1009.
-     * <p>
-     * We use a dedicated /too-big endpoint that proactively sends a large text frame so the
-     * client-side size check is the only reason for closure – no races with server-initiated CLOSE.
-     */
     @Test
     void max_message_1009() throws Exception {
         final CountDownLatch done = new CountDownLatch(1);
@@ -269,12 +257,13 @@ final class WebSocketClientTest {
             client.connect(u, new WebSocketListener() {
                 @Override
                 public void onOpen(final WebSocket ws) {
-                    // Client sends nothing; server pushes an oversized message.
+                    // Trigger the server to send an oversized text message.
+                    ws.sendText("trigger-too-big", true);
                 }
 
                 @Override
                 public void onText(final CharBuffer text, final boolean last) {
-                    // Depending on timing, we may or may not see text before the 1009 close.
+                    // We may or may not see some text before the 1009 close.
                 }
 
                 @Override
@@ -301,9 +290,6 @@ final class WebSocketClientTest {
         }
     }
 
-    /**
-     * Server drops TCP without sending CLOSE → client reports abnormal closure 1006.
-     */
     @Test
     void abnormal_close_1006() throws Exception {
         final CountDownLatch done = new CountDownLatch(1);
@@ -333,8 +319,6 @@ final class WebSocketClientTest {
             assertTrue(done.await(10, TimeUnit.SECONDS), "did not see 1006 abnormal closure");
         }
     }
-
-    // -------------------- Embedded servlets/sockets ---------------------------
 
     public static final class EchoServlet extends WebSocketServlet {
         @Override
@@ -408,22 +392,22 @@ final class WebSocketClientTest {
         }
     }
 
-    /**
-     * Sends a single oversized text message as soon as the WebSocket is established.
-     */
     public static final class TooBigSocket extends WebSocketAdapter {
         @Override
-        public void onWebSocketConnect(final Session sess) {
-            super.onWebSocketConnect(sess);
+        public void onWebSocketText(final String msg) {
+            final Session sess = getSession();
+            if (sess == null || !sess.isOpen()) {
+                return;
+            }
             final StringBuilder sb = new StringBuilder();
             final String chunk = "1234567890abcdef-";
             // Build something comfortably larger than the maxMessage (2 KiB in the test)
             while (sb.length() <= 8192) {
                 sb.append(chunk);
             }
-            final String msg = sb.toString();
-            sess.getRemote().sendString(msg, null);
-            // Do not send CLOSE here; the client should close with 1009.
+            final String big = sb.toString();
+            sess.getRemote().sendString(big, null);
+            // No CLOSE here; the client must decide to close with 1009.
         }
     }
 }
