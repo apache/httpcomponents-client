@@ -1100,7 +1100,7 @@ public class HttpAsyncClientBuilder {
         if (!contentCompressionDisabled) {
             if (contentDecoderMap != null && !contentDecoderMap.isEmpty()) {
                 execChainDefinition.addFirst(
-                        new ContentCompressionAsyncExec(contentDecoderMap, true),
+                        new ContentCompressionAsyncExec(contentDecoderMap),
                         ChainElement.COMPRESS.name());
             } else {
                 execChainDefinition.addFirst(

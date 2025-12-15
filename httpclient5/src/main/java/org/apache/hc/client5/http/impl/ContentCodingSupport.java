@@ -28,12 +28,14 @@
 package org.apache.hc.client5.http.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.EntityDetails;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.ParserCursor;
 
@@ -42,6 +44,8 @@ import org.apache.hc.core5.http.message.ParserCursor;
  */
 @Internal
 public final class ContentCodingSupport {
+
+    public static final int MAX_CODEC_LIST_LEN = 5;
 
     private ContentCodingSupport() {
     }
@@ -60,6 +64,12 @@ public final class ContentCodingSupport {
             }
         });
         return codecs;
+    }
+
+    public static void validate(final Collection<String> codecList, final int maxCodecListLen) throws ProtocolException {
+        if (maxCodecListLen > 0 && codecList.size() > maxCodecListLen) {
+            throw new ProtocolException("Codec list exceeds maximum of " + maxCodecListLen + " elements");
+        }
     }
 
 }

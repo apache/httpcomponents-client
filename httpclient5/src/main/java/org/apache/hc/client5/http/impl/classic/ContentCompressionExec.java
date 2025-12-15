@@ -72,16 +72,25 @@ public final class ContentCompressionExec implements ExecChainHandler {
 
     private final Header acceptEncoding;
     private final Lookup<UnaryOperator<HttpEntity>> decoderRegistry;
+    private final int maxCodecListLen;
+
+    public ContentCompressionExec(
+            final List<String> acceptEncoding,
+            final Lookup<UnaryOperator<HttpEntity>> decoderRegistry,
+            final int maxCodecListLen) {
+        this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING,
+                Args.notEmpty(acceptEncoding, "Encoding list"));
+        this.decoderRegistry = Args.notNull(decoderRegistry, "Decoder register");
+        this.maxCodecListLen = maxCodecListLen;
+    }
 
     public ContentCompressionExec(
             final List<String> acceptEncoding,
             final Lookup<UnaryOperator<HttpEntity>> decoderRegistry) {
-        this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING,
-                Args.notEmpty(acceptEncoding, "Encoding list"));
-        this.decoderRegistry = Args.notNull(decoderRegistry, "Decoder register");
+        this(acceptEncoding, decoderRegistry, ContentCodingSupport.MAX_CODEC_LIST_LEN);
     }
 
-    public ContentCompressionExec() {
+    public ContentCompressionExec(final int maxCodecListLen) {
         final Map<ContentCoding, UnaryOperator<HttpEntity>> decoderMap = new EnumMap<>(ContentCoding.class);
         for (final ContentCoding c : ContentCoding.values()) {
             final UnaryOperator<HttpEntity> d = ContentCodecRegistry.decoder(c);
@@ -103,6 +112,11 @@ public final class ContentCompressionExec implements ExecChainHandler {
         }
         this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING, acceptList);
         this.decoderRegistry = builder.build();
+        this.maxCodecListLen = maxCodecListLen;
+    }
+
+    public ContentCompressionExec() {
+        this(ContentCodingSupport.MAX_CODEC_LIST_LEN);
     }
 
     @Override
@@ -128,6 +142,7 @@ public final class ContentCompressionExec implements ExecChainHandler {
         // check for zero length entity.
         if (requestConfig.isContentCompressionEnabled() && entity != null && entity.getContentLength() != 0) {
             final List<String> codecs = ContentCodingSupport.parseContentCodecs(entity);
+            ContentCodingSupport.validate(codecs, maxCodecListLen);
             if (!codecs.isEmpty()) {
                 for (int i = codecs.size() - 1; i >= 0; i--) {
                     final String codec = codecs.get(i);

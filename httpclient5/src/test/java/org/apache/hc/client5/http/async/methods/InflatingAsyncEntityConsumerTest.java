@@ -204,7 +204,7 @@ class InflatingAsyncDataConsumerTest {
     void unknownEncodingMapFlag() throws Exception {
         final LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> map = new LinkedHashMap<>();
         map.put("deflate", d -> new InflatingAsyncDataConsumer(d, null));
-        final ContentCompressionAsyncExec exec = new ContentCompressionAsyncExec(map, false);
+        final ContentCompressionAsyncExec exec = new ContentCompressionAsyncExec(map);
         assertNotNull(exec);
     }
 }

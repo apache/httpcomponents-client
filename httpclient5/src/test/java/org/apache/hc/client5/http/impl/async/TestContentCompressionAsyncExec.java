@@ -163,7 +163,7 @@ class TestContentCompressionAsyncExec {
                 return new InflatingAsyncDataConsumer(d, null);
             }
         });
-        impl = new ContentCompressionAsyncExec(map, /*ignoreUnknown*/ false);
+        impl = new ContentCompressionAsyncExec(map);
 
         final HttpRequest request = new BasicHttpRequest(Method.GET, "/");
         final AsyncExecCallback cb = executeAndCapture(request);
