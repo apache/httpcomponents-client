@@ -67,23 +67,29 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
 
     private final Lookup<UnaryOperator<AsyncDataConsumer>> decoders;
     private final List<String> acceptTokens;
+    private final int maxCodecListLen;
 
     public ContentCompressionAsyncExec(
             final LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> decoderMap,
-            final boolean ignoreUnknown) {
-
+            final int maxCodecListLen) {
         Args.notEmpty(decoderMap, "Decoder map");
 
         final RegistryBuilder<UnaryOperator<AsyncDataConsumer>> rb = RegistryBuilder.create();
         decoderMap.forEach(rb::register);
         this.decoders = rb.build();
         this.acceptTokens = new ArrayList<>(decoderMap.keySet());
+        this.maxCodecListLen = maxCodecListLen;
+    }
+
+    public ContentCompressionAsyncExec(
+            final LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> decoderMap) {
+        this(decoderMap, ContentCodingSupport.MAX_CODEC_LIST_LEN);
     }
 
     /**
      * Default: DEFLATE + GZIP (plus <code>x-gzip</code> alias).
      */
-    public ContentCompressionAsyncExec() {
+    public ContentCompressionAsyncExec(final int maxCodecListLen) {
         final LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> map = new LinkedHashMap<>();
         map.put(ContentCoding.DEFLATE.token(), d -> new InflatingAsyncDataConsumer(d, null));
         map.put(ContentCoding.GZIP.token(), InflatingGzipDataConsumer::new);
@@ -109,8 +115,12 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
 
         this.decoders = rb.build();
         this.acceptTokens = tokens;
+        this.maxCodecListLen = maxCodecListLen;
     }
 
+    public ContentCompressionAsyncExec() {
+        this(ContentCodingSupport.MAX_CODEC_LIST_LEN);
+    }
 
     @Override
     public void execute(
@@ -139,6 +149,7 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
                 }
 
                 final List<String> codecs = ContentCodingSupport.parseContentCodecs(details);
+                ContentCodingSupport.validate(codecs, maxCodecListLen);
                 if (!codecs.isEmpty()) {
                     AsyncDataConsumer downstream = cb.handleResponse(rsp, wrapEntityDetails(details));
                     for (int i = codecs.size() - 1; i >= 0; i--) {

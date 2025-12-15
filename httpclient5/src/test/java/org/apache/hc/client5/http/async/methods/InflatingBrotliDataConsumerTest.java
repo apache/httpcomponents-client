@@ -195,7 +195,7 @@ class InflatingBrotliDataConsumerTest {
     void registerInExec() {
         final LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> map = new LinkedHashMap<>();
         map.put("br", InflatingBrotliDataConsumer::new);
-        final ContentCompressionAsyncExec exec = new ContentCompressionAsyncExec(map, false);
+        final ContentCompressionAsyncExec exec = new ContentCompressionAsyncExec(map);
         assertNotNull(exec);
     }
 }

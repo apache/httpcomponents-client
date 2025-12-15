@@ -58,6 +58,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
@@ -166,7 +167,7 @@ class TestContentCompressionAsyncExec {
                 return new InflatingAsyncDataConsumer(d, null);
             }
         });
-        impl = new ContentCompressionAsyncExec(map, /*ignoreUnknown*/ false);
+        impl = new ContentCompressionAsyncExec(map);
 
         final HttpRequest request = new BasicHttpRequest(Method.GET, "/");
         final AsyncExecCallback cb = executeAndCapture(request);
@@ -188,4 +189,32 @@ class TestContentCompressionAsyncExec {
 
         assertFalse(request.containsHeader(HttpHeaders.ACCEPT_ENCODING));
     }
+
+    @Test
+    void testContentEncodingExceedsCodecListLenMax() throws Exception {
+        final HttpRequest request = new BasicHttpRequest(Method.GET, "/");
+        final AsyncExecCallback cb = executeAndCapture(request);
+
+        final HttpResponse rsp1 = new BasicHttpResponse(200, "OK");
+        final EntityDetails details1 = mock(EntityDetails.class);
+        when(details1.getContentEncoding()).thenReturn("gzip,gzip,gzip,gzip,gzip");
+
+        final AsyncDataConsumer downstream1 = new StringAsyncEntityConsumer();
+        when(originalCb.handleResponse(same(rsp1), same(details1))).thenReturn(downstream1);
+
+        final AsyncDataConsumer wrapped = cb.handleResponse(rsp1, details1);
+
+        assertNotNull(wrapped);
+
+        final HttpResponse rsp2 = new BasicHttpResponse(200, "OK");
+        final EntityDetails details2 = mock(EntityDetails.class);
+        when(details2.getContentEncoding()).thenReturn("gzip,gzip,gzip,gzip,gzip,gzip");
+
+        final AsyncDataConsumer downstream2 = new StringAsyncEntityConsumer();
+        when(originalCb.handleResponse(same(rsp2), same(details2))).thenReturn(downstream2);
+
+        final ProtocolException exception = assertThrows(ProtocolException.class, () -> cb.handleResponse(rsp2, details2));
+        assertEquals("Codec list exceeds maximum of 5 elements", exception.getMessage());
+    }
+
 }

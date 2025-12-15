@@ -39,6 +39,7 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
@@ -232,6 +233,36 @@ class TestContentCompressionExec {
 
         final HttpEntity entity = response.getEntity();
         Assertions.assertSame(original, entity);
+    }
+
+    @Test
+    void testContentEncodingExceedsCodecListLenMax() throws Exception {
+        impl = new ContentCompressionExec(5);
+
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
+        final ClassicHttpResponse response1 = new BasicClassicHttpResponse(200, "OK");
+        final HttpEntity original1 = EntityBuilder.create()
+                .setText("encoded stuff")
+                .setContentEncoding("gzip,gzip,gzip,gzip,gzip")
+                .build();
+        response1.setEntity(original1);
+
+        Mockito.when(execChain.proceed(request, scope)).thenReturn(response1);
+
+        final HttpEntity entity = response1.getEntity();
+        Assertions.assertNotNull(entity);
+
+        final ClassicHttpResponse response2 = new BasicClassicHttpResponse(200, "OK");
+        final HttpEntity original2 = EntityBuilder.create()
+                .setText("encoded stuff")
+                .setContentEncoding("gzip,gzip,gzip,gzip,gzip,gzip")
+                .build();
+        response2.setEntity(original2);
+
+        Mockito.when(execChain.proceed(request, scope)).thenReturn(response2);
+
+        final ProtocolException exception = Assertions.assertThrows(ProtocolException.class, () -> impl.execute(request, scope, execChain));
+        Assertions.assertEquals("Codec list exceeds maximum of 5 elements", exception.getMessage());
     }
 
 }
