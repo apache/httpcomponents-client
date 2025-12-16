@@ -42,6 +42,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
+import org.apache.hc.core5.pool.ConnPoolListener;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.util.ReflectionUtils;
@@ -85,6 +86,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
 
     private int maxConnTotal;
     private int maxConnPerRoute;
+
+    private ConnPoolListener<HttpRoute> connPoolListener;
 
     private Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
     private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
@@ -167,6 +170,18 @@ public class PoolingAsyncClientConnectionManagerBuilder {
      */
     public final PoolingAsyncClientConnectionManagerBuilder setMaxConnPerRoute(final int maxConnPerRoute) {
         this.maxConnPerRoute = maxConnPerRoute;
+        return this;
+    }
+
+    /**
+     * Sets a {@link ConnPoolListener}.
+     * This can be used to subscribe to underlying connection pool events (if it supports it).
+     *
+     * @return this instance.
+     * @since 5.7
+     */
+    public final PoolingAsyncClientConnectionManagerBuilder setConnPoolListener(final ConnPoolListener<HttpRoute> connPoolListener) {
+        this.connPoolListener = connPoolListener;
         return this;
     }
 
@@ -311,6 +326,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
                 poolConcurrencyPolicy,
                 poolReusePolicy,
                 null,
+                connPoolListener,
                 messageMultiplexing);
         poolingmgr.setConnectionConfigResolver(connectionConfigResolver);
         poolingmgr.setTlsConfigResolver(tlsConfigResolver);
