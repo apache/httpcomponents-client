@@ -79,6 +79,7 @@ import org.apache.hc.core5.http2.nio.support.BasicPingHandler;
 import org.apache.hc.core5.http2.ssl.ApplicationProtocol;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.ConnPoolControl;
+import org.apache.hc.core5.pool.ConnPoolListener;
 import org.apache.hc.core5.pool.DefaultDisposalCallback;
 import org.apache.hc.core5.pool.LaxConnPool;
 import org.apache.hc.core5.pool.ManagedConnPool;
@@ -166,7 +167,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
         this(new DefaultAsyncClientConnectionOperator(tlsStrategyLookup, schemePortResolver, dnsResolver),
-                poolConcurrencyPolicy, poolReusePolicy, timeToLive, false);
+                poolConcurrencyPolicy, poolReusePolicy, timeToLive, null, false);
     }
 
     @Internal
@@ -175,6 +176,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             final PoolConcurrencyPolicy poolConcurrencyPolicy,
             final PoolReusePolicy poolReusePolicy,
             final TimeValue timeToLive,
+            final ConnPoolListener<HttpRoute> connPoolListener,
             final boolean messageMultiplexing) {
         this.connectionOperator = Args.notNull(connectionOperator, "Connection operator");
         final ManagedConnPool<HttpRoute, ManagedAsyncClientConnection> managedConnPool;
@@ -186,7 +188,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                         timeToLive,
                         poolReusePolicy,
                         new DefaultDisposalCallback<>(),
-                        null) {
+                        connPoolListener) {
 
                     @Override
                     public void closeExpired() {
@@ -200,7 +202,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                         DEFAULT_MAX_CONNECTIONS_PER_ROUTE,
                         timeToLive,
                         poolReusePolicy,
-                        null) {
+                        connPoolListener) {
 
                     @Override
                     public void closeExpired() {
@@ -216,6 +218,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                         timeToLive,
                         poolReusePolicy,
                         new DefaultDisposalCallback<>());
+                // TODO : wire connPoolListener here once `RouteSegmentedConnPool` supports it.
                 break;
             default:
                 throw new IllegalArgumentException("Unexpected PoolConcurrencyPolicy value: " + poolConcurrencyPolicy);

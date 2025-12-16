@@ -71,6 +71,7 @@ import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.ConnPoolControl;
+import org.apache.hc.core5.pool.ConnPoolListener;
 import org.apache.hc.core5.pool.DefaultDisposalCallback;
 import org.apache.hc.core5.pool.DisposalCallback;
 import org.apache.hc.core5.pool.LaxConnPool;
@@ -136,6 +137,7 @@ public class PoolingHttpClientConnectionManager
                 PoolConcurrencyPolicy.STRICT,
                 PoolReusePolicy.LIFO,
                 TimeValue.NEG_ONE_MILLISECOND,
+                null,
                 null);
     }
 
@@ -211,6 +213,7 @@ public class PoolingHttpClientConnectionManager
                 poolConcurrencyPolicy,
                 poolReusePolicy,
                 timeToLive,
+                null,
                 connFactory);
     }
 
@@ -220,8 +223,9 @@ public class PoolingHttpClientConnectionManager
             final PoolConcurrencyPolicy poolConcurrencyPolicy,
             final PoolReusePolicy poolReusePolicy,
             final TimeValue timeToLive,
+            final ConnPoolListener<HttpRoute> connPoolListener,
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
-        this(httpClientConnectionOperator,poolConcurrencyPolicy,poolReusePolicy,timeToLive,connFactory,false);
+        this(httpClientConnectionOperator,poolConcurrencyPolicy,poolReusePolicy,timeToLive,connPoolListener,connFactory,false);
 
     }
 
@@ -231,6 +235,7 @@ public class PoolingHttpClientConnectionManager
             final PoolConcurrencyPolicy poolConcurrencyPolicy,
             final PoolReusePolicy poolReusePolicy,
             final TimeValue timeToLive,
+            final ConnPoolListener<HttpRoute> connPoolListener,
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
             final boolean offLockDisposalEnabled) {
         super();
@@ -249,7 +254,7 @@ public class PoolingHttpClientConnectionManager
                         timeToLive,
                         poolReusePolicy,
                         callbackForPool,
-                        null) {
+                        connPoolListener) {
 
                     @Override
                     public void closeExpired() {
@@ -264,7 +269,7 @@ public class PoolingHttpClientConnectionManager
                         timeToLive,
                         poolReusePolicy,
                         callbackForPool,
-                        null) {
+                        connPoolListener) {
 
                     @Override
                     public void closeExpired() {
@@ -280,6 +285,7 @@ public class PoolingHttpClientConnectionManager
                         timeToLive,
                         poolReusePolicy,
                         new DefaultDisposalCallback<>());
+                // TODO : wire connPoolListener here once `RouteSegmentedConnPool` supports it.
                 break;
             default:
                 throw new IllegalArgumentException("Unexpected PoolConcurrencyPolicy value: " + poolConcurrencyPolicy);

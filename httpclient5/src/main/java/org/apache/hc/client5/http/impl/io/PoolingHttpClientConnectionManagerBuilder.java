@@ -47,6 +47,7 @@ import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.pool.ConnPoolListener;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.util.TimeValue;
@@ -93,6 +94,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     private int maxConnTotal;
     private int maxConnPerRoute;
+
+    private ConnPoolListener<HttpRoute> connPoolListener;
 
     private boolean offLockDisposalEnabled;
 
@@ -197,6 +200,18 @@ public class PoolingHttpClientConnectionManagerBuilder {
      */
     public final PoolingHttpClientConnectionManagerBuilder setMaxConnPerRoute(final int maxConnPerRoute) {
         this.maxConnPerRoute = maxConnPerRoute;
+        return this;
+    }
+
+    /**
+     * Sets a {@link ConnPoolListener}.
+     * This can be used to subscribe to underlying connection pool events (if it supports it).
+     *
+     * @return this instance.
+     * @since 5.7
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setConnPoolListener(final ConnPoolListener<HttpRoute> connPoolListener) {
+        this.connPoolListener = connPoolListener;
         return this;
     }
 
@@ -357,6 +372,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
                 poolConcurrencyPolicy,
                 poolReusePolicy,
                 null,
+                connPoolListener,
                 connectionFactory,
                 offLockDisposalEnabled);
         poolingmgr.setSocketConfigResolver(socketConfigResolver);
