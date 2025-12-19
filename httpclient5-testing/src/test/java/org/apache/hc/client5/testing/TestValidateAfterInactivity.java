@@ -47,6 +47,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.StandardSocketOptions;
@@ -78,7 +79,7 @@ class AbstractTestValidateAfterInactivity {
 
     @BeforeEach
     void setup() throws Exception {
-        serverSocket = ServerSocketChannel.open().bind(new InetSocketAddress(0));
+        serverSocket = ServerSocketChannel.open().bind(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0));
         port = ((InetSocketAddress) serverSocket.getLocalAddress()).getPort();
 
         serverThread = new Thread(this::runServer);

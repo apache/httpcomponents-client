@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.examples;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -142,7 +143,7 @@ public class AsyncClientEarlyHintsEndToEnd {
                 })
                 .create();
         server.start();
-        final Future<ListenerEndpoint> lf = server.listen(new InetSocketAddress(0), URIScheme.HTTP);
+        final Future<ListenerEndpoint> lf = server.listen(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), URIScheme.HTTP);
         final int port = ((InetSocketAddress) lf.get().getAddress()).getPort();
 
         // --- Async client with Early Hints listener

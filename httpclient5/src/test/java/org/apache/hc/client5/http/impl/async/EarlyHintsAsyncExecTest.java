@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -156,7 +157,7 @@ class EarlyHintsAsyncExecTest {
         server.start();
 
         // Bind to ephemeral port and retrieve it from the listener endpoint
-        final Future<ListenerEndpoint> lf = server.listen(new InetSocketAddress(0), URIScheme.HTTP);
+        final Future<ListenerEndpoint> lf = server.listen(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), URIScheme.HTTP);
         final ListenerEndpoint ep = lf.get(5, TimeUnit.SECONDS);
         final int port = ((InetSocketAddress) ep.getAddress()).getPort();
 
