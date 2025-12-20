@@ -115,6 +115,26 @@
     </dependency>
   </dependencies>
 
+  <reporting>
+    <plugins>
+      <plugin>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <inherited>false</inherited>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>index</report>
+              <report>dependencies</report>
+              <report>dependency-info</report>
+              <report>summary</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
+
+
   <build>
     <plugins>
       <plugin>
