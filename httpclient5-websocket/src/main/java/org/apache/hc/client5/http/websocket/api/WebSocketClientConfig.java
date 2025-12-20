@@ -110,77 +110,202 @@ public final class WebSocketClientConfig {
         this.maxOutboundControlQueue = maxOutboundControlQueue;
     }
 
-    // ---- getters used across your code ----
+    /**
+     * Timeout used for establishing the initial TCP/TLS connection.
+     *
+     * @return connection timeout, may be {@code null} if the caller wants to rely on defaults
+     * @since 5.6
+     */
     public Timeout getConnectTimeout() {
         return connectTimeout;
     }
 
+    /**
+     * Ordered list of WebSocket subprotocols offered to the server via {@code Sec-WebSocket-Protocol}.
+     *
+     * <p>The server may select at most one. The client should treat a server-selected protocol that
+     * was not offered as a handshake failure.</p>
+     *
+     * @return immutable list of offered subprotocols (never {@code null})
+     * @since 5.6
+     */
     public List<String> getSubprotocols() {
         return subprotocols;
     }
 
+    /**
+     * Whether the client offers the {@code permessage-deflate} extension during the handshake.
+     *
+     * @return {@code true} if PMCE is offered, {@code false} otherwise
+     * @since 5.6
+     */
     public boolean isPerMessageDeflateEnabled() {
         return perMessageDeflateEnabled;
     }
 
+    /**
+     * Whether the client offers the {@code server_no_context_takeover} PMCE parameter.
+     *
+     * @return {@code true} if the parameter is included in the offer
+     * @since 5.6
+     */
     public boolean isOfferServerNoContextTakeover() {
         return offerServerNoContextTakeover;
     }
 
+    /**
+     * Whether the client offers the {@code client_no_context_takeover} PMCE parameter.
+     *
+     * @return {@code true} if the parameter is included in the offer
+     * @since 5.6
+     */
     public boolean isOfferClientNoContextTakeover() {
         return offerClientNoContextTakeover;
     }
 
+    /**
+     * Optional value for {@code client_max_window_bits} in the PMCE offer.
+     *
+     * <p>Valid values are in range 8..15 when non-null.</p>
+     *
+     * @return offered {@code client_max_window_bits}, or {@code null} if not offered
+     * @since 5.6
+     */
     public Integer getOfferClientMaxWindowBits() {
         return offerClientMaxWindowBits;
     }
 
+    /**
+     * Optional value for {@code server_max_window_bits} in the PMCE offer.
+     *
+     * <p>Valid values are in range 8..15 when non-null.</p>
+     *
+     * @return offered {@code server_max_window_bits}, or {@code null} if not offered
+     * @since 5.6
+     */
     public Integer getOfferServerMaxWindowBits() {
         return offerServerMaxWindowBits;
     }
 
+    /**
+     * Maximum accepted WebSocket frame payload size.
+     *
+     * <p>If an incoming frame exceeds this limit, the implementation should treat it as a protocol
+     * violation and initiate a close with an appropriate close code.</p>
+     *
+     * @return maximum frame payload size in bytes (must be &gt; 0)
+     * @since 5.6
+     */
     public int getMaxFrameSize() {
         return maxFrameSize;
     }
 
+    /**
+     * Preferred outgoing fragmentation chunk size.
+     *
+     * <p>Outgoing messages larger than this value may be fragmented into multiple frames.</p>
+     *
+     * @return outgoing chunk size in bytes (must be &gt; 0)
+     * @since 5.6
+     */
     public int getOutgoingChunkSize() {
         return outgoingChunkSize;
     }
 
+    /**
+     * Limit of frames written per reactor "tick".
+     *
+     * <p>This is a fairness control to reduce the risk of starving the reactor thread when
+     * a large backlog exists.</p>
+     *
+     * @return maximum frames per tick (must be &gt; 0)
+     * @since 5.6
+     */
     public int getMaxFramesPerTick() {
         return maxFramesPerTick;
     }
 
+    /**
+     * Capacity of the internal buffer pool used by WebSocket I/O.
+     *
+     * @return pool capacity (must be &gt; 0)
+     * @since 5.6
+     */
     public int getIoPoolCapacity() {
         return ioPoolCapacity;
     }
 
+    /**
+     * Whether direct byte buffers are preferred for the internal buffer pool.
+     *
+     * @return {@code true} for direct buffers, {@code false} for heap buffers
+     * @since 5.6
+     */
     public boolean isDirectBuffers() {
         return directBuffers;
     }
 
+    /**
+     * Whether the client automatically responds to PING frames with a PONG frame.
+     *
+     * @return {@code true} if auto-PONG is enabled
+     * @since 5.6
+     */
     public boolean isAutoPong() {
         return autoPong;
     }
 
+    /**
+     * Socket timeout used while waiting for the peer to complete the close handshake.
+     *
+     * @return close wait timeout (never {@code null})
+     * @since 5.6
+     */
     public Timeout getCloseWaitTimeout() {
         return closeWaitTimeout;
     }
 
+    /**
+     * Maximum accepted message size after fragment reassembly (and after decompression if enabled).
+     *
+     * @return maximum message size in bytes (must be &gt; 0)
+     * @since 5.6
+     */
     public long getMaxMessageSize() {
         return maxMessageSize;
     }
 
+    /**
+     * Maximum number of queued outbound control frames.
+     *
+     * <p>This bounds memory usage and prevents unbounded growth of control traffic under backpressure.</p>
+     *
+     * @return maximum outbound control queue size (must be &gt; 0)
+     * @since 5.6
+     */
     public int getMaxOutboundControlQueue() {
         return maxOutboundControlQueue;
     }
 
-    // ---- builder ----
+    /**
+     * Creates a new builder instance with default settings.
+     *
+     * @return builder
+     * @since 5.6
+     */
     public static Builder custom() {
         return new Builder();
     }
 
+    /**
+     * Builder for {@link WebSocketClientConfig}.
+     *
+     * <p>The builder is mutable and not thread-safe.</p>
+     *
+     * @since 5.6
+     */
     public static final class Builder {
+
         private Timeout connectTimeout = Timeout.ofSeconds(10);
         private List<String> subprotocols = new ArrayList<>();
 
@@ -203,87 +328,219 @@ public final class WebSocketClientConfig {
 
         private int maxOutboundControlQueue = 256;
 
+        /**
+         * Sets the timeout used to establish the initial TCP/TLS connection.
+         *
+         * @param v timeout, may be {@code null} to rely on defaults
+         * @return this builder
+         * @since 5.6
+         */
         public Builder setConnectTimeout(final Timeout v) {
             this.connectTimeout = v;
             return this;
         }
 
+        /**
+         * Sets the ordered list of subprotocols offered to the server.
+         *
+         * @param v list of subprotocol names, may be {@code null} to offer none
+         * @return this builder
+         * @since 5.6
+         */
         public Builder setSubprotocols(final List<String> v) {
             this.subprotocols = v;
             return this;
         }
 
+        /**
+         * Enables or disables offering {@code permessage-deflate} during the handshake.
+         *
+         * @param v {@code true} to offer PMCE, {@code false} otherwise
+         * @return this builder
+         * @since 5.6
+         */
         public Builder enablePerMessageDeflate(final boolean v) {
             this.perMessageDeflateEnabled = v;
             return this;
         }
 
+        /**
+         * Offers {@code server_no_context_takeover} in the PMCE offer.
+         *
+         * @param v whether to include the parameter in the offer
+         * @return this builder
+         * @since 5.6
+         */
         public Builder offerServerNoContextTakeover(final boolean v) {
             this.offerServerNoContextTakeover = v;
             return this;
         }
 
+        /**
+         * Offers {@code client_no_context_takeover} in the PMCE offer.
+         *
+         * @param v whether to include the parameter in the offer
+         * @return this builder
+         * @since 5.6
+         */
         public Builder offerClientNoContextTakeover(final boolean v) {
             this.offerClientNoContextTakeover = v;
             return this;
         }
 
+        /**
+         * Offers {@code client_max_window_bits} in the PMCE offer.
+         *
+         * <p>Valid values are in range 8..15 when non-null.</p>
+         *
+         * @param v window bits, or {@code null} to omit the parameter
+         * @return this builder
+         * @since 5.6
+         */
         public Builder offerClientMaxWindowBits(final Integer v) {
             this.offerClientMaxWindowBits = v;
             return this;
         }
 
+        /**
+         * Offers {@code server_max_window_bits} in the PMCE offer.
+         *
+         * <p>Valid values are in range 8..15 when non-null.</p>
+         *
+         * @param v window bits, or {@code null} to omit the parameter
+         * @return this builder
+         * @since 5.6
+         */
         public Builder offerServerMaxWindowBits(final Integer v) {
             this.offerServerMaxWindowBits = v;
             return this;
         }
 
+        /**
+         * Sets the maximum accepted frame payload size.
+         *
+         * @param v maximum frame payload size in bytes (must be &gt; 0)
+         * @return this builder
+         * @since 5.6
+         */
         public Builder setMaxFrameSize(final int v) {
             this.maxFrameSize = v;
             return this;
         }
 
+        /**
+         * Sets the preferred outgoing fragmentation chunk size.
+         *
+         * @param v chunk size in bytes (must be &gt; 0)
+         * @return this builder
+         * @since 5.6
+         */
         public Builder setOutgoingChunkSize(final int v) {
             this.outgoingChunkSize = v;
             return this;
         }
 
+        /**
+         * Sets the limit of frames written per reactor tick.
+         *
+         * @param v max frames per tick (must be &gt; 0)
+         * @return this builder
+         * @since 5.6
+         */
         public Builder setMaxFramesPerTick(final int v) {
             this.maxFramesPerTick = v;
             return this;
         }
 
+        /**
+         * Sets the capacity of the internal buffer pool.
+         *
+         * @param v pool capacity (must be &gt; 0)
+         * @return this builder
+         * @since 5.6
+         */
         public Builder setIoPoolCapacity(final int v) {
             this.ioPoolCapacity = v;
             return this;
         }
 
+        /**
+         * Enables or disables the use of direct buffers for the internal pool.
+         *
+         * @param v {@code true} for direct buffers, {@code false} for heap buffers
+         * @return this builder
+         * @since 5.6
+         */
         public Builder setDirectBuffers(final boolean v) {
             this.directBuffers = v;
             return this;
         }
 
+        /**
+         * Enables or disables automatic PONG replies for received PING frames.
+         *
+         * @param v {@code true} to auto-reply with PONG
+         * @return this builder
+         * @since 5.6
+         */
         public Builder setAutoPong(final boolean v) {
             this.autoPong = v;
             return this;
         }
 
+        /**
+         * Sets the close handshake wait timeout.
+         *
+         * @param v close wait timeout, must not be {@code null}
+         * @return this builder
+         * @since 5.6
+         */
         public Builder setCloseWaitTimeout(final Timeout v) {
             this.closeWaitTimeout = v;
             return this;
         }
 
+        /**
+         * Sets the maximum accepted message size.
+         *
+         * @param v max message size in bytes (must be &gt; 0)
+         * @return this builder
+         * @since 5.6
+         */
         public Builder setMaxMessageSize(final long v) {
             this.maxMessageSize = v;
             return this;
         }
 
+        /**
+         * Sets the maximum number of queued outbound control frames.
+         *
+         * @param v max control queue size (must be &gt; 0)
+         * @return this builder
+         * @since 5.6
+         */
         public Builder setMaxOutboundControlQueue(final int v) {
             this.maxOutboundControlQueue = v;
             return this;
         }
 
+        /**
+         * Builds an immutable {@link WebSocketClientConfig}.
+         *
+         * @return configuration instance
+         * @throws IllegalArgumentException if any parameter is invalid
+         * @since 5.6
+         */
         public WebSocketClientConfig build() {
+            if (offerClientMaxWindowBits != null && (offerClientMaxWindowBits < 8 || offerClientMaxWindowBits > 15)) {
+                throw new IllegalArgumentException("offerClientMaxWindowBits must be in range [8..15]");
+            }
+            if (offerServerMaxWindowBits != null && (offerServerMaxWindowBits < 8 || offerServerMaxWindowBits > 15)) {
+                throw new IllegalArgumentException("offerServerMaxWindowBits must be in range [8..15]");
+            }
+            if (closeWaitTimeout == null) {
+                throw new IllegalArgumentException("closeWaitTimeout != null");
+            }
             if (maxFrameSize <= 0) {
                 throw new IllegalArgumentException("maxFrameSize > 0");
             }
@@ -301,9 +558,6 @@ public final class WebSocketClientConfig {
             }
             if (maxOutboundControlQueue <= 0) {
                 throw new IllegalArgumentException("maxOutboundControlQueue > 0");
-            }
-            if (closeWaitTimeout == null) {
-                throw new IllegalArgumentException("closeWaitTimeout != null");
             }
             return new WebSocketClientConfig(
                     connectTimeout, subprotocols,

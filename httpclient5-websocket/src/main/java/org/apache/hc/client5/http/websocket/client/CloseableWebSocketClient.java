@@ -94,7 +94,7 @@ public abstract class CloseableWebSocketClient implements WebSocketClient, Modal
             final WebSocketListener listener) {
         Args.notNull(uri, "URI");
         Args.notNull(listener, "WebSocketListener");
-        return connect(uri, listener, WebSocketClientConfig.custom().build(), HttpCoreContext.create());
+        return connect(uri, listener, null, HttpCoreContext.create());
     }
 
     public final CompletableFuture<WebSocket> connect(

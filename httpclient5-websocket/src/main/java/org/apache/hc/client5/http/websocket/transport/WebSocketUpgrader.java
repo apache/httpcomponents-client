@@ -32,6 +32,7 @@ import org.apache.hc.client5.http.websocket.api.WebSocketListener;
 import org.apache.hc.client5.http.websocket.core.extension.ExtensionChain;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.reactor.ProtocolIOSession;
 import org.apache.hc.core5.reactor.ProtocolUpgradeHandler;
 import org.slf4j.Logger;
@@ -51,6 +52,7 @@ public final class WebSocketUpgrader implements ProtocolUpgradeHandler {
     private final WebSocketListener listener;
     private final WebSocketClientConfig cfg;
     private final ExtensionChain chain;
+    private final AsyncClientEndpoint endpoint;
 
     /**
      * The WebSocket facade created during {@link #upgrade}.
@@ -61,9 +63,18 @@ public final class WebSocketUpgrader implements ProtocolUpgradeHandler {
             final WebSocketListener listener,
             final WebSocketClientConfig cfg,
             final ExtensionChain chain) {
+        this(listener, cfg, chain, null);
+    }
+
+    public WebSocketUpgrader(
+            final WebSocketListener listener,
+            final WebSocketClientConfig cfg,
+            final ExtensionChain chain,
+            final AsyncClientEndpoint endpoint) {
         this.listener = listener;
         this.cfg = cfg;
         this.chain = chain;
+        this.endpoint = endpoint;
     }
 
     /**
@@ -81,7 +92,7 @@ public final class WebSocketUpgrader implements ProtocolUpgradeHandler {
                 LOG.debug("Installing WsHandler on {}", ioSession);
             }
 
-            final WebSocketIoHandler handler = new WebSocketIoHandler(ioSession, listener, cfg, chain);
+            final WebSocketIoHandler handler = new WebSocketIoHandler(ioSession, listener, cfg, chain, endpoint);
             ioSession.upgrade(handler);
 
             this.webSocket = handler.exposeWebSocket();

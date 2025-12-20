@@ -24,7 +24,8 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.websocket.perf;
+package org.apache.hc.client5.testing.websocket.performance;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -44,10 +45,9 @@ public final class JettyEchoServer {
 
     public void start() throws Exception {
         // Ephemeral port
-        try (ServerConnector connector = new ServerConnector(server)) {
-            connector.setPort(0);
-            server.setConnectors(new Connector[]{connector});
-        }
+        final ServerConnector connector = new ServerConnector(server);
+        connector.setPort(0);
+        server.setConnectors(new Connector[]{connector});
 
         // Context + WebSocket servlet at /echo
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -61,6 +61,7 @@ public final class JettyEchoServer {
 
     public void stop() throws Exception {
         server.stop();
+        server.destroy();
     }
 
     public String uri() {
@@ -97,4 +98,3 @@ public final class JettyEchoServer {
         }
     }
 }
-

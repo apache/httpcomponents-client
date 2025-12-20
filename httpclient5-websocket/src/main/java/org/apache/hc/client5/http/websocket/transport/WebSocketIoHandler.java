@@ -27,14 +27,17 @@
 package org.apache.hc.client5.http.websocket.transport;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.websocket.api.WebSocket;
 import org.apache.hc.client5.http.websocket.api.WebSocketClientConfig;
 import org.apache.hc.client5.http.websocket.api.WebSocketListener;
 import org.apache.hc.client5.http.websocket.core.extension.ExtensionChain;
 import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.EventMask;
 import org.apache.hc.core5.reactor.IOEventHandler;
 import org.apache.hc.core5.reactor.IOSession;
@@ -50,14 +53,19 @@ public final class WebSocketIoHandler implements IOEventHandler {
     private final WebSocketSessionState state;
     private final WebSocketInbound inbound;
     private final WebSocketOutbound outbound;
+    private final AsyncClientEndpoint endpoint;
+    private final AtomicBoolean endpointReleased;
 
     public WebSocketIoHandler(final ProtocolIOSession session,
                               final WebSocketListener listener,
                               final WebSocketClientConfig cfg,
-                              final ExtensionChain chain) {
+                              final ExtensionChain chain,
+                              final AsyncClientEndpoint endpoint) {
         this.state = new WebSocketSessionState(session, listener, cfg, chain);
         this.outbound = new WebSocketOutbound(state);
         this.inbound = new WebSocketInbound(state, outbound);
+        this.endpoint = endpoint;
+        this.endpointReleased = new AtomicBoolean(false);
     }
 
     /**
@@ -101,6 +109,13 @@ public final class WebSocketIoHandler implements IOEventHandler {
         inbound.onDisconnected(ioSession);
         ioSession.clearEvent(EventMask.READ | EventMask.WRITE);
         // Ensure the underlying protocol session does not linger
-        state.session.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), org.apache.hc.core5.reactor.Command.Priority.IMMEDIATE);
+        state.session.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE);
+        if (endpoint != null && endpointReleased.compareAndSet(false, true)) {
+            try {
+                endpoint.releaseAndDiscard();
+            } catch (final Throwable ignore) {
+                // best effort
+            }
+        }
     }
 }

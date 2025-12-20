@@ -41,16 +41,12 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.EventMask;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Timeout;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Inbound path: decoding, validation, fragment assembly, close handshake.
  */
 @Internal
 final class WebSocketInbound {
-
-    private static final Logger LOG = LoggerFactory.getLogger(WebSocketInbound.class);
 
     private final WebSocketSessionState s;
     private final WebSocketOutbound out;
@@ -96,10 +92,9 @@ final class WebSocketInbound {
         ioSession.clearEvent(EventMask.READ | EventMask.WRITE);
     }
 
-    // ---- input ----
     void onInputReady(final IOSession ioSession, final ByteBuffer src) {
         try {
-            if (!s.open.get()) {
+            if (!s.open.get() && !s.closeSent.get()) {
                 return;
             }
 
@@ -109,14 +104,19 @@ final class WebSocketInbound {
                     return;
                 }
             }
+
             if (src != null && src.hasRemaining()) {
                 appendToInbuf(src);
             }
+
             int n;
             do {
                 ByteBuffer rb = s.readBuf;
                 if (rb == null) {
                     rb = s.bufferPool.acquire();
+                    if (rb == null) {
+                        return;
+                    }
                     s.readBuf = rb;
                 }
                 rb.clear();
@@ -167,7 +167,7 @@ final class WebSocketInbound {
                     return;
                 }
 
-                if (s.closingSent && op != FrameOpcode.CLOSE) {
+                if (s.closeSent.get() && op != FrameOpcode.CLOSE) {
                     continue;
                 }
 
@@ -204,7 +204,7 @@ final class WebSocketInbound {
                     }
                     case FrameOpcode.CLOSE: {
                         final ByteBuffer ro = payload.asReadOnlyBuffer();
-                        int code = 1005; // no status code present
+                        int code = 1005;
                         String reason = "";
                         final int len = ro.remaining();
 
@@ -222,7 +222,6 @@ final class WebSocketInbound {
                                 return;
                             }
 
-                            // Strict UTF-8 validation of close reason
                             if (dup.hasRemaining()) {
                                 final CharsetDecoder dec = StandardCharsets.UTF_8
                                         .newDecoder()
@@ -240,13 +239,16 @@ final class WebSocketInbound {
 
                         notifyCloseOnce(code, reason);
 
-                        if (!s.closingSent) {
+                        s.closeReceived.set(true);
+
+                        if (!s.closeSent.get()) {
                             out.enqueueCtrl(out.pooledCloseEcho(ro));
-                            s.closingSent = true;
-                            s.session.setSocketTimeout(s.cfg.getCloseWaitTimeout());
                         }
 
-                        ioSession.close(CloseMode.GRACEFUL);
+                        s.session.setSocketTimeout(s.cfg.getCloseWaitTimeout());
+                        s.closeAfterFlush = true;
+                        ioSession.clearEvent(EventMask.READ);
+                        ioSession.setEvent(EventMask.WRITE);
                         s.inbuf.clear();
                         return;
                     }
@@ -312,7 +314,6 @@ final class WebSocketInbound {
         }
     }
 
-    // ---- helpers ----
     private void appendToInbuf(final ByteBuffer src) {
         if (src == null || !src.hasRemaining()) {
             return;
@@ -423,24 +424,13 @@ final class WebSocketInbound {
     }
 
     private void initiateCloseAndWait(final IOSession ioSession, final int code, final String reason) {
-        if (!s.closingSent) {
+        if (!s.closeSent.get()) {
             try {
-                final ByteBuffer reasonBuf = reason != null && !reason.isEmpty()
-                        ? StandardCharsets.UTF_8.encode(reason)
-                        : ByteBuffer.allocate(0);
-                if (reasonBuf.remaining() > 123) {
-                    throw new IllegalArgumentException("Close reason too long");
-                }
-                final ByteBuffer p = ByteBuffer.allocate(2 + reasonBuf.remaining());
-                p.put((byte) (code >> 8 & 0xFF)).put((byte) (code & 0xFF));
-                if (reasonBuf.hasRemaining()) {
-                    p.put(reasonBuf);
-                }
-                p.flip();
-                out.enqueueCtrl(out.pooledFrame(FrameOpcode.CLOSE, p.asReadOnlyBuffer(), true));
+                final String truncated = CloseCodec.truncateReasonUtf8(reason);
+                final byte[] payloadBytes = CloseCodec.encode(code, truncated);
+                out.enqueueCtrl(out.pooledFrame(FrameOpcode.CLOSE, ByteBuffer.wrap(payloadBytes), true));
             } catch (final Throwable ignore) {
             }
-            s.closingSent = true;
             s.session.setSocketTimeout(s.cfg.getCloseWaitTimeout());
         }
         notifyCloseOnce(code, reason);

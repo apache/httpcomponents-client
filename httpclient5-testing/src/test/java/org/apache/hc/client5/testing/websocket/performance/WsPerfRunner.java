@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.websocket.perf;
+package org.apache.hc.client5.testing.websocket.performance;
 
 import java.net.URI;
 import java.nio.ByteBuffer;

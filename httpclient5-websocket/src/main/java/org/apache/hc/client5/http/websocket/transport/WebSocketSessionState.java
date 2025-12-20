@@ -69,8 +69,10 @@ final class WebSocketSessionState {
 
     // Flags / locks
     final AtomicBoolean open = new AtomicBoolean(true);
+    final AtomicBoolean closeSent = new AtomicBoolean(false);
+    final AtomicBoolean closeReceived = new AtomicBoolean(false);
+    volatile boolean closeAfterFlush = false;
     final Object writeLock = new Object();
-    volatile boolean closingSent = false;
 
     // Message assembly
     int assemblingOpcode = -1;

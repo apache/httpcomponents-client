@@ -24,12 +24,14 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.websocket.perf;
+package org.apache.hc.client5.testing.websocket.performance;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+@Disabled("Performance runner; not part of the unit test suite")
 class WsPerfRunnerIT {
 
     private static JettyEchoServer srv;

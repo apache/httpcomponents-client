@@ -283,7 +283,8 @@ public final class Http1UpgradeProtocol implements WebSocketProtocolStrategy {
         try {
             final String accept = headerValue(response, "Sec-WebSocket-Accept");
             final String expected = expectedAccept(secKey);
-            if (!expected.equals(accept)) {
+            final String acceptValue = accept != null ? accept.trim() : null;
+            if (!expected.equals(acceptValue)) {
                 throw new IllegalStateException("Bad Sec-WebSocket-Accept");
             }
 
@@ -376,7 +377,7 @@ public final class Http1UpgradeProtocol implements WebSocketProtocolStrategy {
             }
 
             final ProtocolIOSession ioSession = endpoint.getProtocolIOSession();
-            final WebSocketUpgrader upgrader = new WebSocketUpgrader(listener, cfg, chain);
+            final WebSocketUpgrader upgrader = new WebSocketUpgrader(listener, cfg, chain, endpoint);
             ioSession.registerProtocol("websocket", upgrader);
             ioSession.switchProtocol("websocket", new FutureCallback<ProtocolIOSession>() {
                 @Override
