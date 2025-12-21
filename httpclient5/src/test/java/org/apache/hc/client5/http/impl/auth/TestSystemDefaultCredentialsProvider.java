@@ -40,12 +40,14 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 /**
  * Simple tests for {@link SystemDefaultCredentialsProvider}.
  */
+@Isolated
 class TestSystemDefaultCredentialsProvider {
 
     private final static String PROXY_PROTOCOL1 = "http";
