@@ -30,7 +30,6 @@ package org.apache.hc.client5.testing.extension.sync;
 import org.newsclub.net.unix.AFUNIXServerSocket;
 import org.newsclub.net.unix.AFUNIXSocket;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -57,7 +56,7 @@ public final class UnixDomainProxyServer {
     public UnixDomainProxyServer(final int port) {
         this.port = port;
         this.executorService = Executors.newCachedThreadPool();
-        this.socketPath = (new File("proxy.sock")).toPath();
+        this.socketPath = createTempSocketPath();
     }
 
     public void start() {
@@ -123,6 +122,16 @@ public final class UnixDomainProxyServer {
                 } catch (final IOException ignore) {
                 }
             });
+        }
+    }
+
+    private static Path createTempSocketPath() {
+        try {
+            final Path tempFile = Files.createTempFile("uds", ".sock");
+            Files.deleteIfExists(tempFile);
+            return tempFile;
+        } catch (final IOException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
