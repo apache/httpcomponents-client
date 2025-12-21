@@ -28,7 +28,9 @@ package org.apache.hc.client5.http.impl;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 
+@Isolated
 class ExecSupportTest {
 
     @Test
