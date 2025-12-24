@@ -33,6 +33,7 @@ import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class TestHttpClientBuilder {
@@ -64,6 +65,15 @@ class TestHttpClientBuilder {
                 final ExecChain.Scope scope,
                 final ExecChain chain) throws IOException, HttpException {
             return chain.proceed(request, scope);
+        }
+    }
+
+    @Test
+    void testEvictExpiredConnectionsDoesNotRequireMaxIdleTime() throws Exception {
+        try (final CloseableHttpClient client = HttpClientBuilder.create()
+                .evictExpiredConnections()
+                .build()) {
+            Assertions.assertNotNull(client);
         }
     }
 }
