@@ -31,10 +31,13 @@ import java.io.IOException;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class TestHttpAsyncClientBuilder {
@@ -80,6 +83,16 @@ class TestHttpAsyncClientBuilder {
                             final AsyncExecCallback asyncExecCallback)
                 throws HttpException, IOException {
             chain.proceed(request, entityProducer, scope, asyncExecCallback);
+        }
+    }
+
+
+    @Test
+    void testEvictExpiredConnectionsDoesNotRequireMaxIdleTime() throws Exception {
+        try (final CloseableHttpAsyncClient client = HttpAsyncClientBuilder.create()
+                .evictExpiredConnections()
+                .build()) {
+            Assertions.assertNotNull(client);
         }
     }
 }

@@ -778,7 +778,7 @@ public class HttpClientBuilder {
      */
     public final HttpClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {
         this.evictIdleConnections = true;
-        this.maxIdleTime = maxIdleTime;
+        this.maxIdleTime = Args.notNull(maxIdleTime, "Max idle time");
         return this;
     }
 
@@ -1113,10 +1113,11 @@ public class HttpClientBuilder {
             }
             if (evictExpiredConnections || evictIdleConnections) {
                 if (connManagerCopy instanceof ConnPoolControl) {
-                    TimeValue sleepTime = maxIdleTime.divide(10, TimeUnit.NANOSECONDS);
+                    final TimeValue maxIdleTimeCopy = evictIdleConnections ? maxIdleTime : null;
+                    TimeValue sleepTime = maxIdleTimeCopy != null ? maxIdleTimeCopy.divide(10, TimeUnit.NANOSECONDS) : ONE_SECOND;
                     sleepTime = sleepTime.compareTo(ONE_SECOND) < 0 ? ONE_SECOND : sleepTime;
                     final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor((ConnPoolControl<?>) connManagerCopy,
-                            sleepTime, maxIdleTime);
+                            sleepTime, maxIdleTimeCopy);
                     closeablesCopy.add(() -> {
                         connectionEvictor.shutdown();
                         try {
