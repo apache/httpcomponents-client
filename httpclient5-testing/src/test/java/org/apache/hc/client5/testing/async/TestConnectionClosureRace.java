@@ -27,6 +27,32 @@
 
 package org.apache.hc.client5.testing.async;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.hc.core5.http2.HttpVersionPolicy.FORCE_HTTP_1;
+import static org.apache.hc.core5.http2.HttpVersionPolicy.FORCE_HTTP_2;
+import static org.apache.hc.core5.util.TimeValue.MAX_VALUE;
+import static org.apache.hc.core5.util.TimeValue.NEG_ONE_MILLISECOND;
+import static org.apache.hc.core5.util.TimeValue.ZERO_MILLISECONDS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
@@ -68,31 +94,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import javax.net.ServerSocketFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSocket;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.hc.core5.http2.HttpVersionPolicy.FORCE_HTTP_1;
-import static org.apache.hc.core5.http2.HttpVersionPolicy.FORCE_HTTP_2;
-import static org.apache.hc.core5.util.TimeValue.MAX_VALUE;
-import static org.apache.hc.core5.util.TimeValue.NEG_ONE_MILLISECOND;
-import static org.apache.hc.core5.util.TimeValue.ZERO_MILLISECONDS;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * This test exercises a race condition between client connection reuse and server-initiated connection closure. The
@@ -407,7 +408,7 @@ abstract class AbstractTestConnectionClosureRace {
         connManager.setDefaultConnectionConfig(getConnectionConfig(validateConnections));
         connManager.setDefaultMaxPerRoute(1);
         connManager.setMaxTotal(1);
-        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        final CloseableHttpAsyncClient client = HttpAsyncClients.builder()
             .setIOReactorConfig(IOReactorConfig.custom()
                 .setSelectInterval(TimeValue.ofMilliseconds(1000))
                 .setIoThreadCount(1)

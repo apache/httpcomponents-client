@@ -58,7 +58,7 @@ public class AsyncClientH2ServerPush {
 
     public static void main(final String[] args) throws Exception {
 
-        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        final CloseableHttpAsyncClient client = HttpAsyncClients.builder()
                 .setH2Config(H2Config.custom()
                         .setPushEnabled(true)
                         .build())

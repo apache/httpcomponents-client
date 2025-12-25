@@ -27,6 +27,27 @@
 
 package org.apache.hc.client5.testing;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.hc.core5.util.TimeValue.MAX_VALUE;
+import static org.apache.hc.core5.util.TimeValue.ZERO_MILLISECONDS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketException;
+import java.net.StandardSocketOptions;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
@@ -45,27 +66,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketException;
-import java.net.StandardSocketOptions;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousCloseException;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.hc.core5.util.TimeValue.MAX_VALUE;
-import static org.apache.hc.core5.util.TimeValue.ZERO_MILLISECONDS;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests validateAfterInactivity behavior in both sync and async clients.
@@ -252,7 +252,7 @@ class AbstractTestValidateAfterInactivity {
     private CloseableHttpClient syncClient(final boolean validateAfterInactivity) {
         final PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
         connManager.setDefaultConnectionConfig(getConnectionConfig(validateAfterInactivity));
-        return HttpClients.custom()
+        return HttpClients.builder()
             .setConnectionManager(connManager)
             .disableAutomaticRetries()
             .build();
@@ -263,7 +263,7 @@ class AbstractTestValidateAfterInactivity {
         connManager.setDefaultConnectionConfig(getConnectionConfig(validateAfterInactivity));
         connManager.setDefaultMaxPerRoute(1);
         connManager.setMaxTotal(1);
-        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        final CloseableHttpAsyncClient client = HttpAsyncClients.builder()
             .setConnectionManager(connManager)
             .disableAutomaticRetries()
             .build();

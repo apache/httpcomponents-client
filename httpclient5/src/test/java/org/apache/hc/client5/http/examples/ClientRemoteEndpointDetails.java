@@ -42,7 +42,7 @@ import org.apache.hc.core5.http.message.StatusLine;
 public class ClientRemoteEndpointDetails {
 
     public static void main(final String[] args) throws Exception {
-        try (final CloseableHttpClient httpclient = HttpClients.createDefault()) {
+        try (final CloseableHttpClient httpclient = HttpClients.create()) {
             // Create local HTTP context
             final HttpClientContext localContext = HttpClientContext.create();
 

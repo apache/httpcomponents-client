@@ -50,7 +50,9 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
 
     /**
      * @since 5.4
+     * @deprecated Use {@link #create()} with system defaults or public constructor.
      */
+    @Deprecated
     public static DefaultClientTlsStrategy createDefault() {
         return new DefaultClientTlsStrategy(
                 SSLContexts.createDefault(),
@@ -60,8 +62,24 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
 
     /**
      * @since 5.4
+     * @deprecated Use {@link #create()}
      */
+    @Deprecated
     public static DefaultClientTlsStrategy createSystemDefault() {
+        return new DefaultClientTlsStrategy(
+                SSLContexts.createSystemDefault(),
+                HttpsSupport.getSystemProtocols(),
+                HttpsSupport.getSystemCipherSuits(),
+                SSLBufferMode.STATIC,
+                HostnameVerificationPolicy.BUILTIN,
+                null);
+    }
+
+    /**
+     * Creates an instance of this class based on system defaults.
+     * @since 5.7
+     */
+    public static DefaultClientTlsStrategy create() {
         return new DefaultClientTlsStrategy(
                 SSLContexts.createSystemDefault(),
                 HttpsSupport.getSystemProtocols(),

@@ -53,7 +53,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 public class ClientInterceptors {
 
     public static void main(final String[] args) throws Exception {
-        try (final CloseableHttpClient httpclient = HttpClients.custom()
+        try (final CloseableHttpClient httpclient = HttpClients.builder()
 
                 // Add a simple request ID to each outgoing request
 

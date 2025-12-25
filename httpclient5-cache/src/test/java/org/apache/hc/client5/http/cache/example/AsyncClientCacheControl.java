@@ -56,7 +56,7 @@ public class AsyncClientCacheControl {
 
         final HttpHost target = new HttpHost("https", "www.apache.org");
 
-        try (final CloseableHttpAsyncClient httpclient = CachingHttpAsyncClients.custom()
+        try (final CloseableHttpAsyncClient httpclient = CachingHttpAsyncClients.builder()
                 .setCacheConfig(CacheConfig.custom()
                         .setMaxObjectSize(200000)
                         .setHeuristicCachingEnabled(true)

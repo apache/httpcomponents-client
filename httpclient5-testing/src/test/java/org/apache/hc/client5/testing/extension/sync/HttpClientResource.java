@@ -51,7 +51,7 @@ public class HttpClientResource implements AfterEachCallback {
 
     public HttpClientResource() throws IOException {
         try {
-            this.clientBuilder = HttpClients.custom()
+            this.clientBuilder = HttpClients.builder()
                     .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
                             .setTlsSocketStrategy(new DefaultClientTlsStrategy(SSLContexts.custom()
                                     .loadTrustMaterial(getClass().getResource("/test-ca.keystore"), "nopassword".toCharArray())

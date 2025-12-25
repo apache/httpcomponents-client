@@ -48,7 +48,7 @@ public class ClientMultipartFormPost {
             System.out.println("File path not given");
             System.exit(1);
         }
-        try (final CloseableHttpClient httpclient = HttpClients.createDefault()) {
+        try (final CloseableHttpClient httpclient = HttpClients.create()) {
             final HttpPost httppost = new HttpPost("http://httpbin.org/post");
 
             final FileBody bin = new FileBody(new File(args[0]));

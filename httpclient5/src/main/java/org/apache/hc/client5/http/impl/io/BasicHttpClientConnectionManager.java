@@ -206,7 +206,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     public BasicHttpClientConnectionManager() {
         this(new DefaultHttpClientConnectionOperator(null, null,
                 RegistryBuilder.<TlsSocketStrategy>create()
-                        .register(URIScheme.HTTPS.id, DefaultClientTlsStrategy.createDefault())
+                        .register(URIScheme.HTTPS.id, DefaultClientTlsStrategy.create())
                         .build()),
                 null);
     }

@@ -50,7 +50,7 @@ public class ClientCacheControl {
 
         final HttpHost target = new HttpHost("https", "www.apache.org");
 
-        try (final CloseableHttpClient httpclient = CachingHttpClients.custom()
+        try (final CloseableHttpClient httpclient = CachingHttpClients.builder()
                 .setCacheConfig(CacheConfig.custom()
                         .setMaxObjectSize(200000)
                         .setHeuristicCachingEnabled(true)

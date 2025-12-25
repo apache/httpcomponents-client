@@ -62,7 +62,7 @@ public final class TagLevelDemo {
                 .tagLevel(ObservingOptions.TagLevel.LOW)
                 .build();
 
-        final HttpClientBuilder b1 = HttpClients.custom();
+        final HttpClientBuilder b1 = HttpClients.builder();
         HttpClientObservationSupport.enable(b1, observations, regLow, low, mcLow);
         try (final CloseableHttpClient c1 = b1.build()) {
             final ClassicHttpResponse r1 = c1.executeOpen(null, ClassicRequestBuilder.get(URL).build(), null);
@@ -81,7 +81,7 @@ public final class TagLevelDemo {
                 .tagLevel(ObservingOptions.TagLevel.EXTENDED)
                 .build();
 
-        final HttpClientBuilder b2 = HttpClients.custom();
+        final HttpClientBuilder b2 = HttpClients.builder();
         HttpClientObservationSupport.enable(b2, observations, regExt, ext, mcExt);
         try (final CloseableHttpClient c2 = b2.build()) {
             final ClassicHttpResponse r2 = c2.executeOpen(null, ClassicRequestBuilder.get(URL).build(), null);

@@ -66,7 +66,7 @@ public class AsyncClientH2Multiplexing {
                 .setMessageMultiplexing(true)
                 .build();
 
-        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        final CloseableHttpAsyncClient client = HttpAsyncClients.builder()
                 .setConnectionManager(connectionManager)
                 .setIOReactorConfig(ioReactorConfig)
                 .build();

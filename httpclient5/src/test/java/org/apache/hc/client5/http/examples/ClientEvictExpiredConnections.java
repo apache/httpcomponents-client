@@ -44,7 +44,7 @@ public class ClientEvictExpiredConnections {
     public static void main(final String[] args) throws Exception {
         final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
-        try (final CloseableHttpClient httpclient = HttpClients.custom()
+        try (final CloseableHttpClient httpclient = HttpClients.builder()
                 .setConnectionManager(cm)
                 .evictExpiredConnections()
                 .evictIdleConnections(TimeValue.ofSeconds(5))

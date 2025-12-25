@@ -44,9 +44,30 @@ public final class CachingHttpClients {
     }
 
     /**
+     * @since 5.7
+     */
+    public static CachingHttpClientBuilder builder() {
+        return CachingHttpClientBuilder.create();
+    }
+
+    /**
+     * Creates {@link CloseableHttpClient} instance with default
+     * configuration.
+     *
+     * @since 5.7
+     */
+    public static CloseableHttpClient create() {
+        return CachingHttpClientBuilder.create().build();
+    }
+
+    /**
      * Creates builder object for construction of custom
      * {@link CloseableHttpClient} instances.
+     *
+     * @deprecated Use {@link #builder()}
+     * @see CachingHttpClientBuilder#ignoreSystemProperties()
      */
+    @Deprecated
     public static CachingHttpClientBuilder custom() {
         return CachingHttpClientBuilder.create();
     }
@@ -54,7 +75,10 @@ public final class CachingHttpClients {
     /**
      * Creates {@link CloseableHttpClient} instance that uses a memory bound
      * response cache.
+     *
+     * @deprecated Use {@link #builder()}
      */
+    @Deprecated
     public static CloseableHttpClient createMemoryBound() {
         return CachingHttpClientBuilder.create().build();
     }
@@ -64,7 +88,10 @@ public final class CachingHttpClients {
      * bound response cache.
      *
      * @param cacheDir location of response cache.
+     *
+     * @deprecated Use {@link #builder()}
      */
+    @Deprecated
     public static CloseableHttpClient createFileBound(final File cacheDir) {
         return CachingHttpClientBuilder.create().setCacheDir(cacheDir).build();
     }

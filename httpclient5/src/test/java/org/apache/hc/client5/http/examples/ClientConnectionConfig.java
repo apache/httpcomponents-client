@@ -78,7 +78,7 @@ public class ClientConnectionConfig {
                     return TlsConfig.DEFAULT;
                 })
                 .build();
-        try (CloseableHttpClient httpclient = HttpClients.custom()
+        try (CloseableHttpClient httpclient = HttpClients.builder()
                 .setConnectionManager(cm)
                 .build()) {
 

@@ -99,7 +99,7 @@ public final class TracingAndMetricsDemo {
         /* ----------------------------------------------------------------
          * 3)  Build classic client
          * ---------------------------------------------------------------- */
-        final HttpClientBuilder builder = HttpClients.custom();
+        final HttpClientBuilder builder = HttpClients.builder();
 
         final ObservingOptions obs = ObservingOptions.builder()
                 .metrics(EnumSet.allOf(ObservingOptions.MetricSet.class))

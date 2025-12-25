@@ -44,7 +44,7 @@ class TestHttpAsyncClientBuilder {
 
     @Test
     void testAddInterceptorFirstDoesNotThrow() throws IOException {
-        HttpAsyncClients.custom()
+        HttpAsyncClients.builder()
                 .addExecInterceptorFirst("first", NopExecChainHandler.INSTANCE)
                 .build()
                 .close();
@@ -52,7 +52,7 @@ class TestHttpAsyncClientBuilder {
 
     @Test
     void testAddInterceptorLastDoesNotThrow() throws IOException {
-        HttpAsyncClients.custom()
+        HttpAsyncClients.builder()
                 .addExecInterceptorLast("last", NopExecChainHandler.INSTANCE)
                 .build()
                 .close();
@@ -60,7 +60,7 @@ class TestHttpAsyncClientBuilder {
 
     @Test
     void testH2AddInterceptorFirstDoesNotThrow() throws IOException {
-        HttpAsyncClients.customHttp2()
+        HttpAsyncClients.http2Builder()
                 .addExecInterceptorFirst("first", NopExecChainHandler.INSTANCE)
                 .build()
                 .close();
@@ -68,7 +68,7 @@ class TestHttpAsyncClientBuilder {
 
     @Test
     void testH2AddInterceptorLastDoesNotThrow() throws IOException {
-        HttpAsyncClients.customHttp2()
+        HttpAsyncClients.http2Builder()
                 .addExecInterceptorLast("last", NopExecChainHandler.INSTANCE)
                 .build()
                 .close();

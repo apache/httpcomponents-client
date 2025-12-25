@@ -70,6 +70,7 @@ import org.apache.hc.client5.http.protocol.RequestExpectContinue;
 import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
 import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
@@ -102,6 +103,7 @@ import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.reactor.IOSessionListener;
+import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
@@ -198,7 +200,7 @@ public class H2AsyncClientBuilder {
     private boolean evictIdleConnections;
     private TimeValue maxIdleTime;
 
-    private boolean systemProperties;
+    private boolean ignoreSystemProperties;
     private boolean automaticRetriesDisabled;
     private boolean redirectHandlingDisabled;
     private boolean cookieManagementDisabled;
@@ -643,7 +645,20 @@ public class H2AsyncClientBuilder {
      * @return this instance.
      */
     public final H2AsyncClientBuilder useSystemProperties() {
-        this.systemProperties = true;
+        this.ignoreSystemProperties = false;
+        return this;
+    }
+
+    /**
+     * Ignore system properties when creating and configuring default
+     * implementations.
+     *
+     * @return this instance.
+     *
+     * @since 5.7
+     */
+    public final H2AsyncClientBuilder ignoreSystemProperties() {
+        this.ignoreSystemProperties = true;
         return this;
     }
 
@@ -751,7 +766,7 @@ public class H2AsyncClientBuilder {
 
         String userAgentCopy = this.userAgent;
         if (userAgentCopy == null) {
-            if (systemProperties) {
+            if (!ignoreSystemProperties) {
                 userAgentCopy = System.getProperty("http.agent", null);
             }
             if (userAgentCopy == null) {
@@ -932,7 +947,7 @@ public class H2AsyncClientBuilder {
 
         CredentialsProvider credentialsProviderCopy = this.credentialsProvider;
         if (credentialsProviderCopy == null) {
-            if (systemProperties) {
+            if (!ignoreSystemProperties) {
                 credentialsProviderCopy = new SystemDefaultCredentialsProvider();
             } else {
                 credentialsProviderCopy = new BasicCredentialsProvider();
@@ -941,10 +956,10 @@ public class H2AsyncClientBuilder {
 
         TlsStrategy tlsStrategyCopy = this.tlsStrategy;
         if (tlsStrategyCopy == null) {
-            if (systemProperties) {
-                tlsStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
+            if (!ignoreSystemProperties) {
+                tlsStrategyCopy = DefaultClientTlsStrategy.create();
             } else {
-                tlsStrategyCopy = DefaultClientTlsStrategy.createDefault();
+                tlsStrategyCopy = new DefaultClientTlsStrategy(SSLContexts.createDefault(), HostnameVerificationPolicy.BUILTIN, null);
             }
         }
 

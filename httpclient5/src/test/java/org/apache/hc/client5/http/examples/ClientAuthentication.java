@@ -41,7 +41,7 @@ import org.apache.hc.core5.http.message.StatusLine;
 public class ClientAuthentication {
 
     public static void main(final String[] args) throws Exception {
-        try (final CloseableHttpClient httpclient = HttpClients.custom()
+        try (final CloseableHttpClient httpclient = HttpClients.builder()
                 .setDefaultCredentialsProvider(CredentialsProviderBuilder.create()
                         .add(new HttpHost("httpbin.org", 80), "user", "passwd".toCharArray())
                         .build())

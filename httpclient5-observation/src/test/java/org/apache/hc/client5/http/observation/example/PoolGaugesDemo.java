@@ -64,7 +64,7 @@ public final class PoolGaugesDemo {
 
         // Ensure a pooling manager is used so pool gauges exist
         final HttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-        final HttpClientBuilder b = HttpClients.custom().setConnectionManager(cm);
+        final HttpClientBuilder b = HttpClients.builder().setConnectionManager(cm);
 
         HttpClientObservationSupport.enable(b, obs, reg, opts, mc);
 

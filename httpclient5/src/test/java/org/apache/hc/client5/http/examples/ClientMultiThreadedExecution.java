@@ -48,7 +48,7 @@ public class ClientMultiThreadedExecution {
         final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
 
-        try (final CloseableHttpClient httpclient = HttpClients.custom()
+        try (final CloseableHttpClient httpclient = HttpClients.builder()
                 .setConnectionManager(cm)
                 .build()) {
             // create an array of URIs to perform GETs on

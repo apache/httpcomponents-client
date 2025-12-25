@@ -73,7 +73,7 @@ public class ClientCustomPublicSuffixList {
         final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
                 .setTlsSocketStrategy(tlsStrategy)
                 .build();
-        try (final CloseableHttpClient httpclient = HttpClients.custom()
+        try (final CloseableHttpClient httpclient = HttpClients.builder()
                 .setConnectionManager(cm)
                 .setDefaultCookieSpecRegistry(cookieSpecRegistry)
                 .build()) {

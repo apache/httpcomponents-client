@@ -44,7 +44,7 @@ class ConnPoolMetersAsyncTest {
         final MeterRegistry reg = new SimpleMeterRegistry();
 
         final AsyncClientConnectionManager cm = PoolingAsyncClientConnectionManagerBuilder.create().build();
-        final HttpAsyncClientBuilder b = HttpAsyncClients.custom().setConnectionManager(cm);
+        final HttpAsyncClientBuilder b = HttpAsyncClients.builder().setConnectionManager(cm);
 
         ConnPoolMetersAsync.bindTo(b, reg);
 
@@ -59,7 +59,7 @@ class ConnPoolMetersAsyncTest {
     @Test
     void noExceptionIfNoAsyncPool() {
         final MeterRegistry reg = new SimpleMeterRegistry();
-        final HttpAsyncClientBuilder b = HttpAsyncClients.custom(); // no CM set
+        final HttpAsyncClientBuilder b = HttpAsyncClients.builder(); // no CM set
         ConnPoolMetersAsync.bindTo(b, reg);
         assertNull(reg.find("http.client.pool.leased").gauge());
     }

@@ -37,6 +37,7 @@ import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.Internal;
@@ -50,16 +51,15 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.ConnPoolListener;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Builder for {@link PoolingHttpClientConnectionManager} instances.
  * <p>
  * When a particular component is not explicitly set this class will
- * use its default implementation. System properties will be taken
- * into account when configuring the default implementations when
- * {@link #useSystemProperties()} method is called prior to calling
- * {@link #build()}.
+ * use its default implementation. The following system are taken into
+ * account.
  * </p>
  * <ul>
  *  <li>ssl.TrustManagerFactory.algorithm</li>
@@ -90,7 +90,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     private Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
     private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
 
-    private boolean systemProperties;
+    private boolean ignoreSystemProperties;
 
     private int maxConnTotal;
     private int maxConnPerRoute;
@@ -319,7 +319,20 @@ public class PoolingHttpClientConnectionManagerBuilder {
      * @return this instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder useSystemProperties() {
-        this.systemProperties = true;
+        this.ignoreSystemProperties = false;
+        return this;
+    }
+
+    /**
+     * Ignore system properties when creating and configuring default
+     * implementations.
+     *
+     * @return this instance.
+     *
+     * @since 5.7
+     */
+    public final PoolingHttpClientConnectionManagerBuilder ignoreSystemProperties() {
+        this.ignoreSystemProperties = true;
         return this;
     }
 
@@ -360,10 +373,10 @@ public class PoolingHttpClientConnectionManagerBuilder {
         if (tlsSocketStrategy != null) {
             tlsSocketStrategyCopy = tlsSocketStrategy;
         } else {
-            if (systemProperties) {
-                tlsSocketStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
+            if (!ignoreSystemProperties) {
+                tlsSocketStrategyCopy = DefaultClientTlsStrategy.create();
             } else {
-                tlsSocketStrategyCopy = DefaultClientTlsStrategy.createDefault();
+                tlsSocketStrategyCopy = new DefaultClientTlsStrategy(SSLContexts.createDefault(), HostnameVerificationPolicy.BUILTIN, null);
             }
         }
 

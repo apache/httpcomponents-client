@@ -53,7 +53,7 @@ public class HttpAsyncClientResource implements AfterEachCallback {
 
     public HttpAsyncClientResource(final HttpVersionPolicy versionPolicy) throws IOException {
         try {
-            this.clientBuilder = HttpAsyncClients.custom()
+            this.clientBuilder = HttpAsyncClients.builder()
                     .setConnectionManager(PoolingAsyncClientConnectionManagerBuilder.create()
                             .setTlsStrategy(new DefaultClientTlsStrategy(SSLContexts.custom()
                                     .loadTrustMaterial(getClass().getResource("/test-ca.keystore"), "nopassword".toCharArray())

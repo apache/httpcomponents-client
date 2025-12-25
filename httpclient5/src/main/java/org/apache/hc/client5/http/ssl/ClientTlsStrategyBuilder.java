@@ -42,10 +42,8 @@ import org.apache.hc.core5.ssl.SSLContexts;
  * Builder for client TLS strategy instances.
  * <p>
  * When a particular component is not explicitly set this class will
- * use its default implementation. System properties will be taken
- * into account when configuring the default implementations when
- * {@link #useSystemProperties()} method is called prior to calling
- * {@link #buildAsync()} or {@link #buildClassic()}.
+ * use its default implementation. The following system are taken into
+ * account.
  * </p>
  * <ul>
  *  <li>ssl.TrustManagerFactory.algorithm</li>
@@ -76,7 +74,7 @@ public class ClientTlsStrategyBuilder {
     private SSLBufferMode sslBufferMode;
     private HostnameVerificationPolicy hostnameVerificationPolicy;
     private HostnameVerifier hostnameVerifier;
-    private boolean systemProperties;
+    private boolean ignoreSystemProperties;
 
     /**
      * Sets {@link SSLContext} instance.
@@ -179,7 +177,20 @@ public class ClientTlsStrategyBuilder {
      * @return this instance.
      */
     public final ClientTlsStrategyBuilder useSystemProperties() {
-        this.systemProperties = true;
+        this.ignoreSystemProperties = false;
+        return this;
+    }
+
+    /**
+     * Ignore system properties when creating and configuring default
+     * implementations.
+     *
+     * @return this instance.
+     *
+     * @since 5.7
+     */
+    public final ClientTlsStrategyBuilder ignoreSystemProperties() {
+        this.ignoreSystemProperties = true;
         return this;
     }
 
@@ -210,19 +221,19 @@ public class ClientTlsStrategyBuilder {
         if (sslContext != null) {
             sslContextCopy = sslContext;
         } else {
-            sslContextCopy = systemProperties ? SSLContexts.createSystemDefault() : SSLContexts.createDefault();
+            sslContextCopy = !ignoreSystemProperties ? SSLContexts.createSystemDefault() : SSLContexts.createDefault();
         }
         final String[] tlsVersionsCopy;
         if (tlsVersions != null) {
             tlsVersionsCopy = tlsVersions;
         } else {
-            tlsVersionsCopy = systemProperties ? HttpsSupport.getSystemProtocols() : null;
+            tlsVersionsCopy = !ignoreSystemProperties ? HttpsSupport.getSystemProtocols() : null;
         }
         final String[] ciphersCopy;
         if (ciphers != null) {
             ciphersCopy = ciphers;
         } else {
-            ciphersCopy = systemProperties ? HttpsSupport.getSystemCipherSuits() : null;
+            ciphersCopy = !ignoreSystemProperties ? HttpsSupport.getSystemCipherSuits() : null;
         }
         final HostnameVerificationPolicy hostnameVerificationPolicyCopy = hostnameVerificationPolicy != null ? hostnameVerificationPolicy :
                 (hostnameVerifier == null ? HostnameVerificationPolicy.BUILTIN : HostnameVerificationPolicy.BOTH);

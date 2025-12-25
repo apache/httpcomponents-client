@@ -64,7 +64,7 @@ public final class AsyncClientGzipDecompressionExample {
 
     public static void main(final String[] args) throws Exception {
 
-        try (final CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
+        try (final CloseableHttpAsyncClient client = HttpAsyncClients.create()) {
             client.start();
 
             final SimpleHttpRequest request =

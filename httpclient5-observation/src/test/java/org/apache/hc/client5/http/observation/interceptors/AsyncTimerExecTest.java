@@ -84,7 +84,7 @@ public class AsyncTimerExecTest {
                 .tagLevel(ObservingOptions.TagLevel.LOW)
                 .build();
 
-        final HttpAsyncClientBuilder b = HttpAsyncClients.custom();
+        final HttpAsyncClientBuilder b = HttpAsyncClients.builder();
         // Attach the async timer interceptor under test
         b.addExecInterceptorFirst("timer", new AsyncTimerExec(meters, opts, mc));
 

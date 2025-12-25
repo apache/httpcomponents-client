@@ -95,7 +95,7 @@ class HttpClientObservationSupportTest {
                 .tagLevel(ObservingOptions.TagLevel.LOW)
                 .build();
 
-        final HttpClientBuilder b = HttpClients.custom().setConnectionManager(cm);
+        final HttpClientBuilder b = HttpClients.builder().setConnectionManager(cm);
         HttpClientObservationSupport.enable(b, observations, meters, opts, mc);
 
         // IMPORTANT: scheme-first ctor + RELATIVE PATH to avoid 421

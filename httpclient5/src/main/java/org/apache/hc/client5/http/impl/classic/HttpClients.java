@@ -27,7 +27,7 @@
 
 package org.apache.hc.client5.http.impl.classic;
 
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 
 /**
@@ -42,25 +42,51 @@ public final class HttpClients {
     }
 
     /**
-     * Creates builder object for construction of custom
-     * {@link CloseableHttpClient} instances.
+     * @since 5.7
      */
-    public static HttpClientBuilder custom() {
+    public static HttpClientBuilder builder() {
         return HttpClientBuilder.create();
     }
 
     /**
      * Creates {@link CloseableHttpClient} instance with default
      * configuration.
+     *
+     * @since 5.7
      */
-    public static CloseableHttpClient createDefault() {
+    public static CloseableHttpClient create() {
         return HttpClientBuilder.create().build();
+    }
+
+    /**
+     * Creates builder object for construction of custom
+     * {@link CloseableHttpClient} instances.
+     *
+     * @deprecated Use {@link #builder()}
+     * @see HttpClientBuilder#ignoreSystemProperties()
+     */
+    @Deprecated
+    public static HttpClientBuilder custom() {
+        return HttpClientBuilder.create().ignoreSystemProperties();
+    }
+
+    /**
+     * Creates {@link CloseableHttpClient} instance with default
+     * configuration.
+     * @deprecated Use {@link #create()}
+     * @see HttpClientBuilder#ignoreSystemProperties()
+     */
+    @Deprecated
+    public static CloseableHttpClient createDefault() {
+        return HttpClientBuilder.create().ignoreSystemProperties().build();
     }
 
     /**
      * Creates {@link CloseableHttpClient} instance with default
      * configuration based on system properties.
+     * @deprecated Use {@link #create()}
      */
+    @Deprecated
     public static CloseableHttpClient createSystem() {
         return HttpClientBuilder.create().useSystemProperties().build();
     }
@@ -68,9 +94,14 @@ public final class HttpClients {
     /**
      * Creates {@link CloseableHttpClient} instance that implements
      * the most basic HTTP protocol support.
+     *
+     * @deprecated Use {@link #createMinimal(HttpClientConnectionManager)}
      */
+    @Deprecated
     public static MinimalHttpClient createMinimal() {
-        return new MinimalHttpClient(new PoolingHttpClientConnectionManager());
+        return new MinimalHttpClient(PoolingHttpClientConnectionManagerBuilder.create()
+                .ignoreSystemProperties()
+                .build());
     }
 
     /**

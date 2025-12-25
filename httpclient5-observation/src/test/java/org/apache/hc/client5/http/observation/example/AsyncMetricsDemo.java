@@ -68,7 +68,7 @@ public final class AsyncMetricsDemo {
                 .tagLevel(ObservingOptions.TagLevel.EXTENDED)
                 .build();
 
-        final HttpAsyncClientBuilder b = HttpAsyncClients.custom();
+        final HttpAsyncClientBuilder b = HttpAsyncClients.builder();
         HttpClientObservationSupport.enable(b, obs, reg, opts, mc);
 
         final CloseableHttpAsyncClient client = b.build();

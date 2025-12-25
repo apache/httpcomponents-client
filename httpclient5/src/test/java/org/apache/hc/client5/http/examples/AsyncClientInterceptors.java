@@ -67,7 +67,7 @@ public class AsyncClientInterceptors {
                 .setSoTimeout(Timeout.ofSeconds(5))
                 .build();
 
-        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        final CloseableHttpAsyncClient client = HttpAsyncClients.builder()
                 .setIOReactorConfig(ioReactorConfig)
 
                 // Add a simple request ID to each outgoing request

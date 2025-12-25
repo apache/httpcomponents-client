@@ -122,7 +122,7 @@ abstract class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest {
         assertThat(body1.length(), CoreMatchers.equalTo(2048));
 
 
-        try (final CloseableHttpAsyncClient httpclient2 = HttpAsyncClients.custom()
+        try (final CloseableHttpAsyncClient httpclient2 = HttpAsyncClients.builder()
                 .setConnectionManager(connManager)
                 .setConnectionManagerShared(true)
                 .build()) {

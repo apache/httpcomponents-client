@@ -104,7 +104,7 @@ class ObservationClassicExecInterceptorTest {
                 .build();
 
         // Build classic client with the observation interceptor FIRST
-        final HttpClientBuilder b = HttpClients.custom();
+        final HttpClientBuilder b = HttpClients.builder();
         b.addExecInterceptorFirst("span", new ObservationClassicExecInterceptor(reg, opts));
 
         final HttpHost target = new HttpHost("http", "localhost", port);

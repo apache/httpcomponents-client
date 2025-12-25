@@ -70,7 +70,7 @@ import org.apache.hc.core5.util.Args;
  * <pre>{@code
  * ObservationRegistry obs = ObservationRegistry.create();
  * MeterRegistry meters = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
- * HttpClientBuilder b = HttpClients.custom();
+ * HttpClientBuilder b = HttpClients.builder();
  *
  * HttpClientObservationSupport.enable(
  *     b, obs, meters,

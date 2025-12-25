@@ -40,7 +40,7 @@ import org.apache.hc.core5.http.message.StatusLine;
 public class ClientResponseProcessing {
 
     public static void main(final String[] args) throws Exception {
-        try (final CloseableHttpClient httpclient = HttpClients.createDefault()) {
+        try (final CloseableHttpClient httpclient = HttpClients.create()) {
             final HttpGet httpget = new HttpGet("http://httpbin.org/get");
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());

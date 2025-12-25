@@ -47,7 +47,7 @@ import org.apache.hc.core5.http.message.StatusLine;
 public class ClientPreemptiveBasicAuthentication {
 
     public static void main(final String[] args) throws Exception {
-        try (final CloseableHttpClient httpclient = HttpClients.createDefault()) {
+        try (final CloseableHttpClient httpclient = HttpClients.create()) {
 
             final HttpClientContext localContext = ContextBuilder.create()
                     .preemptiveBasicAuth(new HttpHost("http", "httpbin.org"),

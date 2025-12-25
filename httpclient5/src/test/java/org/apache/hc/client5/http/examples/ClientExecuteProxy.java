@@ -45,7 +45,7 @@ public class ClientExecuteProxy {
     public static void main(final String[] args)throws Exception {
         final HttpHost target = new HttpHost("https", "httpbin.org", 443);
         final HttpHost proxy = new HttpHost("http", "127.0.0.1", 8080);
-        try (final CloseableHttpClient httpclient = HttpClients.custom()
+        try (final CloseableHttpClient httpclient = HttpClients.builder()
                 .setProxy(proxy)
                 .build()) {
 

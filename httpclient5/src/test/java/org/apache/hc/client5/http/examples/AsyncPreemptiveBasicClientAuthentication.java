@@ -50,7 +50,7 @@ import org.apache.hc.core5.io.CloseMode;
 public class AsyncPreemptiveBasicClientAuthentication {
 
     public static void main(final String[] args) throws Exception {
-        final CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
+        final CloseableHttpAsyncClient httpclient = HttpAsyncClients.create();
         httpclient.start();
 
         final HttpClientContext localContext = ContextBuilder.create()

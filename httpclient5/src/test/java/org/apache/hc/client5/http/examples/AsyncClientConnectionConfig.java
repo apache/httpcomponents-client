@@ -84,7 +84,7 @@ public class AsyncClientConnectionConfig {
                     return TlsConfig.DEFAULT;
                 })
                 .build();
-        try (final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        try (final CloseableHttpAsyncClient client = HttpAsyncClients.builder()
                 .setConnectionManager(cm)
                 .build()) {
 

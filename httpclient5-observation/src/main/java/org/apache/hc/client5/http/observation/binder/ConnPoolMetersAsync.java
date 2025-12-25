@@ -51,7 +51,7 @@ import org.apache.hc.core5.util.Args;
  * MeterRegistry meters = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
  * MetricConfig mc = MetricConfig.builder().prefix("http_client").build();
  *
- * HttpAsyncClientBuilder b = HttpAsyncClients.custom()
+ * HttpAsyncClientBuilder b = HttpAsyncClients.builder()
  *     .setConnectionManager(PoolingAsyncClientConnectionManagerBuilder.create().build());
  *
  * // After the async connection manager is attached to the builder:

@@ -108,7 +108,7 @@ class ObservationAsyncExecInterceptorTest {
                 .build();
 
         // 4) Async client with interceptor
-        final HttpAsyncClientBuilder b = HttpAsyncClients.custom();
+        final HttpAsyncClientBuilder b = HttpAsyncClients.builder();
         b.addExecInterceptorFirst("span", new ObservationAsyncExecInterceptor(reg, opts));
 
         final HttpHost target = new HttpHost("http", "localhost", port);

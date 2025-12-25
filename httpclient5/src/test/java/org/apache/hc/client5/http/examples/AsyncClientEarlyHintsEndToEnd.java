@@ -154,7 +154,7 @@ public class AsyncClientEarlyHintsEndToEnd {
             }
         };
 
-        try (final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        try (final CloseableHttpAsyncClient client = HttpAsyncClients.builder()
                 .setConnectionManager(
                         PoolingAsyncClientConnectionManagerBuilder.create()
                                 .setDefaultTlsConfig(TlsConfig.DEFAULT) // plain HTTP here; keep TLS config for real targets
