@@ -293,7 +293,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
             return Operations.nonCancellable();
         }
         final AsyncClientExchangeHandler actual = sharedQueued != null
-                ? AsyncClientExchangeHandlerProxy.newProxy(exchangeHandler, this::releaseSlot)
+                ? new ReleasingAsyncClientExchangeHandler(exchangeHandler, this::releaseSlot)
                 : exchangeHandler;
         final ComplexCancellable complexCancellable = new ComplexCancellable();
         final IOSession session = endpoint.session;

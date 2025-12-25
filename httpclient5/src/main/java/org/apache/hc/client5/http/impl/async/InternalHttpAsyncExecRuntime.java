@@ -324,7 +324,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         if (sharedQueued == null) {
             return handler;
         }
-        return AsyncClientExchangeHandlerProxy.newProxy(handler, this::releaseSlot);
+        return new ReleasingAsyncClientExchangeHandler(handler, this::releaseSlot);
     }
 
     @Override

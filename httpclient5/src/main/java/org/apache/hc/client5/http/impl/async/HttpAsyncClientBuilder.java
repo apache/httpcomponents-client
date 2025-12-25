@@ -909,7 +909,7 @@ public class HttpAsyncClientBuilder {
      *
      * @param max maximum number of queued requests; <= 0 to disable the cap
      * @return this builder
-     * @since 5.6
+     * @since 5.7
      */
     @Experimental
     public HttpAsyncClientBuilder setMaxQueuedRequests(final int max) {

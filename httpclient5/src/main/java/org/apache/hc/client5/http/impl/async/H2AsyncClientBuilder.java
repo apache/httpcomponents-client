@@ -334,7 +334,7 @@ public class H2AsyncClientBuilder {
      *
      * @param max maximum number of queued requests; {@code <= 0} to disable the cap
      * @return this builder
-     * @since 5.6
+     * @since 5.7
      */
     @Experimental
     public final H2AsyncClientBuilder setMaxQueuedRequests(final int max) {
