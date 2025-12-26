@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.InetAddress;
 import java.util.EnumSet;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -68,6 +69,7 @@ class TimerExecTest {
     void recordsLatencyAndCounter() throws Exception {
         // Local classic server
         server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setListenerPort(0)
                 .register("localhost", "/get", (request, response, context) -> {
                     response.setCode(HttpStatus.SC_OK);

@@ -82,6 +82,7 @@ public class AsyncClientEarlyHintsEndToEnd {
     public static void main(final String[] args) throws Exception {
         // --- Start minimal async server that sends 103 then 200
         final HttpAsyncServer server = AsyncServerBootstrap.bootstrap()
+                // .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setCanonicalHostName("localhost")
                 .register("/eh", () -> new AsyncServerExchangeHandler() {
 

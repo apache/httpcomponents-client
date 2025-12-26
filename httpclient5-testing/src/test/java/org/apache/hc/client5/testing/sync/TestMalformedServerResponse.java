@@ -27,6 +27,7 @@
 package org.apache.hc.client5.testing.sync;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -97,6 +98,7 @@ class TestMalformedServerResponse {
     @Test
     void testNoContentResponseWithGarbage() throws Exception {
         server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setCanonicalHostName("localhost")
                 .setConnectionFactory(new BrokenServerConnectionFactory())
                 .register("/nostuff", (request, response, context) -> response.setCode(HttpStatus.SC_NO_CONTENT))

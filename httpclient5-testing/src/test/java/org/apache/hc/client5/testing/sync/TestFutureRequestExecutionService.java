@@ -28,6 +28,7 @@ package org.apache.hc.client5.testing.sync;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.net.InetAddress;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CancellationException;
@@ -72,6 +73,7 @@ class TestFutureRequestExecutionService {
     @BeforeEach
     void before() throws Exception {
         this.localServer = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setCanonicalHostName("localhost")
                 .register("/wait", (request, response, context) -> {
                     try {

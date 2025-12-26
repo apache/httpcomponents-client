@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.testing.sync;
 
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.List;
 
@@ -64,6 +65,7 @@ class TestCookieVirtualHost {
     @Test
     void testCookieMatchingWithVirtualHosts() throws Exception {
         server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .register("app.mydomain.fr", "*", (request, response, context) -> {
 
                     final int n = Integer.parseInt(request.getFirstHeader("X-Request").getValue());

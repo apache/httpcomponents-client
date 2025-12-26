@@ -30,6 +30,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Future;
 
@@ -113,6 +114,7 @@ public final class AsyncClientZstdCompressionExample {
     public static void main(final String[] args) throws Exception {
         // --- tiny classic server that decodes zstd requests and echoes plain text ---
         final HttpServer server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setListenerPort(0)
                 .setCanonicalHostName("localhost")
                 .register("/echo", new EchoHandler())

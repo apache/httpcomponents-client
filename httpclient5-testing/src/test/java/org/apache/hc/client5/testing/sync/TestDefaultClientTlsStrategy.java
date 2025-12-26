@@ -96,6 +96,7 @@ class TestDefaultClientTlsStrategy {
     void testBasicSSL() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setRequestRouter((r, c) -> null)
                 .create();
@@ -126,6 +127,7 @@ class TestDefaultClientTlsStrategy {
     void testBasicDefaultHostnameVerifier() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setRequestRouter((r, c) -> null)
                 .create();
@@ -153,6 +155,7 @@ class TestDefaultClientTlsStrategy {
     void testClientAuthSSL() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setRequestRouter((r, c) -> null)
                 .create();
@@ -183,6 +186,7 @@ class TestDefaultClientTlsStrategy {
     void testClientAuthSSLFailure() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setSslSetupHandler(sslParameters -> sslParameters.setNeedClientAuth(true))
                 .setRequestRouter((r, c) -> null)
@@ -217,6 +221,7 @@ class TestDefaultClientTlsStrategy {
     void testSSLTrustVerification() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setRequestRouter((r, c) -> null)
                 .create();
@@ -251,6 +256,7 @@ class TestDefaultClientTlsStrategy {
             throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setRequestRouter((r, c) -> null)
                 .create();
@@ -284,6 +290,7 @@ class TestDefaultClientTlsStrategy {
     void testSSLDisabledByDefault() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setSslSetupHandler(sslParameters -> sslParameters.setProtocols(new String[] {"SSLv3"}))
                 .setRequestRouter((r, c) -> null)
@@ -337,6 +344,7 @@ class TestDefaultClientTlsStrategy {
     private void testWeakCipherDisabledByDefault(final String cipherSuite) throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setSslSetupHandler(sslParameters -> sslParameters.setProtocols(new String[] {cipherSuite}))
                 .setRequestRouter((r, c) -> null)
@@ -362,15 +370,16 @@ class TestDefaultClientTlsStrategy {
     void testHostnameVerificationClient() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setRequestRouter((r, c) -> null)
                 .create();
         // @formatter:on
         this.server.start();
 
-        final HttpHost target1 = new HttpHost("https", "localhost", server.getLocalPort());
+        final HttpHost target1 = new HttpHost("https", InetAddress.getLoopbackAddress(), "localhost", server.getLocalPort());
 
-        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+        try (final Socket socket = new Socket(InetAddress.getLoopbackAddress(), server.getLocalPort())) {
             final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.CLIENT,
@@ -386,9 +395,9 @@ class TestDefaultClientTlsStrategy {
             MatcherAssert.assertThat(Objects.toString(session.getPeerPrincipal()), Matchers.startsWith("CN=localhost"));
         }
 
-        final HttpHost target2 = new HttpHost("https", "some-other-host", server.getLocalPort());
+        final HttpHost target2 = new HttpHost("https", InetAddress.getLoopbackAddress(), "some-other-host", server.getLocalPort());
 
-        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+        try (final Socket socket = new Socket(InetAddress.getLoopbackAddress(), server.getLocalPort())) {
             final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.CLIENT,
@@ -403,7 +412,7 @@ class TestDefaultClientTlsStrategy {
                             context));
         }
 
-        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+        try (final Socket socket = new Socket(InetAddress.getLoopbackAddress(), server.getLocalPort())) {
             final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.CLIENT,
@@ -424,15 +433,16 @@ class TestDefaultClientTlsStrategy {
     void testHostnameVerificationBuiltIn() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setRequestRouter((r, c) -> null)
                 .create();
         // @formatter:on
         this.server.start();
 
-        final HttpHost target1 = new HttpHost("https", "localhost", server.getLocalPort());
+        final HttpHost target1 = new HttpHost("https", InetAddress.getLoopbackAddress(), "localhost", server.getLocalPort());
 
-        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+        try (final Socket socket = new Socket(InetAddress.getLoopbackAddress(), server.getLocalPort())) {
             final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.BUILTIN,
@@ -448,9 +458,9 @@ class TestDefaultClientTlsStrategy {
             MatcherAssert.assertThat(Objects.toString(session.getPeerPrincipal()), Matchers.startsWith("CN=localhost"));
         }
 
-        final HttpHost target2 = new HttpHost("https", "some-other-host", server.getLocalPort());
+        final HttpHost target2 = new HttpHost("https", InetAddress.getLoopbackAddress(), "some-other-host", server.getLocalPort());
 
-        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+        try (final Socket socket = new Socket(InetAddress.getLoopbackAddress(), server.getLocalPort())) {
             final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.BUILTIN,

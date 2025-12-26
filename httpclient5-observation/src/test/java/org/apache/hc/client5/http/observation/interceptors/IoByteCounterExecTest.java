@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.InetAddress;
 import java.util.EnumSet;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -68,6 +69,7 @@ public class IoByteCounterExecTest {
     void countsRequestAndResponseBytes() throws Exception {
         // Echo-like handler with known response size
         server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setListenerPort(0)
                 .register("localhost", "/echo", (request, response, context) -> {
                     response.setCode(HttpStatus.SC_OK);

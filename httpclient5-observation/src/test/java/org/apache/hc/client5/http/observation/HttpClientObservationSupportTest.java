@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.observation;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.net.InetAddress;
 import java.util.EnumSet;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -66,6 +67,7 @@ class HttpClientObservationSupportTest {
     void basicIoAndPoolMetricsRecorded() throws Exception {
         // Register handler FOR THE HOST WE'LL USE ("localhost")
         server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setListenerPort(0)
                 .register("localhost", "/get", (request, response, context) -> {
                     response.setCode(HttpStatus.SC_OK);

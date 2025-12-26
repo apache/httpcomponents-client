@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.InetAddress;
 import java.util.EnumSet;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -68,6 +69,7 @@ public class AsyncTimerExecTest {
     void recordsAsyncLatencyAndCounter() throws Exception {
         // Local classic server (async client can talk to it)
         server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setListenerPort(0)
                 .register("localhost", "/get", (request, response, context) -> {
                     response.setCode(HttpStatus.SC_OK);

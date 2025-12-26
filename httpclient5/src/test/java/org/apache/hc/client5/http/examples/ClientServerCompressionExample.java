@@ -31,6 +31,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.compress.compressors.CompressorException;
@@ -88,6 +89,7 @@ public final class ClientServerCompressionExample {
             port = Integer.parseInt(args[0]);
         }
         final HttpServer server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setListenerPort(port)
                 .setCanonicalHostName("localhost")
                 .register("/echo", new EchoHandler())

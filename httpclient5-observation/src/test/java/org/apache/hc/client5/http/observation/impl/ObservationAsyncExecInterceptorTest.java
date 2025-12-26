@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.observation.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.net.InetAddress;
 import java.util.EnumSet;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -88,6 +89,7 @@ class ObservationAsyncExecInterceptorTest {
     void emitsObservationAroundAsyncCall() throws Exception {
         // 1) Bind handler to the *localhost* vhost to avoid 421
         server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
                 .setListenerPort(0)
                 .register("localhost", "/get", (request, response, context) -> {
                     response.setCode(HttpStatus.SC_OK);
