@@ -82,7 +82,7 @@
     <zstd.jni.version>1.5.7-6</zstd.jni.version>
     <micrometer.version>1.15.5</micrometer.version>
     <micrometer.tracing.version>1.5.5</micrometer.tracing.version>
-    <otel.version>1.55.0</otel.version>     <!-- already used elsewhere -->
+    <otel.version>1.57.0</otel.version>     <!-- already used elsewhere -->
     <commons-compress.version>1.26.2</commons-compress.version>
     <caffeine.version>2.9.3</caffeine.version>  <!-- java 8. current version 3.2.3 -->
   </properties>
