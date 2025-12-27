@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.Closeable;
 import java.util.List;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import org.apache.hc.client5.http.HttpRoute;
@@ -75,6 +76,8 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
     private final AsyncClientConnectionManager manager;
     private final HttpRoutePlanner routePlanner;
     private final TlsConfig tlsConfig;
+    private final int maxQueuedRequests;
+    private final AtomicInteger queuedCounter;
 
     InternalHttpAsyncClient(
             final DefaultConnectingIOReactor ioReactor,
@@ -90,18 +93,21 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
             final CredentialsProvider credentialsProvider,
             final Function<HttpContext, HttpClientContext> contextAdaptor,
             final RequestConfig defaultConfig,
-            final List<Closeable> closeables) {
+            final List<Closeable> closeables,
+            final int maxQueuedRequests) {
         super(ioReactor, pushConsumerRegistry, threadFactory, execChain,
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider, contextAdaptor,
                 defaultConfig, closeables);
         this.manager = manager;
         this.routePlanner = routePlanner;
         this.tlsConfig = tlsConfig;
+        this.maxQueuedRequests = maxQueuedRequests;
+        this.queuedCounter = maxQueuedRequests > 0 ? new AtomicInteger(0) : null;
     }
 
     @Override
     AsyncExecRuntime createAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
-        return new InternalHttpAsyncExecRuntime(LOG, manager, getConnectionInitiator(), pushHandlerFactory, tlsConfig);
+        return new InternalHttpAsyncExecRuntime(LOG, manager, getConnectionInitiator(), pushHandlerFactory, tlsConfig, maxQueuedRequests, queuedCounter);
     }
 
     @Override

@@ -218,6 +218,8 @@ public class H2AsyncClientBuilder {
 
     private boolean priorityHeaderDisabled;
 
+    private int maxQueuedRequests = -1;
+
     public static H2AsyncClientBuilder create() {
         return new H2AsyncClientBuilder();
     }
@@ -321,6 +323,22 @@ public class H2AsyncClientBuilder {
     @Experimental
     public final H2AsyncClientBuilder disableRequestPriority() {
         this.priorityHeaderDisabled = true;
+        return this;
+    }
+
+    /**
+     * Sets a hard cap on the number of requests allowed to be queued/in-flight
+     * within the internal async execution pipeline. When the limit is reached,
+     * new submissions fail fast with {@link java.util.concurrent.RejectedExecutionException}.
+     * A value {@code <= 0} means unlimited (default).
+     *
+     * @param max maximum number of queued requests; {@code <= 0} to disable the cap
+     * @return this builder
+     * @since 5.7
+     */
+    @Experimental
+    public final H2AsyncClientBuilder setMaxQueuedRequests(final int max) {
+        this.maxQueuedRequests = max;
         return this;
     }
 
@@ -976,7 +994,9 @@ public class H2AsyncClientBuilder {
                 cookieStoreCopy,
                 credentialsProviderCopy,
                 defaultRequestConfig,
-                closeablesCopy);
+                closeablesCopy,
+                maxQueuedRequests);
+
     }
 
     static class IdleConnectionEvictor implements Closeable {
