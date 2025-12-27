@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.testing;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
@@ -90,13 +91,8 @@ class AbstractTestValidateAfterInactivity {
     @AfterEach
     void tearDown() throws Exception {
         final SocketChannel socket = currentConnection.getAndSet(null);
-        if (socket != null) {
-            socket.close();
-        }
-
-        if (serverSocket != null) {
-            serverSocket.close();
-        }
+        IOUtils.closeQuietly(socket);
+        IOUtils.closeQuietly(serverSocket);
         if (serverThread != null) {
             serverThread.interrupt();
             serverThread.join(1000);
