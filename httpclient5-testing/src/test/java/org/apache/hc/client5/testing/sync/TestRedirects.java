@@ -810,6 +810,7 @@ abstract class TestRedirects extends AbstractIntegrationTestBase {
             final RedirectLocations redirects = context.getRedirectLocations();
             Assertions.assertNotNull(redirects);
             Assertions.assertEquals(1, redirects.size());
+            client.close();
         } finally {
             secondServer.shutdown(CloseMode.GRACEFUL);
         }
