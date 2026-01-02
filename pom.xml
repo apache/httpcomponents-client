@@ -341,11 +341,6 @@
               <type>jar</type>
             </dependency>
           </oldVersion>
-          <newVersion>
-            <file>
-              <path>${project.build.directory}/${project.artifactId}-${project.version}.${project.packaging}</path>
-            </file>
-          </newVersion>
           <parameter>
             <breakBuildOnBinaryIncompatibleModifications>true</breakBuildOnBinaryIncompatibleModifications>
             <breakBuildOnSourceIncompatibleModifications>true</breakBuildOnSourceIncompatibleModifications>
@@ -360,6 +355,9 @@
               <exclude>@org.apache.hc.core5.annotation.Internal</exclude>
             </excludes>
             <ignoreMissingClasses>true</ignoreMissingClasses>
+            <skipXmlReport>true</skipXmlReport>
+            <skipHtmlReport>false</skipHtmlReport>
+            <skipDiffReport>false</skipDiffReport>
           </parameter>
         </configuration>
         <executions>
@@ -484,7 +482,6 @@
           <reportSet>
             <reports>
               <report>javadoc</report>
-              <report>aggregate</report>
             </reports>
           </reportSet>
         </reportSets>
@@ -508,11 +505,6 @@
               <type>jar</type>
             </dependency>
           </oldVersion>
-          <newVersion>
-            <file>
-              <path>${project.build.directory}/${project.artifactId}-${project.version}.${project.packaging}</path>
-            </file>
-          </newVersion>
           <parameter>
             <excludes>
               <exclude>@org.apache.hc.core5.annotation.Internal</exclude>
@@ -520,12 +512,6 @@
             <ignoreMissingClasses>true</ignoreMissingClasses>
           </parameter>
         </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-jxr-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <artifactId>maven-surefire-report-plugin</artifactId>
       </plugin>
     </plugins>
   </reporting>
