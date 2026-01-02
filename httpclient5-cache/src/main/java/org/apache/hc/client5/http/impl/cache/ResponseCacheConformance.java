@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.IOException;
 import java.time.Instant;
 
+import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
@@ -71,7 +72,7 @@ class ResponseCacheConformance implements HttpResponseInterceptor {
             }
         }
         if (!response.containsHeader(HttpHeaders.DATE)) {
-            response.addHeader(new BasicHeader(HttpHeaders.DATE, Instant.now()));
+            response.addHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now())));
         }
     }
 

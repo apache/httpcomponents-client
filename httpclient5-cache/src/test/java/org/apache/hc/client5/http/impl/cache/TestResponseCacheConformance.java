@@ -31,9 +31,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.time.Instant;
 
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.support.BasicResponseBuilder;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -85,6 +87,16 @@ class TestResponseCacheConformance {
     void shouldStripContentTypeFromOrigin304ResponseToStrongValidation() throws Exception {
         shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
                 "Content-Type", "text/html;charset=utf-8");
+    }
+
+    @Test
+    void shouldAddStandardDateHeaderIfMissing() throws Exception {
+        final HttpResponse response = BasicResponseBuilder.create(HttpStatus.SC_OK)
+                .build();
+        assertFalse(response.containsHeader(HttpHeaders.DATE));
+        impl.process(response, null, null);
+        Assertions.assertTrue(response.containsHeader(HttpHeaders.DATE));
+        Assertions.assertNotNull(DateUtils.parseStandardDate(response, HttpHeaders.DATE));
     }
 
 }
