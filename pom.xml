@@ -32,7 +32,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.httpcomponents.client5</groupId>
   <artifactId>httpclient5-parent</artifactId>
-  <name>Apache HttpComponents Client Parent</name>
+  <name>Apache HttpComponents Client</name>
   <version>5.7-alpha1-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
   <url>https://hc.apache.org/httpcomponents-client-5.5.x/${project.version}/</url>
@@ -530,6 +530,7 @@
             <excludes>
               <exclude>@org.apache.hc.core5.annotation.Internal</exclude>
             </excludes>
+            <reportOnlyFilename>true</reportOnlyFilename>
             <ignoreMissingClasses>true</ignoreMissingClasses>
           </parameter>
         </configuration>

@@ -18,33 +18,24 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-<project xmlns="http://maven.apache.org/DECORATION/1.6.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/DECORATION/1.6.0 http://maven.apache.org/xsd/decoration-1.6.0.xsd"
-    name="Apache HttpComponents Client">
-
-  <!-- N.B. all non-body elements are automatically inherited -->
+<project name="Apache HttpComponents Client">
 
   <skin>
-    <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>maven-site-skin</artifactId>
-    <version>1.1</version>
-  </skin>
-  <!--skin>
     <groupId>org.apache.maven.skins</groupId>
     <artifactId>maven-fluido-skin</artifactId>
     <version>1.9</version>
-  </skin-->
+  </skin>
 
   <bannerLeft>
     <name>Apache</name>
-    <src>http://www.apache.org/images/asf_logo_wide.gif</src>
-    <href>http://www.apache.org/</href>
+    <src>https://www.apache.org/images/asf_logo.gif</src>
+    <href>https://www.apache.org/</href>
   </bannerLeft>
 
   <bannerRight>
     <name>HttpComponents</name>
-    <src>http://hc.apache.org/images/logos/httpcomponents.png</src>
-    <href>http://hc.apache.org/</href>
+    <src>https://hc.apache.org/images/logos/httpcomponents.png</src>
+    <href>https://hc.apache.org/</href>
   </bannerRight>
 
   <body>
@@ -53,7 +44,7 @@ under the License.
       <item name="Apache" href="http://www.apache.org/"/>
       <item name="HttpComponents" href="http://hc.apache.org/index.html"/>
     </links>
-    
+
     <!-- inherited -->
     <menu ref="parent" inherit="bottom"/>
     <menu ref="modules" inherit="bottom"/>
@@ -66,15 +57,15 @@ under the License.
       <item name="Thanks" href="http://www.apache.org/foundation/thanks.html"/>
     </menu>
   </body>
-  
+
   <!-- inherited -->
   <poweredBy>
     <!-- Add ApacheCon logo -->
-    <logo name="ApacheCon" href="http://www.apache.org/events/current-event.html"
-          img="http://www.apache.org/events/current-event-125x125.png"/>
+    <logo name="ApacheCon" href="https://www.apache.org/events/current-event.html"
+          img="https://www.apache.org/events/current-event-125x125.png"/>
     <!-- Keep the default logo as well -->
-    <logo name="Maven" href="http://maven.apache.org/"
-          img="http://maven.apache.org/images/logos/maven-feather.png"/>
+    <logo name="Maven" href="https://maven.apache.org/"
+          img="https://maven.apache.org/images/logos/maven-feather.png"/>
   </poweredBy>
 
   <!-- inherited -->
@@ -84,5 +75,8 @@ under the License.
       <br/>
       <div class="xleft">All other marks mentioned may be trademarks or registered trademarks of their respective owners.</div>
     </footer>
+    <fluidoSkin>
+      <skipGenerationDate>true</skipGenerationDate>
+    </fluidoSkin>
   </custom>
 </project>
