@@ -910,12 +910,12 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Sets a hard cap on the number of requests allowed to be queued/in-flight
-     * within the internal async execution pipeline. When the limit is reached,
-     * new submissions fail fast with {@link java.util.concurrent.RejectedExecutionException}.
-     * A value <= 0 means unlimited (default).
+     * Sets the maximum number of concurrent request executions within the
+     * internal async execution pipeline. Requests beyond this limit are queued
+     * in FIFO order and dispatched as in-flight executions complete.
+     * A value {@code <= 0} means unlimited (default).
      *
-     * @param max maximum number of queued requests; <= 0 to disable the cap
+     * @param max maximum number of concurrent executions; {@code <= 0} to disable the cap
      * @return this builder
      * @since 5.7
      */
