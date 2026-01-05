@@ -31,7 +31,6 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
@@ -64,7 +63,7 @@ public final class InternalTestHttpAsyncExecRuntime extends InternalHttpAsyncExe
     public InternalTestHttpAsyncExecRuntime(final AsyncClientConnectionManager manager,
                                             final ConnectionInitiator connectionInitiator,
                                             final TlsConfig tlsConfig) {
-        super(LOG, manager, connectionInitiator, null, tlsConfig, -1, new AtomicInteger());
+        super(LOG, manager, connectionInitiator, null, tlsConfig);
         this.cancelled = new AtomicBoolean();
     }
 

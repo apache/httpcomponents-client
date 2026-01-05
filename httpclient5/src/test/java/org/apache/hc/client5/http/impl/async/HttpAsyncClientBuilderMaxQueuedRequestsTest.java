@@ -29,13 +29,14 @@ package org.apache.hc.client5.http.impl.async;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.EndpointInfo;
@@ -120,8 +121,14 @@ public class HttpAsyncClientBuilderMaxQueuedRequestsTest {
                         }
                     });
 
-            assertTrue(latch.await(2, TimeUnit.SECONDS), "rejection should arrive quickly");
-            assertInstanceOf(RejectedExecutionException.class, failure.get(), "Expected RejectedExecutionException, got: " + failure.get());
+            // With queueing semantics, r2 is queued and must not complete until r1 is finished.
+            assertTrue(!latch.await(200, TimeUnit.MILLISECONDS), "second request should be queued");
+
+            // Finish r1, release the slot -> r2 should now execute and fail (see BlockingEndpoint.execute()).
+            endpoint.failFirst(new IOException("release-slot"));
+
+            assertTrue(latch.await(2, TimeUnit.SECONDS), "second request should complete after slot released");
+            assertInstanceOf(IOException.class, failure.get(), "Expected IOException, got: " + failure.get());
         }
     }
 
@@ -179,11 +186,27 @@ public class HttpAsyncClientBuilderMaxQueuedRequestsTest {
     private static final class BlockingEndpoint extends AsyncConnectionEndpoint {
         volatile boolean connected = true;
 
+        private final AtomicInteger execCount = new AtomicInteger(0);
+        private final AtomicReference<AsyncClientExchangeHandler> first = new AtomicReference<>();
+
         @Override
         public void execute(final String id,
                             final AsyncClientExchangeHandler handler,
                             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
                             final HttpContext context) {
+            final int n = execCount.incrementAndGet();
+            if (n == 1) {
+                first.set(handler); // keep slot occupied
+            } else {
+                handler.failed(new IOException("queued request executed"));
+            }
+        }
+
+        void failFirst(final Exception ex) {
+            final AsyncClientExchangeHandler h = first.getAndSet(null);
+            if (h != null) {
+                h.failed(ex);
+            }
         }
 
         @Override

@@ -24,6 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
+
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
@@ -53,6 +54,12 @@ final class ReleasingAsyncClientExchangeHandler implements AsyncClientExchangeHa
         this.handler = handler;
         this.onRelease = onRelease;
         this.released = new AtomicBoolean(false);
+    }
+
+    private void releaseOnce() {
+        if (released.compareAndSet(false, true)) {
+            onRelease.run();
+        }
     }
 
     @Override
@@ -98,12 +105,20 @@ final class ReleasingAsyncClientExchangeHandler implements AsyncClientExchangeHa
 
     @Override
     public void failed(final Exception cause) {
-        handler.failed(cause);
+        try {
+            handler.failed(cause);
+        } finally {
+            releaseOnce();
+        }
     }
 
     @Override
     public void cancel() {
-        handler.cancel();
+        try {
+            handler.cancel();
+        } finally {
+            releaseOnce();
+        }
     }
 
     @Override
@@ -111,9 +126,7 @@ final class ReleasingAsyncClientExchangeHandler implements AsyncClientExchangeHa
         try {
             handler.releaseResources();
         } finally {
-            if (released.compareAndSet(false, true)) {
-                onRelease.run();
-            }
+            releaseOnce();
         }
     }
 }
