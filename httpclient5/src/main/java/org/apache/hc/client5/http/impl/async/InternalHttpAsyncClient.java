@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.Closeable;
 import java.util.List;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import org.apache.hc.client5.http.HttpRoute;
@@ -76,8 +75,12 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
     private final AsyncClientConnectionManager manager;
     private final HttpRoutePlanner routePlanner;
     private final TlsConfig tlsConfig;
-    private final int maxQueuedRequests;
-    private final AtomicInteger queuedCounter;
+
+    /**
+     * One shared FIFO queue per client instance.
+     * null means "unlimited" / no throttling.
+     */
+    private final SharedRequestExecutionQueue executionQueue;
 
     InternalHttpAsyncClient(
             final DefaultConnectingIOReactor ioReactor,
@@ -101,13 +104,12 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
         this.manager = manager;
         this.routePlanner = routePlanner;
         this.tlsConfig = tlsConfig;
-        this.maxQueuedRequests = maxQueuedRequests;
-        this.queuedCounter = maxQueuedRequests > 0 ? new AtomicInteger(0) : null;
+        this.executionQueue = maxQueuedRequests > 0 ? new SharedRequestExecutionQueue(maxQueuedRequests) : null;
     }
 
     @Override
     AsyncExecRuntime createAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
-        return new InternalHttpAsyncExecRuntime(LOG, manager, getConnectionInitiator(), pushHandlerFactory, tlsConfig, maxQueuedRequests, queuedCounter);
+        return new InternalHttpAsyncExecRuntime(LOG, manager, getConnectionInitiator(), pushHandlerFactory, tlsConfig, executionQueue);
     }
 
     @Override
