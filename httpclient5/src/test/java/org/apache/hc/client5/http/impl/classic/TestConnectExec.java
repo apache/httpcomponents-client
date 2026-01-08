@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.util.Collections;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
+import org.apache.hc.client5.http.ConnectAlpnProvider;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthScope;
@@ -337,5 +338,64 @@ class TestConnectExec {
 
         }
     }
+
+    @Test
+    void testEstablishRouteViaProxyTunnelAddsAlpnHeader() throws Exception {
+        // Build ConnectExec with ALPN provider
+        final ConnectAlpnProvider provider = (t, r) -> java.util.Arrays.asList("h2", "http/1.1");
+        exec = new ConnectExec(reuseStrategy, proxyHttpProcessor, proxyAuthStrategy, null, true, provider);
+
+        final HttpRoute route = new HttpRoute(target, null, proxy, true);
+        final HttpClientContext context = HttpClientContext.create();
+        final ClassicHttpRequest request = new HttpGet("http://bar/test");
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
+
+        final ConnectionState connectionState = new ConnectionState();
+        Mockito.doAnswer(connectionState.connectAnswer()).when(execRuntime).connectEndpoint(Mockito.any());
+        Mockito.when(execRuntime.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
+        Mockito.when(execRuntime.execute(Mockito.anyString(), Mockito.any(), Mockito.any())).thenReturn(response);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+        exec.execute(request, scope, execChain);
+
+        final ArgumentCaptor<ClassicHttpRequest> reqCaptor = ArgumentCaptor.forClass(ClassicHttpRequest.class);
+        Mockito.verify(execRuntime).execute(Mockito.anyString(), reqCaptor.capture(), Mockito.same(context));
+
+        final ClassicHttpRequest connect = reqCaptor.getValue();
+        Assertions.assertEquals("CONNECT", connect.getMethod());
+        Assertions.assertEquals("foo:80", connect.getRequestUri());
+
+        final org.apache.hc.core5.http.Header h = connect.getFirstHeader(HttpHeaders.ALPN);
+        Assertions.assertNotNull(h, "ALPN header must be present");
+        Assertions.assertEquals("h2, http%2F1.1", h.getValue());
+    }
+
+    @Test
+    void testEstablishRouteViaProxyTunnelSkipsAlpnHeaderWhenProviderEmpty() throws Exception {
+        // Provider returns empty -> no header
+        final ConnectAlpnProvider provider = (t, r) -> java.util.Collections.<String>emptyList();
+        exec = new ConnectExec(reuseStrategy, proxyHttpProcessor, proxyAuthStrategy, null, true, provider);
+
+        final HttpRoute route = new HttpRoute(target, null, proxy, true);
+        final HttpClientContext context = HttpClientContext.create();
+        final ClassicHttpRequest request = new HttpGet("http://bar/test");
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
+
+        final ConnectionState connectionState = new ConnectionState();
+        Mockito.doAnswer(connectionState.connectAnswer()).when(execRuntime).connectEndpoint(Mockito.any());
+        Mockito.when(execRuntime.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
+        Mockito.when(execRuntime.execute(Mockito.anyString(), Mockito.any(), Mockito.any())).thenReturn(response);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+        exec.execute(request, scope, execChain);
+
+        final ArgumentCaptor<ClassicHttpRequest> reqCaptor = ArgumentCaptor.forClass(ClassicHttpRequest.class);
+        Mockito.verify(execRuntime).execute(Mockito.anyString(), reqCaptor.capture(), Mockito.same(context));
+
+        final ClassicHttpRequest connect = reqCaptor.getValue();
+        Assertions.assertNull(connect.getFirstHeader(HttpHeaders.ALPN),
+                "ALPN header must NOT be present when provider returns empty");
+    }
+
 
 }

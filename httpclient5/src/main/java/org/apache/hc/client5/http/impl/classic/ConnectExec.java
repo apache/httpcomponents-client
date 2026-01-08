@@ -28,8 +28,10 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
+import org.apache.hc.client5.http.ConnectAlpnProvider;
 import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteTracker;
@@ -40,6 +42,7 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.AlpnHeaderSupport;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.AuthenticationHandler;
 import org.apache.hc.client5.http.impl.routing.BasicRouteDirector;
@@ -89,12 +92,24 @@ public final class ConnectExec implements ExecChainHandler {
     private final AuthCacheKeeper authCacheKeeper;
     private final HttpRouteDirector routeDirector;
 
+    private final ConnectAlpnProvider alpnProvider;
+
     public ConnectExec(
             final ConnectionReuseStrategy reuseStrategy,
             final HttpProcessor proxyHttpProcessor,
             final AuthenticationStrategy proxyAuthStrategy,
             final SchemePortResolver schemePortResolver,
             final boolean authCachingDisabled) {
+        this(reuseStrategy, proxyHttpProcessor, proxyAuthStrategy, schemePortResolver, authCachingDisabled, null);
+    }
+
+    public ConnectExec(
+            final ConnectionReuseStrategy reuseStrategy,
+            final HttpProcessor proxyHttpProcessor,
+            final AuthenticationStrategy proxyAuthStrategy,
+            final SchemePortResolver schemePortResolver,
+            final boolean authCachingDisabled,
+            final ConnectAlpnProvider alpnProvider) {
         Args.notNull(reuseStrategy, "Connection reuse strategy");
         Args.notNull(proxyHttpProcessor, "Proxy HTTP processor");
         Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
@@ -104,6 +119,7 @@ public final class ConnectExec implements ExecChainHandler {
         this.authenticator = new AuthenticationHandler();
         this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(schemePortResolver);
         this.routeDirector = BasicRouteDirector.INSTANCE;
+        this.alpnProvider = alpnProvider;
     }
 
     @Override
@@ -227,6 +243,14 @@ public final class ConnectExec implements ExecChainHandler {
         final String authority = target.toHostString();
         final ClassicHttpRequest connect = new BasicClassicHttpRequest(Method.CONNECT, target, authority);
         connect.setVersion(HttpVersion.HTTP_1_1);
+
+        // --- RFC 7639: inject ALPN header (if provided) --------------------
+        if (alpnProvider != null) {
+            final List<String> alpn = alpnProvider.getAlpnForTunnel(target, route);
+            if (alpn != null && !alpn.isEmpty()) {
+                connect.addHeader(HttpHeaders.ALPN, AlpnHeaderSupport.formatValue(alpn));
+            }
+        }
 
         this.proxyHttpProcessor.process(connect, null, context);
 
