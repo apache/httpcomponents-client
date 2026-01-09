@@ -384,25 +384,24 @@
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
+        <version>0.17</version>
         <executions>
           <execution>
             <phase>verify</phase>
+            <inherited>false</inherited>
             <goals>
               <goal>check</goal>
             </goals>
           </execution>
         </executions>
-        <configuration>
-          <excludes>
-            <exclude>src/docbkx/resources/**</exclude>
-            <exclude>src/test/resources/*.truststore</exclude>
-            <exclude>src/test/resources/*.serialized</exclude>
-            <exclude>.checkstyle</exclude>
-            <exclude>.externalToolBuilders/**</exclude>
-            <exclude>maven-eclipse.xml</exclude>
-            <exclude>**/serial</exclude>
-            <exclude>**/index.txt</exclude>
-          </excludes>
+        <configuration combine.self="override">
+          <excludeSubProjects>false</excludeSubProjects>
+          <inputExcludes>
+            <inputExclude>**/*.pem</inputExclude>
+            <inputExclude>**/index.txt</inputExclude>
+            <inputExclude>**/serial</inputExclude>
+            <inputExclude>**/effective_tld_names.dat</inputExclude>
+          </inputExcludes>
         </configuration>
       </plugin>
       <plugin>
