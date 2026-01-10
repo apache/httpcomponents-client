@@ -769,13 +769,8 @@ public class H2AsyncClientBuilder {
 
         String userAgentCopy = this.userAgent;
         if (userAgentCopy == null) {
-            if (systemProperties) {
-                userAgentCopy = System.getProperty("http.agent", null);
-            }
-            if (userAgentCopy == null) {
-                userAgentCopy = VersionInfo.getSoftwareInfo("Apache-HttpAsyncClient",
-                        "org.apache.hc.client5", getClass());
-            }
+            userAgentCopy = VersionInfo.getSoftwareInfo("Apache-HttpAsyncClient",
+                    "org.apache.hc.client5", getClass());
         }
 
         final HttpProcessorBuilder b = HttpProcessorBuilder.create();
