@@ -24,16 +24,36 @@
  * <http://www.apache.org/>.
  *
  */
+package org.apache.hc.client5.http.impl.classic;
 
-package org.apache.hc.client5.http.impl;
+import java.io.IOException;
+
+import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.UnsupportedSchemeException;
+import org.apache.hc.client5.http.classic.ExecChain;
+import org.apache.hc.client5.http.classic.ExecChainHandler;
+import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpException;
 
 /**
- * Supported elements of request execution pipeline.
+ * Internal exec interceptor that enforces the "TLS required" client policy.
  *
- * @since 5.0
  */
-public enum ChainElement {
+@Internal
+final class TlsRequiredExec implements ExecChainHandler {
 
-    REDIRECT, COMPRESS, BACK_OFF, RETRY, CACHING, PROTOCOL, CONNECT, MAIN_TRANSPORT, TLS_REQUIRED
+    @Override
+    public ClassicHttpResponse execute(
+            final ClassicHttpRequest request,
+            final ExecChain.Scope scope,
+            final ExecChain chain) throws IOException, HttpException {
 
+        final HttpRoute route = scope.route;
+        if (route != null && !route.isSecure()) {
+            throw new UnsupportedSchemeException("Cleartext HTTP is disabled (TLS required)");
+        }
+        return chain.proceed(request, scope);
+    }
 }

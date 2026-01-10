@@ -237,6 +237,8 @@ public class HttpClientBuilder {
     private boolean defaultUserAgentDisabled;
     private ProxySelector proxySelector;
 
+    private boolean tlsRequired;
+
     private List<Closeable> closeables;
 
     public static HttpClientBuilder create() {
@@ -808,6 +810,20 @@ public class HttpClientBuilder {
     }
 
     /**
+     * When enabled, the client refuses to establish cleartext connections.
+     * This disables plain {@code http://}, {@code h2c}, and RFC 2817 TLS upgrade paths.
+     *
+     * @param tlsRequired whether to enforce TLS-required routes.
+     * @return this instance.
+     *
+     * @since 5.7
+     */
+    public final HttpClientBuilder setTlsRequired(final boolean tlsRequired) {
+        this.tlsRequired = tlsRequired;
+        return this;
+    }
+
+    /**
      * Request exec chain customization and extension.
      * <p>
      * For internal use.
@@ -997,6 +1013,10 @@ public class HttpClientBuilder {
                         new ContentCompressionExec(),
                         ChainElement.COMPRESS.name());
             }
+        }
+
+        if (this.tlsRequired) {
+            execChainDefinition.addFirst(new TlsRequiredExec(), ChainElement.TLS_REQUIRED.name());
         }
 
         // Add request retry executor, if not disabled

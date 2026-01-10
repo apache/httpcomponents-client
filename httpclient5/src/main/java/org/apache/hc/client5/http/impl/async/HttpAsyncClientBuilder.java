@@ -273,6 +273,8 @@ public class HttpAsyncClientBuilder {
 
     private boolean priorityHeaderDisabled;
 
+    private boolean tlsRequired;
+
 
     /**
      * Maps {@code Content-Encoding} tokens to decoder factories in insertion order.
@@ -902,6 +904,20 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
+     * When enabled, the client refuses to establish cleartext connections.
+     * This disables plain {@code http://}, {@code h2c}, and RFC 2817 TLS upgrade paths.
+     *
+     * @param tlsRequired whether to enforce TLS-required routes.
+     * @return this instance.
+     *
+     * @since 5.7
+     */
+    public final HttpAsyncClientBuilder setTlsRequired(final boolean tlsRequired) {
+        this.tlsRequired = tlsRequired;
+        return this;
+    }
+
+    /**
      * Sets a hard cap on the number of requests allowed to be queued/in-flight
      * within the internal async execution pipeline. When the limit is reached,
      * new submissions fail fast with {@link java.util.concurrent.RejectedExecutionException}.
@@ -1103,6 +1119,7 @@ public class HttpAsyncClientBuilder {
                         authCachingDisabled),
                 ChainElement.PROTOCOL.name());
 
+
         // Add request retry executor, if not disabled
         if (!automaticRetriesDisabled) {
             HttpRequestRetryStrategy retryStrategyCopy = this.retryStrategy;
@@ -1124,6 +1141,10 @@ public class HttpAsyncClientBuilder {
                         new ContentCompressionAsyncExec(),
                         ChainElement.COMPRESS.name());
             }
+        }
+
+        if (this.tlsRequired) {
+            execChainDefinition.addFirst(new TlsRequiredAsyncExec(), ChainElement.TLS_REQUIRED.name());
         }
 
 
