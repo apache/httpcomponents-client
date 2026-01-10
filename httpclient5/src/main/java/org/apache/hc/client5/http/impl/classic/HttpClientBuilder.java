@@ -132,8 +132,6 @@ import org.apache.hc.core5.util.VersionInfo;
  *  <li>http.proxyUser</li>
  *  <li>https.proxyPassword</li>
  *  <li>http.proxyPassword</li>
- *  <li>http.keepAlive</li>
- *  <li>http.agent</li>
  * </ul>
  * <p>
  * Please note that some settings used by this class can be mutually
@@ -861,16 +859,7 @@ public class HttpClientBuilder {
         }
         ConnectionReuseStrategy reuseStrategyCopy = this.reuseStrategy;
         if (reuseStrategyCopy == null) {
-            if (systemProperties) {
-                final String s = System.getProperty("http.keepAlive", "true");
-                if ("true".equalsIgnoreCase(s)) {
-                    reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
-                } else {
-                    reuseStrategyCopy = (request, response, context) -> false;
-                }
-            } else {
-                reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
-            }
+            reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
         }
 
         ConnectionKeepAliveStrategy keepAliveStrategyCopy = this.keepAliveStrategy;
@@ -896,13 +885,8 @@ public class HttpClientBuilder {
 
         String userAgentCopy = this.userAgent;
         if (userAgentCopy == null) {
-            if (systemProperties) {
-                userAgentCopy = System.getProperty("http.agent");
-            }
-            if (userAgentCopy == null && !defaultUserAgentDisabled) {
-                userAgentCopy = VersionInfo.getSoftwareInfo("Apache-HttpClient",
-                        "org.apache.hc.client5", getClass());
-            }
+            userAgentCopy = VersionInfo.getSoftwareInfo("Apache-HttpClient",
+                    "org.apache.hc.client5", getClass());
         }
 
         final HttpProcessorBuilder b = HttpProcessorBuilder.create();

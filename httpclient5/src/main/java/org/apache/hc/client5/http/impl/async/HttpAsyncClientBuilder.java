@@ -148,8 +148,6 @@ import org.apache.hc.core5.util.VersionInfo;
  *  <li>https.proxyHost</li>
  *  <li>https.proxyPort</li>
  *  <li>http.nonProxyHosts</li>
- *  <li>http.keepAlive</li>
- *  <li>http.agent</li>
  * </ul>
  * <p>
  * Please note that some settings used by this class can be mutually
@@ -998,13 +996,8 @@ public class HttpAsyncClientBuilder {
 
         String userAgentCopy = this.userAgent;
         if (userAgentCopy == null) {
-            if (systemProperties) {
-                userAgentCopy = System.getProperty("http.agent", null);
-            }
-            if (userAgentCopy == null) {
-                userAgentCopy = VersionInfo.getSoftwareInfo("Apache-HttpAsyncClient",
-                        "org.apache.hc.client5", getClass());
-            }
+            userAgentCopy = VersionInfo.getSoftwareInfo("Apache-HttpAsyncClient",
+                    "org.apache.hc.client5", getClass());
         }
 
         final HttpProcessorBuilder b = HttpProcessorBuilder.create();
@@ -1156,16 +1149,7 @@ public class HttpAsyncClientBuilder {
         }
         ConnectionReuseStrategy reuseStrategyCopy = this.reuseStrategy;
         if (reuseStrategyCopy == null) {
-            if (systemProperties) {
-                final String s = System.getProperty("http.keepAlive", "true");
-                if ("true".equalsIgnoreCase(s)) {
-                    reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
-                } else {
-                    reuseStrategyCopy = (request, response, context) -> false;
-                }
-            } else {
-                reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
-            }
+            reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
         }
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
         final IOEventHandlerFactory ioEventHandlerFactory = new HttpAsyncClientProtocolNegotiationStarter(
