@@ -120,6 +120,9 @@ public class CacheConfig implements Cloneable {
      */
     public static final int DEFAULT_ASYNCHRONOUS_WORKERS = 1;
 
+    /** Default setting for the request-collapsing hint. */
+    public static final boolean DEFAULT_REQUEST_COLLAPSING_ENABLED = false;
+
     public static final CacheConfig DEFAULT = new Builder().build();
 
     private final long maxObjectSize;
@@ -133,6 +136,7 @@ public class CacheConfig implements Cloneable {
     private final int asynchronousWorkers;
     private final boolean neverCacheHTTP10ResponsesWithQuery;
     private final boolean staleIfErrorEnabled;
+    private final boolean requestCollapsingEnabled;
 
 
     /**
@@ -153,7 +157,8 @@ public class CacheConfig implements Cloneable {
             final int asynchronousWorkers,
             final boolean neverCacheHTTP10ResponsesWithQuery,
             final boolean neverCacheHTTP11ResponsesWithQuery,
-            final boolean staleIfErrorEnabled) {
+            final boolean staleIfErrorEnabled,
+            final boolean requestCollapsingEnabled) {
         super();
         this.maxObjectSize = maxObjectSize;
         this.maxCacheEntries = maxCacheEntries;
@@ -167,6 +172,7 @@ public class CacheConfig implements Cloneable {
         this.neverCacheHTTP10ResponsesWithQuery = neverCacheHTTP10ResponsesWithQuery;
         this.neverCacheHTTP11ResponsesWithQuery = neverCacheHTTP11ResponsesWithQuery;
         this.staleIfErrorEnabled = staleIfErrorEnabled;
+        this.requestCollapsingEnabled = requestCollapsingEnabled;
     }
 
     /**
@@ -301,6 +307,21 @@ public class CacheConfig implements Cloneable {
         return asynchronousWorkers;
     }
 
+    /**
+     * Returns whether the caching module should attempt to collapse concurrent
+     * requests for the same cache key so that only one request goes to the
+     * backend while the others wait and then re-check the cache.
+     * <p>
+     * This is a hint. Individual caching implementations may choose to honour
+     * it or ignore it; the asynchronous caching exec honours it, while the
+     * classic caching exec currently ignores it.
+     *
+     * @since 5.7
+     */
+    public boolean isRequestCollapsingEnabled() {
+        return requestCollapsingEnabled;
+    }
+
     @Override
     protected CacheConfig clone() throws CloneNotSupportedException {
         return (CacheConfig) super.clone();
@@ -323,7 +344,8 @@ public class CacheConfig implements Cloneable {
             .setAsynchronousWorkers(config.getAsynchronousWorkers())
             .setNeverCacheHTTP10ResponsesWithQueryString(config.isNeverCacheHTTP10ResponsesWithQuery())
             .setNeverCacheHTTP11ResponsesWithQueryString(config.isNeverCacheHTTP11ResponsesWithQuery())
-            .setStaleIfErrorEnabled(config.isStaleIfErrorEnabled());
+            .setStaleIfErrorEnabled(config.isStaleIfErrorEnabled())
+            .setRequestCollapsingEnabled(config.isRequestCollapsingEnabled());
     }
 
     public static class Builder {
@@ -340,6 +362,7 @@ public class CacheConfig implements Cloneable {
         private boolean neverCacheHTTP10ResponsesWithQuery;
         private boolean neverCacheHTTP11ResponsesWithQuery;
         private boolean staleIfErrorEnabled;
+        private boolean requestCollapsingEnabled;
 
         Builder() {
             this.maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
@@ -352,6 +375,7 @@ public class CacheConfig implements Cloneable {
             this.freshnessCheckEnabled = true;
             this.asynchronousWorkers = DEFAULT_ASYNCHRONOUS_WORKERS;
             this.staleIfErrorEnabled = false;
+            this.requestCollapsingEnabled = DEFAULT_REQUEST_COLLAPSING_ENABLED;
         }
 
         /**
@@ -518,6 +542,23 @@ public class CacheConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * Enables request collapsing for cacheable requests. When enabled, concurrent
+         * requests for the same cache key are coalesced so that only one request goes
+         * to the backend while the others wait and then re-check the cache.
+         * <p>
+         * This setting is a hint. Individual caching implementations may honour it or
+         * ignore it; the asynchronous caching exec honours it, while the classic
+         * caching exec currently ignores it.
+         *
+         * @return this instance.
+         * @since 5.7
+         */
+        public Builder setRequestCollapsingEnabled(final boolean requestCollapsingEnabled) {
+            this.requestCollapsingEnabled = requestCollapsingEnabled;
+            return this;
+        }
+
         public CacheConfig build() {
             return new CacheConfig(
                     maxObjectSize,
@@ -531,7 +572,8 @@ public class CacheConfig implements Cloneable {
                     asynchronousWorkers,
                     neverCacheHTTP10ResponsesWithQuery,
                     neverCacheHTTP11ResponsesWithQuery,
-                    staleIfErrorEnabled);
+                    staleIfErrorEnabled,
+                    requestCollapsingEnabled);
         }
 
     }
@@ -551,6 +593,7 @@ public class CacheConfig implements Cloneable {
                 .append(", neverCacheHTTP10ResponsesWithQuery=").append(this.neverCacheHTTP10ResponsesWithQuery)
                 .append(", neverCacheHTTP11ResponsesWithQuery=").append(this.neverCacheHTTP11ResponsesWithQuery)
                 .append(", staleIfErrorEnabled=").append(this.staleIfErrorEnabled)
+                .append(", requestCollapsingEnabled=").append(this.requestCollapsingEnabled)
                 .append("]");
         return builder.toString();
     }
