@@ -56,6 +56,7 @@ public class CachingH2AsyncClientBuilder extends H2AsyncClientBuilder {
     private SchedulingStrategy schedulingStrategy;
     private CacheConfig cacheConfig;
     private boolean deleteCache;
+    private boolean requestCollapsingEnabled;
 
     public static CachingH2AsyncClientBuilder create() {
         return new CachingH2AsyncClientBuilder();
@@ -112,6 +113,16 @@ public class CachingH2AsyncClientBuilder extends H2AsyncClientBuilder {
         return this;
     }
 
+    /**
+     * Enables request collapsing for cacheable requests ({@code HTTPCLIENT-1165}).
+     *
+     * @since 5.7
+     */
+    public CachingH2AsyncClientBuilder setRequestCollapsingEnabled(final boolean requestCollapsingEnabled) {
+        this.requestCollapsingEnabled = requestCollapsingEnabled;
+        return this;
+    }
+
     @Override
     protected void customizeExecChain(final NamedElementChain<AsyncExecChainHandler> execChainDefinition) {
         final CacheConfig config = this.cacheConfig != null ? this.cacheConfig : CacheConfig.DEFAULT;
@@ -156,7 +167,8 @@ public class CachingH2AsyncClientBuilder extends H2AsyncClientBuilder {
         final AsyncCachingExec cachingExec = new AsyncCachingExec(
                 httpCache,
                 cacheRevalidator,
-                config);
+                config,
+                requestCollapsingEnabled);
         execChainDefinition.addBefore(ChainElement.PROTOCOL.name(), cachingExec, ChainElement.CACHING.name());
     }
 
