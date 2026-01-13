@@ -24,47 +24,51 @@
  * <http://www.apache.org/>.
  *
  */
+
 package org.apache.hc.client5.http;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.lang.reflect.Method;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
-import java.util.ArrayList;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.hc.client5.http.config.ProtocolFamilyPreference;
-import org.junit.jupiter.api.Assertions;
+import org.apache.hc.client5.http.impl.InMemoryDnsResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 class Rfc6724AddressSelectingDnsResolverTest {
 
-    private DnsResolver delegate;
+    private static final Rfc6724AddressSelectingDnsResolver.SourceAddressResolver NO_SOURCE_ADDR =
+            (final InetSocketAddress dest) -> null;
+
+    private InMemoryDnsResolver delegate;
 
     @BeforeEach
     void setUp() {
-        delegate = Mockito.mock(DnsResolver.class);
+        delegate = new InMemoryDnsResolver();
     }
 
     @Test
     void ipv4Only_filtersOutIPv6() throws Exception {
-        final InetAddress v4 = InetAddress.getByName("203.0.113.10"); // TEST-NET-3
-        final InetAddress v6 = InetAddress.getByName("2001:db8::10"); // documentation prefix
+        final InetAddress v4 = inet("203.0.113.10"); // TEST-NET-3
+        final InetAddress v6 = inet("2001:db8::10"); // documentation prefix
 
-        when(delegate.resolve("dual.example")).thenReturn(new InetAddress[]{v6, v4});
+        delegate.add("dual.example", v6, v4);
 
         final Rfc6724AddressSelectingDnsResolver r =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.IPV4_ONLY);
+                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.IPV4_ONLY, NO_SOURCE_ADDR);
 
         final InetAddress[] ordered = r.resolve("dual.example");
-        Assertions.assertNotNull(ordered);
         assertEquals(1, ordered.length);
         assertInstanceOf(Inet4Address.class, ordered[0]);
         assertEquals(v4, ordered[0]);
@@ -72,16 +76,15 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
     @Test
     void ipv6Only_filtersOutIPv4() throws Exception {
-        final InetAddress v4 = InetAddress.getByName("192.0.2.1");     // TEST-NET-1
-        final InetAddress v6 = InetAddress.getByName("2001:db8::1");
+        final InetAddress v4 = inet("192.0.2.1");     // TEST-NET-1
+        final InetAddress v6 = inet("2001:db8::1");
 
-        when(delegate.resolve("dual.example")).thenReturn(new InetAddress[]{v4, v6});
+        delegate.add("dual.example", v4, v6);
 
         final Rfc6724AddressSelectingDnsResolver r =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.IPV6_ONLY);
+                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.IPV6_ONLY, NO_SOURCE_ADDR);
 
         final InetAddress[] ordered = r.resolve("dual.example");
-        Assertions.assertNotNull(ordered);
         assertEquals(1, ordered.length);
         assertInstanceOf(Inet6Address.class, ordered[0]);
         assertEquals(v6, ordered[0]);
@@ -89,82 +92,294 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
     @Test
     void ipv4Only_emptyWhenNoIPv4Candidates() throws Exception {
-        final InetAddress v6a = InetAddress.getByName("2001:db8::1");
-        final InetAddress v6b = InetAddress.getByName("2001:db8::2");
+        final InetAddress v6a = inet("2001:db8::1");
+        final InetAddress v6b = inet("2001:db8::2");
 
-        when(delegate.resolve("v6only.example")).thenReturn(new InetAddress[]{v6a, v6b});
+        delegate.add("v6only.example", v6a, v6b);
 
         final Rfc6724AddressSelectingDnsResolver r =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.IPV4_ONLY);
+                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.IPV4_ONLY, NO_SOURCE_ADDR);
 
         final InetAddress[] ordered = r.resolve("v6only.example");
-        Assertions.assertNotNull(ordered);
         assertEquals(0, ordered.length);
     }
 
     @Test
-    void interleave_isDefault_and_hasNoFamilyBias() throws Exception {
-        final InetAddress v6a = InetAddress.getByName("2001:db8::1");
-        final InetAddress v6b = InetAddress.getByName("2001:db8::2");
-        final InetAddress v4a = InetAddress.getByName("192.0.2.1");
-        final InetAddress v4b = InetAddress.getByName("203.0.113.10");
+    void default_hasNoFamilyBias() throws Exception {
+        final InetAddress v6a = inet("2001:db8::1");
+        final InetAddress v6b = inet("2001:db8::2");
+        final InetAddress v4a = inet("192.0.2.1");
+        final InetAddress v4b = inet("203.0.113.10");
 
-        when(delegate.resolve("dual.example")).thenReturn(new InetAddress[]{v6a, v6b, v4a, v4b});
+        delegate.add("dual.example", v6a, v6b, v4a, v4b);
 
-        final Rfc6724AddressSelectingDnsResolver rDefault = new Rfc6724AddressSelectingDnsResolver(delegate);
-        final Rfc6724AddressSelectingDnsResolver rInterleave =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.INTERLEAVE);
+        final Rfc6724AddressSelectingDnsResolver r1 =
+                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, NO_SOURCE_ADDR);
+        final Rfc6724AddressSelectingDnsResolver r2 =
+                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, NO_SOURCE_ADDR);
 
-        final InetAddress[] outDefault = rDefault.resolve("dual.example");
-        final InetAddress[] outInterleave = rInterleave.resolve("dual.example");
+        final InetAddress[] out1 = r1.resolve("dual.example");
+        final InetAddress[] out2 = r2.resolve("dual.example");
 
-        assertArrayEquals(outDefault, outInterleave);
-        Assertions.assertNotNull(outInterleave);
-        assertEquals(4, outInterleave.length);
+        assertArrayEquals(out1, out2);
+        assertEquals(4, out1.length);
     }
 
     @Test
-    void preferIpv6_groupsAllV6First_preservingRelativeOrder() throws Exception {
-        final InetAddress v4a = InetAddress.getByName("192.0.2.1");
-        final InetAddress v6a = InetAddress.getByName("2001:db8::1");
-        final InetAddress v4b = InetAddress.getByName("203.0.113.10");
-        final InetAddress v6b = InetAddress.getByName("2001:db8::2");
+    void interleave_alternatesFamilies_preservingRelativeOrder_whenRfcSortIsNoop() throws Exception {
+        final InetAddress v6a = inet("2001:db8::1");
+        final InetAddress v6b = inet("2001:db8::2");
+        final InetAddress v4a = inet("192.0.2.1");
+        final InetAddress v4b = inet("203.0.113.10");
 
-        when(delegate.resolve("dual.example")).thenReturn(new InetAddress[]{v4a, v6a, v4b, v6b});
+        // With NO_SOURCE_ADDR, RFC sort becomes a stable no-op; deterministic interleave.
+        delegate.add("dual.example", v6a, v6b, v4a, v4b);
 
-        final Rfc6724AddressSelectingDnsResolver baseline =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.INTERLEAVE);
-        final InetAddress[] baseOut = baseline.resolve("dual.example");
+        final Rfc6724AddressSelectingDnsResolver r =
+                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.INTERLEAVE, NO_SOURCE_ADDR);
+
+        final InetAddress[] out = r.resolve("dual.example");
+        assertEquals(Arrays.asList(v6a, v4a, v6b, v4b), Arrays.asList(out));
+    }
+
+    @Test
+    void preferIpv6_groupsAllV6First_preservingRelativeOrder_whenRfcSortIsNoop() throws Exception {
+        final InetAddress v4a = inet("192.0.2.1");
+        final InetAddress v6a = inet("2001:db8::1");
+        final InetAddress v4b = inet("203.0.113.10");
+        final InetAddress v6b = inet("2001:db8::2");
+
+        delegate.add("dual.example", v4a, v6a, v4b, v6b);
 
         final Rfc6724AddressSelectingDnsResolver preferV6 =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.PREFER_IPV6);
+                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.PREFER_IPV6, NO_SOURCE_ADDR);
+
         final InetAddress[] out = preferV6.resolve("dual.example");
-
-        // Expected: stable partition of the RFC-sorted baseline.
-        final List<InetAddress> baseV6 = new ArrayList<>();
-        final List<InetAddress> baseV4 = new ArrayList<>();
-        for (final InetAddress a : baseOut) {
-            if (a instanceof Inet6Address) {
-                baseV6.add(a);
-            } else {
-                baseV4.add(a);
-            }
-        }
-        final List<InetAddress> expected = new ArrayList<>(baseOut.length);
-        expected.addAll(baseV6);
-        expected.addAll(baseV4);
-
-        assertEquals(expected, Arrays.asList(out));
+        assertEquals(Arrays.asList(v6a, v6b, v4a, v4b), Arrays.asList(out));
         assertInstanceOf(Inet6Address.class, out[0]);
     }
 
     @Test
-    void canonicalHostname_delegates() throws Exception {
-        when(delegate.resolveCanonicalHostname("example.org")).thenReturn("canon.example.org");
+    void filtersOutMulticastDestinations() throws Exception {
+        final InetAddress multicastV6 = inet("ff02::1");
+        final InetAddress v6 = inet("2001:db8::1");
+
+        delegate.add("mcast.example", multicastV6, v6);
+
         final Rfc6724AddressSelectingDnsResolver r =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.INTERLEAVE);
-        assertEquals("canon.example.org", r.resolveCanonicalHostname("example.org"));
-        Mockito.verify(delegate).resolveCanonicalHostname("example.org");
+                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, NO_SOURCE_ADDR);
+
+        final InetAddress[] out = r.resolve("mcast.example");
+        assertEquals(1, out.length);
+        assertEquals(v6, out[0]);
     }
 
+    // -------------------------------------------------------------------------
+    // New: direct tests for classifyScope(..) and Scope.fromValue(..) via reflection
+    // (Scope and classifyScope are private in the resolver).
+    // -------------------------------------------------------------------------
+
+    @Test
+    void classifyScope_loopback_linkLocal_siteLocal_global() throws Exception {
+        final Class<?> resolverClass = Rfc6724AddressSelectingDnsResolver.class;
+
+        assertEquals("INTERFACE_LOCAL", classifyScope(resolverClass, inet("127.0.0.1")));
+        assertEquals("INTERFACE_LOCAL", classifyScope(resolverClass, inet("::1")));
+
+        assertEquals("LINK_LOCAL", classifyScope(resolverClass, inet("169.254.0.1")));
+        assertEquals("LINK_LOCAL", classifyScope(resolverClass, inet("fe80::1")));
+
+        assertEquals("SITE_LOCAL", classifyScope(resolverClass, inet("10.0.0.1")));
+
+        assertEquals("GLOBAL", classifyScope(resolverClass, inet("8.8.8.8")));
+        assertEquals("GLOBAL", classifyScope(resolverClass, inet("2003::1")));
+    }
+
+    @Test
+    void classifyScope_ipv6Multicast_usesLowNibbleScope() throws Exception {
+        final Class<?> resolverClass = Rfc6724AddressSelectingDnsResolver.class;
+
+        // ff01::1 -> scope 0x1 -> INTERFACE_LOCAL
+        assertEquals("INTERFACE_LOCAL", classifyScope(resolverClass, inet("ff01::1")));
+        // ff02::1 -> scope 0x2 -> LINK_LOCAL
+        assertEquals("LINK_LOCAL", classifyScope(resolverClass, inet("ff02::1")));
+        // ff04::1 -> scope 0x4 -> ADMIN_LOCAL
+        assertEquals("ADMIN_LOCAL", classifyScope(resolverClass, inet("ff04::1")));
+        // ff05::1 -> scope 0x5 -> SITE_LOCAL
+        assertEquals("SITE_LOCAL", classifyScope(resolverClass, inet("ff05::1")));
+        // ff08::1 -> scope 0x8 -> ORG_LOCAL
+        assertEquals("ORG_LOCAL", classifyScope(resolverClass, inet("ff08::1")));
+        // ff0e::1 -> scope 0xe -> GLOBAL (default branch)
+        assertEquals("GLOBAL", classifyScope(resolverClass, inet("ff0e::1")));
+    }
+
+    @Test
+    void scopeFromValue_mapsKnownConstants_andDefaultsToGlobal() throws Exception {
+        final Class<?> resolverClass = Rfc6724AddressSelectingDnsResolver.class;
+        final Class<?> scopeClass = findDeclaredClass(resolverClass, "Scope");
+        assertNotNull(scopeClass);
+
+        assertEquals("INTERFACE_LOCAL", scopeFromValue(scopeClass, 0x1));
+        assertEquals("LINK_LOCAL", scopeFromValue(scopeClass, 0x2));
+        assertEquals("ADMIN_LOCAL", scopeFromValue(scopeClass, 0x4));
+        assertEquals("SITE_LOCAL", scopeFromValue(scopeClass, 0x5));
+        assertEquals("ORG_LOCAL", scopeFromValue(scopeClass, 0x8));
+
+        assertEquals("GLOBAL", scopeFromValue(scopeClass, 0x0));
+        assertEquals("GLOBAL", scopeFromValue(scopeClass, 0xe));
+        assertEquals("GLOBAL", scopeFromValue(scopeClass, 0xf));
+    }
+
+    @Test
+    void rfcRule2_prefersMatchingScope() throws Exception {
+        final InetAddress aDst = inet("2001:db8::1");
+        final InetAddress bDst = inet("2001:db8::2");
+
+        // A matches scope (GLOBAL == GLOBAL); B mismatches (GLOBAL != LINK_LOCAL)
+        final InetAddress aSrc = inet("2001:db8::abcd");
+        final InetAddress bSrc = inet("fe80::1");
+
+        delegate.add("t.example", bDst, aDst);
+
+        final Rfc6724AddressSelectingDnsResolver r =
+                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, sourceMap(aDst, aSrc, bDst, bSrc));
+
+        final InetAddress[] out = r.resolve("t.example");
+        assertEquals(Arrays.asList(aDst, bDst), Arrays.asList(out));
+    }
+
+    @Test
+    void rfcRule5_prefersMatchingLabel() throws Exception {
+        final InetAddress aDst = inet("2001:db8::1");        // label 5 (2001::/32)
+        final InetAddress bDst = inet("2001:db8::2");        // label 5
+
+        final InetAddress aSrc = inet("2001:db8::abcd");     // label 5 -> matches A
+        final InetAddress bSrc = inet("::ffff:192.0.2.1");   // label 4 -> does not match B
+
+        delegate.add("t.example", bDst, aDst);
+
+        final Rfc6724AddressSelectingDnsResolver r =
+                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, sourceMap(aDst, aSrc, bDst, bSrc));
+
+        final InetAddress[] out = r.resolve("t.example");
+        assertEquals(Arrays.asList(aDst, bDst), Arrays.asList(out));
+    }
+
+    @Test
+    void rfcRule6_prefersHigherPrecedence() throws Exception {
+        final InetAddress aDst = inet("::1");            // precedence 50 (policy ::1)
+        final InetAddress bDst = inet("2001:db8::1");    // precedence 5  (policy 2001::/32)
+
+        final InetAddress aSrc = inet("::1");
+        final InetAddress bSrc = inet("2001:db8::abcd");
+
+        delegate.add("t.example", bDst, aDst);
+
+        final Rfc6724AddressSelectingDnsResolver r =
+                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, sourceMap(aDst, aSrc, bDst, bSrc));
+
+        final InetAddress[] out = r.resolve("t.example");
+        assertEquals(Arrays.asList(aDst, bDst), Arrays.asList(out));
+    }
+
+    @Test
+    void rfcRule8_prefersSmallerScope_whenPrecedenceAndLabelTie() throws Exception {
+        // Both fall to ::/0 policy -> precedence 40, label 1, but different scopes.
+        final InetAddress aDst = inet("fe80::1");  // LINK_LOCAL scope (0x2)
+        final InetAddress bDst = inet("2003::1");  // GLOBAL scope     (0xe)
+
+        final InetAddress aSrc = inet("fe80::2");  // LINK_LOCAL, label 1
+        final InetAddress bSrc = inet("2003::2");  // GLOBAL, label 1
+
+        delegate.add("t.example", bDst, aDst);
+
+        final Rfc6724AddressSelectingDnsResolver r =
+                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, sourceMap(aDst, aSrc, bDst, bSrc));
+
+        final InetAddress[] out = r.resolve("t.example");
+        assertEquals(Arrays.asList(aDst, bDst), Arrays.asList(out));
+    }
+
+    @Test
+    void addr_fmt_simpleName() throws Exception {
+        final Class<?> resolverClass = Rfc6724AddressSelectingDnsResolver.class;
+
+        final Method addr = resolverClass.getDeclaredMethod("addr", InetAddress.class);
+        addr.setAccessible(true);
+
+        final Method fmtArr = resolverClass.getDeclaredMethod("fmt", InetAddress[].class);
+        fmtArr.setAccessible(true);
+
+        final Method fmtList = resolverClass.getDeclaredMethod("fmt", List.class);
+        fmtList.setAccessible(true);
+
+        final Method simpleName = resolverClass.getDeclaredMethod("simpleName");
+        simpleName.setAccessible(true);
+
+        assertEquals("null", (String) addr.invoke(null, new Object[]{null}));
+
+        final InetAddress v4 = inet("192.0.2.1");
+        final InetAddress v6 = inet("2001:db8::1");
+
+        final String s4 = (String) addr.invoke(null, v4);
+        final String s6 = (String) addr.invoke(null, v6);
+
+        assertEquals("IPv4(" + v4.getHostAddress() + ")", s4);
+        assertEquals("IPv6(" + v6.getHostAddress() + ")", s6);
+
+        @SuppressWarnings("unchecked") final List<String> arrOut = (List<String>) fmtArr.invoke(null, new Object[]{new InetAddress[]{v6, v4}});
+        assertEquals(Arrays.asList("IPv6(" + v6.getHostAddress() + ")", "IPv4(" + v4.getHostAddress() + ")"), arrOut);
+
+        @SuppressWarnings("unchecked") final List<String> listOut = (List<String>) fmtList.invoke(null, Arrays.asList(v4, v6));
+        assertEquals(Arrays.asList("IPv4(" + v4.getHostAddress() + ")", "IPv6(" + v6.getHostAddress() + ")"), listOut);
+
+        assertNotNull((String) simpleName.invoke(null));
+        assertEquals("Rfc6724Resolver", (String) simpleName.invoke(null));
+    }
+
+    private static InetAddress inet(final String s) {
+        try {
+            return InetAddress.getByName(s);
+        } catch (final UnknownHostException ex) {
+            throw new AssertionError(ex);
+        }
+    }
+
+    private static Rfc6724AddressSelectingDnsResolver.SourceAddressResolver sourceMap(
+            final InetAddress aDst, final InetAddress aSrc,
+            final InetAddress bDst, final InetAddress bSrc) {
+        return (final InetSocketAddress dest) -> {
+            final InetAddress d = dest.getAddress();
+            if (aDst.equals(d)) {
+                return aSrc;
+            }
+            if (bDst.equals(d)) {
+                return bSrc;
+            }
+            return null;
+        };
+    }
+
+    private static String classifyScope(final Class<?> resolverClass, final InetAddress ip) throws Exception {
+        final Method m = resolverClass.getDeclaredMethod("classifyScope", InetAddress.class);
+        m.setAccessible(true);
+        final Object scope = m.invoke(null, ip);
+        return scope != null ? scope.toString() : null;
+    }
+
+    private static String scopeFromValue(final Class<?> scopeClass, final int v) throws Exception {
+        final Method m = scopeClass.getDeclaredMethod("fromValue", int.class);
+        m.setAccessible(true);
+        final Object scope = m.invoke(null, v);
+        return scope != null ? scope.toString() : null;
+    }
+
+    private static Class<?> findDeclaredClass(final Class<?> outer, final String simpleName) {
+        for (final Class<?> c : outer.getDeclaredClasses()) {
+            if (simpleName.equals(c.getSimpleName())) {
+                return c;
+            }
+        }
+        return null;
+    }
 }

@@ -35,33 +35,38 @@ package org.apache.hc.client5.http.config;
  * @since 5.7
  */
 public enum ProtocolFamilyPreference {
-    /** Keep families as returned (or RFC 6724 ordered). */
-    DEFAULT,
+
     /**
-     * Prefer IPv4 addresses but allow IPv6 as a fallback.
+     * No family bias. Preserve RFC 6724 order.
+     */
+    DEFAULT,
+
+    /**
+     * Prefer IPv4 addresses (stable: preserves RFC order within each family).
      */
     PREFER_IPV4,
 
     /**
-     * Prefer IPv6 addresses but allow IPv4 as a fallback.
+     * Prefer IPv6 addresses (stable: preserves RFC order within each family).
      */
     PREFER_IPV6,
 
     /**
-     * Use only IPv4 addresses.
+     * Filter out all non-IPv4 addresses.
      */
     IPV4_ONLY,
 
     /**
-     * Use only IPv6 addresses.
+     * Filter out all non-IPv6 addresses.
      */
     IPV6_ONLY,
 
     /**
      * Interleave address families (v6, then v4, then v6, …) when multiple
-     * addresses are available. When staggered connects are enabled, the first
-     * address of the other family is delayed by a small offset.
+     * addresses are available, preserving the relative order within each family
+     * as produced by RFC 6724 sorting.
      */
     INTERLEAVE
+
 }
 
