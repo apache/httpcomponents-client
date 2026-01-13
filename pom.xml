@@ -332,6 +332,7 @@
       <plugin>
         <groupId>com.github.siom79.japicmp</groupId>
         <artifactId>japicmp-maven-plugin</artifactId>
+        <version>0.25.4</version>
         <configuration>
           <oldVersion>
             <dependency>
@@ -354,7 +355,6 @@
             <excludes>
               <exclude>@org.apache.hc.core5.annotation.Internal</exclude>
             </excludes>
-            <ignoreMissingClasses>true</ignoreMissingClasses>
             <skipXmlReport>true</skipXmlReport>
             <skipHtmlReport>false</skipHtmlReport>
             <skipDiffReport>false</skipDiffReport>
@@ -497,6 +497,14 @@
           </reportSet>
         </reportSets>
         <configuration>
+          <newVersion>
+            <dependency>
+              <groupId>${project.groupId}</groupId>
+              <artifactId>${project.artifactId}</artifactId>
+              <version>${project.version}</version>
+              <type>jar</type>
+            </dependency>
+          </newVersion>
           <oldVersion>
             <dependency>
               <groupId>${project.groupId}</groupId>
@@ -510,7 +518,6 @@
               <exclude>@org.apache.hc.core5.annotation.Internal</exclude>
             </excludes>
             <reportOnlyFilename>true</reportOnlyFilename>
-            <ignoreMissingClasses>true</ignoreMissingClasses>
           </parameter>
         </configuration>
       </plugin>
