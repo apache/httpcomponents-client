@@ -61,7 +61,7 @@ class LoggingIOSessionTest {
         verify(wireLog).debug("IOSession << @ABCDEFGHIJKLMNO  40 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f");
         verify(wireLog).debug("IOSession << PQRSTUVWXYZ[\\]^_  50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f");
         verify(wireLog).debug("IOSession << `abcdefghijklmno  60 61 62 63 64 65 66 67 68 69 6a 6b 6c 6d 6e 6f");
-        verify(wireLog).debug("IOSession << pqrstuvwxyz{|}~\u007F  70 71 72 73 74 75 76 77 78 79 7a 7b 7c 7d 7e 7f");
+        verify(wireLog).debug("IOSession << pqrstuvwxyz{|}~.  70 71 72 73 74 75 76 77 78 79 7a 7b 7c 7d 7e 7f");
         verify(wireLog).debug("IOSession << ................  80 81 82 83 84 85 86 87 88 89 8a 8b 8c 8d 8e 8f");
         verify(wireLog).debug("IOSession << ................  90 91 92 93 94 95 96 97 98 99 9a 9b 9c 9d 9e 9f");
         verify(wireLog).debug("IOSession << ................  a0 a1 a2 a3 a4 a5 a6 a7 a8 a9 aa ab ac ad ae af");
