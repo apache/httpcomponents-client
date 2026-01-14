@@ -273,7 +273,7 @@ class LoggingIOSession implements IOSession {
 
             for (int i = 0; i < chunk; i++) {
                 final char ch = (char) line[i];
-                if (ch > Chars.SP && ch <= Chars.DEL) {
+                if (ch > Chars.SP && ch < Chars.DEL) {
                     buf.append(ch);
                 } else if (Character.isWhitespace(ch)) {
                     buf.append(' ');
