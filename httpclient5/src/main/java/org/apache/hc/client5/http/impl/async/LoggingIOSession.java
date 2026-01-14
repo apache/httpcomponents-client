@@ -262,7 +262,7 @@ class LoggingIOSession implements IOSession {
 
     }
 
-    private void logData(final ByteBuffer data, final String prefix) {
+    void logData(final ByteBuffer data, final String prefix) {
         final byte[] line = new byte[16];
         final StringBuilder buf = new StringBuilder();
         while (data.hasRemaining()) {
