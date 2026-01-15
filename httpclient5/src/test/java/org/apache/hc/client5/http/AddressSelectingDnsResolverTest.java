@@ -29,26 +29,27 @@ package org.apache.hc.client5.http;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.lang.reflect.Method;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
-import java.util.List;
 
 import org.apache.hc.client5.http.config.ProtocolFamilyPreference;
 import org.apache.hc.client5.http.impl.InMemoryDnsResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class Rfc6724AddressSelectingDnsResolverTest {
+class AddressSelectingDnsResolverTest {
 
-    private static final Rfc6724AddressSelectingDnsResolver.SourceAddressResolver NO_SOURCE_ADDR =
+    private static final AddressSelectingDnsResolver.SourceAddressResolver NO_SOURCE_ADDR =
             (final InetSocketAddress dest) -> null;
 
     private InMemoryDnsResolver delegate;
@@ -65,8 +66,8 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
         delegate.add("dual.example", v6, v4);
 
-        final Rfc6724AddressSelectingDnsResolver r =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.IPV4_ONLY, NO_SOURCE_ADDR);
+        final AddressSelectingDnsResolver r =
+                new AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.IPV4_ONLY, NO_SOURCE_ADDR);
 
         final InetAddress[] ordered = r.resolve("dual.example");
         assertEquals(1, ordered.length);
@@ -81,8 +82,8 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
         delegate.add("dual.example", v4, v6);
 
-        final Rfc6724AddressSelectingDnsResolver r =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.IPV6_ONLY, NO_SOURCE_ADDR);
+        final AddressSelectingDnsResolver r =
+                new AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.IPV6_ONLY, NO_SOURCE_ADDR);
 
         final InetAddress[] ordered = r.resolve("dual.example");
         assertEquals(1, ordered.length);
@@ -97,11 +98,11 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
         delegate.add("v6only.example", v6a, v6b);
 
-        final Rfc6724AddressSelectingDnsResolver r =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.IPV4_ONLY, NO_SOURCE_ADDR);
+        final AddressSelectingDnsResolver r =
+                new AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.IPV4_ONLY, NO_SOURCE_ADDR);
 
         final InetAddress[] ordered = r.resolve("v6only.example");
-        assertEquals(0, ordered.length);
+        assertNull(ordered);
     }
 
     @Test
@@ -113,10 +114,10 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
         delegate.add("dual.example", v6a, v6b, v4a, v4b);
 
-        final Rfc6724AddressSelectingDnsResolver r1 =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, NO_SOURCE_ADDR);
-        final Rfc6724AddressSelectingDnsResolver r2 =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, NO_SOURCE_ADDR);
+        final AddressSelectingDnsResolver r1 =
+                new AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, NO_SOURCE_ADDR);
+        final AddressSelectingDnsResolver r2 =
+                new AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, NO_SOURCE_ADDR);
 
         final InetAddress[] out1 = r1.resolve("dual.example");
         final InetAddress[] out2 = r2.resolve("dual.example");
@@ -135,8 +136,8 @@ class Rfc6724AddressSelectingDnsResolverTest {
         // With NO_SOURCE_ADDR, RFC sort becomes a stable no-op; deterministic interleave.
         delegate.add("dual.example", v6a, v6b, v4a, v4b);
 
-        final Rfc6724AddressSelectingDnsResolver r =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.INTERLEAVE, NO_SOURCE_ADDR);
+        final AddressSelectingDnsResolver r =
+                new AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.INTERLEAVE, NO_SOURCE_ADDR);
 
         final InetAddress[] out = r.resolve("dual.example");
         assertEquals(Arrays.asList(v6a, v4a, v6b, v4b), Arrays.asList(out));
@@ -151,8 +152,8 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
         delegate.add("dual.example", v4a, v6a, v4b, v6b);
 
-        final Rfc6724AddressSelectingDnsResolver preferV6 =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.PREFER_IPV6, NO_SOURCE_ADDR);
+        final AddressSelectingDnsResolver preferV6 =
+                new AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.PREFER_IPV6, NO_SOURCE_ADDR);
 
         final InetAddress[] out = preferV6.resolve("dual.example");
         assertEquals(Arrays.asList(v6a, v6b, v4a, v4b), Arrays.asList(out));
@@ -166,8 +167,8 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
         delegate.add("mcast.example", multicastV6, v6);
 
-        final Rfc6724AddressSelectingDnsResolver r =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, NO_SOURCE_ADDR);
+        final AddressSelectingDnsResolver r =
+                new AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, NO_SOURCE_ADDR);
 
         final InetAddress[] out = r.resolve("mcast.example");
         assertEquals(1, out.length);
@@ -181,7 +182,7 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
     @Test
     void classifyScope_loopback_linkLocal_siteLocal_global() throws Exception {
-        final Class<?> resolverClass = Rfc6724AddressSelectingDnsResolver.class;
+        final Class<?> resolverClass = AddressSelectingDnsResolver.class;
 
         assertEquals("INTERFACE_LOCAL", classifyScope(resolverClass, inet("127.0.0.1")));
         assertEquals("INTERFACE_LOCAL", classifyScope(resolverClass, inet("::1")));
@@ -197,7 +198,7 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
     @Test
     void classifyScope_ipv6Multicast_usesLowNibbleScope() throws Exception {
-        final Class<?> resolverClass = Rfc6724AddressSelectingDnsResolver.class;
+        final Class<?> resolverClass = AddressSelectingDnsResolver.class;
 
         // ff01::1 -> scope 0x1 -> INTERFACE_LOCAL
         assertEquals("INTERFACE_LOCAL", classifyScope(resolverClass, inet("ff01::1")));
@@ -215,7 +216,7 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
     @Test
     void scopeFromValue_mapsKnownConstants_andDefaultsToGlobal() throws Exception {
-        final Class<?> resolverClass = Rfc6724AddressSelectingDnsResolver.class;
+        final Class<?> resolverClass = AddressSelectingDnsResolver.class;
         final Class<?> scopeClass = findDeclaredClass(resolverClass, "Scope");
         assertNotNull(scopeClass);
 
@@ -241,8 +242,8 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
         delegate.add("t.example", bDst, aDst);
 
-        final Rfc6724AddressSelectingDnsResolver r =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, sourceMap(aDst, aSrc, bDst, bSrc));
+        final AddressSelectingDnsResolver r =
+                new AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, sourceMap(aDst, aSrc, bDst, bSrc));
 
         final InetAddress[] out = r.resolve("t.example");
         assertEquals(Arrays.asList(aDst, bDst), Arrays.asList(out));
@@ -258,8 +259,8 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
         delegate.add("t.example", bDst, aDst);
 
-        final Rfc6724AddressSelectingDnsResolver r =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, sourceMap(aDst, aSrc, bDst, bSrc));
+        final AddressSelectingDnsResolver r =
+                new AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, sourceMap(aDst, aSrc, bDst, bSrc));
 
         final InetAddress[] out = r.resolve("t.example");
         assertEquals(Arrays.asList(aDst, bDst), Arrays.asList(out));
@@ -275,8 +276,8 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
         delegate.add("t.example", bDst, aDst);
 
-        final Rfc6724AddressSelectingDnsResolver r =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, sourceMap(aDst, aSrc, bDst, bSrc));
+        final AddressSelectingDnsResolver r =
+                new AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, sourceMap(aDst, aSrc, bDst, bSrc));
 
         final InetAddress[] out = r.resolve("t.example");
         assertEquals(Arrays.asList(aDst, bDst), Arrays.asList(out));
@@ -293,8 +294,8 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
         delegate.add("t.example", bDst, aDst);
 
-        final Rfc6724AddressSelectingDnsResolver r =
-                new Rfc6724AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, sourceMap(aDst, aSrc, bDst, bSrc));
+        final AddressSelectingDnsResolver r =
+                new AddressSelectingDnsResolver(delegate, ProtocolFamilyPreference.DEFAULT, sourceMap(aDst, aSrc, bDst, bSrc));
 
         final InetAddress[] out = r.resolve("t.example");
         assertEquals(Arrays.asList(aDst, bDst), Arrays.asList(out));
@@ -302,39 +303,20 @@ class Rfc6724AddressSelectingDnsResolverTest {
 
     @Test
     void addr_fmt_simpleName() throws Exception {
-        final Class<?> resolverClass = Rfc6724AddressSelectingDnsResolver.class;
-
-        final Method addr = resolverClass.getDeclaredMethod("addr", InetAddress.class);
-        addr.setAccessible(true);
-
-        final Method fmtArr = resolverClass.getDeclaredMethod("fmt", InetAddress[].class);
-        fmtArr.setAccessible(true);
-
-        final Method fmtList = resolverClass.getDeclaredMethod("fmt", List.class);
-        fmtList.setAccessible(true);
-
-        final Method simpleName = resolverClass.getDeclaredMethod("simpleName");
-        simpleName.setAccessible(true);
-
-        assertEquals("null", (String) addr.invoke(null, new Object[]{null}));
+        assertEquals("null", AddressSelectingDnsResolver.addr(null));
 
         final InetAddress v4 = inet("192.0.2.1");
         final InetAddress v6 = inet("2001:db8::1");
 
-        final String s4 = (String) addr.invoke(null, v4);
-        final String s6 = (String) addr.invoke(null, v6);
+        assertEquals("IPv4(" + v4.getHostAddress() + ")", AddressSelectingDnsResolver.addr(v4));
+        assertEquals("IPv6(" + v6.getHostAddress() + ")", AddressSelectingDnsResolver.addr(v6));
 
-        assertEquals("IPv4(" + v4.getHostAddress() + ")", s4);
-        assertEquals("IPv6(" + v6.getHostAddress() + ")", s6);
+        assertEquals(Arrays.asList("IPv6(" + v6.getHostAddress() + ")", "IPv4(" + v4.getHostAddress() + ")"),
+                AddressSelectingDnsResolver.fmt(new InetAddress[]{v6, v4}));
 
-        @SuppressWarnings("unchecked") final List<String> arrOut = (List<String>) fmtArr.invoke(null, new Object[]{new InetAddress[]{v6, v4}});
-        assertEquals(Arrays.asList("IPv6(" + v6.getHostAddress() + ")", "IPv4(" + v4.getHostAddress() + ")"), arrOut);
+        assertEquals(Arrays.asList("IPv4(" + v4.getHostAddress() + ")", "IPv6(" + v6.getHostAddress() + ")"),
+                AddressSelectingDnsResolver.fmt(Arrays.asList(v4, v6)));
 
-        @SuppressWarnings("unchecked") final List<String> listOut = (List<String>) fmtList.invoke(null, Arrays.asList(v4, v6));
-        assertEquals(Arrays.asList("IPv4(" + v4.getHostAddress() + ")", "IPv6(" + v6.getHostAddress() + ")"), listOut);
-
-        assertNotNull((String) simpleName.invoke(null));
-        assertEquals("Rfc6724Resolver", (String) simpleName.invoke(null));
     }
 
     private static InetAddress inet(final String s) {
@@ -345,7 +327,7 @@ class Rfc6724AddressSelectingDnsResolverTest {
         }
     }
 
-    private static Rfc6724AddressSelectingDnsResolver.SourceAddressResolver sourceMap(
+    private static AddressSelectingDnsResolver.SourceAddressResolver sourceMap(
             final InetAddress aDst, final InetAddress aSrc,
             final InetAddress bDst, final InetAddress bSrc) {
         return (final InetSocketAddress dest) -> {
@@ -361,14 +343,14 @@ class Rfc6724AddressSelectingDnsResolverTest {
     }
 
     private static String classifyScope(final Class<?> resolverClass, final InetAddress ip) throws Exception {
-        final Method m = resolverClass.getDeclaredMethod("classifyScope", InetAddress.class);
+        final java.lang.reflect.Method m = resolverClass.getDeclaredMethod("classifyScope", InetAddress.class);
         m.setAccessible(true);
         final Object scope = m.invoke(null, ip);
         return scope != null ? scope.toString() : null;
     }
 
     private static String scopeFromValue(final Class<?> scopeClass, final int v) throws Exception {
-        final Method m = scopeClass.getDeclaredMethod("fromValue", int.class);
+        final java.lang.reflect.Method m = scopeClass.getDeclaredMethod("fromValue", int.class);
         m.setAccessible(true);
         final Object scope = m.invoke(null, v);
         return scope != null ? scope.toString() : null;
@@ -382,4 +364,68 @@ class Rfc6724AddressSelectingDnsResolverTest {
         }
         return null;
     }
+
+    @Test
+    void networkContains_ipv6Prefix32() throws Exception {
+        final Class<?> networkClass = findDeclaredClass(AddressSelectingDnsResolver.class, "Network");
+        assertNotNull(networkClass);
+
+        final Object p32 = newNetwork(networkClass, inet("2001:db8::").getAddress(), 32);
+
+        assertTrue(networkContains(networkClass, p32, inet("2001:db8::1")));
+        assertTrue(networkContains(networkClass, p32, inet("2001:db8:ffff::1")));
+
+        assertFalse(networkContains(networkClass, p32, inet("2001:db9::1")));
+        assertFalse(networkContains(networkClass, p32, inet("2000:db8::1")));
+    }
+
+    @Test
+    void networkContains_ipv4IsMatchedViaV4MappedWhenPrefixIsV6Mapped96() throws Exception {
+        final Class<?> networkClass = findDeclaredClass(AddressSelectingDnsResolver.class, "Network");
+        assertNotNull(networkClass);
+
+        // Build ::ffff:0:0 as raw 16 bytes. Do NOT use InetAddress.getByName(..) here:
+        // the JDK may normalize it to an Inet4Address, yielding a 4-byte array.
+        final byte[] v6mapped = new byte[16];
+        v6mapped[10] = (byte) 0xff;
+        v6mapped[11] = (byte) 0xff;
+
+        final Object p96 = newNetwork(networkClass, v6mapped, 96);
+
+        assertTrue(networkContains(networkClass, p96, inet("192.0.2.1")));
+        assertTrue(networkContains(networkClass, p96, inet("203.0.113.10")));
+
+        // A pure IPv6 address must not match that v4-mapped prefix.
+        assertFalse(networkContains(networkClass, p96, inet("2001:db8::1")));
+    }
+
+    @Test
+    void networkContains_nonByteAlignedPrefix7Boundary() throws Exception {
+        final Class<?> networkClass = findDeclaredClass(AddressSelectingDnsResolver.class, "Network");
+        assertNotNull(networkClass);
+
+        // fc00::/7 (ULA) is in the policy table.
+        final Object p7 = newNetwork(networkClass, inet("fc00::").getAddress(), 7);
+
+        // Inside /7: fc00:: and fd00:: (since /7 covers fc00..fdff)
+        assertTrue(networkContains(networkClass, p7, inet("fc00::1")));
+        assertTrue(networkContains(networkClass, p7, inet("fd00::1")));
+
+        // Just outside /7: fe00:: (top bits 11111110 vs 1111110x)
+        assertFalse(networkContains(networkClass, p7, inet("fe00::1")));
+        assertFalse(networkContains(networkClass, p7, inet("2001:db8::1")));
+    }
+
+    private static Object newNetwork(final Class<?> networkClass, final byte[] ip, final int bits) throws Exception {
+        final java.lang.reflect.Constructor<?> c = networkClass.getDeclaredConstructor(byte[].class, int.class);
+        c.setAccessible(true);
+        return c.newInstance(ip, bits);
+    }
+
+    private static boolean networkContains(final Class<?> networkClass, final Object network, final InetAddress addr) throws Exception {
+        final java.lang.reflect.Method m = networkClass.getDeclaredMethod("contains", InetAddress.class);
+        m.setAccessible(true);
+        return (Boolean) m.invoke(network, addr);
+    }
+
 }

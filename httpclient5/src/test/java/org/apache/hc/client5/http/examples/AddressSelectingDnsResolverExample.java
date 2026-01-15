@@ -30,11 +30,11 @@ package org.apache.hc.client5.http.examples;
 import java.net.InetAddress;
 
 import org.apache.hc.client5.http.DnsResolver;
-import org.apache.hc.client5.http.Rfc6724AddressSelectingDnsResolver;
+import org.apache.hc.client5.http.AddressSelectingDnsResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.config.ProtocolFamilyPreference;
 
-public final class Rfc6724ResolverExample {
+public final class AddressSelectingDnsResolverExample {
 
     public static void main(final String[] args) throws Exception {
         final String host = args.length > 0 ? args[0] : "localhost";
@@ -42,7 +42,7 @@ public final class Rfc6724ResolverExample {
                 ? ProtocolFamilyPreference.valueOf(args[1])
                 : ProtocolFamilyPreference.DEFAULT;
 
-        final DnsResolver resolver = new Rfc6724AddressSelectingDnsResolver(SystemDefaultDnsResolver.INSTANCE, pref);
+        final DnsResolver resolver = new AddressSelectingDnsResolver(SystemDefaultDnsResolver.INSTANCE, pref);
 
         final InetAddress[] out = resolver.resolve(host);
 
@@ -62,6 +62,6 @@ public final class Rfc6724ResolverExample {
         }
     }
 
-    private Rfc6724ResolverExample() {
+    private AddressSelectingDnsResolverExample() {
     }
 }
