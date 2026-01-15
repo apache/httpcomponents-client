@@ -260,8 +260,8 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             socket.setSoTimeout(handshakeTimeout.toMillisecondsIntBound());
         }
         final SSLSocket sslSocket = tlsSocketStrategy.upgrade(socket, tlsName.getHostName(), tlsName.getPort(), attachment, context);
-        conn.bind(sslSocket, socket);
         socket.setSoTimeout(soTimeout);
+        conn.bind(sslSocket, socket);
         onAfterTlsHandshake(context, endpointHost);
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} {} upgraded to TLS", ConnPoolSupport.getId(conn), tlsName);
@@ -286,8 +286,8 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             conn.bind(newSocket);
             final Socket socket = unixDomainSocketFactory.connectSocket(newSocket, unixDomainSocket,
                 connectTimeout);
-            conn.bind(socket);
             configureSocket(socket, socketConfig, false);
+            conn.bind(socket);
             onAfterSocketConnect(context, endpointHost);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} {} connected to {}", ConnPoolSupport.getId(conn), endpointHost, unixDomainSocket);
