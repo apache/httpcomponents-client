@@ -85,15 +85,21 @@ abstract class AbstractTestSocketTimeout extends AbstractIntegrationTestBase {
         }
 
         for (final boolean drip : new boolean[]{ false, true }) {
-            final HttpGet request = getRequest(responseTimeout, drip);
+            for (final boolean reuseConnection : new boolean[]{ false, true }) {
+                if (reuseConnection) {
+                    client.execute(target, getRequest(5000, 0, false), new BasicHttpClientResponseHandler());
+                }
+                final HttpGet request = getRequest(responseTimeout, 2500, drip);
 
-            assertThrows(SocketTimeoutException.class, () ->
-                client.execute(target, request, new BasicHttpClientResponseHandler()));
+                assertThrows(SocketTimeoutException.class, () ->
+                    client.execute(target, request, new BasicHttpClientResponseHandler()),
+                    String.format("drip=%s, reuseConnection=%s", drip, reuseConnection));
+            }
         }
     }
 
-    private HttpGet getRequest(final int responseTimeout, final boolean drip) throws Exception {
-        final HttpGet request = new HttpGet(new URI("/random/10240?delay=2500&drip=" + (drip ? 1 : 0)));
+    private HttpGet getRequest(final int responseTimeout, final int delay, final boolean drip) throws Exception {
+        final HttpGet request = new HttpGet(new URI("/random/10240?delay=" + delay + "&drip=" + (drip ? 1 : 0)));
         if (responseTimeout > 0) {
             request.setConfig(RequestConfig.custom()
                 .setUnixDomainSocket(getUnixDomainSocket())

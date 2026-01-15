@@ -166,7 +166,6 @@ public class DefaultManagedHttpClientConnection
             LOG.debug("{} set socket timeout to {}", this.id, timeout);
         }
         super.setSocketTimeout(timeout);
-        socketTimeout = timeout;
     }
 
     @Override
