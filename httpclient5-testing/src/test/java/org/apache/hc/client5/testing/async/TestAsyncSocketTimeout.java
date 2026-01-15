@@ -38,7 +38,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.io.CloseMode;
-import org.apache.hc.core5.util.VersionInfo;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,7 +50,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.apache.hc.core5.util.ReflectionUtils.determineJRELevel;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 abstract class AbstractTestSocketTimeout extends AbstractIntegrationTestBase {
@@ -83,21 +81,26 @@ abstract class AbstractTestSocketTimeout extends AbstractIntegrationTestBase {
         }
 
         for (final boolean drip : new boolean[]{ false, true }) {
-            final SimpleHttpRequest request = getRequest(responseTimeout, drip,
-                target);
+            for (final boolean reuseConnection : new boolean[]{ false, true }) {
+                if (reuseConnection) {
+                    client.execute(getRequest(2500, 0, false, target), null).get();
+                }
+                final SimpleHttpRequest request = getRequest(responseTimeout, 2500, drip, target);
 
-            final Throwable cause = assertThrows(ExecutionException.class, () -> client.execute(request, null).get())
-                .getCause();
-            assertInstanceOf(SocketTimeoutException.class, cause);
+                final Throwable cause = assertThrows(ExecutionException.class,
+                    () -> client.execute(request, null).get()).getCause();
+                assertInstanceOf(SocketTimeoutException.class, cause,
+                    String.format("drip=%s, reuseConnection=%s", drip, reuseConnection));
+            }
         }
 
         closeClient(client);
     }
 
-    private SimpleHttpRequest getRequest(final int responseTimeout, final boolean drip, final HttpHost target)
-        throws Exception {
+    private SimpleHttpRequest getRequest(final int responseTimeout, final int delay, final boolean drip,
+                                         final HttpHost target) throws Exception {
         final SimpleHttpRequest request = SimpleHttpRequest.create(Method.GET, target,
-            "/random/10240?delay=2500&drip=" + (drip ? 1 : 0));
+            "/random/10240?delay=" + delay + "&drip=" + (drip ? 1 : 0));
         if (responseTimeout > 0) {
             request.setConfig(RequestConfig.custom()
                 .setUnixDomainSocket(getUnixDomainSocket())
@@ -138,13 +141,6 @@ public class TestAsyncSocketTimeout {
         @Override
         void checkAssumptions() {
             assumeTrue(determineJRELevel() >= 16, "Async UDS requires Java 16+");
-            final String[] components = VersionInfo
-                .loadVersionInfo("org.apache.hc.core5", getClass().getClassLoader())
-                .getRelease()
-                .split("[-.]");
-            final int majorVersion = Integer.parseInt(components[0]);
-            final int minorVersion = Integer.parseInt(components[1]);
-            assumeFalse(majorVersion <= 5 && minorVersion <= 3, "Async UDS requires HttpCore 5.4+");
         }
     }
 }
