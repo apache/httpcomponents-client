@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -49,7 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@code Rfc6724AddressSelectingDnsResolver} wraps a delegate {@link DnsResolver}
+ * {@code AddressSelectingDnsResolver} wraps a delegate {@link DnsResolver}
  * and applies RFC&nbsp;6724 destination address selection rules (RFC 6724 §6)
  * to the returned addresses. It can also enforce or bias a protocol family preference.
  *
@@ -64,9 +65,9 @@ import org.slf4j.LoggerFactory;
  * @since 5.7
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
+public final class AddressSelectingDnsResolver implements DnsResolver {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Rfc6724AddressSelectingDnsResolver.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AddressSelectingDnsResolver.class);
 
     private static final int PROBE_PORT = 53; // UDP connect trick; no packets sent
 
@@ -91,7 +92,7 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
      *
      * @param delegate underlying resolver to use.
      */
-    public Rfc6724AddressSelectingDnsResolver(final DnsResolver delegate) {
+    public AddressSelectingDnsResolver(final DnsResolver delegate) {
         this(delegate, ProtocolFamilyPreference.DEFAULT);
     }
 
@@ -101,14 +102,14 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
      * @param delegate         underlying resolver to use.
      * @param familyPreference family preference to apply (e.g. PREFER_IPV6, IPV4_ONLY).
      */
-    public Rfc6724AddressSelectingDnsResolver(
+    public AddressSelectingDnsResolver(
             final DnsResolver delegate,
             final ProtocolFamilyPreference familyPreference) {
         this(delegate, familyPreference, DEFAULT_SOURCE_ADDRESS_RESOLVER);
     }
 
     // Package-private for unit tests: allows deterministic source address inference.
-    Rfc6724AddressSelectingDnsResolver(
+    AddressSelectingDnsResolver(
             final DnsResolver delegate,
             final ProtocolFamilyPreference familyPreference,
             final SourceAddressResolver sourceAddressResolver) {
@@ -123,47 +124,62 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
 
         if (resolved == null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{} resolved '{}' -> null", simpleName(), host);
+                LOG.debug("resolved '{}' -> null", host);
             }
             return null;
         }
 
-        if (resolved.length <= 1) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} resolved '{}' -> {}", simpleName(), host, fmt(resolved));
-            }
-            return resolved;
-        }
-
         if (LOG.isTraceEnabled()) {
-            LOG.trace("{} resolving host '{}' via delegate {}", simpleName(), host, delegate.getClass().getName());
-            LOG.trace("{} familyPreference={}", simpleName(), familyPreference);
-            LOG.trace("{} delegate returned {} addresses for '{}': {}", simpleName(), resolved.length, host, fmt(resolved));
+            LOG.trace("resolving host '{}' via delegate {}", host, delegate.getClass().getName());
+            LOG.trace("familyPreference={}", familyPreference);
+            LOG.trace("delegate returned {} addresses for '{}': {}", resolved.length, host, fmt(resolved));
         }
 
+        // Always filter, even for a single address — the family preference may exclude it.
         final List<InetAddress> candidates = filterCandidates(resolved, familyPreference);
 
         if (candidates.isEmpty()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{} resolved '{}' -> []", simpleName(), host);
+                LOG.debug("resolved '{}' -> []", host);
             }
-            return new InetAddress[0];
+            return null;
+        }
+
+        if (candidates.size() == 1) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("resolved '{}' -> {}", host, fmt(candidates));
+            }
+            return candidates.toArray(new InetAddress[0]);
         }
 
         final List<InetAddress> rfcSorted = sortByRfc6724(candidates);
         final List<InetAddress> ordered = applyFamilyPreference(rfcSorted, familyPreference);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{} resolved '{}' -> {}", simpleName(), host, fmt(ordered));
+            LOG.debug("resolved '{}' -> {}", host, fmt(ordered));
         }
 
         return ordered.toArray(new InetAddress[0]);
     }
 
     @Override
+    public List<InetSocketAddress> resolve(final String host, final int port) throws UnknownHostException {
+        final InetAddress[] ordered = resolve(host);
+        if (ordered == null) {
+            // Do NOT fall back to createUnresolved: an unresolved address would let
+            // downstream code re-resolve the hostname and bypass family filtering
+            // (e.g. IPV4_ONLY / IPV6_ONLY).
+            throw new UnknownHostException(host);
+        }
+        return Arrays.stream(ordered)
+                .map(a -> new InetSocketAddress(a, port))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public String resolveCanonicalHostname(final String host) throws UnknownHostException {
         if (LOG.isTraceEnabled()) {
-            LOG.trace("{} resolveCanonicalHostname('{}') via delegate {}", simpleName(), host, delegate.getClass().getName());
+            LOG.trace("resolveCanonicalHostname('{}') via delegate {}", host, delegate.getClass().getName());
         }
         return delegate.resolveCanonicalHostname(host);
     }
@@ -176,42 +192,31 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
             return false;
         }
         // HTTP/TCP is for unicast destinations; multicast is not a valid connect target.
-        if (ip.isMulticastAddress()) {
-            return false;
-        }
-        return true;
+        return !ip.isMulticastAddress();
     }
+
 
     private static List<InetAddress> filterCandidates(
             final InetAddress[] resolved,
             final ProtocolFamilyPreference pref) {
 
-        final List<InetAddress> out = new ArrayList<>(resolved.length);
-        for (final InetAddress a : resolved) {
-            if (!isUsableDestination(a)) {
-                continue;
-            }
-            switch (pref) {
-                case IPV4_ONLY: {
-                    if (a instanceof Inet4Address) {
-                        out.add(a);
-                    }
-                    break;
-                }
-                case IPV6_ONLY: {
-                    if (a instanceof Inet6Address) {
-                        out.add(a);
-                    }
-                    break;
-                }
-                default: {
-                    out.add(a);
-                    break;
-                }
-            }
-        }
-        return out;
+        return Arrays.stream(resolved)
+                .filter(AddressSelectingDnsResolver::isUsableDestination)
+                .filter(a -> shouldInclude(pref, a))
+                .collect(Collectors.toList());
     }
+
+    private static boolean shouldInclude(final ProtocolFamilyPreference pref, final InetAddress a) {
+        switch (pref) {
+            case IPV4_ONLY:
+                return a instanceof Inet4Address;
+            case IPV6_ONLY:
+                return a instanceof Inet6Address;
+            default:
+                return true;
+        }
+    }
+
 
     // --- RFC 6724 helpers ---
 
@@ -224,17 +229,9 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
             LOG.trace("RFC6724 input candidates: {}", fmt(addrs));
         }
 
-        final List<InetSocketAddress> socketAddresses = new ArrayList<>(addrs.size());
-        for (final InetAddress a : addrs) {
-            socketAddresses.add(new InetSocketAddress(a, PROBE_PORT));
-        }
-
-        final List<InetAddress> srcs = inferSourceAddresses(socketAddresses);
-
         final List<Info> infos = new ArrayList<>(addrs.size());
-        for (int i = 0; i < addrs.size(); i++) {
-            final InetAddress dst = addrs.get(i);
-            final InetAddress src = srcs.get(i);
+        for (final InetAddress dst : addrs) {
+            final InetAddress src = inferSourceAddress(new InetSocketAddress(dst, PROBE_PORT));
             infos.add(new Info(dst, src, ipAttrOf(dst), ipAttrOf(src)));
         }
 
@@ -249,10 +246,9 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
 
         infos.sort(RFC6724_COMPARATOR);
 
-        final List<InetAddress> out = new ArrayList<>(infos.size());
-        for (final Info info : infos) {
-            out.add(info.dst);
-        }
+        final List<InetAddress> out = infos.stream()
+                .map(info -> info.dst)
+                .collect(Collectors.toList());
 
         if (LOG.isTraceEnabled()) {
             LOG.trace("RFC6724 output order: {}", fmt(out));
@@ -261,30 +257,15 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
         return out;
     }
 
-    private List<InetAddress> inferSourceAddresses(final List<InetSocketAddress> destinations) {
-        final List<InetAddress> srcs = new ArrayList<>(destinations.size());
-
-        for (final InetSocketAddress dest : destinations) {
-            InetAddress src = null;
-            try {
-                src = sourceAddressResolver.resolveSource(dest);
-            } catch (final SocketException ignore) {
-                if (LOG.isTraceEnabled()) {
-                    LOG.trace("RFC6724 could not infer source address for {}: {}", dest, ignore.toString());
-                }
+    private InetAddress inferSourceAddress(final InetSocketAddress destination) {
+        try {
+            return sourceAddressResolver.resolveSource(destination);
+        } catch (final SocketException ex) {
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("RFC6724 could not infer source address for {}: {}", destination, ex.toString());
             }
-            srcs.add(src);
+            return null;
         }
-
-        if (LOG.isTraceEnabled()) {
-            final List<String> printable = new ArrayList<>(srcs.size());
-            for (final InetAddress a : srcs) {
-                printable.add(addr(a));
-            }
-            LOG.trace("RFC6724 inferred source addresses: {}", printable);
-        }
-
-        return srcs;
     }
 
     private static List<InetAddress> applyFamilyPreference(
@@ -351,14 +332,14 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
         final List<InetAddress> second = startWithV6 ? v4 : v6;
 
         final List<InetAddress> out = new ArrayList<>(rfcSorted.size());
-        int i = 0;
-        int j = 0;
-        while (i < first.size() || j < second.size()) {
-            if (i < first.size()) {
-                out.add(first.get(i++));
+        final Iterator<InetAddress> it1 = first.iterator();
+        final Iterator<InetAddress> it2 = second.iterator();
+        while (it1.hasNext() || it2.hasNext()) {
+            if (it1.hasNext()) {
+                out.add(it1.next());
             }
-            if (j < second.size()) {
-                out.add(second.get(j++));
+            if (it2.hasNext()) {
+                out.add(it2.next());
             }
         }
         return out;
@@ -392,7 +373,8 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
         }
     }
 
-    private enum Scope {
+    // Package-private for unit testing.
+    enum Scope {
         INTERFACE_LOCAL(0x1),
         LINK_LOCAL(0x2),
         ADMIN_LOCAL(0x4),
@@ -423,8 +405,11 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
                 case 0x8: {
                     return ORG_LOCAL;
                 }
-                default: {
+                case 0xe: {
                     return GLOBAL;
+                }
+                default: {
+                    throw new IllegalArgumentException("Unknown scope value: 0x" + Integer.toHexString(v));
                 }
             }
         }
@@ -438,19 +423,49 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
         return new Attr(classifyScope(ip), e.precedence, e.label);
     }
 
-    private static Scope classifyScope(final InetAddress ip) {
+    // Package-private for unit testing.
+    //
+    // RFC 6724 §3.1 scope assignment:
+    //   IPv6 ::1              → link-local  (interface-local is multicast-only per RFC 4291 §2.7)
+    //   IPv6 link-local       → link-local
+    //   IPv6 site-local       → site-local  (deprecated but still defined)
+    //   IPv6 multicast        → scope nibble from second byte (RFC 4291)
+    //   IPv6 ULA (fc00::/7)   → global  (handled via policy table, not scope)
+    //   IPv6 everything else  → global
+    //
+    //   IPv4 127/8            → link-local
+    //   IPv4 169.254/16       → link-local
+    //   IPv4 everything else  → global  (including RFC1918 and 100.64/10)
+    //
+    static Scope classifyScope(final InetAddress ip) {
+        if (ip instanceof Inet4Address) {
+            // IPv4 scope rules per RFC 6724 §3.1:
+            // Only loopback (127/8) and link-local (169.254/16) get link-local scope;
+            // all other IPv4 addresses (including RFC1918 private and 100.64/10) are global.
+            if (ip.isLoopbackAddress() || ip.isLinkLocalAddress()) {
+                return Scope.LINK_LOCAL;
+            }
+            return Scope.GLOBAL;
+        }
+
+        // IPv6 scope rules.
         if (ip.isLoopbackAddress()) {
-            return Scope.INTERFACE_LOCAL;
+            // Interface-local scope (0x1) is a multicast-only concept (RFC 4291 §2.7).
+            // For unicast, the smallest meaningful scope is link-local.
+            return Scope.LINK_LOCAL;
         }
         if (ip.isLinkLocalAddress()) {
             return Scope.LINK_LOCAL;
         }
         if (ip.isMulticastAddress()) {
-            if (ip instanceof Inet6Address) {
-                // RFC 6724 §3.1 and RFC 4291: low 4 bits of second byte are scope for IPv6 multicast.
-                return Scope.fromValue(ip.getAddress()[1] & 0x0f);
+            // RFC 6724 §3.1 and RFC 4291: low 4 bits of second byte encode scope for IPv6 multicast.
+            // Not all nibble values map to a known Scope constant; treat unknown values as GLOBAL.
+            final int nibble = ip.getAddress()[1] & 0x0f;
+            try {
+                return Scope.fromValue(nibble);
+            } catch (final IllegalArgumentException e) {
+                return Scope.GLOBAL;
             }
-            return Scope.GLOBAL;
         }
         if (ip.isSiteLocalAddress()) {
             return Scope.SITE_LOCAL;
@@ -470,7 +485,8 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
         }
     }
 
-    private static final class Network {
+    // Package-private for unit testing.
+    static final class Network {
         final byte[] ip;
         final int bits;
 
@@ -553,6 +569,11 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
         final int preferB = 1;
 
         // RFC 6724 §6: destination address selection rules.
+        //
+        // Rules 3, 4 and 7 are not implementable with standard JDK APIs:
+        //   Rule 3 (Avoid deprecated source addresses) — InetAddress exposes no deprecation state.
+        //   Rule 4 (Prefer home addresses) — Mobile IPv6 concept; not applicable to an HTTP client.
+        //   Rule 7 (Prefer native transport) — JDK provides no encapsulation/tunneling info.
 
         // Rule 1: Avoid unusable destinations.
         final boolean validA = aSrc != null && !aSrc.isAnyLocalAddress();
@@ -575,6 +596,10 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
             return preferB;
         }
 
+        // Rule 3: Avoid deprecated addresses — skipped (see above).
+
+        // Rule 4: Prefer home addresses — skipped (see above).
+
         // Rule 5: Prefer matching label.
         if (aSrcAttr.label == aDstAttr.label && bSrcAttr.label != bDstAttr.label) {
             return preferA;
@@ -591,6 +616,8 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
             return preferB;
         }
 
+        // Rule 7: Prefer native transport — skipped (see above).
+
         // Rule 8: Prefer smaller scope.
         if (aDstAttr.scope.value < bDstAttr.scope.value) {
             return preferA;
@@ -599,8 +626,16 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
             return preferB;
         }
 
-        // Rule 9: Longest matching prefix (IPv6 only).
-        if (aDst instanceof Inet6Address && bDst instanceof Inet6Address) {
+        // Rule 9: Use longest matching prefix (RFC 6724 §6).
+        // Applies when DA and DB belong to the same address family.
+        //
+        // Note: this is an approximation. A fully correct implementation would
+        // use the source address's on-link prefix length (from the interface
+        // configuration / routing table), not the bit-wise common-prefix of
+        // source and destination. The JDK does not expose interface prefix
+        // lengths for source address selection, so we fall back to
+        // CommonPrefixLen(Source(D), D) as a reasonable heuristic.
+        if (aDst.getClass() == bDst.getClass()) {
             final int commonA = commonPrefixLen(aSrc, aDst);
             final int commonB = commonPrefixLen(bSrc, bDst);
             if (commonA > commonB) {
@@ -640,7 +675,7 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
         return bits;
     }
 
-    private static String addr(final InetAddress a) {
+    static String addr(final InetAddress a) {
         if (a == null) {
             return "null";
         }
@@ -648,23 +683,16 @@ public final class Rfc6724AddressSelectingDnsResolver implements DnsResolver {
         return family + "(" + a.getHostAddress() + ")";
     }
 
-    private static List<String> fmt(final InetAddress[] arr) {
-        final List<String> out = new ArrayList<>(arr.length);
-        for (final InetAddress a : arr) {
-            out.add(addr(a));
-        }
-        return out;
+    static List<String> fmt(final InetAddress[] arr) {
+        return Arrays.stream(arr)
+                .map(AddressSelectingDnsResolver::addr)
+                .collect(Collectors.toList());
     }
 
-    private static List<String> fmt(final List<InetAddress> arr) {
-        final List<String> out = new ArrayList<>(arr.size());
-        for (final InetAddress a : arr) {
-            out.add(addr(a));
-        }
-        return out;
+    static List<String> fmt(final List<InetAddress> arr) {
+        return arr.stream()
+                .map(AddressSelectingDnsResolver::addr)
+                .collect(Collectors.toList());
     }
 
-    private static String simpleName() {
-        return "Rfc6724Resolver";
-    }
 }
