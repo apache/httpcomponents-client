@@ -79,7 +79,7 @@ class TestLinearBackoffManager {
 
         // Manipulate lastRouteBackoffs to simulate that not enough time has passed for the cooldown period
         final Map<HttpRoute, Instant> lastRouteBackoffs = impl.getLastRouteBackoffs();
-        lastRouteBackoffs.put(route, Instant.now().minusMillis(DEFAULT_COOL_DOWN_MS - 1));
+        lastRouteBackoffs.put(route, Instant.now().minusMillis(1));
 
         // Act
         impl.backOff(route);
