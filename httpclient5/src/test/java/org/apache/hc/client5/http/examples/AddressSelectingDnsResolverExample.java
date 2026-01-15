@@ -30,11 +30,11 @@ package org.apache.hc.client5.http.examples;
 import java.net.InetAddress;
 
 import org.apache.hc.client5.http.DnsResolver;
-import org.apache.hc.client5.http.Rfc6724AddressSelectingDnsResolver;
+import org.apache.hc.client5.http.AddressSelectingDnsResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.config.ProtocolFamilyPreference;
 
-public final class Rfc6724ResolverExample {
+public final class AddressSelectingDnsResolverExample {
 
     public static void main(final String[] args) throws Exception {
         final String host = args.length > 0 ? args[0] : "localhost";
@@ -42,26 +42,38 @@ public final class Rfc6724ResolverExample {
                 ? ProtocolFamilyPreference.valueOf(args[1])
                 : ProtocolFamilyPreference.DEFAULT;
 
-        final DnsResolver resolver = new Rfc6724AddressSelectingDnsResolver(SystemDefaultDnsResolver.INSTANCE, pref);
-
-        final InetAddress[] out = resolver.resolve(host);
-
         System.out.println("Host: " + host);
         System.out.println("Preference: " + pref);
-        if (out == null) {
-            System.out.println("Result: null");
+        System.out.println();
+
+        // Before: raw system resolver output (no RFC 6724 ordering).
+        final InetAddress[] raw = SystemDefaultDnsResolver.INSTANCE.resolve(host);
+        System.out.println("Before (system resolver):");
+        printAddresses(raw);
+
+        // After: RFC 6724 ordered + family preference applied.
+        final DnsResolver resolver = new AddressSelectingDnsResolver(SystemDefaultDnsResolver.INSTANCE, pref);
+        final InetAddress[] out = resolver.resolve(host);
+        System.out.println("After (AddressSelectingDnsResolver, " + pref + "):");
+        printAddresses(out);
+    }
+
+    private static void printAddresses(final InetAddress[] addresses) {
+        if (addresses == null) {
+            System.out.println("  null");
             return;
         }
-        if (out.length == 0) {
-            System.out.println("Result: []");
+        if (addresses.length == 0) {
+            System.out.println("  []");
             return;
         }
-        for (final InetAddress a : out) {
+        for (final InetAddress a : addresses) {
             final String family = a instanceof java.net.Inet6Address ? "IPv6" : "IPv4";
             System.out.println("  " + family + " " + a.getHostAddress());
         }
+        System.out.println();
     }
 
-    private Rfc6724ResolverExample() {
+    private AddressSelectingDnsResolverExample() {
     }
 }
