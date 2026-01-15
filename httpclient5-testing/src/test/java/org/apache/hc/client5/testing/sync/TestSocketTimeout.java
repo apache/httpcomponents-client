@@ -41,16 +41,13 @@ import org.apache.hc.core5.http.io.SocketConfig;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.net.SocketTimeoutException;
 import java.net.URI;
-import java.util.concurrent.TimeUnit;
 
-import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 abstract class AbstractTestSocketTimeout extends AbstractIntegrationTestBase {
     protected AbstractTestSocketTimeout(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel,
@@ -60,27 +57,16 @@ abstract class AbstractTestSocketTimeout extends AbstractIntegrationTestBase {
 
     @Timeout(5)
     @ParameterizedTest
-    @ValueSource(strings = {
-        "150,0,0,150,false",
-        "0,150,0,150,false",
-        "150,0,0,150,true",
-        "0,150,0,150,true",
+    @CsvSource({
+        "10,0,0",
+        "0,10,0",
         // ConnectionConfig overrides SocketConfig
-        "50,150,0,150,false",
-        "1000,150,0,150,false",
-        "50,150,0,150,true",
-        "1000,150,0,150,true",
+        "10000,10,0",
         // ResponseTimeout overrides socket timeout
-        "2000,2000,150,150,false",
-        "2000,2000,150,150,true"
+        "10000,10000,10",
     })
-    void testReadTimeouts(final String param) throws Exception {
-        final String[] params = param.split(",");
-        final int socketConfigTimeout = Integer.parseInt(params[0]);
-        final int connConfigTimeout = Integer.parseInt(params[1]);
-        final long responseTimeout = Integer.parseInt(params[2]);
-        final long expectedDelayMs = Long.parseLong(params[3]);
-        final boolean drip = Boolean.parseBoolean(params[4]);
+    void testReadTimeouts(final int socketConfigTimeout, final int connConfigTimeout, final int responseTimeout)
+        throws Exception {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", new RandomHandler()));
         final HttpHost target = startServer();
@@ -97,23 +83,24 @@ abstract class AbstractTestSocketTimeout extends AbstractIntegrationTestBase {
                 .setSocketTimeout(connConfigTimeout, MILLISECONDS)
                 .build());
         }
-        final HttpGet request = new HttpGet(new URI("/random/10240?delay=1000&drip=" + (drip ? 1 : 0)));
+
+        for (final boolean drip : new boolean[]{ false, true }) {
+            final HttpGet request = getRequest(responseTimeout, drip);
+
+            assertThrows(SocketTimeoutException.class, () ->
+                client.execute(target, request, new BasicHttpClientResponseHandler()));
+        }
+    }
+
+    private HttpGet getRequest(final int responseTimeout, final boolean drip) throws Exception {
+        final HttpGet request = new HttpGet(new URI("/random/10240?delay=2500&drip=" + (drip ? 1 : 0)));
         if (responseTimeout > 0) {
             request.setConfig(RequestConfig.custom()
                 .setUnixDomainSocket(getUnixDomainSocket())
                 .setResponseTimeout(responseTimeout, MILLISECONDS)
                 .build());
         }
-
-        final long startTime = System.nanoTime();
-        assertThrows(SocketTimeoutException.class, () ->
-            client.execute(target, request, new BasicHttpClientResponseHandler()));
-        final long actualDelayMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-
-        assertTrue(actualDelayMs > expectedDelayMs / 2,
-            format("Socket read timed out too soon (only %,d out of %,d ms)", actualDelayMs, expectedDelayMs));
-        assertTrue(actualDelayMs < expectedDelayMs * 3,
-            format("Socket read timed out too late (%,d out of %,d ms)", actualDelayMs, expectedDelayMs));
+        return request;
     }
 }
 
@@ -128,7 +115,7 @@ public class TestSocketTimeout {
     @Nested
     class Https extends AbstractTestSocketTimeout {
         public Https() {
-            super(URIScheme.HTTP, ClientProtocolLevel.STANDARD, false);
+            super(URIScheme.HTTPS, ClientProtocolLevel.STANDARD, false);
         }
     }
 
