@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.Closeable;
 import java.util.List;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
@@ -55,11 +54,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Internal implementation of HTTP/2 only {@link CloseableHttpAsyncClient}.
- * <p>
- * Concurrent message exchanges with the same connection route executed by
- * this client will get automatically multiplexed over a single physical HTTP/2
- * connection.
- * </p>
  *
  * @since 5.0
  */
@@ -70,8 +64,12 @@ public final class InternalH2AsyncClient extends InternalAbstractHttpAsyncClient
     private static final Logger LOG = LoggerFactory.getLogger(InternalH2AsyncClient.class);
     private final HttpRoutePlanner routePlanner;
     private final InternalH2ConnPool connPool;
-    private final int maxQueuedRequests;
-    private final AtomicInteger queuedRequests;
+
+    /**
+     * One shared FIFO queue per client instance (Oleg).
+     * null means "unlimited" / no throttling.
+     */
+    private final SharedRequestExecutionQueue executionQueue;
 
     InternalH2AsyncClient(
             final DefaultConnectingIOReactor ioReactor,
@@ -87,25 +85,22 @@ public final class InternalH2AsyncClient extends InternalAbstractHttpAsyncClient
             final RequestConfig defaultConfig,
             final List<Closeable> closeables,
             final int maxQueuedRequests) {
+
         super(ioReactor, pushConsumerRegistry, threadFactory, execChain,
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider, HttpClientContext::castOrCreate,
                 defaultConfig, closeables);
         this.connPool = connPool;
         this.routePlanner = routePlanner;
-        this.maxQueuedRequests = maxQueuedRequests;
-        this.queuedRequests = maxQueuedRequests > 0 ? new AtomicInteger(0) : null;
+        this.executionQueue = maxQueuedRequests > 0 ? new SharedRequestExecutionQueue(maxQueuedRequests) : null;
     }
 
     @Override
     AsyncExecRuntime createAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
-        return new InternalH2AsyncExecRuntime(LOG, connPool, pushHandlerFactory, maxQueuedRequests, queuedRequests);
+        return new InternalH2AsyncExecRuntime(LOG, connPool, pushHandlerFactory, executionQueue);
     }
 
     @Override
-    HttpRoute determineRoute(
-            final HttpHost httpHost,
-            final HttpRequest request,
-            final HttpClientContext clientContext) throws HttpException {
+    HttpRoute determineRoute(final HttpHost httpHost, final HttpRequest request, final HttpClientContext clientContext) throws HttpException {
         final HttpRoute route = routePlanner.determineRoute(httpHost, request, clientContext);
         if (route.isTunnelled()) {
             throw new HttpException("HTTP/2 tunneling not supported");

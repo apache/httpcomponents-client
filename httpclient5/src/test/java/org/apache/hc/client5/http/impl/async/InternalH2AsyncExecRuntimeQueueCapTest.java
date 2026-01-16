@@ -37,7 +37,6 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -68,16 +67,17 @@ import org.slf4j.LoggerFactory;
 
 public class InternalH2AsyncExecRuntimeQueueCapTest {
 
-    private static InternalH2AsyncExecRuntime newRuntime(final int maxQueued) {
+    private static InternalH2AsyncExecRuntime newRuntime(final int maxConcurrent) {
         final IOSession ioSession = newImmediateFailSession();
         final FakeH2ConnPool connPool = new FakeH2ConnPool(ioSession);
-        final AtomicInteger queued = maxQueued > 0 ? new AtomicInteger(0) : null;
+
+        final SharedRequestExecutionQueue queue = maxConcurrent > 0 ? new SharedRequestExecutionQueue(maxConcurrent) : null;
+
         return new InternalH2AsyncExecRuntime(
                 LoggerFactory.getLogger("test"),
                 connPool,
                 new NoopPushFactory(),
-                maxQueued,
-                queued);
+                queue);
     }
 
     private static void acquireEndpoint(
@@ -109,19 +109,19 @@ public class InternalH2AsyncExecRuntimeQueueCapTest {
     }
 
     /**
-     * With no cap (maxQueued &lt;= 0) the recursive re-entry path should blow the stack.
-     * This documents the pathological behaviour without queue protection.
+     * With no cap / no queue, the re-entrant execute path can recurse until SOE
+     * if failures are delivered synchronously.
      */
     @Test
     void testRecursiveReentryCausesSOEWithoutCap() throws Exception {
-        final InternalH2AsyncExecRuntime runtime = newRuntime(-1);
+        final InternalH2AsyncExecRuntime runtime = newRuntime(0);
 
         final HttpClientContext ctx = HttpClientContext.create();
         ctx.setRequestConfig(RequestConfig.custom().build());
 
         acquireEndpoint(runtime, ctx);
 
-        final ReentrantHandler loop = new ReentrantHandler(runtime, ctx);
+        final ReentrantHandler loop = new ReentrantHandler(runtime, ctx, Integer.MAX_VALUE);
 
         assertThrows(StackOverflowError.class, () -> {
             runtime.execute("loop", loop, ctx);
@@ -129,8 +129,8 @@ public class InternalH2AsyncExecRuntimeQueueCapTest {
     }
 
     /**
-     * With a cap of 1, the second re-entrant execute call must be rejected and
-     * the recursion broken.
+     * With cap=1 and QUEUE semantics, re-entrant submissions should be queued,
+     * not executed inline recursively. This test must NOT expect rejection.
      */
     @Test
     void testCapBreaksRecursiveReentry() throws Exception {
@@ -141,14 +141,13 @@ public class InternalH2AsyncExecRuntimeQueueCapTest {
 
         acquireEndpoint(runtime, ctx);
 
-        final ReentrantHandler loop = new ReentrantHandler(runtime, ctx);
+        final int maxAttempts = 200;
+        final ReentrantHandler loop = new ReentrantHandler(runtime, ctx, maxAttempts);
 
         runtime.execute("loop", loop, ctx);
-        // immediate fail path runs synchronously; small wait is just defensive
-        Thread.sleep(50);
 
-        assertTrue(loop.lastException.get() instanceof RejectedExecutionException,
-                "Expected queue rejection to break recursion");
+        assertTrue(loop.done.await(2, TimeUnit.SECONDS), "expected bounded re-entry loop to terminate");
+        assertTrue(loop.attempts.get() >= maxAttempts, "expected at least " + maxAttempts + " attempts, got " + loop.attempts.get());
     }
 
     /**
@@ -168,8 +167,7 @@ public class InternalH2AsyncExecRuntimeQueueCapTest {
                 final HttpRoute route,
                 final Timeout timeout,
                 final FutureCallback<IOSession> callback) {
-            final CompletableFuture<IOSession> cf = new CompletableFuture<>();
-            cf.complete(session);
+            final CompletableFuture<IOSession> cf = CompletableFuture.completedFuture(session);
             if (callback != null) {
                 callback.completed(session);
             }
@@ -228,19 +226,33 @@ public class InternalH2AsyncExecRuntimeQueueCapTest {
 
         private final InternalH2AsyncExecRuntime runtime;
         private final HttpClientContext context;
-        final AtomicReference<Exception> lastException = new AtomicReference<>();
+        private final int maxAttempts;
 
-        ReentrantHandler(final InternalH2AsyncExecRuntime runtime, final HttpClientContext context) {
+        final AtomicInteger attempts;
+        final AtomicReference<Exception> lastException;
+        final CountDownLatch done;
+
+        ReentrantHandler(final InternalH2AsyncExecRuntime runtime, final HttpClientContext context, final int maxAttempts) {
             this.runtime = runtime;
             this.context = context;
+            this.maxAttempts = maxAttempts;
+            this.attempts = new AtomicInteger(0);
+            this.lastException = new AtomicReference<>();
+            this.done = new CountDownLatch(1);
         }
 
         @Override
         public void failed(final Exception cause) {
             lastException.set(cause);
-            if (!(cause instanceof RejectedExecutionException)) {
-                runtime.execute("loop/reenter", this, context);
+
+            final int n = attempts.incrementAndGet();
+            if (n >= maxAttempts) {
+                done.countDown();
+                return;
             }
+
+            // Re-enter. With QUEUE cap=1 this must not recurse inline until SOE.
+            runtime.execute("loop/reenter/" + n, this, context);
         }
 
         @Override
