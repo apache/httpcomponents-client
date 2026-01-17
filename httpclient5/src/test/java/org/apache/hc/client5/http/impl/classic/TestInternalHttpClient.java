@@ -39,9 +39,11 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
@@ -69,6 +71,8 @@ class TestInternalHttpClient {
     @Mock
     private ExecChainHandler execChain;
     @Mock
+    private Supplier<String> exchangeIdGenerator;
+    @Mock
     private HttpRoutePlanner routePlanner;
     @Mock
     private Lookup<CookieSpecFactory> cookieSpecRegistry;
@@ -90,10 +94,10 @@ class TestInternalHttpClient {
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-        client = new InternalHttpClient(connManager, requestExecutor, new ExecChainElement(execChain, null), routePlanner,
+        client = new InternalHttpClient(connManager, requestExecutor, exchangeIdGenerator,
+                new ExecChainElement(execChain, null), routePlanner,
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider,
                 HttpClientContext::castOrCreate, defaultConfig, Arrays.asList(closeable1, closeable2));
-
     }
 
     @Test
@@ -101,6 +105,7 @@ class TestInternalHttpClient {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
 
+        Mockito.when(exchangeIdGenerator.get()).thenReturn(ExecSupport.getNextExchangeId());
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
                 Mockito.any(),
@@ -122,6 +127,7 @@ class TestInternalHttpClient {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
 
+        Mockito.when(exchangeIdGenerator.get()).thenReturn(ExecSupport.getNextExchangeId());
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
                 Mockito.any(),
@@ -143,6 +149,7 @@ class TestInternalHttpClient {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
 
+        Mockito.when(exchangeIdGenerator.get()).thenReturn(ExecSupport.getNextExchangeId());
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
                 Mockito.any(),
@@ -166,6 +173,7 @@ class TestInternalHttpClient {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
 
+        Mockito.when(exchangeIdGenerator.get()).thenReturn(ExecSupport.getNextExchangeId());
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
                 Mockito.any(),
@@ -187,6 +195,7 @@ class TestInternalHttpClient {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
 
+        Mockito.when(exchangeIdGenerator.get()).thenReturn(ExecSupport.getNextExchangeId());
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
                 Mockito.any(),
@@ -240,11 +249,30 @@ class TestInternalHttpClient {
     void testDoExecuteThrowsWhenNoTargetOrHost() throws Exception {
         final ClassicHttpRequest request = ClassicRequestBuilder.get("/foo").build();
         final HttpClientContext context = HttpClientContext.create();
+        Mockito.when(exchangeIdGenerator.get()).thenReturn(ExecSupport.getNextExchangeId());
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(null),
                 Mockito.any(),
                 Mockito.<HttpClientContext>any())).thenThrow(new ProtocolException());
         Assertions.assertThrows(ClientProtocolException.class, () ->
                 client.executeOpen(null, request, context));
+    }
+
+    @Test
+    void testExchangeIdGenerator() throws Exception {
+        final HttpGet httpget = new HttpGet("http://somehost/stuff");
+        final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
+
+        Mockito.when(exchangeIdGenerator.get()).thenReturn(ExecSupport.getNextExchangeId());
+        Mockito.when(routePlanner.determineRoute(
+                Mockito.eq(new HttpHost("somehost")),
+                Mockito.any(),
+                Mockito.<HttpClientContext>any())).thenReturn(route);
+        Mockito.when(execChain.execute(
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(
+                CloseableHttpResponse.adapt(new BasicClassicHttpResponse(200)));
+
+        client.execute(httpget, response -> null);
+        Mockito.verify(exchangeIdGenerator).get();
     }
 }

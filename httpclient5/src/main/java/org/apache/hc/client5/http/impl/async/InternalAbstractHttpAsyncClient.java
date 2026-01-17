@@ -50,13 +50,13 @@ import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
@@ -88,6 +88,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
     private static final Logger LOG = LoggerFactory.getLogger(InternalAbstractHttpAsyncClient.class);
 
     private final AsyncExecChainElement execChain;
+    private final Supplier<String> exchangeIdGenerator;
     private final Lookup<CookieSpecFactory> cookieSpecRegistry;
     private final Lookup<AuthSchemeFactory> authSchemeRegistry;
     private final CookieStore cookieStore;
@@ -103,6 +104,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
             final AsyncPushConsumerRegistry pushConsumerRegistry,
             final ThreadFactory threadFactory,
             final AsyncExecChainElement execChain,
+            final Supplier<String> exchangeIdGenerator,
             final Lookup<CookieSpecFactory> cookieSpecRegistry,
             final Lookup<AuthSchemeFactory> authSchemeRegistry,
             final CookieStore cookieStore,
@@ -112,6 +114,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
             final List<Closeable> closeables) {
         super(ioReactor, pushConsumerRegistry, threadFactory);
         this.execChain = execChain;
+        this.exchangeIdGenerator = exchangeIdGenerator;
         this.cookieSpecRegistry = cookieSpecRegistry;
         this.authSchemeRegistry = authSchemeRegistry;
         this.cookieStore = cookieStore;
@@ -232,7 +235,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                         resolvedTarget,
                         request,
                         clientContext);
-                final String exchangeId = ExecSupport.getNextExchangeId();
+                final String exchangeId = exchangeIdGenerator.get();
                 clientContext.setExchangeId(exchangeId);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} preparing request execution", exchangeId);
