@@ -61,6 +61,7 @@ import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
+import org.apache.hc.client5.http.impl.DefaultExchangeIdGenerator;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
@@ -89,6 +90,7 @@ import org.apache.hc.client5.http.protocol.RequestValidateTrace;
 import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
@@ -194,6 +196,7 @@ public class HttpClientBuilder {
     }
 
     private HttpRequestExecutor requestExec;
+    private Supplier<String> exchangeIdGenerator;
     private HttpClientConnectionManager connManager;
     private boolean connManagerShared;
     private SchemePortResolver schemePortResolver;
@@ -254,6 +257,17 @@ public class HttpClientBuilder {
      */
     public final HttpClientBuilder setRequestExecutor(final HttpRequestExecutor requestExec) {
         this.requestExec = requestExec;
+        return this;
+    }
+
+    /**
+     * Sets exchange ID generator instance.
+     *
+     * @return this instance.
+     * @since 5.7
+     */
+    public final HttpClientBuilder setExchangeIdGenerator(final Supplier<String> exchangeIdGenerator) {
+        this.exchangeIdGenerator = exchangeIdGenerator;
         return this;
     }
 
@@ -865,6 +879,10 @@ public class HttpClientBuilder {
         if (requestExecCopy == null) {
             requestExecCopy = new HttpRequestExecutor();
         }
+        Supplier<String> exchangeIdGeneratorCopy = this.exchangeIdGenerator;
+        if (exchangeIdGeneratorCopy == null) {
+            exchangeIdGeneratorCopy = DefaultExchangeIdGenerator.INSTANCE;
+        }
         HttpClientConnectionManager connManagerCopy = this.connManager;
         if (connManagerCopy == null) {
             final PoolingHttpClientConnectionManagerBuilder connectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
@@ -1139,6 +1157,7 @@ public class HttpClientBuilder {
         return new InternalHttpClient(
                 connManagerCopy,
                 requestExecCopy,
+                exchangeIdGeneratorCopy,
                 execChain,
                 routePlannerCopy,
                 cookieSpecRegistryCopy,

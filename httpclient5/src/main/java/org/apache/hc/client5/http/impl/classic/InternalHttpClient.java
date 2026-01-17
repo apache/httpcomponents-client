@@ -43,7 +43,6 @@ import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
@@ -52,6 +51,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
@@ -85,6 +85,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
 
     private final HttpClientConnectionManager connManager;
     private final HttpRequestExecutor requestExecutor;
+    private final Supplier<String> exchangeIdGenerator;
     private final ExecChainElement execChain;
     private final HttpRoutePlanner routePlanner;
     private final Lookup<CookieSpecFactory> cookieSpecRegistry;
@@ -98,6 +99,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
     public InternalHttpClient(
             final HttpClientConnectionManager connManager,
             final HttpRequestExecutor requestExecutor,
+            final Supplier<String> exchangeIdGenerator,
             final ExecChainElement execChain,
             final HttpRoutePlanner routePlanner,
             final Lookup<CookieSpecFactory> cookieSpecRegistry,
@@ -110,6 +112,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
         super();
         this.connManager = Args.notNull(connManager, "Connection manager");
         this.requestExecutor = Args.notNull(requestExecutor, "Request executor");
+        this.exchangeIdGenerator = Args.notNull(exchangeIdGenerator, "Exchange id generator");
         this.execChain = Args.notNull(execChain, "Execution chain");
         this.routePlanner = Args.notNull(routePlanner, "Route planner");
         this.cookieSpecRegistry = cookieSpecRegistry;
@@ -173,7 +176,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
                     resolvedTarget,
                     request,
                     localcontext);
-            final String exchangeId = ExecSupport.getNextExchangeId();
+            final String exchangeId = exchangeIdGenerator.get();
             localcontext.setExchangeId(exchangeId);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} preparing request execution", exchangeId);

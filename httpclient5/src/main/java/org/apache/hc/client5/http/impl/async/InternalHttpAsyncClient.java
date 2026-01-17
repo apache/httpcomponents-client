@@ -46,6 +46,7 @@ import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -85,6 +86,7 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
             final AsyncPushConsumerRegistry pushConsumerRegistry,
             final ThreadFactory threadFactory,
             final AsyncClientConnectionManager manager,
+            final Supplier<String> exchangeIdGenerator,
             final HttpRoutePlanner routePlanner,
             final TlsConfig tlsConfig,
             final Lookup<CookieSpecFactory> cookieSpecRegistry,
@@ -95,7 +97,7 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
             final RequestConfig defaultConfig,
             final List<Closeable> closeables,
             final int maxQueuedRequests) {
-        super(ioReactor, pushConsumerRegistry, threadFactory, execChain,
+        super(ioReactor, pushConsumerRegistry, threadFactory, execChain, exchangeIdGenerator,
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider, contextAdaptor,
                 defaultConfig, closeables);
         this.manager = manager;

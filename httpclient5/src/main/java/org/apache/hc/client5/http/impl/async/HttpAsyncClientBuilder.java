@@ -59,6 +59,7 @@ import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
+import org.apache.hc.client5.http.impl.DefaultExchangeIdGenerator;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
@@ -91,6 +92,7 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.function.Decorator;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
@@ -233,6 +235,7 @@ public class HttpAsyncClientBuilder {
     private LinkedList<ResponseInterceptorEntry> responseInterceptors;
     private LinkedList<ExecInterceptorEntry> execInterceptors;
 
+    private Supplier<String> exchangeIdGenerator;
     private HttpRoutePlanner routePlanner;
     private RedirectStrategy redirectStrategy;
     private HttpRequestRetryStrategy retryStrategy;
@@ -696,6 +699,17 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
+     * Sets exchange ID generator instance.
+     *
+     * @return this instance.
+     * @since 5.7
+     */
+    public final HttpAsyncClientBuilder setExchangeIdGenerator(final Supplier<String> exchangeIdGenerator) {
+        this.exchangeIdGenerator = exchangeIdGenerator;
+        return this;
+    }
+
+    /**
      * Sets {@link HttpRoutePlanner} instance.
      *
      * @return this instance.
@@ -1140,6 +1154,10 @@ public class HttpAsyncClientBuilder {
             execChainDefinition.addFirst(new TlsRequiredAsyncExec(), ChainElement.TLS_REQUIRED.name());
         }
 
+        Supplier<String> exchangeIdGeneratorCopy = this.exchangeIdGenerator;
+        if (exchangeIdGeneratorCopy == null) {
+            exchangeIdGeneratorCopy = DefaultExchangeIdGenerator.INSTANCE;
+        }
 
         HttpRoutePlanner routePlannerCopy = this.routePlanner;
         if (routePlannerCopy == null) {
@@ -1277,6 +1295,7 @@ public class HttpAsyncClientBuilder {
                 pushConsumerRegistry,
                 threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-main", true),
                 connManagerCopy,
+                exchangeIdGeneratorCopy,
                 routePlannerCopy,
                 tlsConfig,
                 cookieSpecRegistryCopy,
