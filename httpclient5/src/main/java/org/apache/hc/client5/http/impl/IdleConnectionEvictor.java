@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.impl;
 
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -46,6 +47,9 @@ import org.apache.hc.core5.util.Timeout;
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public final class IdleConnectionEvictor {
 
+    private static final TimeValue ONE_SECOND = TimeValue.ofSeconds(1L);
+    private static final TimeValue ONE_MINUTE = TimeValue.ofMinutes(1L);
+
     private final ThreadFactory threadFactory;
     private final Thread thread;
 
@@ -53,7 +57,7 @@ public final class IdleConnectionEvictor {
                                  final TimeValue sleepTime, final TimeValue maxIdleTime) {
         Args.notNull(connectionManager, "Connection manager");
         this.threadFactory = threadFactory != null ? threadFactory : new DefaultThreadFactory("idle-connection-evictor", true);
-        final TimeValue localSleepTime = sleepTime != null ? sleepTime : TimeValue.ofSeconds(5);
+        final TimeValue localSleepTime = sleepTime != null ? sleepTime : calculateSleepTime(maxIdleTime);
         this.thread = this.threadFactory.newThread(() -> {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
@@ -76,7 +80,7 @@ public final class IdleConnectionEvictor {
     }
 
     public IdleConnectionEvictor(final ConnPoolControl<?> connectionManager, final TimeValue maxIdleTime) {
-        this(connectionManager, null, maxIdleTime, maxIdleTime);
+        this(connectionManager, null, null, maxIdleTime);
     }
 
     public void start() {
@@ -93,6 +97,15 @@ public final class IdleConnectionEvictor {
 
     public void awaitTermination(final Timeout timeout) throws InterruptedException {
         thread.join(timeout != null ? timeout.toMilliseconds() : Long.MAX_VALUE);
+    }
+
+    static TimeValue calculateSleepTime(final TimeValue maxIdleTime) {
+        if (maxIdleTime == null) {
+            return ONE_MINUTE;
+        } else {
+            final TimeValue sleepTime = maxIdleTime.divide(10, TimeUnit.NANOSECONDS);
+            return sleepTime.compareTo(ONE_SECOND) < 0 ? ONE_SECOND : sleepTime;
+        }
     }
 
 }

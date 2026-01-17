@@ -78,4 +78,12 @@ class TestIdleConnectionEvictor {
         Assertions.assertFalse(connectionEvictor.isRunning());
     }
 
+    @Test
+    void testCalculateSleepTime() throws Exception {
+        Assertions.assertEquals(TimeValue.ofMinutes(1), IdleConnectionEvictor.calculateSleepTime(null));
+        Assertions.assertEquals(TimeValue.ofSeconds(3), IdleConnectionEvictor.calculateSleepTime(TimeValue.ofSeconds(30)));
+        Assertions.assertEquals(TimeValue.ofSeconds(1), IdleConnectionEvictor.calculateSleepTime(TimeValue.ofSeconds(10)));
+        Assertions.assertEquals(TimeValue.ofSeconds(1), IdleConnectionEvictor.calculateSleepTime(TimeValue.ofMilliseconds(125)));
+    }
+
 }
