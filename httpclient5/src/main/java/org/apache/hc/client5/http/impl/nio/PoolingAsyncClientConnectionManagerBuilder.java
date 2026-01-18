@@ -68,8 +68,6 @@ import org.apache.hc.core5.util.TimeValue;
  *  <li>javax.net.ssl.keyStore</li>
  *  <li>javax.net.ssl.keyStoreProvider</li>
  *  <li>javax.net.ssl.keyStorePassword</li>
- *  <li>https.protocols</li>
- *  <li>https.cipherSuites</li>
  * </ul>
  *
  * @since 5.0
