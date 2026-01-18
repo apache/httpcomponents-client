@@ -64,8 +64,8 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
     public static DefaultClientTlsStrategy createSystemDefault() {
         return new DefaultClientTlsStrategy(
                 SSLContexts.createSystemDefault(),
-                HttpsSupport.getSystemProtocols(),
-                HttpsSupport.getSystemCipherSuits(),
+                null,
+                null,
                 SSLBufferMode.STATIC,
                 HostnameVerificationPolicy.BUILTIN,
                 null);

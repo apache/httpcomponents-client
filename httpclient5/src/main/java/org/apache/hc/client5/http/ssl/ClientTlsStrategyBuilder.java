@@ -58,8 +58,6 @@ import org.apache.hc.core5.ssl.SSLContexts;
  *  <li>javax.net.ssl.keyStore</li>
  *  <li>javax.net.ssl.keyStoreProvider</li>
  *  <li>javax.net.ssl.keyStorePassword</li>
- *  <li>https.protocols</li>
- *  <li>https.cipherSuites</li>
  * </ul>
  *
  * @since 5.0
@@ -212,24 +210,12 @@ public class ClientTlsStrategyBuilder {
         } else {
             sslContextCopy = systemProperties ? SSLContexts.createSystemDefault() : SSLContexts.createDefault();
         }
-        final String[] tlsVersionsCopy;
-        if (tlsVersions != null) {
-            tlsVersionsCopy = tlsVersions;
-        } else {
-            tlsVersionsCopy = systemProperties ? HttpsSupport.getSystemProtocols() : null;
-        }
-        final String[] ciphersCopy;
-        if (ciphers != null) {
-            ciphersCopy = ciphers;
-        } else {
-            ciphersCopy = systemProperties ? HttpsSupport.getSystemCipherSuits() : null;
-        }
         final HostnameVerificationPolicy hostnameVerificationPolicyCopy = hostnameVerificationPolicy != null ? hostnameVerificationPolicy :
                 (hostnameVerifier == null ? HostnameVerificationPolicy.BUILTIN : HostnameVerificationPolicy.BOTH);
         return new DefaultClientTlsStrategy(
                 sslContextCopy,
-                tlsVersionsCopy,
-                ciphersCopy,
+                tlsVersions,
+                ciphers,
                 sslBufferMode != null ? sslBufferMode : SSLBufferMode.STATIC,
                 hostnameVerificationPolicyCopy,
                 hostnameVerifier);

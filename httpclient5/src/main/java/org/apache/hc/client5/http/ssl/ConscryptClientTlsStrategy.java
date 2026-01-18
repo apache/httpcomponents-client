@@ -61,8 +61,8 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
     public static TlsStrategy getSystemDefault() {
         return new ConscryptClientTlsStrategy(
                 SSLContexts.createSystemDefault(),
-                HttpsSupport.getSystemProtocols(),
-                HttpsSupport.getSystemCipherSuits(),
+                null,
+                null,
                 SSLBufferMode.STATIC,
                 HostnameVerificationPolicy.BUILTIN,
                 null);

@@ -46,10 +46,18 @@ public final class HttpsSupport {
         return s.split(" *, *");
     }
 
+    /**
+     * @deprecated Do not use.
+     */
+    @Deprecated
     public static String[] getSystemProtocols() {
         return split(System.getProperty("https.protocols"));
     }
 
+    /**
+     * @deprecated Do not use.
+     */
+    @Deprecated
     public static String[] getSystemCipherSuits() {
         return split(System.getProperty("https.cipherSuites"));
     }
