@@ -127,8 +127,7 @@ public class SSLConnectionSocketFactoryBuilder {
     }
 
     /**
-     * Use system properties when creating and configuring default
-     * implementations.
+     * Use system properties when creating new instances.
      *
      * @return this instance.
      */

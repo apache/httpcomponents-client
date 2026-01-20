@@ -69,7 +69,7 @@ public class AsyncClientInflateDecompressionExample {
 
         /* The default builder now contains ContentCompressionAsyncExec,
            so transparent decompression is automatic. */
-        try (final CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
+        try (final CloseableHttpAsyncClient client = HttpAsyncClients.create()) {
             client.start();
 
             final SimpleHttpRequest request =

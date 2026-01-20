@@ -225,14 +225,13 @@ public class HttpClientBuilder {
     private boolean evictIdleConnections;
     private TimeValue maxIdleTime;
 
-    private boolean systemProperties;
+    private boolean ignoreSystemProperties;
     private boolean redirectHandlingDisabled;
     private boolean automaticRetriesDisabled;
     private boolean contentCompressionDisabled;
     private boolean cookieManagementDisabled;
     private boolean authCachingDisabled;
     private boolean connectionStateDisabled;
-    private boolean defaultUserAgentDisabled;
     private ProxySelector proxySelector;
 
     private boolean tlsRequired;
@@ -732,13 +731,24 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Use system properties when creating and configuring default
-     * implementations.
+     * Use system properties when creating new instances.
      *
      * @return this instance.
      */
     public final HttpClientBuilder useSystemProperties() {
-        this.systemProperties = true;
+        this.ignoreSystemProperties = false;
+        return this;
+    }
+
+    /**
+     * Ignore system properties when creating new instances.
+     *
+     * @return this instance.
+     *
+     * @since 5.7
+     */
+    public final HttpClientBuilder ignoreSystemProperties() {
+        this.ignoreSystemProperties = true;
         return this;
     }
 
@@ -798,9 +808,11 @@ public class HttpClientBuilder {
      *
      * @return this instance.
      * @since 4.5.7
+     *
+     * @deprecated Do not use.
      */
+    @Deprecated
     public final HttpClientBuilder disableDefaultUserAgent() {
-        this.defaultUserAgentDisabled = true;
         return this;
     }
 
@@ -883,8 +895,8 @@ public class HttpClientBuilder {
         HttpClientConnectionManager connManagerCopy = this.connManager;
         if (connManagerCopy == null) {
             final PoolingHttpClientConnectionManagerBuilder connectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
-            if (systemProperties) {
-                connectionManagerBuilder.useSystemProperties();
+            if (ignoreSystemProperties) {
+                connectionManagerBuilder.ignoreSystemProperties();
             }
             connManagerCopy = connectionManagerBuilder.build();
         }
@@ -1039,11 +1051,11 @@ public class HttpClientBuilder {
                 routePlannerCopy = new DefaultProxyRoutePlanner(proxy, schemePortResolverCopy);
             } else if (this.proxySelector != null) {
                 routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, this.proxySelector);
-            } else if (systemProperties) {
+            } else if (ignoreSystemProperties) {
+                routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
+            } else {
                 final ProxySelector defaultProxySelector = ProxySelector.getDefault();
                 routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, defaultProxySelector);
-            } else {
-                routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
             }
         }
 
@@ -1118,10 +1130,10 @@ public class HttpClientBuilder {
 
         CredentialsProvider defaultCredentialsProvider = this.credentialsProvider;
         if (defaultCredentialsProvider == null) {
-            if (systemProperties) {
-                defaultCredentialsProvider = new SystemDefaultCredentialsProvider();
-            } else {
+            if (ignoreSystemProperties) {
                 defaultCredentialsProvider = new BasicCredentialsProvider();
+            } else {
+                defaultCredentialsProvider = new SystemDefaultCredentialsProvider();
             }
         }
 

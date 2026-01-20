@@ -74,7 +74,7 @@ public class ClientTlsStrategyBuilder {
     private SSLBufferMode sslBufferMode;
     private HostnameVerificationPolicy hostnameVerificationPolicy;
     private HostnameVerifier hostnameVerifier;
-    private boolean systemProperties;
+    private boolean ignoreSystemProperties;
 
     /**
      * Sets {@link SSLContext} instance.
@@ -171,13 +171,24 @@ public class ClientTlsStrategyBuilder {
     }
 
     /**
-     * Use system properties when creating and configuring default
-     * implementations.
+     * Use system properties when creating new instances.
      *
      * @return this instance.
      */
     public final ClientTlsStrategyBuilder useSystemProperties() {
-        this.systemProperties = true;
+        this.ignoreSystemProperties = false;
+        return this;
+    }
+
+    /**
+     * Ignore system properties when creating new instances.
+     *
+     * @return this instance.
+     *
+     * @since 5.7
+     */
+    public final ClientTlsStrategyBuilder ignoreSystemProperties() {
+        this.ignoreSystemProperties = true;
         return this;
     }
 
@@ -208,7 +219,7 @@ public class ClientTlsStrategyBuilder {
         if (sslContext != null) {
             sslContextCopy = sslContext;
         } else {
-            sslContextCopy = systemProperties ? SSLContexts.createSystemDefault() : SSLContexts.createDefault();
+            sslContextCopy = ignoreSystemProperties ? SSLContexts.createDefault() : SSLContexts.createSystemDefault();
         }
         final HostnameVerificationPolicy hostnameVerificationPolicyCopy = hostnameVerificationPolicy != null ? hostnameVerificationPolicy :
                 (hostnameVerifier == null ? HostnameVerificationPolicy.BUILTIN : HostnameVerificationPolicy.BOTH);

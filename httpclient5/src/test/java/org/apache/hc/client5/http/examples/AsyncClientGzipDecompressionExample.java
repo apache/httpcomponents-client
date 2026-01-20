@@ -43,8 +43,7 @@ import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
  * <h2>Example – transparent <b>GZIP</b> <i>de-compression</i> with the async API</h2>
  *
  * <p>{@code ContentCompressionAsyncExec} is included by default in
- * {@link HttpAsyncClients#createDefault()}.
- * The interceptor adds the header
+ * {@link HttpAsyncClients#create()}. The interceptor adds the header
  * {@code Accept-Encoding: gzip, deflate} and automatically wraps the
  * downstream consumer in a {@code InflatingGzipDataConsumer} when the
  * server replies with {@code Content-Encoding: gzip}.</p>
@@ -64,7 +63,7 @@ public final class AsyncClientGzipDecompressionExample {
 
     public static void main(final String[] args) throws Exception {
 
-        try (final CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
+        try (final CloseableHttpAsyncClient client = HttpAsyncClients.create()) {
             client.start();
 
             final SimpleHttpRequest request =

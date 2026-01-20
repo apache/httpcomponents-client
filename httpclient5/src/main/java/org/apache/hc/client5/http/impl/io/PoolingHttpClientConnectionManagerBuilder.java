@@ -88,7 +88,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     private Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
     private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
 
-    private boolean systemProperties;
+    private boolean ignoreSystemProperties;
 
     private int maxConnTotal;
     private int maxConnPerRoute;
@@ -311,13 +311,24 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Use system properties when creating and configuring default
-     * implementations.
+     * Use system properties when creating new instances.
      *
      * @return this instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder useSystemProperties() {
-        this.systemProperties = true;
+        this.ignoreSystemProperties = false;
+        return this;
+    }
+
+    /**
+     * Ignore system properties when creating new instances.
+     *
+     * @return this instance.
+     *
+     * @since 5.7
+     */
+    public final PoolingHttpClientConnectionManagerBuilder ignoreSystemProperties() {
+        this.ignoreSystemProperties = true;
         return this;
     }
 
@@ -358,11 +369,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
         if (tlsSocketStrategy != null) {
             tlsSocketStrategyCopy = tlsSocketStrategy;
         } else {
-            if (systemProperties) {
-                tlsSocketStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
-            } else {
-                tlsSocketStrategyCopy = DefaultClientTlsStrategy.createDefault();
-            }
+            tlsSocketStrategyCopy = DefaultClientTlsStrategy.create();
         }
 
         final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(

@@ -252,7 +252,7 @@ public class HttpAsyncClientBuilder {
     private boolean evictIdleConnections;
     private TimeValue maxIdleTime;
 
-    private boolean systemProperties;
+    private boolean ignoreSystemProperties;
     private boolean automaticRetriesDisabled;
     private boolean redirectHandlingDisabled;
     private boolean cookieManagementDisabled;
@@ -776,13 +776,24 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Use system properties when creating and configuring default
-     * implementations.
+     * Use system properties when creating new instances.
      *
      * @return this instance.
      */
     public final HttpAsyncClientBuilder useSystemProperties() {
-        this.systemProperties = true;
+        this.ignoreSystemProperties = false;
+        return this;
+    }
+
+    /**
+     * Ignore system properties when creating new instances.
+     *
+     * @return this instance.
+     *
+     * @since 5.7
+     */
+    public final HttpAsyncClientBuilder ignoreSystemProperties() {
+        this.ignoreSystemProperties = true;
         return this;
     }
 
@@ -1011,8 +1022,8 @@ public class HttpAsyncClientBuilder {
         AsyncClientConnectionManager connManagerCopy = this.connManager;
         if (connManagerCopy == null) {
             final PoolingAsyncClientConnectionManagerBuilder connectionManagerBuilder = PoolingAsyncClientConnectionManagerBuilder.create();
-            if (systemProperties) {
-                connectionManagerBuilder.useSystemProperties();
+            if (ignoreSystemProperties) {
+                connectionManagerBuilder.ignoreSystemProperties();
             }
             connManagerCopy = connectionManagerBuilder.build();
         }
@@ -1166,11 +1177,11 @@ public class HttpAsyncClientBuilder {
                 routePlannerCopy = new DefaultProxyRoutePlanner(proxy, schemePortResolverCopy);
             } else if (this.proxySelector != null) {
                 routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, this.proxySelector);
-            } else if (systemProperties) {
+            } else if (ignoreSystemProperties) {
+                routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
+            } else {
                 final ProxySelector defaultProxySelector = ProxySelector.getDefault();
                 routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, defaultProxySelector);
-            } else {
-                routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
             }
         }
 
@@ -1276,10 +1287,10 @@ public class HttpAsyncClientBuilder {
 
         CredentialsProvider credentialsProviderCopy = this.credentialsProvider;
         if (credentialsProviderCopy == null) {
-            if (systemProperties) {
-                credentialsProviderCopy = new SystemDefaultCredentialsProvider();
-            } else {
+            if (ignoreSystemProperties) {
                 credentialsProviderCopy = new BasicCredentialsProvider();
+            } else {
+                credentialsProviderCopy = new SystemDefaultCredentialsProvider();
             }
         }
 

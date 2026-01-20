@@ -52,7 +52,7 @@ public class ClientClassicOverAsync {
 
     public static void main(final String[] args) throws Exception {
         try (final CloseableHttpClient httpclient = HttpAsyncClients.classic(
-                HttpAsyncClients.createDefault(),
+                HttpAsyncClients.create(),
                 Timeout.ofMinutes(1))) {
             final HttpGet httpget = new HttpGet("http://httpbin.org/get");
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());

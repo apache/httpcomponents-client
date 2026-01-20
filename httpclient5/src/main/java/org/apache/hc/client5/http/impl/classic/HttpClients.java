@@ -52,7 +52,10 @@ public final class HttpClients {
     /**
      * Creates {@link CloseableHttpClient} instance with default
      * configuration.
+     *
+     * @deprecated Use {@link #create()}
      */
+    @Deprecated
     public static CloseableHttpClient createDefault() {
         return HttpClientBuilder.create().build();
     }
@@ -60,9 +63,22 @@ public final class HttpClients {
     /**
      * Creates {@link CloseableHttpClient} instance with default
      * configuration based on system properties.
+     *
+     * @deprecated Use {@link #create()}
      */
+    @Deprecated
     public static CloseableHttpClient createSystem() {
-        return HttpClientBuilder.create().useSystemProperties().build();
+        return HttpClientBuilder.create().build();
+    }
+
+    /**
+     * Creates {@link CloseableHttpClient} instance with default
+     * configuration based on system properties.
+     *
+     * @since 5.7
+     */
+    public static CloseableHttpClient create() {
+        return HttpClientBuilder.create().build();
     }
 
     /**

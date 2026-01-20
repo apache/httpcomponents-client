@@ -80,7 +80,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     private PoolConcurrencyPolicy poolConcurrencyPolicy;
     private PoolReusePolicy poolReusePolicy;
 
-    private boolean systemProperties;
+    private boolean ignoreSystemProperties;
 
     private int maxConnTotal;
     private int maxConnPerRoute;
@@ -259,13 +259,24 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Use system properties when creating and configuring default
-     * implementations.
+     * Use system properties when creating new instances.
      *
      * @return this instance.
      */
     public final PoolingAsyncClientConnectionManagerBuilder useSystemProperties() {
-        this.systemProperties = true;
+        this.ignoreSystemProperties = false;
+        return this;
+    }
+
+    /**
+     * Ignore system properties when creating new instances.
+     *
+     * @return this instance.
+     *
+     * @since 5.7
+     */
+    public final PoolingAsyncClientConnectionManagerBuilder ignoreSystemProperties() {
+        this.ignoreSystemProperties = true;
         return this;
     }
 
@@ -306,17 +317,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
             tlsStrategyCopy = tlsStrategy;
         } else {
             if (ReflectionUtils.determineJRELevel() <= 8 && ConscryptClientTlsStrategy.isSupported()) {
-                if (systemProperties) {
-                    tlsStrategyCopy = ConscryptClientTlsStrategy.getSystemDefault();
-                } else {
-                    tlsStrategyCopy = ConscryptClientTlsStrategy.getDefault();
-                }
+                tlsStrategyCopy = ConscryptClientTlsStrategy.create();
             } else {
-                if (systemProperties) {
-                    tlsStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
-                } else {
-                    tlsStrategyCopy = DefaultClientTlsStrategy.createDefault();
-                }
+                tlsStrategyCopy = DefaultClientTlsStrategy.create();
             }
         }
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(

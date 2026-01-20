@@ -97,7 +97,7 @@ public final class ClientServerCompressionExample {
         server.start();
         final int actualPort = server.getLocalPort();
 
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
+        try (CloseableHttpClient client = HttpClients.create()) {
             final String requestBody = "Hello Zstandard world!";
             System.out.println("Request : " + requestBody);
 

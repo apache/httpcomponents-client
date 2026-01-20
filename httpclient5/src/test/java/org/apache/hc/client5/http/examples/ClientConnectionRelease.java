@@ -42,7 +42,7 @@ import org.apache.hc.core5.http.message.StatusLine;
 public class ClientConnectionRelease {
 
     public static void main(final String[] args) throws Exception {
-        try (final CloseableHttpClient httpclient = HttpClients.createDefault()) {
+        try (final CloseableHttpClient httpclient = HttpClients.create()) {
             final HttpHost target = new HttpHost("http", "httpbin.org");
             final HttpGet httpget = new HttpGet("/get");
 

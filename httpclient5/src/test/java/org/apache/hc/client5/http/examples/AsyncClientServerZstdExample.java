@@ -68,7 +68,7 @@ import org.apache.hc.core5.io.CloseMode;
  *
  * <p>This example starts a tiny {@code HttpCore 5} classic server that <em>always</em> replies
  * with {@code Content-Encoding: zstd}. The async client is the regular
- * {@link org.apache.hc.client5.http.impl.async.HttpAsyncClients#createDefault() default} client.
+ * {@link org.apache.hc.client5.http.impl.async.HttpAsyncClients#create() default} client.
  * When the response carries the {@code zstd} content-coding, the execution chain
  * (see {@code ContentCompressionAsyncExec}) transparently installs
  * {@link org.apache.hc.client5.http.async.methods.InflatingZstdDataConsumer} and delivers
@@ -110,7 +110,7 @@ public final class AsyncClientServerZstdExample {
         final int port = server.getLocalPort();
         final String url = "http://localhost:" + port + "/echo";
 
-        try (final CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
+        try (final CloseableHttpAsyncClient client = HttpAsyncClients.create()) {
             client.start();
 
             final String requestBody = "Hello Zstandard world!";

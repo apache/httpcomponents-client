@@ -47,7 +47,7 @@ import org.apache.hc.core5.http.message.StatusLine;
 public class ClientCustomContext {
 
     public static void main(final String[] args) throws Exception {
-        try (final CloseableHttpClient httpclient = HttpClients.createDefault()) {
+        try (final CloseableHttpClient httpclient = HttpClients.create()) {
             // Create a local instance of cookie store
             final CookieStore cookieStore = new BasicCookieStore();
 

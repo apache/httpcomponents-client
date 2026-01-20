@@ -81,7 +81,10 @@ public final class HttpAsyncClients {
 
     /**
      * Creates {@link CloseableHttpAsyncClient} instance with default configuration.
+     *
+     * @deprecated Use {@link #create()}
      */
+    @Deprecated
     public static CloseableHttpAsyncClient createDefault() {
         return HttpAsyncClientBuilder.create().build();
     }
@@ -89,9 +92,22 @@ public final class HttpAsyncClients {
     /**
      * Creates {@link CloseableHttpAsyncClient} instance with default
      * configuration and system properties.
+     *
+     * @deprecated Use {@link #create()}
      */
+    @Deprecated
     public static CloseableHttpAsyncClient createSystem() {
-        return HttpAsyncClientBuilder.create().useSystemProperties().build();
+        return HttpAsyncClientBuilder.create().build();
+    }
+
+    /**
+     * Creates {@link CloseableHttpAsyncClient} instance with default
+     * configuration and system properties.
+     *
+     * @since 5.7
+     */
+    public static CloseableHttpAsyncClient create() {
+        return HttpAsyncClientBuilder.create().build();
     }
 
     /**
@@ -116,7 +132,7 @@ public final class HttpAsyncClients {
      * system properties optimized for HTTP/2 protocol and message multiplexing.
      */
     public static CloseableHttpAsyncClient createHttp2System() {
-        return H2AsyncClientBuilder.create().useSystemProperties().build();
+        return H2AsyncClientBuilder.create().build();
     }
 
     private static HttpProcessor createMinimalProtocolProcessor() {
@@ -325,7 +341,7 @@ public final class HttpAsyncClients {
     public static MinimalH2AsyncClient createHttp2Minimal(
             final H2Config h2Config,
             final IOReactorConfig ioReactorConfig) {
-        return createHttp2Minimal(h2Config, ioReactorConfig, DefaultClientTlsStrategy.createDefault());
+        return createHttp2Minimal(h2Config, ioReactorConfig, DefaultClientTlsStrategy.create());
     }
 
     /**

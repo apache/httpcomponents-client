@@ -62,7 +62,7 @@ import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 public class AsyncClientDeflateCompressionExample {
 
     public static void main(final String[] args) throws Exception {
-        try (final CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
+        try (final CloseableHttpAsyncClient client = HttpAsyncClients.create()) {
             client.start();
 
             final String json = "{\"msg\":\"hello deflated world\"}";

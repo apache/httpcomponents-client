@@ -123,7 +123,7 @@ public final class AsyncClientZstdCompressionExample {
         final int port = server.getLocalPort();
         final String url = "http://localhost:" + port + "/echo";
 
-        try (CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
+        try (CloseableHttpAsyncClient client = HttpAsyncClients.create()) {
             client.start();
 
             final String payload = "Hello Zstandard request body!";

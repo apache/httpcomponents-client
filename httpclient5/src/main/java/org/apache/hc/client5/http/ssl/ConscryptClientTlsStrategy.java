@@ -51,6 +51,10 @@ import org.conscrypt.Conscrypt;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
 
+    /**
+     * @deprecated Use {@link #create()}
+     */
+    @Deprecated
     public static TlsStrategy getDefault() {
         return new ConscryptClientTlsStrategy(
                 SSLContexts.createDefault(),
@@ -58,7 +62,24 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
                 null);
     }
 
+    /**
+     * @deprecated Use {@link #create()}
+     */
+    @Deprecated
     public static TlsStrategy getSystemDefault() {
+        return new ConscryptClientTlsStrategy(
+                SSLContexts.createSystemDefault(),
+                null,
+                null,
+                SSLBufferMode.STATIC,
+                HostnameVerificationPolicy.BUILTIN,
+                null);
+    }
+
+    /**
+     * @since 5.7
+     */
+    public static TlsStrategy create() {
         return new ConscryptClientTlsStrategy(
                 SSLContexts.createSystemDefault(),
                 null,
