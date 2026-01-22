@@ -28,6 +28,7 @@ package org.apache.hc.client5.testing.async;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.ConnectionConfig.Builder;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
@@ -36,54 +37,70 @@ import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBu
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.client5.testing.tls.TlsHandshakeTimeoutServer;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.TimeValue;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 
-import static org.apache.hc.core5.util.ReflectionUtils.determineJRELevel;
-import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.apache.hc.core5.http2.HttpVersionPolicy.FORCE_HTTP_2;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 public class TestAsyncTlsHandshakeTimeout {
-    private static final Duration EXPECTED_TIMEOUT = Duration.ofMillis(500);
-
-    @Tag("slow")
     @Timeout(5)
     @ParameterizedTest
-    @ValueSource(strings = { "false", "true" })
-    void testTimeout(final boolean sendServerHello) throws Exception {
-        // There is a bug in Java 11: after the handshake times out, the SSLSocket implementation performs a blocking
-        // read on the socket to wait for close_notify or alert. This operation blocks until the read times out,
-        // which means that TLS handshakes take twice as long to time out on Java 11. Without a workaround, the only
-        // option is to skip the timeout duration assertions on Java 11.
-        assumeFalse(determineJRELevel() == 11, "TLS handshake timeouts are buggy on Java 11");
+    @CsvSource({
+        "10,0,false,",
+        "10,0,true,",
+        "0,10,false,",
+        "0,10,true,",
+        // handshakeTimeout overrides connectTimeout
+        "30000,10,false,",
+        "30000,10,true,",
+        // ALPN and HTTP/2
+        "0,10,false,FORCE_HTTP_2",
+        "0,10,true,FORCE_HTTP_2",
+        "0,10,false,NEGOTIATE",
+        "0,10,true,NEGOTIATE",
+    })
+    void testTimeout(
+        final int connTimeout,
+        final int handshakeTimeout,
+        final boolean sendServerHello,
+        final HttpVersionPolicy httpVersionPolicy
+    ) throws Exception {
+        final Builder connectionConfig = ConnectionConfig.custom().setSocketTimeout(300, SECONDS);
+        final TlsConfig.Builder tlsConfig = TlsConfig.custom();
+        if (connTimeout > 0) {
+            connectionConfig.setConnectTimeout(connTimeout, MILLISECONDS);
+        }
+        if (handshakeTimeout > 0) {
+            tlsConfig.setHandshakeTimeout(handshakeTimeout, MILLISECONDS);
+        }
+        if (httpVersionPolicy != null) {
+            tlsConfig.setVersionPolicy(httpVersionPolicy);
+        }
 
+        final AtomicReference<Exception> uncaughtException = new AtomicReference<>();
         final PoolingAsyncClientConnectionManager connMgr = PoolingAsyncClientConnectionManagerBuilder.create()
-            .setDefaultConnectionConfig(ConnectionConfig.custom()
-                .setConnectTimeout(5, SECONDS)
-                .setSocketTimeout(5, SECONDS)
-                .build())
+            .setDefaultConnectionConfig(connectionConfig.build())
             .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
-            .setDefaultTlsConfig(TlsConfig.custom()
-                .setHandshakeTimeout(EXPECTED_TIMEOUT.toMillis(), MILLISECONDS)
-                .build())
+            .setDefaultTlsConfig(tlsConfig.build())
             .build();
         try (
             final TlsHandshakeTimeoutServer server = new TlsHandshakeTimeoutServer(sendServerHello);
             final CloseableHttpAsyncClient client = HttpAsyncClientBuilder.create()
+                .setIoReactorExceptionCallback(uncaughtException::set)
                 .setIOReactorConfig(IOReactorConfig.custom()
-                    .setSelectInterval(TimeValue.ofMilliseconds(50))
+                    .setSelectInterval(TimeValue.ofMilliseconds(10))
                     .build())
                 .setConnectionManager(connMgr)
                 .build()
@@ -94,21 +111,16 @@ public class TestAsyncTlsHandshakeTimeout {
             final SimpleHttpRequest request = SimpleHttpRequest.create("GET", "https://127.0.0.1:" + server.getPort());
             assertTimeout(request, client);
         }
+        final Exception ex = uncaughtException.get();
+        if (ex != null) {
+            assumeFalse(httpVersionPolicy == FORCE_HTTP_2, "Known bug");
+            throw ex;
+        }
     }
 
     private static void assertTimeout(final SimpleHttpRequest request, final CloseableHttpAsyncClient client) {
-        final long startTime = System.nanoTime();
         final Throwable ex = assertThrows(ExecutionException.class,
             () -> client.execute(request, null).get()).getCause();
-        final Duration actualTime = Duration.of(System.nanoTime() - startTime, ChronoUnit.NANOS);
-        assertTrue(actualTime.toMillis() > EXPECTED_TIMEOUT.toMillis() / 2,
-            format("Handshake attempt timed out too soon (only %,d out of %,d ms)",
-                actualTime.toMillis(),
-                EXPECTED_TIMEOUT.toMillis()));
-        assertTrue(actualTime.toMillis() < EXPECTED_TIMEOUT.toMillis() * 2,
-            format("Handshake attempt timed out too late (%,d out of %,d ms)",
-                actualTime.toMillis(),
-                EXPECTED_TIMEOUT.toMillis()));
-        assertTrue(ex.getMessage().contains(EXPECTED_TIMEOUT.toMillis() + " MILLISECONDS"), ex.getMessage());
+        assertTrue(ex.getMessage().contains("10 MILLISECONDS"), ex.getMessage());
     }
 }

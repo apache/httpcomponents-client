@@ -27,6 +27,7 @@
 package org.apache.hc.client5.testing.tls;
 
 import org.apache.hc.client5.testing.SSLTestContexts;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -39,6 +40,8 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+
+import static org.apache.hc.core5.http2.ssl.H2TlsSupport.selectApplicationProtocols;
 
 /**
  * This test server accepts a single TLS connection request, which will then time out. The server can run in two modes.
@@ -90,6 +93,7 @@ public class TlsHandshakeTimeoutServer implements Closeable {
         sslEngine.setEnabledProtocols(new String[]{ "TLSv1.2" });
         sslEngine.setUseClientMode(false);
         sslEngine.setNeedClientAuth(false);
+        sslEngine.getSSLParameters().setApplicationProtocols(selectApplicationProtocols(HttpVersionPolicy.NEGOTIATE));
 
         sslEngine.beginHandshake();
         return sslEngine;
