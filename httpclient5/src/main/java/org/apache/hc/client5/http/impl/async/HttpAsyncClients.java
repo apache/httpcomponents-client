@@ -89,9 +89,12 @@ public final class HttpAsyncClients {
     /**
      * Creates {@link CloseableHttpAsyncClient} instance with default
      * configuration and system properties.
+     *
+     * @deprecated This is now a synonym for {@link #createDefault}; call that instead.
      */
+    @Deprecated
     public static CloseableHttpAsyncClient createSystem() {
-        return HttpAsyncClientBuilder.create().useSystemProperties().build();
+        return createDefault();
     }
 
     /**
@@ -112,11 +115,13 @@ public final class HttpAsyncClients {
     }
 
     /**
-     * Creates HTTP/2 {@link CloseableHttpAsyncClient} instance with default configuration and
-     * system properties optimized for HTTP/2 protocol and message multiplexing.
+     * Creates HTTP/2 {@link CloseableHttpAsyncClient} instance with default configuration.
+     *
+     * @deprecated This is now a synonym for {@link #createHttp2Default}; call that instead.
      */
+    @Deprecated
     public static CloseableHttpAsyncClient createHttp2System() {
-        return H2AsyncClientBuilder.create().useSystemProperties().build();
+        return createHttp2Default();
     }
 
     private static HttpProcessor createMinimalProtocolProcessor() {

@@ -40,25 +40,6 @@ import org.apache.hc.core5.ssl.SSLContexts;
 
 /**
  * Builder for client TLS strategy instances.
- * <p>
- * When a particular component is not explicitly set this class will
- * use its default implementation. System properties will be taken
- * into account when configuring the default implementations when
- * {@link #useSystemProperties()} method is called prior to calling
- * {@link #buildAsync()} or {@link #buildClassic()}.
- * </p>
- * <ul>
- *  <li>ssl.TrustManagerFactory.algorithm</li>
- *  <li>javax.net.ssl.trustStoreType</li>
- *  <li>javax.net.ssl.trustStore</li>
- *  <li>javax.net.ssl.trustStoreProvider</li>
- *  <li>javax.net.ssl.trustStorePassword</li>
- *  <li>ssl.KeyManagerFactory.algorithm</li>
- *  <li>javax.net.ssl.keyStoreType</li>
- *  <li>javax.net.ssl.keyStore</li>
- *  <li>javax.net.ssl.keyStoreProvider</li>
- *  <li>javax.net.ssl.keyStorePassword</li>
- * </ul>
  *
  * @since 5.0
  */
@@ -74,7 +55,6 @@ public class ClientTlsStrategyBuilder {
     private SSLBufferMode sslBufferMode;
     private HostnameVerificationPolicy hostnameVerificationPolicy;
     private HostnameVerifier hostnameVerifier;
-    private boolean systemProperties;
 
     /**
      * Sets {@link SSLContext} instance.
@@ -171,13 +151,12 @@ public class ClientTlsStrategyBuilder {
     }
 
     /**
-     * Use system properties when creating and configuring default
-     * implementations.
+     * Ignored.
      *
-     * @return this instance.
+     * @deprecated This method is now redundant and calls to it can be removed.
      */
+    @Deprecated
     public final ClientTlsStrategyBuilder useSystemProperties() {
-        this.systemProperties = true;
         return this;
     }
 
@@ -204,12 +183,7 @@ public class ClientTlsStrategyBuilder {
     }
 
     private DefaultClientTlsStrategy buildImpl() {
-        final SSLContext sslContextCopy;
-        if (sslContext != null) {
-            sslContextCopy = sslContext;
-        } else {
-            sslContextCopy = systemProperties ? SSLContexts.createSystemDefault() : SSLContexts.createDefault();
-        }
+        final SSLContext sslContextCopy = sslContext != null ? sslContext : SSLContexts.createDefault();
         final HostnameVerificationPolicy hostnameVerificationPolicyCopy = hostnameVerificationPolicy != null ? hostnameVerificationPolicy :
                 (hostnameVerifier == null ? HostnameVerificationPolicy.BUILTIN : HostnameVerificationPolicy.BOTH);
         return new DefaultClientTlsStrategy(

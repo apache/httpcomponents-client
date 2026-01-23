@@ -50,25 +50,6 @@ import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Builder for {@link PoolingAsyncClientConnectionManager} instances.
- * <p>
- * When a particular component is not explicitly set this class will
- * use its default implementation. System properties will be taken
- * into account when configuring the default implementations when
- * {@link #useSystemProperties()} method is called prior to calling
- * {@link #build()}.
- * </p>
- * <ul>
- *  <li>ssl.TrustManagerFactory.algorithm</li>
- *  <li>javax.net.ssl.trustStoreType</li>
- *  <li>javax.net.ssl.trustStore</li>
- *  <li>javax.net.ssl.trustStoreProvider</li>
- *  <li>javax.net.ssl.trustStorePassword</li>
- *  <li>ssl.KeyManagerFactory.algorithm</li>
- *  <li>javax.net.ssl.keyStoreType</li>
- *  <li>javax.net.ssl.keyStore</li>
- *  <li>javax.net.ssl.keyStoreProvider</li>
- *  <li>javax.net.ssl.keyStorePassword</li>
- * </ul>
  *
  * @since 5.0
  */
@@ -79,8 +60,6 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     private DnsResolver dnsResolver;
     private PoolConcurrencyPolicy poolConcurrencyPolicy;
     private PoolReusePolicy poolReusePolicy;
-
-    private boolean systemProperties;
 
     private int maxConnTotal;
     private int maxConnPerRoute;
@@ -259,13 +238,13 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Use system properties when creating and configuring default
-     * implementations.
+     * Ignored.
      *
+     * @deprecated This method is now redundant and calls to it can be removed.
      * @return this instance.
      */
+    @Deprecated
     public final PoolingAsyncClientConnectionManagerBuilder useSystemProperties() {
-        this.systemProperties = true;
         return this;
     }
 
@@ -306,17 +285,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
             tlsStrategyCopy = tlsStrategy;
         } else {
             if (ReflectionUtils.determineJRELevel() <= 8 && ConscryptClientTlsStrategy.isSupported()) {
-                if (systemProperties) {
-                    tlsStrategyCopy = ConscryptClientTlsStrategy.getSystemDefault();
-                } else {
-                    tlsStrategyCopy = ConscryptClientTlsStrategy.getDefault();
-                }
+                tlsStrategyCopy = ConscryptClientTlsStrategy.getDefault();
             } else {
-                if (systemProperties) {
-                    tlsStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
-                } else {
-                    tlsStrategyCopy = DefaultClientTlsStrategy.createDefault();
-                }
+                tlsStrategyCopy = DefaultClientTlsStrategy.createDefault();
             }
         }
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
