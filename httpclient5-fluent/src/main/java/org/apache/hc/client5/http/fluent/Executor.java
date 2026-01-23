@@ -77,14 +77,12 @@ public class Executor {
             if (CLIENT == null) {
                 CLIENT = HttpClientBuilder.create()
                         .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
-                                .useSystemProperties()
                                 .setMaxConnPerRoute(100)
                                 .setMaxConnTotal(200)
                                 .setDefaultConnectionConfig(ConnectionConfig.custom()
                                         .setValidateAfterInactivity(TimeValue.ofSeconds(10))
                                         .build())
                                 .build())
-                        .useSystemProperties()
                         .evictExpiredConnections()
                         .evictIdleConnections(TimeValue.ofMinutes(1))
                         .build();
@@ -105,7 +103,6 @@ public class Executor {
             if (ASYNC_CLIENT == null) {
                 ASYNC_CLIENT = new ClassicToAsyncAdaptor(HttpAsyncClientBuilder.create()
                         .setConnectionManager(PoolingAsyncClientConnectionManagerBuilder.create()
-                                .useSystemProperties()
                                 .setMaxConnPerRoute(100)
                                 .setMaxConnTotal(200)
                                 .setMessageMultiplexing(true)
@@ -113,7 +110,6 @@ public class Executor {
                                         .setValidateAfterInactivity(TimeValue.ofSeconds(10))
                                         .build())
                                 .build())
-                        .useSystemProperties()
                         .evictExpiredConnections()
                         .evictIdleConnections(TimeValue.ofMinutes(1))
                         .build(), Timeout.ofMinutes(5));

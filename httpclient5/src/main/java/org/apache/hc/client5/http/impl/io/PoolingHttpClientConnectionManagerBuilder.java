@@ -54,25 +54,6 @@ import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Builder for {@link PoolingHttpClientConnectionManager} instances.
- * <p>
- * When a particular component is not explicitly set this class will
- * use its default implementation. System properties will be taken
- * into account when configuring the default implementations when
- * {@link #useSystemProperties()} method is called prior to calling
- * {@link #build()}.
- * </p>
- * <ul>
- *  <li>ssl.TrustManagerFactory.algorithm</li>
- *  <li>javax.net.ssl.trustStoreType</li>
- *  <li>javax.net.ssl.trustStore</li>
- *  <li>javax.net.ssl.trustStoreProvider</li>
- *  <li>javax.net.ssl.trustStorePassword</li>
- *  <li>ssl.KeyManagerFactory.algorithm</li>
- *  <li>javax.net.ssl.keyStoreType</li>
- *  <li>javax.net.ssl.keyStore</li>
- *  <li>javax.net.ssl.keyStoreProvider</li>
- *  <li>javax.net.ssl.keyStorePassword</li>
- * </ul>
  *
  * @since 5.0
  */
@@ -87,8 +68,6 @@ public class PoolingHttpClientConnectionManagerBuilder {
     private Resolver<HttpRoute, SocketConfig> socketConfigResolver;
     private Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
     private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
-
-    private boolean systemProperties;
 
     private int maxConnTotal;
     private int maxConnPerRoute;
@@ -311,13 +290,12 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Use system properties when creating and configuring default
-     * implementations.
+     * Ignored.
      *
-     * @return this instance.
+     * @deprecated This method is now redundant and calls to it can be removed.
      */
+    @Deprecated
     public final PoolingHttpClientConnectionManagerBuilder useSystemProperties() {
-        this.systemProperties = true;
         return this;
     }
 
@@ -358,11 +336,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
         if (tlsSocketStrategy != null) {
             tlsSocketStrategyCopy = tlsSocketStrategy;
         } else {
-            if (systemProperties) {
-                tlsSocketStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
-            } else {
-                tlsSocketStrategyCopy = DefaultClientTlsStrategy.createDefault();
-            }
+            tlsSocketStrategyCopy = DefaultClientTlsStrategy.createDefault();
         }
 
         final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(

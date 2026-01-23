@@ -107,7 +107,6 @@ public final class SsePerfClient {
 
         final PoolingAsyncClientConnectionManager connMgr =
                 PoolingAsyncClientConnectionManagerBuilder.create()
-                        .useSystemProperties()
                         .setMessageMultiplexing(true)
                         .setMaxConnPerRoute(16)
                         .setMaxConnTotal(16)
@@ -123,7 +122,6 @@ public final class SsePerfClient {
                         .setPushEnabled(false)
                         .setMaxConcurrentStreams(Math.max(64, streams * 4))
                         .build())
-                .useSystemProperties()
                 .evictExpiredConnections()
                 .evictIdleConnections(TimeValue.ofMinutes(1))
                 .build();

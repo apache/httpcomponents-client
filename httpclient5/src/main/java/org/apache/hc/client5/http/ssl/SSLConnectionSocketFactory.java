@@ -93,8 +93,7 @@ public class SSLConnectionSocketFactory implements org.apache.hc.client5.http.so
 
     /**
      * Obtains default SSL socket factory with an SSL context based on the standard JSSE
-     * trust material ({@code cacerts} file in the security properties directory).
-     * System properties are not taken into consideration.
+     * trust material.
      *
      * @return default SSL socket factory
      */
@@ -103,19 +102,15 @@ public class SSLConnectionSocketFactory implements org.apache.hc.client5.http.so
     }
 
     /**
-     * Obtains default SSL socket factory with an SSL context based on system properties
-     * as described in
-     * <a href="http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html">
-     * Java&#x2122; Secure Socket Extension (JSSE) Reference Guide</a>.
+     * Obtains default SSL socket factory with an SSL context based on the standard JSSE
+     * trust material.
      *
-     * @return default system SSL socket factory
+     * @deprecated This method is now a synonym for {@link #getSocketFactory()}; call that instead.
+     * @return default SSL socket factory
      */
+    @Deprecated
     public static SSLConnectionSocketFactory getSystemSocketFactory() throws SSLInitializationException {
-        return new SSLConnectionSocketFactory(
-                (javax.net.ssl.SSLSocketFactory) javax.net.ssl.SSLSocketFactory.getDefault(),
-                HttpsSupport.getSystemProtocols(),
-                HttpsSupport.getSystemCipherSuits(),
-                HttpsSupport.getDefaultHostnameVerifier());
+        return getSocketFactory();
     }
 
     static boolean isWeakCipherSuite(final String cipherSuite) {

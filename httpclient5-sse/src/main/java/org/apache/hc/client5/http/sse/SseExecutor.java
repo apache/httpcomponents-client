@@ -103,12 +103,10 @@ public final class SseExecutor {
             if (c == null) {
                 c = HttpAsyncClientBuilder.create()
                         .setConnectionManager(PoolingAsyncClientConnectionManagerBuilder.create()
-                                .useSystemProperties()
                                 .setMaxConnPerRoute(100)
                                 .setMaxConnTotal(200)
                                 .setMessageMultiplexing(true)
                                 .build())
-                        .useSystemProperties()
                         .evictExpiredConnections()
                         .evictIdleConnections(TimeValue.ofMinutes(1))
                         .build();
