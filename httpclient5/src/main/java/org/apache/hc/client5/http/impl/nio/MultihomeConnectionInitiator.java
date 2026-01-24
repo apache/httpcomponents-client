@@ -27,10 +27,14 @@
 
 package org.apache.hc.client5.http.impl.nio;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.SystemDefaultDnsResolver;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -46,7 +50,7 @@ import org.apache.hc.core5.util.Timeout;
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
-public final class MultihomeConnectionInitiator implements ConnectionInitiator {
+public final class MultihomeConnectionInitiator implements ConnectionInitiator, Closeable {
 
     private final ConnectionInitiator connectionInitiator;
     private final MultihomeIOSessionRequester sessionRequester;
@@ -54,8 +58,19 @@ public final class MultihomeConnectionInitiator implements ConnectionInitiator {
     public MultihomeConnectionInitiator(
             final ConnectionInitiator connectionInitiator,
             final DnsResolver dnsResolver) {
+        this(connectionInitiator, dnsResolver, null);
+    }
+
+    /**
+     * @since 5.6
+     */
+    public MultihomeConnectionInitiator(
+            final ConnectionInitiator connectionInitiator,
+            final DnsResolver dnsResolver,
+            final ConnectionConfig connectionConfig) {
         this.connectionInitiator = Args.notNull(connectionInitiator, "Connection initiator");
-        this.sessionRequester = new MultihomeIOSessionRequester(dnsResolver);
+        final DnsResolver effectiveResolver = dnsResolver != null ? dnsResolver : SystemDefaultDnsResolver.INSTANCE;
+        this.sessionRequester = new MultihomeIOSessionRequester(effectiveResolver, connectionConfig);
     }
 
     @Override
@@ -67,7 +82,8 @@ public final class MultihomeConnectionInitiator implements ConnectionInitiator {
             final Object attachment,
             final FutureCallback<IOSession> callback) {
         Args.notNull(remoteEndpoint, "Remote endpoint");
-        return sessionRequester.connect(connectionInitiator, remoteEndpoint, remoteAddress, localAddress, connectTimeout, attachment, callback);
+        return sessionRequester.connect(connectionInitiator, remoteEndpoint, remoteAddress, localAddress,
+                connectTimeout, attachment, callback);
     }
 
     public Future<IOSession> connect(
@@ -77,7 +93,18 @@ public final class MultihomeConnectionInitiator implements ConnectionInitiator {
             final Object attachment,
             final FutureCallback<IOSession> callback) {
         Args.notNull(remoteEndpoint, "Remote endpoint");
-        return sessionRequester.connect(connectionInitiator, remoteEndpoint, localAddress, connectTimeout, attachment, callback);
+        return sessionRequester.connect(connectionInitiator, remoteEndpoint, localAddress,
+                connectTimeout, attachment, callback);
+    }
+
+    /**
+     * Shuts down internal resources used by this initiator (if any).
+     *
+     * @since 5.6
+     */
+    @Override
+    public void close() throws IOException {
+        sessionRequester.shutdown();
     }
 
 }
