@@ -98,13 +98,23 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
     private final HttpAsyncCache responseCache;
     private final DefaultAsyncCacheRevalidator cacheRevalidator;
     private final ConditionalRequestBuilder<HttpRequest> conditionalRequestBuilder;
+    private final boolean requestCollapsingEnabled;
 
     AsyncCachingExec(final HttpAsyncCache cache, final DefaultAsyncCacheRevalidator cacheRevalidator, final CacheConfig config) {
+        this(cache, cacheRevalidator, config, false);
+    }
+
+    AsyncCachingExec(
+            final HttpAsyncCache cache,
+            final DefaultAsyncCacheRevalidator cacheRevalidator,
+            final CacheConfig config,
+            final boolean requestCollapsingEnabled) {
         super(config);
         this.responseCache = Args.notNull(cache, "Response cache");
         this.cacheRevalidator = cacheRevalidator;
         this.conditionalRequestBuilder = new ConditionalRequestBuilder<>(request ->
                 BasicRequestBuilder.copy(request).build());
+        this.requestCollapsingEnabled = requestCollapsingEnabled;
     }
 
     AsyncCachingExec(
@@ -274,6 +284,87 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     final CacheHit hit = result != null ? result.hit : null;
                     final CacheHit root = result != null ? result.root : null;
                     if (hit == null) {
+                        if (requestCollapsingEnabled && root == null && entityProducer == null && !requestCacheControl.isOnlyIfCached()) {
+                            final String cacheKey = CacheKeyGenerator.INSTANCE.generateKey(target, request);
+                            final CacheRequestCollapser.Token token = CacheRequestCollapser.INSTANCE.enter(cacheKey);
+                            if (token.isLeader()) {
+                                handleCacheMiss(requestCacheControl, null, target, request, null, scope, chain, new AsyncExecCallback() {
+
+                                    @Override
+                                    public AsyncDataConsumer handleResponse(
+                                            final HttpResponse response,
+                                            final EntityDetails entityDetails) throws HttpException, IOException {
+                                        try {
+                                            return asyncExecCallback.handleResponse(response, entityDetails);
+                                        } catch (final HttpException | IOException ex) {
+                                            token.complete();
+                                            throw ex;
+                                        }
+                                    }
+
+                                    @Override
+                                    public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                                        try {
+                                            asyncExecCallback.handleInformationResponse(response);
+                                        } catch (final HttpException | IOException ex) {
+                                            token.complete();
+                                            throw ex;
+                                        }
+                                    }
+
+                                    @Override
+                                    public void completed() {
+                                        try {
+                                            asyncExecCallback.completed();
+                                        } finally {
+                                            token.complete();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void failed(final Exception cause) {
+                                        try {
+                                            asyncExecCallback.failed(cause);
+                                        } finally {
+                                            token.complete();
+                                        }
+                                    }
+
+                                });
+                            } else {
+                                operation.setDependency(CacheRequestCollapser.INSTANCE.await(token, () -> operation.setDependency(
+                                        responseCache.match(target, request, new FutureCallback<CacheMatch>() {
+
+                                            @Override
+                                            public void completed(final CacheMatch result) {
+                                                final CacheHit hit = result != null ? result.hit : null;
+                                                final CacheHit root = result != null ? result.root : null;
+                                                if (hit == null) {
+                                                    handleCacheMiss(requestCacheControl, root, target, request, entityProducer, scope, chain, asyncExecCallback);
+                                                } else {
+                                                    final ResponseCacheControl responseCacheControl = CacheControlHeaderParser.INSTANCE.parse(hit.entry);
+                                                    if (LOG.isDebugEnabled()) {
+                                                        LOG.debug("{} response cache control: {}", exchangeId, responseCacheControl);
+                                                    }
+                                                    context.setResponseCacheControl(responseCacheControl);
+                                                    handleCacheHit(requestCacheControl, responseCacheControl, hit, target, request, entityProducer, scope, chain, asyncExecCallback);
+                                                }
+                                            }
+
+                                            @Override
+                                            public void failed(final Exception cause) {
+                                                asyncExecCallback.failed(cause);
+                                            }
+
+                                            @Override
+                                            public void cancelled() {
+                                                asyncExecCallback.failed(new InterruptedIOException());
+                                            }
+
+                                        }))));
+                            }
+                            return;
+                        }
                         handleCacheMiss(requestCacheControl, root, target, request, entityProducer, scope, chain, asyncExecCallback);
                     } else {
                         final ResponseCacheControl responseCacheControl = CacheControlHeaderParser.INSTANCE.parse(hit.entry);
