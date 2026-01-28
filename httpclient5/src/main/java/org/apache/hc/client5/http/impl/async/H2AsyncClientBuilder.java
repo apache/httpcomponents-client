@@ -55,7 +55,6 @@ import org.apache.hc.client5.http.impl.DefaultExchangeIdGenerator;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
@@ -201,7 +200,6 @@ public class H2AsyncClientBuilder {
     private boolean evictIdleConnections;
     private TimeValue maxIdleTime;
 
-    private boolean systemProperties;
     private boolean automaticRetriesDisabled;
     private boolean redirectHandlingDisabled;
     private boolean cookieManagementDisabled;
@@ -669,13 +667,13 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Use system properties when creating and configuring default
-     * implementations.
+     * Ignored.
      *
+     * @deprecated This method is now redundant and calls to it can be removed.
      * @return this instance.
      */
+    @Deprecated
     public final H2AsyncClientBuilder useSystemProperties() {
-        this.systemProperties = true;
         return this;
     }
 
@@ -964,20 +962,12 @@ public class H2AsyncClientBuilder {
 
         CredentialsProvider credentialsProviderCopy = this.credentialsProvider;
         if (credentialsProviderCopy == null) {
-            if (systemProperties) {
-                credentialsProviderCopy = new SystemDefaultCredentialsProvider();
-            } else {
-                credentialsProviderCopy = new BasicCredentialsProvider();
-            }
+            credentialsProviderCopy = new SystemDefaultCredentialsProvider();
         }
 
         TlsStrategy tlsStrategyCopy = this.tlsStrategy;
         if (tlsStrategyCopy == null) {
-            if (systemProperties) {
-                tlsStrategyCopy = DefaultClientTlsStrategy.createSystemDefault();
-            } else {
-                tlsStrategyCopy = DefaultClientTlsStrategy.createDefault();
-            }
+            tlsStrategyCopy = DefaultClientTlsStrategy.createDefault();
         }
 
         final MultihomeConnectionInitiator connectionInitiator = new MultihomeConnectionInitiator(ioReactor, dnsResolver);

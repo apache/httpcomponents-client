@@ -35,27 +35,6 @@ import org.apache.hc.core5.ssl.SSLContexts;
 
 /**
  * Builder for {@link SSLConnectionSocketFactory} instances.
- * <p>
- * When a particular component is not explicitly set this class will
- * use its default implementation. System properties will be taken
- * into account when configuring the default implementations when
- * {@link #useSystemProperties()} method is called prior to calling
- * {@link #build()}.
- * </p>
- * <ul>
- *  <li>ssl.TrustManagerFactory.algorithm</li>
- *  <li>javax.net.ssl.trustStoreType</li>
- *  <li>javax.net.ssl.trustStore</li>
- *  <li>javax.net.ssl.trustStoreProvider</li>
- *  <li>javax.net.ssl.trustStorePassword</li>
- *  <li>ssl.KeyManagerFactory.algorithm</li>
- *  <li>javax.net.ssl.keyStoreType</li>
- *  <li>javax.net.ssl.keyStore</li>
- *  <li>javax.net.ssl.keyStoreProvider</li>
- *  <li>javax.net.ssl.keyStorePassword</li>
- *  <li>https.protocols</li>
- *  <li>https.cipherSuites</li>
- * </ul>
  *
  * @deprecated Use {@link DefaultClientTlsStrategy}
  */
@@ -70,7 +49,6 @@ public class SSLConnectionSocketFactoryBuilder {
     private String[] tlsVersions;
     private String[] ciphers;
     private HostnameVerifier hostnameVerifier;
-    private boolean systemProperties;
 
     /**
      * Sets {@link SSLContext} instance.
@@ -127,13 +105,9 @@ public class SSLConnectionSocketFactoryBuilder {
     }
 
     /**
-     * Use system properties when creating and configuring default
-     * implementations.
-     *
-     * @return this instance.
+     * Ignored.
      */
     public final SSLConnectionSocketFactoryBuilder useSystemProperties() {
-        this.systemProperties = true;
         return this;
     }
 
@@ -142,28 +116,12 @@ public class SSLConnectionSocketFactoryBuilder {
         if (sslContext != null) {
             socketFactory = sslContext.getSocketFactory();
         } else {
-            if (systemProperties) {
-                socketFactory = (javax.net.ssl.SSLSocketFactory) javax.net.ssl.SSLSocketFactory.getDefault();
-            } else {
-                socketFactory = SSLContexts.createDefault().getSocketFactory();
-            }
-        }
-        final String[] tlsVersionsCopy;
-        if (tlsVersions != null) {
-            tlsVersionsCopy = tlsVersions;
-        } else {
-            tlsVersionsCopy = systemProperties ? HttpsSupport.getSystemProtocols() : null;
-        }
-        final String[] ciphersCopy;
-        if (ciphers != null) {
-            ciphersCopy = ciphers;
-        } else {
-            ciphersCopy = systemProperties ? HttpsSupport.getSystemCipherSuits() : null;
+            socketFactory = SSLContexts.createDefault().getSocketFactory();
         }
         return new SSLConnectionSocketFactory(
                 socketFactory,
-                tlsVersionsCopy,
-                ciphersCopy,
+                tlsVersions,
+                ciphers,
                 hostnameVerifier != null ? hostnameVerifier : HttpsSupport.getDefaultHostnameVerifier());
     }
 

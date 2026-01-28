@@ -65,7 +65,6 @@ import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.DefaultUserTokenHandler;
 import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.impl.NoopUserTokenHandler;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
@@ -73,7 +72,6 @@ import org.apache.hc.client5.http.impl.auth.ScramSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
-import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.protocol.H2RequestPriority;
@@ -136,20 +134,6 @@ import org.apache.hc.core5.util.VersionInfo;
  * instances created with this builder will get automatically assigned to
  * separate connections leased from the connection pool.
  * </p>
- * <p>
- * When a particular component is not explicitly set this class will
- * use its default implementation. System properties will be taken
- * into account when configuring the default implementations when
- * {@link #useSystemProperties()} method is called prior to calling
- * {@link #build()}.
- * </p>
- * <ul>
- *  <li>http.proxyHost</li>
- *  <li>http.proxyPort</li>
- *  <li>https.proxyHost</li>
- *  <li>https.proxyPort</li>
- *  <li>http.nonProxyHosts</li>
- * </ul>
  * <p>
  * Please note that some settings used by this class can be mutually
  * exclusive and may not apply when building {@link CloseableHttpAsyncClient}
@@ -252,7 +236,6 @@ public class HttpAsyncClientBuilder {
     private boolean evictIdleConnections;
     private TimeValue maxIdleTime;
 
-    private boolean systemProperties;
     private boolean automaticRetriesDisabled;
     private boolean redirectHandlingDisabled;
     private boolean cookieManagementDisabled;
@@ -776,13 +759,13 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Use system properties when creating and configuring default
-     * implementations.
+     * Ignored.
      *
+     * @deprecated This method is now redundant and calls to it can be removed.
      * @return this instance.
      */
+    @Deprecated
     public final HttpAsyncClientBuilder useSystemProperties() {
-        this.systemProperties = true;
         return this;
     }
 
@@ -1010,11 +993,7 @@ public class HttpAsyncClientBuilder {
     public CloseableHttpAsyncClient build() {
         AsyncClientConnectionManager connManagerCopy = this.connManager;
         if (connManagerCopy == null) {
-            final PoolingAsyncClientConnectionManagerBuilder connectionManagerBuilder = PoolingAsyncClientConnectionManagerBuilder.create();
-            if (systemProperties) {
-                connectionManagerBuilder.useSystemProperties();
-            }
-            connManagerCopy = connectionManagerBuilder.build();
+            connManagerCopy = PoolingAsyncClientConnectionManagerBuilder.create().build();
         }
 
         ConnectionKeepAliveStrategy keepAliveStrategyCopy = this.keepAliveStrategy;
@@ -1166,11 +1145,9 @@ public class HttpAsyncClientBuilder {
                 routePlannerCopy = new DefaultProxyRoutePlanner(proxy, schemePortResolverCopy);
             } else if (this.proxySelector != null) {
                 routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, this.proxySelector);
-            } else if (systemProperties) {
+            } else {
                 final ProxySelector defaultProxySelector = ProxySelector.getDefault();
                 routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, defaultProxySelector);
-            } else {
-                routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
             }
         }
 
@@ -1276,11 +1253,7 @@ public class HttpAsyncClientBuilder {
 
         CredentialsProvider credentialsProviderCopy = this.credentialsProvider;
         if (credentialsProviderCopy == null) {
-            if (systemProperties) {
-                credentialsProviderCopy = new SystemDefaultCredentialsProvider();
-            } else {
-                credentialsProviderCopy = new BasicCredentialsProvider();
-            }
+            credentialsProviderCopy = new SystemDefaultCredentialsProvider();
         }
 
         return new InternalHttpAsyncClient(

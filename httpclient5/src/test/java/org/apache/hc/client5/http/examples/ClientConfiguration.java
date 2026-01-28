@@ -147,7 +147,7 @@ public class ClientConfiguration {
 
         // SSL context for secure connections can be created either based on
         // system or application specific properties.
-        final SSLContext sslContext = SSLContexts.createSystemDefault();
+        final SSLContext sslContext = SSLContexts.createDefault();
 
         // Create a registry of custom connection socket factories for supported
         // protocol schemes.

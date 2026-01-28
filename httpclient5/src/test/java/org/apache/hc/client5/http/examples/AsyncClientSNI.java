@@ -51,7 +51,7 @@ import org.apache.hc.core5.io.CloseMode;
 public class AsyncClientSNI {
 
     public static void main(final String[] args) throws Exception {
-        try (final CloseableHttpAsyncClient client = HttpAsyncClients.createSystem()) {
+        try (final CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
 
             client.start();
 

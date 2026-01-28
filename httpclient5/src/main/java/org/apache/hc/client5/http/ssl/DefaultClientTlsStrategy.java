@@ -60,15 +60,12 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
 
     /**
      * @since 5.4
+     *
+     * @deprecated This is now a synonym for {@link #createDefault}; call that instead.
      */
+    @Deprecated
     public static DefaultClientTlsStrategy createSystemDefault() {
-        return new DefaultClientTlsStrategy(
-                SSLContexts.createSystemDefault(),
-                null,
-                null,
-                SSLBufferMode.STATIC,
-                HostnameVerificationPolicy.BUILTIN,
-                null);
+        return createDefault();
     }
 
     /**
@@ -84,7 +81,7 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
      */
     @Deprecated
     public static TlsStrategy getSystemDefault() {
-        return createSystemDefault();
+        return createDefault();
     }
 
     /**

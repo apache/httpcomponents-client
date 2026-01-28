@@ -67,7 +67,6 @@ public final class ClientSseExample {
 
         final PoolingAsyncClientConnectionManager connMgr =
                 PoolingAsyncClientConnectionManagerBuilder.create()
-                        .useSystemProperties()
                         .setMessageMultiplexing(true)      // HTTP/2 stream multiplexing
                         .setMaxConnPerRoute(32)
                         .setMaxConnTotal(256)
@@ -84,7 +83,6 @@ public final class ClientSseExample {
                         .setPushEnabled(false)
                         .setMaxConcurrentStreams(256)
                         .build())
-                .useSystemProperties()
                 .evictExpiredConnections()
                 .evictIdleConnections(TimeValue.ofMinutes(1))
                 .build();

@@ -44,7 +44,7 @@ import org.apache.hc.core5.http.message.StatusLine;
 public class ClientSNI {
 
     public final static void main(final String[] args) throws Exception {
-        try (CloseableHttpClient httpclient = HttpClients.createSystem()) {
+        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
 
             final HttpHost target = new HttpHost("https", "www.google.com");
             final HttpGet httpget = new HttpGet("https://www.google.ch/");
