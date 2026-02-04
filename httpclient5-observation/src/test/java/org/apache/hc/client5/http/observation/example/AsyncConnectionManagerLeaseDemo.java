@@ -31,6 +31,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.search.Search;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
@@ -41,68 +42,45 @@ import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.observation.HttpClientObservationSupport;
 import org.apache.hc.client5.http.observation.MetricConfig;
 import org.apache.hc.client5.http.observation.ObservingOptions;
-import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
-import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
+import org.apache.hc.client5.http.observation.impl.MeteredAsyncConnectionManager;
 
-public final class TlsMetricsDemo {
+public final class AsyncConnectionManagerLeaseDemo {
 
     public static void main(final String[] args) throws Exception {
-        // 1) Prometheus registry
-        final PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
-        Metrics.addRegistry(registry);
+        final PrometheusMeterRegistry reg = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+        Metrics.addRegistry(reg);
 
-        // 2) Observation (plain – add tracing bridge if you want spans)
-        final ObservationRegistry observations = ObservationRegistry.create();
-
-        // 3) Metric knobs
-        final MetricConfig mc = MetricConfig.builder()
-                .prefix("demo")
-                .percentiles(0.90, 0.99) // p90 + p99
-                .build();
-
+        final ObservationRegistry obs = ObservationRegistry.create();
+        final MetricConfig mc = MetricConfig.builder().prefix("demo").build();
         final ObservingOptions opts = ObservingOptions.builder()
-                .metrics(EnumSet.of(
-                        ObservingOptions.MetricSet.BASIC,
-                        ObservingOptions.MetricSet.IO,
-                        ObservingOptions.MetricSet.TLS      // we will record TLS starts/failures
-                ))
-                .tagLevel(ObservingOptions.TagLevel.EXTENDED)
+                .metrics(EnumSet.of(ObservingOptions.MetricSet.BASIC, ObservingOptions.MetricSet.CONN_POOL))
                 .build();
 
-        // 4) Build a CM with a metered TLS strategy, then give it to the async builder
-        final TlsStrategy realTls = ClientTlsStrategyBuilder.create().buildAsync();
-        final TlsStrategy meteredTls = HttpClientObservationSupport.meteredTlsStrategy(realTls, registry, opts, mc);
+        final AsyncClientConnectionManager rawCm = PoolingAsyncClientConnectionManagerBuilder.create().build();
+        final AsyncClientConnectionManager cm = new MeteredAsyncConnectionManager(rawCm, reg, mc, opts);
 
-        // TLS strategy goes on the *connection manager* (not on the builder)
-        final org.apache.hc.client5.http.nio.AsyncClientConnectionManager cm =
-                PoolingAsyncClientConnectionManagerBuilder.create()
-                        .setTlsStrategy(meteredTls)
-                        .build();
+        final HttpAsyncClientBuilder builder = HttpAsyncClients.custom().setConnectionManager(cm);
+        HttpClientObservationSupport.enable(builder, obs, reg, opts, mc);
 
-        final HttpAsyncClientBuilder builder = HttpAsyncClients.custom()
-                .setConnectionManager(cm);
-
-        // Enable HTTP metrics (timers/counters, IO, etc.)
-        HttpClientObservationSupport.enable(builder, observations, registry, opts, mc);
-
-        // 5) Run a real HTTPS request
         try (final CloseableHttpAsyncClient client = builder.build()) {
             client.start();
 
-            final SimpleHttpRequest req = SimpleRequestBuilder.get("https://httpbin.org/get").build();
+            final SimpleHttpRequest req = SimpleRequestBuilder.get("http://httpbin.org/get").build();
             final Future<SimpleHttpResponse> fut = client.execute(req, null);
-            final SimpleHttpResponse rsp = fut.get(30, TimeUnit.SECONDS);
-
-            System.out.println("[async TLS]     " + rsp.getCode());
+            final SimpleHttpResponse rsp = fut.get(20, TimeUnit.SECONDS);
+            System.out.println("status=" + rsp.getCode());
         }
 
-        System.out.println("\n--- Prometheus scrape (TLS demo) ---");
-        System.out.println(registry.scrape());
+        System.out.println("pool.lease  present? " + (Search.in(reg).name("demo.pool.lease").timer() != null));
+        System.out.println("pool.leases present? " + (Search.in(reg).name("demo.pool.leases").counter() != null));
+        System.out.println("--- scrape ---");
+        System.out.println(reg.scrape());
     }
 
-    private TlsMetricsDemo() {
+    private AsyncConnectionManagerLeaseDemo() {
     }
 }
