@@ -183,11 +183,10 @@ public final class DefaultEventSource implements EventSource {
 
         if (scheduler != null) {
             this.scheduler = scheduler;
-            this.ownScheduler = scheduler != SHARED_SCHED;
         } else {
             this.scheduler = SHARED_SCHED;
-            this.ownScheduler = false;
         }
+        this.ownScheduler = false;
 
         this.callbackExecutor = callbackExecutor != null ? callbackExecutor : Runnable::run;
 
@@ -352,6 +351,11 @@ public final class DefaultEventSource implements EventSource {
             @Override
             public void failed(final Exception ex) {
                 connected.set(false);
+                if (ex instanceof SseResponseConsumer.StopReconnectException) {
+                    dispatch(() -> listener.onFailure(ex, false));
+                    notifyClosedOnce();
+                    return;
+                }
                 if (cancelled.get() || isBenignCancel(ex)) {
                     notifyClosedOnce();
                     return;
