@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
@@ -51,7 +49,7 @@ import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.apache.hc.core5.reactive.ReactiveServerExchangeHandler;
 import org.apache.hc.core5.testing.reactive.ReactiveEchoProcessor;
-import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 abstract class TestHttp1ReactiveMinimal extends AbstractHttpReactiveFundamentalsTest {
@@ -88,11 +86,11 @@ abstract class TestHttp1ReactiveMinimal extends AbstractHttpReactiveFundamentals
             while (!queue.isEmpty()) {
                 final Future<Message<HttpResponse, byte[]>> future = queue.remove();
                 final Message<HttpResponse, byte[]> responseMessage = future.get();
-                assertThat(responseMessage, CoreMatchers.notNullValue());
+                Assertions.assertNotNull(responseMessage);
                 final HttpResponse response = responseMessage.getHead();
-                assertThat(response.getCode(), CoreMatchers.equalTo(200));
+                Assertions.assertEquals(200, response.getCode());
                 final byte[] b2 = responseMessage.getBody();
-                assertThat(b1, CoreMatchers.equalTo(b2));
+                Assertions.assertArrayEquals(b1, b2);
                 endpoint.releaseAndReuse();
             }
         } finally {

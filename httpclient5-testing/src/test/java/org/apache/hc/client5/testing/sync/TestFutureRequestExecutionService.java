@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.testing.sync;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.net.InetAddress;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -54,7 +52,6 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -118,9 +115,7 @@ class TestFutureRequestExecutionService {
             new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
         task.cancel(true);
         final Exception exception = Assertions.assertThrows(Exception.class, task::get);
-        assertThat(exception, CoreMatchers.anyOf(
-                CoreMatchers.instanceOf(CancellationException.class),
-                CoreMatchers.instanceOf(ExecutionException.class)));
+        Assertions.assertTrue(exception instanceof CancellationException || exception instanceof ExecutionException);
     }
 
     @Test

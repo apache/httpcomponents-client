@@ -31,41 +31,20 @@ import java.util.Objects;
 
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.MessageHeaders;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
+import org.junit.jupiter.api.Assertions;
 
-public class ContainsHeaderMatcher extends BaseMatcher<MessageHeaders> {
+public class ContainsHeaderMatcher {
 
-    private final String headerName;
-    private final Object headerValue;
-
-    public ContainsHeaderMatcher(final String headerName, final Object headerValue) {
-        this.headerName = headerName;
-        this.headerValue = headerValue;
-    }
-
-    @Override
-    public boolean matches(final Object item) {
-        if (item instanceof MessageHeaders) {
-            final MessageHeaders messageHeaders = (MessageHeaders) item;
-            for (final Iterator<Header> it = messageHeaders.headerIterator(); it.hasNext(); ) {
-                final Header header = it.next();
-                if (headerName.equalsIgnoreCase(header.getName()) && Objects.equals(headerValue, header.getValue())) {
-                    return true;
-                }
+    public static void assertContains(final MessageHeaders messageHeaders,
+            final String headerName, final Object headerValue) {
+        Assertions.assertNotNull(messageHeaders, "Expected headers");
+        for (final Iterator<Header> it = messageHeaders.headerIterator(); it.hasNext(); ) {
+            final Header header = it.next();
+            if (headerName.equalsIgnoreCase(header.getName()) && Objects.equals(headerValue, header.getValue())) {
+                return;
             }
         }
-        return false;
-    }
-
-    @Override
-    public void describeTo(final Description description) {
-        description.appendText("contains header ").appendValue(headerName).appendText(": ").appendValue(headerValue);
-    }
-
-    public static Matcher<MessageHeaders> contains(final String headerName, final Object headerValue) {
-        return new ContainsHeaderMatcher(headerName, headerValue);
+        Assertions.fail("Expected header '" + headerName + "' with value '" + headerValue + "'");
     }
 
 }

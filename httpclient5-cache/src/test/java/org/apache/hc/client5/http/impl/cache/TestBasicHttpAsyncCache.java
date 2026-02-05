@@ -58,7 +58,6 @@ import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.ByteArrayBuffer;
-import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -325,10 +324,8 @@ class TestBasicHttpAsyncCache {
 
                 assertNotNull(variantMap);
         assertEquals(2, variantMap.size());
-        MatcherAssert.assertThat(variantMap.get("{accept-encoding=gzip}" + rootKey),
-                HttpCacheEntryMatcher.equivalent(hit1.entry));
-        MatcherAssert.assertThat(variantMap.get("{accept-encoding=identity}" + rootKey),
-                HttpCacheEntryMatcher.equivalent(hit2.entry));
+        HttpCacheEntryMatcher.assertEquivalent(variantMap.get("{accept-encoding=gzip}" + rootKey), hit1.entry);
+        HttpCacheEntryMatcher.assertEquivalent(variantMap.get("{accept-encoding=identity}" + rootKey), hit2.entry);
     }
 
     @Test
@@ -374,15 +371,13 @@ class TestBasicHttpAsyncCache {
         Assertions.assertEquals(1, backing.map.size());
         Assertions.assertSame(updated.entry, backing.map.get(hit1.getEntryKey()));
 
-        MatcherAssert.assertThat(
+        HeadersMatcher.assertSame(
                 updated.entry.getHeaders(),
-                HeadersMatcher.same(
-                        new BasicHeader("Server", "MockOrigin/1.0"),
-                        new BasicHeader("ETag", "\"etag1\""),
-                        new BasicHeader("Content-Encoding","gzip"),
-                        new BasicHeader("Date", DateUtils.formatStandardDate(now)),
-                        new BasicHeader("Cache-Control", "max-age=3600, public")
-                ));
+                new BasicHeader("Server", "MockOrigin/1.0"),
+                new BasicHeader("ETag", "\"etag1\""),
+                new BasicHeader("Content-Encoding","gzip"),
+                new BasicHeader("Date", DateUtils.formatStandardDate(now)),
+                new BasicHeader("Cache-Control", "max-age=3600, public"));
     }
 
     @Test
@@ -430,16 +425,14 @@ class TestBasicHttpAsyncCache {
         Assertions.assertEquals(2, backing.map.size());
         Assertions.assertSame(updated.entry, backing.map.get(hit1.getEntryKey()));
 
-        MatcherAssert.assertThat(
+        HeadersMatcher.assertSame(
                 updated.entry.getHeaders(),
-                HeadersMatcher.same(
-                        new BasicHeader("Server", "MockOrigin/1.0"),
-                        new BasicHeader("ETag", "\"etag1\""),
-                        new BasicHeader("Content-Encoding","gzip"),
-                        new BasicHeader("Vary","User-Agent"),
-                        new BasicHeader("Date", DateUtils.formatStandardDate(now)),
-                        new BasicHeader("Cache-Control", "max-age=3600, public")
-                ));
+                new BasicHeader("Server", "MockOrigin/1.0"),
+                new BasicHeader("ETag", "\"etag1\""),
+                new BasicHeader("Content-Encoding","gzip"),
+                new BasicHeader("Vary","User-Agent"),
+                new BasicHeader("Date", DateUtils.formatStandardDate(now)),
+                new BasicHeader("Cache-Control", "max-age=3600, public"));
     }
 
     @Test
@@ -486,15 +479,14 @@ class TestBasicHttpAsyncCache {
         Assertions.assertNotNull(updated);
         Assertions.assertEquals(2, backing.map.size());
 
-        MatcherAssert.assertThat(
+        HeadersMatcher.assertSame(
                 updated.entry.getHeaders(),
-                HeadersMatcher.same(
-                        new BasicHeader("Server", "MockOrigin/1.0"),
-                        new BasicHeader("ETag", "\"etag1\""),
-                        new BasicHeader("Content-Encoding","gzip"),
-                        new BasicHeader("Date", DateUtils.formatStandardDate(now)),
-                        new BasicHeader("Cache-Control", "max-age=3600, public"),
-                        new BasicHeader("Vary","User-Agent")));
+                new BasicHeader("Server", "MockOrigin/1.0"),
+                new BasicHeader("ETag", "\"etag1\""),
+                new BasicHeader("Content-Encoding","gzip"),
+                new BasicHeader("Date", DateUtils.formatStandardDate(now)),
+                new BasicHeader("Cache-Control", "max-age=3600, public"),
+                new BasicHeader("Vary","User-Agent"));
     }
 
     @Test
@@ -540,15 +532,14 @@ class TestBasicHttpAsyncCache {
         Assertions.assertNotNull(hit2);
         Assertions.assertEquals(3, backing.map.size());
 
-        MatcherAssert.assertThat(
+        HeadersMatcher.assertSame(
                 hit2.entry.getHeaders(),
-                HeadersMatcher.same(
-                        new BasicHeader("Server", "MockOrigin/1.0"),
-                        new BasicHeader("ETag", "\"etag1\""),
-                        new BasicHeader("Content-Encoding","gzip"),
-                        new BasicHeader("Vary","User-Agent"),
-                        new BasicHeader("Date", DateUtils.formatStandardDate(now)),
-                        new BasicHeader("Cache-Control", "max-age=3600, public")));
+                new BasicHeader("Server", "MockOrigin/1.0"),
+                new BasicHeader("ETag", "\"etag1\""),
+                new BasicHeader("Content-Encoding","gzip"),
+                new BasicHeader("Vary","User-Agent"),
+                new BasicHeader("Date", DateUtils.formatStandardDate(now)),
+                new BasicHeader("Cache-Control", "max-age=3600, public"));
     }
 
     @Test

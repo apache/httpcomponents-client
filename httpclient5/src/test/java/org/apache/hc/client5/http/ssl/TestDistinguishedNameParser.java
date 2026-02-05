@@ -27,13 +27,11 @@
 
 package org.apache.hc.client5.http.ssl;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.util.Arrays;
 
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
-import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -51,92 +49,92 @@ class TestDistinguishedNameParser {
 
     @Test
     void testParseBasic() {
-        assertThat(impl.parse("cn=blah, ou=yada, o=booh"),
-                CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
-                        new BasicNameValuePair("cn", "blah"),
-                        new BasicNameValuePair("ou", "yada"),
-                        new BasicNameValuePair("o", "booh"))));
+        Assertions.assertEquals(Arrays.<NameValuePair>asList(
+                new BasicNameValuePair("cn", "blah"),
+                new BasicNameValuePair("ou", "yada"),
+                new BasicNameValuePair("o", "booh")),
+                impl.parse("cn=blah, ou=yada, o=booh"));
     }
 
     @Test
     void testParseRepeatedElements() {
-        assertThat(impl.parse("cn=blah, cn=yada, cn=booh"),
-                CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
-                        new BasicNameValuePair("cn", "blah"),
-                        new BasicNameValuePair("cn", "yada"),
-                        new BasicNameValuePair("cn", "booh"))));
+        Assertions.assertEquals(Arrays.<NameValuePair>asList(
+                new BasicNameValuePair("cn", "blah"),
+                new BasicNameValuePair("cn", "yada"),
+                new BasicNameValuePair("cn", "booh")),
+                impl.parse("cn=blah, cn=yada, cn=booh"));
     }
 
     @Test
     void testParseBlanks() {
-        assertThat(impl.parse("c = pampa ,  cn  =    blah    , ou = blah , o = blah"),
-                CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
-                        new BasicNameValuePair("c", "pampa"),
-                        new BasicNameValuePair("cn", "blah"),
-                        new BasicNameValuePair("ou", "blah"),
-                        new BasicNameValuePair("o", "blah"))));
+        Assertions.assertEquals(Arrays.<NameValuePair>asList(
+                new BasicNameValuePair("c", "pampa"),
+                new BasicNameValuePair("cn", "blah"),
+                new BasicNameValuePair("ou", "blah"),
+                new BasicNameValuePair("o", "blah")),
+                impl.parse("c = pampa ,  cn  =    blah    , ou = blah , o = blah"));
     }
 
     @Test
     void testParseQuotes() {
-        assertThat(impl.parse("cn=\"blah\", ou=yada, o=booh"),
-                CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
-                        new BasicNameValuePair("cn", "blah"),
-                        new BasicNameValuePair("ou", "yada"),
-                        new BasicNameValuePair("o", "booh"))));
+        Assertions.assertEquals(Arrays.<NameValuePair>asList(
+                new BasicNameValuePair("cn", "blah"),
+                new BasicNameValuePair("ou", "yada"),
+                new BasicNameValuePair("o", "booh")),
+                impl.parse("cn=\"blah\", ou=yada, o=booh"));
     }
 
     @Test
     void testParseQuotes2() {
-        assertThat(impl.parse("cn=\"blah  blah\", ou=yada, o=booh"),
-                CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
-                        new BasicNameValuePair("cn", "blah  blah"),
-                        new BasicNameValuePair("ou", "yada"),
-                        new BasicNameValuePair("o", "booh"))));
+        Assertions.assertEquals(Arrays.<NameValuePair>asList(
+                new BasicNameValuePair("cn", "blah  blah"),
+                new BasicNameValuePair("ou", "yada"),
+                new BasicNameValuePair("o", "booh")),
+                impl.parse("cn=\"blah  blah\", ou=yada, o=booh"));
     }
 
     @Test
     void testParseQuotes3() {
-        assertThat(impl.parse("cn=\"blah, blah\", ou=yada, o=booh"),
-                CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
-                        new BasicNameValuePair("cn", "blah, blah"),
-                        new BasicNameValuePair("ou", "yada"),
-                        new BasicNameValuePair("o", "booh"))));
+        Assertions.assertEquals(Arrays.<NameValuePair>asList(
+                new BasicNameValuePair("cn", "blah, blah"),
+                new BasicNameValuePair("ou", "yada"),
+                new BasicNameValuePair("o", "booh")),
+                impl.parse("cn=\"blah, blah\", ou=yada, o=booh"));
     }
 
     @Test
     void testParseEscape() {
-        assertThat(impl.parse("cn=blah\\, blah, ou=yada, o=booh"),
-                CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
-                        new BasicNameValuePair("cn", "blah, blah"),
-                        new BasicNameValuePair("ou", "yada"),
-                        new BasicNameValuePair("o", "booh"))));
+        Assertions.assertEquals(Arrays.<NameValuePair>asList(
+                new BasicNameValuePair("cn", "blah, blah"),
+                new BasicNameValuePair("ou", "yada"),
+                new BasicNameValuePair("o", "booh")),
+                impl.parse("cn=blah\\, blah, ou=yada, o=booh"));
     }
 
     @Test
     void testParseUnescapedEqual() {
-        assertThat(impl.parse("c = cn=uuh, cn=blah, ou=yada, o=booh"),
-                CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
-                        new BasicNameValuePair("c", "cn=uuh"),
-                        new BasicNameValuePair("cn", "blah"),
-                        new BasicNameValuePair("ou", "yada"),
-                        new BasicNameValuePair("o", "booh"))));
+        Assertions.assertEquals(Arrays.<NameValuePair>asList(
+                new BasicNameValuePair("c", "cn=uuh"),
+                new BasicNameValuePair("cn", "blah"),
+                new BasicNameValuePair("ou", "yada"),
+                new BasicNameValuePair("o", "booh")),
+                impl.parse("c = cn=uuh, cn=blah, ou=yada, o=booh"));
     }
 
     @Test
     void testParseInvalid() {
-        assertThat(impl.parse("blah,blah"),
-                CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
-                        new BasicNameValuePair("blah", null),
-                        new BasicNameValuePair("blah", null))));
+        Assertions.assertEquals(Arrays.<NameValuePair>asList(
+                new BasicNameValuePair("blah", null),
+                new BasicNameValuePair("blah", null)),
+                impl.parse("blah,blah"));
     }
 
     @Test
     void testParseInvalid2() {
-        assertThat(impl.parse("cn,o=blah"),
-                CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
-                        new BasicNameValuePair("cn", null),
-                        new BasicNameValuePair("o", "blah"))));
+        Assertions.assertEquals(Arrays.<NameValuePair>asList(
+                new BasicNameValuePair("cn", null),
+                new BasicNameValuePair("o", "blah")),
+                impl.parse("cn,o=blah"));
     }
 
 }

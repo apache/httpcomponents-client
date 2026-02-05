@@ -26,39 +26,17 @@
  */
 package org.apache.hc.client5.http;
 
-import java.util.Objects;
-
 import org.apache.hc.core5.http.Header;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
+import org.junit.jupiter.api.Assertions;
 
-public class HeaderMatcher extends BaseMatcher<Header> {
+public class HeaderMatcher {
 
-    private final String headerName;
-    private final Object headerValue;
-
-    public HeaderMatcher(final String headerName, final Object headerValue) {
-        this.headerName = headerName;
-        this.headerValue = headerValue;
-    }
-
-    @Override
-    public boolean matches(final Object item) {
-        if (item instanceof Header) {
-            final Header header = (Header) item;
-            return headerName.equalsIgnoreCase(header.getName()) && Objects.equals(headerValue, header.getValue());
-        }
-        return false;
-    }
-
-    @Override
-    public void describeTo(final Description description) {
-        description.appendText("same header as ").appendValue(headerValue).appendText(": ").appendValue(headerValue);
-    }
-
-    public static Matcher<Header> same(final String headerName, final Object headerValue) {
-        return new HeaderMatcher(headerName, headerValue);
+    public static void assertSame(final Header header, final String headerName, final Object headerValue) {
+        Assertions.assertNotNull(header, "Expected header '" + headerName + "'");
+        Assertions.assertTrue(headerName.equalsIgnoreCase(header.getName()),
+                "Expected header name '" + headerName + "' but was '" + header.getName() + "'");
+        Assertions.assertEquals(headerValue, header.getValue(),
+                "Expected header '" + headerName + "' value '" + headerValue + "' but was '" + header.getValue() + "'");
     }
 
 }

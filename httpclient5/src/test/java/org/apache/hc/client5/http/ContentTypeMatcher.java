@@ -27,34 +27,15 @@
 package org.apache.hc.client5.http;
 
 import org.apache.hc.core5.http.ContentType;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
+import org.junit.jupiter.api.Assertions;
 
-public class ContentTypeMatcher extends BaseMatcher<ContentType> {
+public class ContentTypeMatcher {
 
-    private final ContentType expectedContentType;
-
-    public ContentTypeMatcher(final ContentType contentType) {
-        this.expectedContentType = contentType;
-    }
-
-    @Override
-    public boolean matches(final Object item) {
-        if (item instanceof ContentType) {
-            final ContentType contentType = (ContentType) item;
-            return contentType.isSameMimeType(expectedContentType);
-        }
-        return false;
-    }
-
-    @Override
-    public void describeTo(final Description description) {
-        description.appendText("same MIME type as ").appendValue(expectedContentType);
-    }
-
-    public static Matcher<ContentType> sameMimeType(final ContentType contentType) {
-        return new ContentTypeMatcher(contentType);
+    public static void assertSameMimeType(final ContentType actual, final ContentType expected) {
+        Assertions.assertNotNull(actual, "Expected content type");
+        Assertions.assertNotNull(expected, "Expected content type");
+        Assertions.assertTrue(actual.isSameMimeType(expected),
+                "Expected MIME type '" + expected.getMimeType() + "' but was '" + actual.getMimeType() + "'");
     }
 
 }

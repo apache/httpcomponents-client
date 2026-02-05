@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -47,7 +45,7 @@ import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
-import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -81,11 +79,11 @@ abstract class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest {
                             .addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE)
                             .build(), null);
             final SimpleHttpResponse response = future.get();
-            assertThat(response, CoreMatchers.notNullValue());
-            assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            Assertions.assertNotNull(response);
+            Assertions.assertEquals(200, response.getCode());
             final String body = response.getBodyText();
-            assertThat(body, CoreMatchers.notNullValue());
-            assertThat(body.length(), CoreMatchers.equalTo(2048));
+            Assertions.assertNotNull(body);
+            Assertions.assertEquals(2048, body.length());
         }
     }
 
@@ -103,11 +101,11 @@ abstract class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest {
                         .setPath("/random/2048")
                         .build(), null);
         final SimpleHttpResponse response1 = future1.get();
-        assertThat(response1, CoreMatchers.notNullValue());
-        assertThat(response1.getCode(), CoreMatchers.equalTo(200));
+        Assertions.assertNotNull(response1);
+        Assertions.assertEquals(200, response1.getCode());
         final String body1 = response1.getBodyText();
-        assertThat(body1, CoreMatchers.notNullValue());
-        assertThat(body1.length(), CoreMatchers.equalTo(2048));
+        Assertions.assertNotNull(body1);
+        Assertions.assertEquals(2048, body1.length());
 
 
         try (final CloseableHttpAsyncClient httpclient2 = HttpAsyncClients.custom()
@@ -121,11 +119,11 @@ abstract class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest {
                             .setPath("/random/2048")
                             .build(), null);
             final SimpleHttpResponse response2 = future2.get();
-            assertThat(response2, CoreMatchers.notNullValue());
-            assertThat(response2.getCode(), CoreMatchers.equalTo(200));
+            Assertions.assertNotNull(response2);
+            Assertions.assertEquals(200, response2.getCode());
             final String body2 = response2.getBodyText();
-            assertThat(body2, CoreMatchers.notNullValue());
-            assertThat(body2.length(), CoreMatchers.equalTo(2048));
+            Assertions.assertNotNull(body2);
+            Assertions.assertEquals(2048, body2.length());
         }
 
         final Future<SimpleHttpResponse> future3 = client.execute(
@@ -134,11 +132,11 @@ abstract class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest {
                         .setPath("/random/2048")
                         .build(), null);
         final SimpleHttpResponse response3 = future3.get();
-        assertThat(response3, CoreMatchers.notNullValue());
-        assertThat(response3.getCode(), CoreMatchers.equalTo(200));
+        Assertions.assertNotNull(response3);
+        Assertions.assertEquals(200, response3.getCode());
         final String body3 = response3.getBodyText();
-        assertThat(body3, CoreMatchers.notNullValue());
-        assertThat(body3.length(), CoreMatchers.equalTo(2048));
+        Assertions.assertNotNull(body3);
+        Assertions.assertEquals(2048, body3.length());
     }
 
     @Test
@@ -196,8 +194,8 @@ abstract class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest {
                                 .setPath("/random/1000")
                                 .build(), null);
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
-                assertThat(response, CoreMatchers.notNullValue());
-                assertThat(response.getCode(), CoreMatchers.equalTo(200));
+                Assertions.assertNotNull(response);
+                Assertions.assertEquals(200, response.getCode());
             }
 
         } finally {

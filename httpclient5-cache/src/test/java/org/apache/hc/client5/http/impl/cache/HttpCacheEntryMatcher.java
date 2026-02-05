@@ -37,58 +37,55 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.Header;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
+import org.junit.jupiter.api.Assertions;
 
-public class HttpCacheEntryMatcher extends BaseMatcher<HttpCacheEntry> {
+public class HttpCacheEntryMatcher {
 
-    private final HttpCacheEntry expectedValue;
-
-    public HttpCacheEntryMatcher(final HttpCacheEntry expectedValue) {
-        this.expectedValue = expectedValue;
+    public static void assertEquivalent(final HttpCacheEntry actual, final HttpCacheEntry expected) {
+        try {
+            Assertions.assertTrue(equivalent(expected, actual), "Expected equivalent cache entry");
+        } catch (final ResourceIOException ex) {
+            Assertions.fail("Failed to read cached resource", ex);
+        }
     }
 
-    @Override
-    public boolean matches(final Object item) {
-        if (item instanceof HttpCacheEntry) {
-            try {
-                final HttpCacheEntry otherValue = (HttpCacheEntry) item;
-
-                if (!setEqual(expectedValue.getVariants(), otherValue.getVariants())) {
-                    return false;
-                }
-                if (!Objects.equals(expectedValue.getRequestMethod(), otherValue.getRequestMethod())) {
-                    return false;
-                }
-                if (!Objects.equals(expectedValue.getRequestURI(), otherValue.getRequestURI())) {
-                    return false;
-                }
-                if (!headersEqual(expectedValue.requestHeaderIterator(), otherValue.requestHeaderIterator())) {
-                    return false;
-                }
-                if (!instantEqual(expectedValue.getRequestInstant(), otherValue.getRequestInstant())) {
-                    return false;
-                }
-                if (expectedValue.getStatus() != otherValue.getStatus()) {
-                    return false;
-                }
-                if (!headersEqual(expectedValue.headerIterator(), otherValue.headerIterator())) {
-                    return false;
-                }
-                if (!instantEqual(expectedValue.getResponseInstant(), otherValue.getResponseInstant())) {
-                    return false;
-                }
-                final Resource expectedResource = expectedValue.getResource();
-                final byte[] expectedContent = expectedResource != null ? expectedResource.get() : null;
-                final Resource otherResource = otherValue.getResource();
-                final byte[] otherContent = otherResource != null ? otherResource.get() : null;
-                return Arrays.equals(expectedContent, otherContent);
-            } catch (final ResourceIOException ex) {
-                throw new RuntimeException(ex);
-            }
+    private static boolean equivalent(final HttpCacheEntry expectedValue, final HttpCacheEntry otherValue)
+            throws ResourceIOException {
+        if (expectedValue == null && otherValue == null) {
+            return true;
         }
-        return false;
+        if (expectedValue == null || otherValue == null) {
+            return false;
+        }
+        if (!setEqual(expectedValue.getVariants(), otherValue.getVariants())) {
+            return false;
+        }
+        if (!Objects.equals(expectedValue.getRequestMethod(), otherValue.getRequestMethod())) {
+            return false;
+        }
+        if (!Objects.equals(expectedValue.getRequestURI(), otherValue.getRequestURI())) {
+            return false;
+        }
+        if (!headersEqual(expectedValue.requestHeaderIterator(), otherValue.requestHeaderIterator())) {
+            return false;
+        }
+        if (!instantEqual(expectedValue.getRequestInstant(), otherValue.getRequestInstant())) {
+            return false;
+        }
+        if (expectedValue.getStatus() != otherValue.getStatus()) {
+            return false;
+        }
+        if (!headersEqual(expectedValue.headerIterator(), otherValue.headerIterator())) {
+            return false;
+        }
+        if (!instantEqual(expectedValue.getResponseInstant(), otherValue.getResponseInstant())) {
+            return false;
+        }
+        final Resource expectedResource = expectedValue.getResource();
+        final byte[] expectedContent = expectedResource != null ? expectedResource.get() : null;
+        final Resource otherResource = otherValue.getResource();
+        final byte[] otherContent = otherResource != null ? otherResource.get() : null;
+        return Arrays.equals(expectedContent, otherContent);
     }
 
     private static boolean instantEqual(final Instant expected, final Instant other) {
@@ -119,15 +116,6 @@ public class HttpCacheEntryMatcher extends BaseMatcher<HttpCacheEntry> {
             return false;
         }
         return actual.containsAll(expected);
-    }
-
-    @Override
-    public void describeTo(final Description description) {
-        description.appendValue(expectedValue);
-    }
-
-    public static Matcher<HttpCacheEntry> equivalent(final HttpCacheEntry target) {
-        return new HttpCacheEntryMatcher(target);
     }
 
 }

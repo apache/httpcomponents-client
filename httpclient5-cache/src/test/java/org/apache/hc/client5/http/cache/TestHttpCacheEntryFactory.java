@@ -47,7 +47,6 @@ import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.message.HeaderGroup;
-import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -99,10 +98,9 @@ class TestHttpCacheEntryFactory {
                 new BasicHeader(HttpHeaders.CONTENT_TYPE, ContentType.TEXT_PLAIN.toString()),
                 new BasicHeader(HttpHeaders.CONTENT_LENGTH, "111"));
         final HeaderGroup filteredHeaders = HttpCacheEntryFactory.filterHopByHopHeaders(response);
-        MatcherAssert.assertThat(filteredHeaders.getHeaders(), HeadersMatcher.same(
+        HeadersMatcher.assertSame(filteredHeaders.getHeaders(),
                 new BasicHeader("X-custom", "my stuff"),
-                new BasicHeader(HttpHeaders.CONTENT_TYPE, ContentType.TEXT_PLAIN.toString())
-        ));
+                new BasicHeader(HttpHeaders.CONTENT_TYPE, ContentType.TEXT_PLAIN.toString()));
     }
 
     @Test
@@ -113,8 +111,8 @@ class TestHttpCacheEntryFactory {
 
         final HeaderGroup mergedHeaders = impl.mergeHeaders(entry, response);
 
-        MatcherAssert.assertThat(mergedHeaders, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(responseDate)));
-        MatcherAssert.assertThat(mergedHeaders, ContainsHeaderMatcher.contains("ETag", "\"etag\""));
+        ContainsHeaderMatcher.assertContains(mergedHeaders, "Date", DateUtils.formatStandardDate(responseDate));
+        ContainsHeaderMatcher.assertContains(mergedHeaders, "ETag", "\"etag\"");
     }
 
     @Test
@@ -132,10 +130,10 @@ class TestHttpCacheEntryFactory {
 
         final HeaderGroup mergedHeaders = impl.mergeHeaders(entry, response);
 
-        MatcherAssert.assertThat(mergedHeaders, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(requestDate)));
-        MatcherAssert.assertThat(mergedHeaders, ContainsHeaderMatcher.contains("ETag", "\"etag\""));
-        MatcherAssert.assertThat(mergedHeaders, ContainsHeaderMatcher.contains("Last-Modified", DateUtils.formatStandardDate(responseDate)));
-        MatcherAssert.assertThat(mergedHeaders, ContainsHeaderMatcher.contains("Cache-Control", "public"));
+        ContainsHeaderMatcher.assertContains(mergedHeaders, "Date", DateUtils.formatStandardDate(requestDate));
+        ContainsHeaderMatcher.assertContains(mergedHeaders, "ETag", "\"etag\"");
+        ContainsHeaderMatcher.assertContains(mergedHeaders, "Last-Modified", DateUtils.formatStandardDate(responseDate));
+        ContainsHeaderMatcher.assertContains(mergedHeaders, "Cache-Control", "public");
     }
 
     @Test
@@ -149,10 +147,10 @@ class TestHttpCacheEntryFactory {
 
         final HeaderGroup mergedHeaders = impl.mergeHeaders(entry, response);
 
-        MatcherAssert.assertThat(mergedHeaders, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(requestDate)));
-        MatcherAssert.assertThat(mergedHeaders, ContainsHeaderMatcher.contains("ETag", "\"etag\""));
-        MatcherAssert.assertThat(mergedHeaders, ContainsHeaderMatcher.contains("Last-Modified", DateUtils.formatStandardDate(responseDate)));
-        MatcherAssert.assertThat(mergedHeaders, ContainsHeaderMatcher.contains("Cache-Control", "public"));
+        ContainsHeaderMatcher.assertContains(mergedHeaders, "Date", DateUtils.formatStandardDate(requestDate));
+        ContainsHeaderMatcher.assertContains(mergedHeaders, "ETag", "\"etag\"");
+        ContainsHeaderMatcher.assertContains(mergedHeaders, "Last-Modified", DateUtils.formatStandardDate(responseDate));
+        ContainsHeaderMatcher.assertContains(mergedHeaders, "Cache-Control", "public");
     }
 
     @Test
@@ -165,7 +163,7 @@ class TestHttpCacheEntryFactory {
 
         final HeaderGroup mergedHeaders = impl.mergeHeaders(entry, response);
 
-        MatcherAssert.assertThat(mergedHeaders, ContainsHeaderMatcher.contains("ETag", "\"new\""));
+        ContainsHeaderMatcher.assertContains(mergedHeaders, "ETag", "\"new\"");
     }
 
     @Test
@@ -178,7 +176,7 @@ class TestHttpCacheEntryFactory {
 
         final HeaderGroup mergedHeaders = impl.mergeHeaders(entry, response);
 
-        MatcherAssert.assertThat(mergedHeaders, ContainsHeaderMatcher.contains("ETag", "\"new\""));
+        ContainsHeaderMatcher.assertContains(mergedHeaders, "ETag", "\"new\"");
     }
 
     @Test
@@ -215,8 +213,7 @@ class TestHttpCacheEntryFactory {
 
         final HttpCacheEntry newRoot = impl.createRoot(newEntry, variants);
 
-        MatcherAssert.assertThat(newRoot, HttpCacheEntryMatcher.equivalent(
-                HttpTestUtils.makeCacheEntry(
+        HttpCacheEntryMatcher.assertEquivalent(newRoot, HttpTestUtils.makeCacheEntry(
                         tenSecondsAgo,
                         oneSecondAgo,
                         Method.GET,
@@ -234,7 +231,7 @@ class TestHttpCacheEntryFactory {
                                 new BasicHeader("X-custom", "my stuff")
                         },
                         variants
-                        )));
+                        ));
 
         Assertions.assertTrue(newRoot.hasVariants());
         Assertions.assertNull(newRoot.getResource());
@@ -261,8 +258,7 @@ class TestHttpCacheEntryFactory {
         final Resource resource = HttpTestUtils.makeRandomResource(128);
         final HttpCacheEntry newEntry = impl.create(tenSecondsAgo, oneSecondAgo, host, request, response, resource);
 
-        MatcherAssert.assertThat(newEntry, HttpCacheEntryMatcher.equivalent(
-                HttpTestUtils.makeCacheEntry(
+        HttpCacheEntryMatcher.assertEquivalent(newEntry, HttpTestUtils.makeCacheEntry(
                         tenSecondsAgo,
                         oneSecondAgo,
                         Method.GET,
@@ -279,7 +275,7 @@ class TestHttpCacheEntryFactory {
                                 new BasicHeader("X-custom", "my stuff")
                         },
                         resource
-                )));
+                ));
 
         Assertions.assertFalse(newEntry.hasVariants());
     }
@@ -321,8 +317,7 @@ class TestHttpCacheEntryFactory {
 
         final HttpCacheEntry updatedEntry = impl.createUpdated(tenSecondsAgo, oneSecondAgo, host, request, response, entry);
 
-        MatcherAssert.assertThat(updatedEntry, HttpCacheEntryMatcher.equivalent(
-                HttpTestUtils.makeCacheEntry(
+        HttpCacheEntryMatcher.assertEquivalent(updatedEntry, HttpTestUtils.makeCacheEntry(
                         tenSecondsAgo,
                         oneSecondAgo,
                         Method.GET,
@@ -341,7 +336,7 @@ class TestHttpCacheEntryFactory {
                                 new BasicHeader("Cache-Control", "public")
                         },
                         resource
-                )));
+                ));
 
         Assertions.assertFalse(updatedEntry.hasVariants());
     }

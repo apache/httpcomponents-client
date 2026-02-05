@@ -27,8 +27,6 @@
 
 package org.apache.hc.client5.http.async.methods;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -43,7 +41,6 @@ import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.net.URIAuthority;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -76,38 +73,38 @@ class TestSimpleMessageBuilders {
         builder.addHeader("h1", "v1");
         builder.addHeader("h1", "v2");
         builder.addHeader("h2", "v2");
-        assertThat(builder.getHeaders(), HeadersMatcher.same(
-                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"), new BasicHeader("h2", "v2")));
-        assertThat(builder.getHeaders("h1"), HeadersMatcher.same(
-                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2")));
-        assertThat(builder.getFirstHeader("h1"), HeaderMatcher.same("h1", "v1"));
-        assertThat(builder.getLastHeader("h1"), HeaderMatcher.same("h1", "v2"));
+        HeadersMatcher.assertSame(builder.getHeaders(),
+                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"), new BasicHeader("h2", "v2"));
+        HeadersMatcher.assertSame(builder.getHeaders("h1"),
+                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"));
+        HeaderMatcher.assertSame(builder.getFirstHeader("h1"), "h1", "v1");
+        HeaderMatcher.assertSame(builder.getLastHeader("h1"), "h1", "v2");
 
         final SimpleHttpResponse r3 = builder.build();
-        assertThat(r3.getHeaders(), HeadersMatcher.same(
-                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"), new BasicHeader("h2", "v2")));
-        assertThat(r3.getHeaders("h1"), HeadersMatcher.same(
-                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2")));
-        assertThat(r3.getFirstHeader("h1"), HeaderMatcher.same("h1", "v1"));
-        assertThat(r3.getLastHeader("h1"), HeaderMatcher.same("h1", "v2"));
+        HeadersMatcher.assertSame(r3.getHeaders(),
+                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"), new BasicHeader("h2", "v2"));
+        HeadersMatcher.assertSame(r3.getHeaders("h1"),
+                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"));
+        HeaderMatcher.assertSame(r3.getFirstHeader("h1"), "h1", "v1");
+        HeaderMatcher.assertSame(r3.getLastHeader("h1"), "h1", "v2");
 
         builder.removeHeader(new BasicHeader("h1", "v2"));
-        assertThat(builder.getHeaders("h1"), HeadersMatcher.same(new BasicHeader("h1", "v1")));
-        assertThat(builder.getHeaders(), HeadersMatcher.same(
-                new BasicHeader("h1", "v1"), new BasicHeader("h2", "v2")));
+        HeadersMatcher.assertSame(builder.getHeaders("h1"), new BasicHeader("h1", "v1"));
+        HeadersMatcher.assertSame(builder.getHeaders(),
+                new BasicHeader("h1", "v1"), new BasicHeader("h2", "v2"));
 
         final SimpleHttpResponse r4 = builder.build();
-        assertThat(r4.getHeaders("h1"), HeadersMatcher.same(new BasicHeader("h1", "v1")));
-        assertThat(r4.getHeaders(), HeadersMatcher.same(
-                new BasicHeader("h1", "v1"), new BasicHeader("h2", "v2")));
+        HeadersMatcher.assertSame(r4.getHeaders("h1"), new BasicHeader("h1", "v1"));
+        HeadersMatcher.assertSame(r4.getHeaders(),
+                new BasicHeader("h1", "v1"), new BasicHeader("h2", "v2"));
 
         builder.removeHeaders("h1");
-        assertThat(builder.getHeaders("h1"), HeadersMatcher.same());
-        assertThat(builder.getHeaders(), HeadersMatcher.same(new BasicHeader("h2", "v2")));
+        HeadersMatcher.assertSame(builder.getHeaders("h1"));
+        HeadersMatcher.assertSame(builder.getHeaders(), new BasicHeader("h2", "v2"));
 
         final SimpleHttpResponse r5 = builder.build();
-        assertThat(r5.getHeaders("h1"), HeadersMatcher.same());
-        assertThat(r5.getHeaders(), HeadersMatcher.same(new BasicHeader("h2", "v2")));
+        HeadersMatcher.assertSame(r5.getHeaders("h1"));
+        HeadersMatcher.assertSame(r5.getHeaders(), new BasicHeader("h2", "v2"));
     }
 
     @Test
@@ -170,38 +167,38 @@ class TestSimpleMessageBuilders {
         builder.addHeader("h1", "v1");
         builder.addHeader("h1", "v2");
         builder.addHeader("h2", "v2");
-        assertThat(builder.getHeaders(), HeadersMatcher.same(
-                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"), new BasicHeader("h2", "v2")));
-        assertThat(builder.getHeaders("h1"), HeadersMatcher.same(
-                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2")));
-        assertThat(builder.getFirstHeader("h1"), HeaderMatcher.same("h1", "v1"));
-        assertThat(builder.getLastHeader("h1"), HeaderMatcher.same("h1", "v2"));
+        HeadersMatcher.assertSame(builder.getHeaders(),
+                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"), new BasicHeader("h2", "v2"));
+        HeadersMatcher.assertSame(builder.getHeaders("h1"),
+                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"));
+        HeaderMatcher.assertSame(builder.getFirstHeader("h1"), "h1", "v1");
+        HeaderMatcher.assertSame(builder.getLastHeader("h1"), "h1", "v2");
 
         final SimpleHttpRequest r4 = builder.build();
-        assertThat(r4.getHeaders(), HeadersMatcher.same(
-                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"), new BasicHeader("h2", "v2")));
-        assertThat(r4.getHeaders("h1"), HeadersMatcher.same(
-                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2")));
-        assertThat(r4.getFirstHeader("h1"), HeaderMatcher.same("h1", "v1"));
-        assertThat(r4.getLastHeader("h1"), HeaderMatcher.same("h1", "v2"));
+        HeadersMatcher.assertSame(r4.getHeaders(),
+                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"), new BasicHeader("h2", "v2"));
+        HeadersMatcher.assertSame(r4.getHeaders("h1"),
+                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"));
+        HeaderMatcher.assertSame(r4.getFirstHeader("h1"), "h1", "v1");
+        HeaderMatcher.assertSame(r4.getLastHeader("h1"), "h1", "v2");
 
         builder.removeHeader(new BasicHeader("h1", "v2"));
-        assertThat(builder.getHeaders("h1"), HeadersMatcher.same(new BasicHeader("h1", "v1")));
-        assertThat(builder.getHeaders(), HeadersMatcher.same(
-                new BasicHeader("h1", "v1"), new BasicHeader("h2", "v2")));
+        HeadersMatcher.assertSame(builder.getHeaders("h1"), new BasicHeader("h1", "v1"));
+        HeadersMatcher.assertSame(builder.getHeaders(),
+                new BasicHeader("h1", "v1"), new BasicHeader("h2", "v2"));
 
         final SimpleHttpRequest r5 = builder.build();
-        assertThat(r5.getHeaders("h1"), HeadersMatcher.same(new BasicHeader("h1", "v1")));
-        assertThat(r5.getHeaders(), HeadersMatcher.same(
-                new BasicHeader("h1", "v1"), new BasicHeader("h2", "v2")));
+        HeadersMatcher.assertSame(r5.getHeaders("h1"), new BasicHeader("h1", "v1"));
+        HeadersMatcher.assertSame(r5.getHeaders(),
+                new BasicHeader("h1", "v1"), new BasicHeader("h2", "v2"));
 
         builder.removeHeaders("h1");
-        assertThat(builder.getHeaders("h1"), HeadersMatcher.same());
-        assertThat(builder.getHeaders(), HeadersMatcher.same(new BasicHeader("h2", "v2")));
+        HeadersMatcher.assertSame(builder.getHeaders("h1"));
+        HeadersMatcher.assertSame(builder.getHeaders(), new BasicHeader("h2", "v2"));
 
         final SimpleHttpRequest r6 = builder.build();
-        assertThat(r6.getHeaders("h1"), HeadersMatcher.same());
-        assertThat(r6.getHeaders(), HeadersMatcher.same(new BasicHeader("h2", "v2")));
+        HeadersMatcher.assertSame(r6.getHeaders("h1"));
+        HeadersMatcher.assertSame(r6.getHeaders(), new BasicHeader("h2", "v2"));
     }
 
     @Test
@@ -215,8 +212,8 @@ class TestSimpleMessageBuilders {
         final SimpleResponseBuilder builder = SimpleResponseBuilder.copy(response);
         Assertions.assertEquals(400, builder.getStatus());
         Assertions.assertEquals(HttpVersion.HTTP_2, builder.getVersion());
-        assertThat(builder.getHeaders(), HeadersMatcher.same(
-                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"), new BasicHeader("h2", "v2")));
+        HeadersMatcher.assertSame(builder.getHeaders(),
+                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"), new BasicHeader("h2", "v2"));
     }
 
     @Test
@@ -233,8 +230,8 @@ class TestSimpleMessageBuilders {
         Assertions.assertEquals(new URIAuthority("host", 3456), builder.getAuthority());
         Assertions.assertEquals("/stuff?blah", builder.getPath());
         Assertions.assertEquals(HttpVersion.HTTP_2, builder.getVersion());
-        assertThat(builder.getHeaders(), HeadersMatcher.same(
-                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"), new BasicHeader("h2", "v2")));
+        HeadersMatcher.assertSame(builder.getHeaders(),
+                new BasicHeader("h1", "v1"), new BasicHeader("h1", "v2"), new BasicHeader("h2", "v2"));
     }
 
     @Test
@@ -247,11 +244,11 @@ class TestSimpleMessageBuilders {
         Assertions.assertEquals("https", builder.getScheme());
         Assertions.assertEquals(new URIAuthority("host", 3456), builder.getAuthority());
         Assertions.assertEquals("/stuff?p0=p0", builder.getPath());
-        assertThat(builder.getParameters(), NameValuePairsMatcher.same(
+        NameValuePairsMatcher.assertSame(builder.getParameters(),
                 new BasicNameValuePair("p1", "v1"), new BasicNameValuePair("p2", "v2"),
-                new BasicNameValuePair("p3", "v3"), new BasicNameValuePair("p3", "v3.1")));
+                new BasicNameValuePair("p3", "v3"), new BasicNameValuePair("p3", "v3.1"));
         final SimpleHttpRequest request = builder.build();
-        assertThat(request.getPath(), CoreMatchers.equalTo("/stuff?p0=p0&p1=v1&p2=v2&p3=v3&p3=v3.1"));
+        Assertions.assertEquals("/stuff?p0=p0&p1=v1&p2=v2&p3=v3&p3=v3.1", request.getPath());
         Assertions.assertNull(request.getBody());
     }
 
@@ -265,16 +262,15 @@ class TestSimpleMessageBuilders {
         Assertions.assertEquals("https", builder.getScheme());
         Assertions.assertEquals(new URIAuthority("host", 3456), builder.getAuthority());
         Assertions.assertEquals("/stuff?p0=p0", builder.getPath());
-        assertThat(builder.getParameters(), NameValuePairsMatcher.same(
+        NameValuePairsMatcher.assertSame(builder.getParameters(),
                 new BasicNameValuePair("p1", "v1"), new BasicNameValuePair("p2", "v2"),
-                new BasicNameValuePair("p3", "v3"), new BasicNameValuePair("p3", "v3.1")));
+                new BasicNameValuePair("p3", "v3"), new BasicNameValuePair("p3", "v3.1"));
         final SimpleHttpRequest request = builder.build();
-        assertThat(request.getPath(), CoreMatchers.equalTo("/stuff?p0=p0"));
+        Assertions.assertEquals("/stuff?p0=p0", request.getPath());
         Assertions.assertNotNull(request.getBody());
-        assertThat(request.getBody().getContentType(),
-                ContentTypeMatcher.sameMimeType(ContentType.APPLICATION_FORM_URLENCODED));
-        assertThat(request.getBody().getBodyText(),
-                CoreMatchers.equalTo("p1=v1&p2=v2&p3=v3&p3=v3.1"));
+        ContentTypeMatcher.assertSameMimeType(request.getBody().getContentType(),
+                ContentType.APPLICATION_FORM_URLENCODED);
+        Assertions.assertEquals("p1=v1&p2=v2&p3=v3&p3=v3.1", request.getBody().getBodyText());
     }
 
 }

@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.testing.sync;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
@@ -84,7 +82,6 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.support.BasicResponseBuilder;
 import org.apache.hc.core5.net.URIAuthority;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -342,9 +339,8 @@ abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
 
         Mockito.verify(authStrategy).select(Mockito.any(), Mockito.any(), Mockito.any());
 
-        assertThat(
-                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()),
-                CoreMatchers.equalTo(Arrays.asList(401, 200, 200, 200, 200, 200)));
+        Assertions.assertEquals(Arrays.asList(401, 200, 200, 200, 200, 200),
+                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()));
     }
 
     @Test
@@ -385,9 +381,8 @@ abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
         // There should be only single auth strategy call for all successful message exchanges
         Mockito.verify(authStrategy).select(Mockito.any(), Mockito.any(), Mockito.any());
 
-        assertThat(
-                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()),
-                CoreMatchers.equalTo(Arrays.asList(401, 200, 200, 200, 200)));
+        Assertions.assertEquals(Arrays.asList(401, 200, 200, 200, 200),
+                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()));
 
         responseQueue.clear();
         authCache.clear();
@@ -407,9 +402,8 @@ abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
         // There should be an auth strategy call for all successful message exchanges
         Mockito.verify(authStrategy, Mockito.times(2)).select(Mockito.any(), Mockito.any(), Mockito.any());
 
-        assertThat(
-                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()),
-                CoreMatchers.equalTo(Arrays.asList(200, 401, 200, 200, 401, 200)));
+        Assertions.assertEquals(Arrays.asList(200, 401, 200, 200, 401, 200),
+                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()));
     }
 
     @Test

@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.testing.sync;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.ConnectException;
@@ -83,7 +81,6 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.TimeValue;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -513,7 +510,7 @@ abstract class TestRedirects extends AbstractIntegrationTestBase {
 
         final ClientProtocolException exception = Assertions.assertThrows(ClientProtocolException.class, () ->
                 client.execute(target, httpget, response -> null));
-        assertThat(exception.getCause(), CoreMatchers.instanceOf(HttpException.class));
+        Assertions.assertInstanceOf(HttpException.class, exception.getCause());
     }
 
     @Test
@@ -537,7 +534,7 @@ abstract class TestRedirects extends AbstractIntegrationTestBase {
 
         final ClientProtocolException exception = Assertions.assertThrows(ClientProtocolException.class, () ->
                 client.execute(target, httpget, response -> null));
-        assertThat(exception.getCause(), CoreMatchers.instanceOf(ProtocolException.class));
+        Assertions.assertInstanceOf(ProtocolException.class, exception.getCause());
     }
 
     @Test
@@ -647,9 +644,9 @@ abstract class TestRedirects extends AbstractIntegrationTestBase {
         Assertions.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
                 reqWrapper.getUri());
 
-        assertThat(values.poll(), CoreMatchers.equalTo("gzip, deflate, lz4-framed, lz4-block, bzip2, pack200, deflate64, x-gzip"));
-        assertThat(values.poll(), CoreMatchers.equalTo("gzip, deflate, lz4-framed, lz4-block, bzip2, pack200, deflate64, x-gzip"));
-        assertThat(values.poll(), CoreMatchers.nullValue());
+        Assertions.assertEquals("gzip, deflate, lz4-framed, lz4-block, bzip2, pack200, deflate64, x-gzip", values.poll());
+        Assertions.assertEquals("gzip, deflate, lz4-framed, lz4-block, bzip2, pack200, deflate64, x-gzip", values.poll());
+        Assertions.assertNull(values.poll());
     }
 
     @Test

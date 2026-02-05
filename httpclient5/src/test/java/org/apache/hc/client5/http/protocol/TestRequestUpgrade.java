@@ -36,7 +36,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
-import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,22 +56,19 @@ class TestRequestUpgrade {
     void testUpgrade() throws Exception {
         final HttpRequest get = new BasicHttpRequest("GET", "/");
         interceptor.process(get, null, context);
-        MatcherAssert.assertThat(get.getHeaders(),
-                HeadersMatcher.same(
-                        new BasicHeader(HttpHeaders.UPGRADE, "TLS/1.2"),
-                        new BasicHeader(HttpHeaders.CONNECTION, HttpHeaders.UPGRADE)));
+        HeadersMatcher.assertSame(get.getHeaders(),
+                new BasicHeader(HttpHeaders.UPGRADE, "TLS/1.2"),
+                new BasicHeader(HttpHeaders.CONNECTION, HttpHeaders.UPGRADE));
         final HttpRequest options = new BasicHttpRequest("OPTIONS", "/");
         interceptor.process(options, null, context);
-        MatcherAssert.assertThat(options.getHeaders(),
-                HeadersMatcher.same(
-                        new BasicHeader(HttpHeaders.UPGRADE, "TLS/1.2"),
-                        new BasicHeader(HttpHeaders.CONNECTION, HttpHeaders.UPGRADE)));
+        HeadersMatcher.assertSame(options.getHeaders(),
+                new BasicHeader(HttpHeaders.UPGRADE, "TLS/1.2"),
+                new BasicHeader(HttpHeaders.CONNECTION, HttpHeaders.UPGRADE));
         final HttpRequest head = new BasicHttpRequest("HEAD", "/");
         interceptor.process(head, null, context);
-        MatcherAssert.assertThat(head.getHeaders(),
-                HeadersMatcher.same(
-                        new BasicHeader(HttpHeaders.UPGRADE, "TLS/1.2"),
-                        new BasicHeader(HttpHeaders.CONNECTION, HttpHeaders.UPGRADE)));
+        HeadersMatcher.assertSame(head.getHeaders(),
+                new BasicHeader(HttpHeaders.UPGRADE, "TLS/1.2"),
+                new BasicHeader(HttpHeaders.CONNECTION, HttpHeaders.UPGRADE));
     }
 
     @Test

@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -43,7 +41,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.util.TimeValue;
-import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -90,8 +88,8 @@ abstract class TestHttp1RequestReExecution extends AbstractIntegrationTestBase {
                         .setPath("/random/2048")
                         .build(), null);
         final SimpleHttpResponse response = future.get();
-        assertThat(response, CoreMatchers.notNullValue());
-        assertThat(response.getCode(), CoreMatchers.equalTo(HttpStatus.SC_SERVICE_UNAVAILABLE));
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.SC_SERVICE_UNAVAILABLE, response.getCode());
     }
 
     @Test
@@ -109,8 +107,8 @@ abstract class TestHttp1RequestReExecution extends AbstractIntegrationTestBase {
                         .setPath("/random/2048")
                         .build(), null);
         final SimpleHttpResponse response = future.get();
-        assertThat(response, CoreMatchers.notNullValue());
-        assertThat(response.getCode(), CoreMatchers.equalTo(HttpStatus.SC_OK));
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
     }
 
 }

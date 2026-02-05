@@ -26,9 +26,7 @@
  */
 package org.apache.hc.client5.http.schedule;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
-import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class TestConcurrentCountMap
@@ -42,10 +40,10 @@ class TestConcurrentCountMap
     void testBasics() {
         map.increaseCount(IDENTIFIER);
         map.increaseCount(IDENTIFIER);
-        assertThat(map.getCount(IDENTIFIER), CoreMatchers.equalTo(2));
+        Assertions.assertEquals(2, map.getCount(IDENTIFIER));
 
         map.resetCount(IDENTIFIER);
-        assertThat(map.getCount(IDENTIFIER), CoreMatchers.equalTo(0));
+        Assertions.assertEquals(0, map.getCount(IDENTIFIER));
     }
 
 }

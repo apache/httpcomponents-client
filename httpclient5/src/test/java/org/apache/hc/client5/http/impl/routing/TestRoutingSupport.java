@@ -27,8 +27,6 @@
 
 package org.apache.hc.client5.http.impl.routing;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.net.InetAddress;
 import java.net.URI;
 
@@ -39,7 +37,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.net.URIAuthority;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -49,11 +46,11 @@ class TestRoutingSupport {
     void testDetermineHost() throws Exception {
         final HttpRequest request1 = new BasicHttpRequest("GET", "/");
         final HttpHost host1 = RoutingSupport.determineHost(request1);
-        assertThat(host1, CoreMatchers.nullValue());
+        Assertions.assertNull(host1);
 
         final HttpRequest request2 = new BasicHttpRequest("GET", new URI("https://somehost:8443/"));
         final HttpHost host2 = RoutingSupport.determineHost(request2);
-        assertThat(host2, CoreMatchers.equalTo(new HttpHost("https", "somehost", 8443)));
+        Assertions.assertEquals(new HttpHost("https", "somehost", 8443), host2);
     }
 
     @Test

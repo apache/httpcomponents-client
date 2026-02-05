@@ -28,8 +28,6 @@ package org.apache.hc.client5.http.impl.cache;
 
 
 import org.apache.hc.core5.http.HttpVersion;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,22 +51,14 @@ class TestViaCacheGenerator {
 
     @Test
     void testViaValueLookup() {
-        MatcherAssert.assertThat(impl.lookup(HttpVersion.DEFAULT),
-                Matchers.startsWith("1.1 localhost (Apache-HttpClient/"));
-        MatcherAssert.assertThat(impl.lookup(HttpVersion.HTTP_1_0),
-                Matchers.startsWith("1.0 localhost (Apache-HttpClient/"));
-        MatcherAssert.assertThat(impl.lookup(HttpVersion.HTTP_1_1),
-                Matchers.startsWith("1.1 localhost (Apache-HttpClient/"));
-        MatcherAssert.assertThat(impl.lookup(HttpVersion.HTTP_2),
-                Matchers.startsWith("2.0 localhost (Apache-HttpClient/"));
-        MatcherAssert.assertThat(impl.lookup(HttpVersion.HTTP_2_0),
-                Matchers.startsWith("2.0 localhost (Apache-HttpClient/"));
-        MatcherAssert.assertThat(impl.lookup(HttpVersion.HTTP_1_0),
-                Matchers.startsWith("1.0 localhost (Apache-HttpClient/"));
-        MatcherAssert.assertThat(impl.lookup(HttpVersion.HTTP_1_1),
-                Matchers.startsWith("1.1 localhost (Apache-HttpClient/"));
-        MatcherAssert.assertThat(impl.lookup(HttpVersion.HTTP_2_0),
-                Matchers.startsWith("2.0 localhost (Apache-HttpClient/"));
+        Assertions.assertTrue(impl.lookup(HttpVersion.DEFAULT).startsWith("1.1 localhost (Apache-HttpClient/"));
+        Assertions.assertTrue(impl.lookup(HttpVersion.HTTP_1_0).startsWith("1.0 localhost (Apache-HttpClient/"));
+        Assertions.assertTrue(impl.lookup(HttpVersion.HTTP_1_1).startsWith("1.1 localhost (Apache-HttpClient/"));
+        Assertions.assertTrue(impl.lookup(HttpVersion.HTTP_2).startsWith("2.0 localhost (Apache-HttpClient/"));
+        Assertions.assertTrue(impl.lookup(HttpVersion.HTTP_2_0).startsWith("2.0 localhost (Apache-HttpClient/"));
+        Assertions.assertTrue(impl.lookup(HttpVersion.HTTP_1_0).startsWith("1.0 localhost (Apache-HttpClient/"));
+        Assertions.assertTrue(impl.lookup(HttpVersion.HTTP_1_1).startsWith("1.1 localhost (Apache-HttpClient/"));
+        Assertions.assertTrue(impl.lookup(HttpVersion.HTTP_2_0).startsWith("2.0 localhost (Apache-HttpClient/"));
         Assertions.assertEquals(3, impl.internalCache.size());
     }
 
