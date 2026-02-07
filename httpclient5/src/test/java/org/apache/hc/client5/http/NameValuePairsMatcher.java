@@ -26,59 +26,46 @@
  */
 package org.apache.hc.client5.http;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.Iterator;
 
 import org.apache.hc.core5.http.NameValuePair;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
+import org.junit.jupiter.api.Assertions;
 
-public class NameValuePairsMatcher extends BaseMatcher<Collection<? extends NameValuePair>> {
+public class NameValuePairsMatcher {
 
-    private final List<? extends NameValuePair> expectedNameValuePairList;
-
-    public NameValuePairsMatcher(final List<? extends NameValuePair> nameValuePairList) {
-        this.expectedNameValuePairList = nameValuePairList;
-    }
-
-    @Override
-    public boolean matches(final Object item) {
-        if (item instanceof Collection<?>) {
-            final Collection<?> collection = (Collection<?>) item;
-            int i = 0;
-            for (final Object obj : collection) {
-                if (obj instanceof NameValuePair) {
-                    final NameValuePair nvp1 = (NameValuePair) obj;
-                    final NameValuePair nvp2 = expectedNameValuePairList.get(i);
-                    if (!nvp1.getName().equalsIgnoreCase(nvp2.getName())
-                            || !Objects.equals(nvp1.getValue(), nvp2.getValue())) {
-                        return false;
-                    }
-                } else {
-                    return false;
-                }
-                i++;
-            }
-            return true;
+    public static void assertSame(final Collection<? extends NameValuePair> actual,
+            final Collection<? extends NameValuePair> expected) {
+        Assertions.assertNotNull(actual, "Expected name/value pairs");
+        Assertions.assertNotNull(expected, "Expected name/value pairs");
+        Assertions.assertEquals(expected.size(), actual.size(),
+                "Expected " + expected.size() + " name/value pairs but got " + actual.size());
+        final Iterator<? extends NameValuePair> actualIterator = actual.iterator();
+        final Iterator<? extends NameValuePair> expectedIterator = expected.iterator();
+        while (actualIterator.hasNext() && expectedIterator.hasNext()) {
+            final NameValuePair actualPair = actualIterator.next();
+            final NameValuePair expectedPair = expectedIterator.next();
+            Assertions.assertTrue(actualPair.getName().equalsIgnoreCase(expectedPair.getName()),
+                    "Expected name '" + expectedPair.getName() + "' but was '" + actualPair.getName() + "'");
+            Assertions.assertEquals(expectedPair.getValue(), actualPair.getValue(),
+                    "Expected value for '" + expectedPair.getName() + "'");
         }
-        return false;
     }
 
-    @Override
-    public void describeTo(final Description description) {
-        description.appendText("same name/value pairs as ").appendValueList("[", ", ", "]", expectedNameValuePairList);
-    }
-
-    public static Matcher<Collection<? extends NameValuePair>> same(final Collection<? extends NameValuePair> nameValuePairs) {
-        return new NameValuePairsMatcher(new ArrayList<>(nameValuePairs));
-    }
-
-    public static Matcher<Collection<? extends NameValuePair>> same(final NameValuePair... nameValuePairs) {
-        return new NameValuePairsMatcher(Arrays.asList(nameValuePairs));
+    public static void assertSame(final Collection<? extends NameValuePair> actual,
+            final NameValuePair... expected) {
+        Assertions.assertNotNull(actual, "Expected name/value pairs");
+        Assertions.assertEquals(expected.length, actual.size(),
+                "Expected " + expected.length + " name/value pairs but got " + actual.size());
+        int i = 0;
+        for (final NameValuePair actualPair : actual) {
+            final NameValuePair expectedPair = expected[i];
+            Assertions.assertTrue(actualPair.getName().equalsIgnoreCase(expectedPair.getName()),
+                    "Expected name '" + expectedPair.getName() + "' but was '" + actualPair.getName() + "'");
+            Assertions.assertEquals(expectedPair.getValue(), actualPair.getValue(),
+                    "Expected value for '" + expectedPair.getName() + "'");
+            i++;
+        }
     }
 
 }

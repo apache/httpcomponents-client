@@ -27,8 +27,6 @@
 package org.apache.hc.client5.testing.async;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
@@ -71,7 +69,6 @@ import org.apache.hc.core5.testing.reactive.Reactive3TestUtils.StreamDescription
 import org.apache.hc.core5.testing.reactive.ReactiveEchoProcessor;
 import org.apache.hc.core5.testing.reactive.ReactiveRandomProcessor;
 import org.apache.hc.core5.util.TextUtils;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -97,12 +94,12 @@ abstract class AbstractHttpReactiveFundamentalsTest extends AbstractIntegrationT
             client.execute(AsyncRequestBuilder.get(target + "/random/2048").build(), consumer, null);
 
             final Message<HttpResponse, Publisher<ByteBuffer>> response = consumer.getResponseFuture().get();
-            assertThat(response, CoreMatchers.notNullValue());
-            assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
+            Assertions.assertNotNull(response);
+            Assertions.assertEquals(200, response.getHead().getCode());
 
             final String body = publisherToString(response.getBody());
-            assertThat(body, CoreMatchers.notNullValue());
-            assertThat(body.length(), CoreMatchers.equalTo(2048));
+            Assertions.assertNotNull(body);
+            Assertions.assertEquals(2048, body.length());
         }
     }
 
@@ -120,11 +117,11 @@ abstract class AbstractHttpReactiveFundamentalsTest extends AbstractIntegrationT
             client.execute(AsyncRequestBuilder.head(target + "/random/2048").build(), consumer, null);
 
             final Message<HttpResponse, Publisher<ByteBuffer>> response = consumer.getResponseFuture().get();
-            assertThat(response, CoreMatchers.notNullValue());
-            assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
+            Assertions.assertNotNull(response);
+            Assertions.assertEquals(200, response.getHead().getCode());
 
             final String body = publisherToString(response.getBody());
-            assertThat(body, CoreMatchers.nullValue());
+            Assertions.assertNull(body);
         }
     }
 
@@ -150,11 +147,11 @@ abstract class AbstractHttpReactiveFundamentalsTest extends AbstractIntegrationT
 
             final Future<Message<HttpResponse, Publisher<ByteBuffer>>> responseFuture = consumer.getResponseFuture();
             final Message<HttpResponse, Publisher<ByteBuffer>> responseMessage = responseFuture.get();
-            assertThat(responseMessage, CoreMatchers.notNullValue());
+            Assertions.assertNotNull(responseMessage);
             final HttpResponse response = responseMessage.getHead();
-            assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            Assertions.assertEquals(200, response.getCode());
             final byte[] b2 = publisherToByteArray(responseMessage.getBody());
-            assertThat(b1, CoreMatchers.equalTo(b2));
+            Assertions.assertArrayEquals(b1, b2);
         }
     }
 
@@ -256,7 +253,7 @@ abstract class AbstractHttpReactiveFundamentalsTest extends AbstractIntegrationT
             });
         }
 
-        assertThat(countDownLatch.await(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit()), CoreMatchers.equalTo(true));
+        Assertions.assertTrue(countDownLatch.await(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit()));
 
         executorService.shutdownNow();
         executorService.awaitTermination(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -266,7 +263,7 @@ abstract class AbstractHttpReactiveFundamentalsTest extends AbstractIntegrationT
             if (response == null) {
                 break;
             }
-            assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
+            Assertions.assertEquals(200, response.getHead().getCode());
         }
     }
 
@@ -284,8 +281,8 @@ abstract class AbstractHttpReactiveFundamentalsTest extends AbstractIntegrationT
 
         final Future<Message<HttpResponse, Publisher<ByteBuffer>>> future = consumer.getResponseFuture();
         final HttpResponse response = future.get().getHead();
-        assertThat(response, CoreMatchers.notNullValue());
-        assertThat(response.getCode(), CoreMatchers.equalTo(400));
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(400, response.getCode());
     }
 
     static String publisherToString(final Publisher<ByteBuffer> publisher) throws Exception {

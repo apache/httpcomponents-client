@@ -26,47 +26,24 @@
  */
 package org.apache.hc.client5.http;
 
-import java.util.Objects;
-
 import org.apache.hc.core5.http.Header;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
+import org.junit.jupiter.api.Assertions;
 
-public class HeadersMatcher extends BaseMatcher<Header[]> {
+public class HeadersMatcher {
 
-    private final Header[] expectedHeaders;
-
-    public HeadersMatcher(final Header... headers) {
-        this.expectedHeaders = headers;
-    }
-
-    @Override
-    public boolean matches(final Object item) {
-        if (item instanceof Header[]) {
-            final Header[] headers = (Header[]) item;
-            if (headers.length == expectedHeaders.length) {
-                for (int i = 0; i < headers.length; i++) {
-                    final Header h1 = headers[i];
-                    final Header h2 = expectedHeaders[i];
-                    if (!h1.getName().equalsIgnoreCase(h2.getName())
-                            || !Objects.equals(h1.getValue(), h2.getValue())) {
-                        return false;
-                    }
-                }
-                return true;
-            }
+    public static void assertSame(final Header[] headers, final Header... expectedHeaders) {
+        Assertions.assertNotNull(headers, "Expected headers");
+        Assertions.assertEquals(expectedHeaders.length, headers.length,
+                "Expected " + expectedHeaders.length + " headers but got " + headers.length);
+        for (int i = 0; i < headers.length; i++) {
+            final Header actual = headers[i];
+            final Header expected = expectedHeaders[i];
+            Assertions.assertTrue(actual.getName().equalsIgnoreCase(expected.getName()),
+                    "Expected header name '" + expected.getName() + "' but was '" + actual.getName() + "'");
+            Assertions.assertEquals(expected.getValue(), actual.getValue(),
+                    "Expected header '" + expected.getName() + "' value '" + expected.getValue()
+                            + "' but was '" + actual.getValue() + "'");
         }
-        return false;
-    }
-
-    @Override
-    public void describeTo(final Description description) {
-        description.appendText("same headers as ").appendValueList("[", ", ", "]", expectedHeaders);
-    }
-
-    public static Matcher<Header[]> same(final Header... headers) {
-        return new HeadersMatcher(headers);
     }
 
 }

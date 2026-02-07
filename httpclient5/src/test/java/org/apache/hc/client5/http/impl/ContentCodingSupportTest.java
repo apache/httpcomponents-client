@@ -26,12 +26,12 @@
  */
 package org.apache.hc.client5.http.impl;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.impl.BasicEntityDetails;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class ContentCodingSupportTest {
@@ -73,37 +73,32 @@ class ContentCodingSupportTest {
 
     @Test
     void testNoEntity() {
-        MatcherAssert.assertThat(
-            ContentCodingSupport.parseContentCodecs(null),
-            Matchers.empty());
+        Assertions.assertTrue(ContentCodingSupport.parseContentCodecs(null).isEmpty());
     }
 
     @Test
     void testNotEncoded() {
-        MatcherAssert.assertThat(ContentCodingSupport.parseContentCodecs(
-            new BasicEntityDetails(-1, null)),
-            Matchers.empty());
+        Assertions.assertTrue(ContentCodingSupport.parseContentCodecs(
+                new BasicEntityDetails(-1, null)).isEmpty());
     }
 
     @Test
     void testNotEncodedNoise() {
-        MatcherAssert.assertThat(ContentCodingSupport.parseContentCodecs(
-                new MockEntityDetails(", ,,   ,  ")),
-            Matchers.empty());
+        Assertions.assertTrue(ContentCodingSupport.parseContentCodecs(
+                new MockEntityDetails(", ,,   ,  ")).isEmpty());
     }
 
     @Test
     void testIdentityEncoded() {
-        MatcherAssert.assertThat(ContentCodingSupport.parseContentCodecs(
-                new MockEntityDetails("identity,,,identity")),
-            Matchers.empty());
+        Assertions.assertTrue(ContentCodingSupport.parseContentCodecs(
+                new MockEntityDetails("identity,,,identity")).isEmpty());
     }
 
     @Test
     void testEncodedMultipleCodes() {
-        MatcherAssert.assertThat(ContentCodingSupport.parseContentCodecs(
-                new MockEntityDetails("This,,that,  \"This and That\"")),
-            Matchers.contains("this", "that", "\"this and that\""));
+        Assertions.assertEquals(Arrays.asList("this", "that", "\"this and that\""),
+                ContentCodingSupport.parseContentCodecs(
+                        new MockEntityDetails("This,,that,  \"This and That\"")));
     }
 
 }

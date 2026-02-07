@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
@@ -55,7 +53,7 @@ import org.apache.hc.core5.http.nio.entity.AsyncEntityProducers;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
-import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrationTestBase {
@@ -84,11 +82,11 @@ abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrationTest
                             .setPath("/random/2048")
                             .build(), null);
             final SimpleHttpResponse response = future.get();
-            assertThat(response, CoreMatchers.notNullValue());
-            assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            Assertions.assertNotNull(response);
+            Assertions.assertEquals(200, response.getCode());
             final String body = response.getBodyText();
-            assertThat(body, CoreMatchers.notNullValue());
-            assertThat(body.length(), CoreMatchers.equalTo(2048));
+            Assertions.assertNotNull(body);
+            Assertions.assertEquals(2048, body.length());
         }
     }
 
@@ -104,10 +102,10 @@ abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrationTest
                             .setPath("/random/2048")
                             .build(), null);
             final SimpleHttpResponse response = future.get();
-            assertThat(response, CoreMatchers.notNullValue());
-            assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            Assertions.assertNotNull(response);
+            Assertions.assertEquals(200, response.getCode());
             final String body = response.getBodyText();
-            assertThat(body, CoreMatchers.nullValue());
+            Assertions.assertNull(body);
         }
     }
 
@@ -125,11 +123,11 @@ abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrationTest
                             AsyncEntityProducers.create(b1, ContentType.APPLICATION_OCTET_STREAM)),
                     new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()), HttpClientContext.create(), null);
             final Message<HttpResponse, byte[]> responseMessage = future.get();
-            assertThat(responseMessage, CoreMatchers.notNullValue());
+            Assertions.assertNotNull(responseMessage);
             final HttpResponse response = responseMessage.getHead();
-            assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            Assertions.assertEquals(200, response.getCode());
             final byte[] b2 = responseMessage.getBody();
-            assertThat(b1, CoreMatchers.equalTo(b2));
+            Assertions.assertArrayEquals(b1, b2);
         }
     }
 
@@ -156,11 +154,11 @@ abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrationTest
         while (!queue.isEmpty()) {
             final Future<Message<HttpResponse, byte[]>> future = queue.remove();
             final Message<HttpResponse, byte[]> responseMessage = future.get();
-            assertThat(responseMessage, CoreMatchers.notNullValue());
+            Assertions.assertNotNull(responseMessage);
             final HttpResponse response = responseMessage.getHead();
-            assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            Assertions.assertEquals(200, response.getCode());
             final byte[] b2 = responseMessage.getBody();
-            assertThat(b1, CoreMatchers.equalTo(b2));
+            Assertions.assertArrayEquals(b1, b2);
         }
     }
 
@@ -217,7 +215,7 @@ abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrationTest
             });
         }
 
-        assertThat(countDownLatch.await(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit()), CoreMatchers.equalTo(true));
+        Assertions.assertTrue(countDownLatch.await(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit()));
 
         executorService.shutdownNow();
         executorService.awaitTermination(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -227,7 +225,7 @@ abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrationTest
             if (response == null) {
                 break;
             }
-            assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            Assertions.assertEquals(200, response.getCode());
         }
     }
 
@@ -242,8 +240,8 @@ abstract class AbstractHttpAsyncFundamentalsTest extends AbstractIntegrationTest
                         .setPath("/random/boom")
                         .build(), null);
         final SimpleHttpResponse response = future.get();
-        assertThat(response, CoreMatchers.notNullValue());
-        assertThat(response.getCode(), CoreMatchers.equalTo(400));
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(400, response.getCode());
     }
 
 }

@@ -27,8 +27,6 @@
 
 package org.apache.hc.client5.testing.sync;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -55,9 +53,6 @@ import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -335,9 +330,7 @@ class TestDefaultClientTlsStrategy {
         for (final String cipherSuite : weakCiphersSuites) {
             final Exception exception = Assertions.assertThrows(Exception.class, () ->
                     testWeakCipherDisabledByDefault(cipherSuite));
-            assertThat(exception, CoreMatchers.anyOf(
-                    CoreMatchers.instanceOf(IOException.class),
-                    CoreMatchers.instanceOf(IllegalArgumentException.class)));
+            Assertions.assertTrue(exception instanceof IOException || exception instanceof IllegalArgumentException);
         }
     }
 
@@ -392,7 +385,7 @@ class TestDefaultClientTlsStrategy {
                     null,
                     context);
             final SSLSession session = upgradedSocket.getSession();
-            MatcherAssert.assertThat(Objects.toString(session.getPeerPrincipal()), Matchers.startsWith("CN=localhost"));
+            Assertions.assertTrue(Objects.toString(session.getPeerPrincipal()).startsWith("CN=localhost"));
         }
 
         final HttpHost target2 = new HttpHost("https", InetAddress.getLoopbackAddress(), "some-other-host", server.getLocalPort());
@@ -425,7 +418,7 @@ class TestDefaultClientTlsStrategy {
                     null,
                     context);
             final SSLSession session = upgradedSocket.getSession();
-            MatcherAssert.assertThat(Objects.toString(session.getPeerPrincipal()), Matchers.startsWith("CN=localhost"));
+            Assertions.assertTrue(Objects.toString(session.getPeerPrincipal()).startsWith("CN=localhost"));
         }
     }
 
@@ -455,7 +448,7 @@ class TestDefaultClientTlsStrategy {
                     null,
                     context);
             final SSLSession session = upgradedSocket.getSession();
-            MatcherAssert.assertThat(Objects.toString(session.getPeerPrincipal()), Matchers.startsWith("CN=localhost"));
+            Assertions.assertTrue(Objects.toString(session.getPeerPrincipal()).startsWith("CN=localhost"));
         }
 
         final HttpHost target2 = new HttpHost("https", InetAddress.getLoopbackAddress(), "some-other-host", server.getLocalPort());

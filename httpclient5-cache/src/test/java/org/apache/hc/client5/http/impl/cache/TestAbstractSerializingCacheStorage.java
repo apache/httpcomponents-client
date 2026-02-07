@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,7 +39,6 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.ResourceIOException;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,7 +89,7 @@ class TestAbstractSerializingCacheStorage {
 
         verify(impl).restore("bar");
 
-        assertThat(resultingEntry, CoreMatchers.nullValue());
+        Assertions.assertNull(resultingEntry);
     }
 
     @Test
@@ -106,7 +104,7 @@ class TestAbstractSerializingCacheStorage {
 
         verify(impl).restore("bar");
 
-        assertThat(resultingEntry, HttpCacheEntryMatcher.equivalent(value));
+        HttpCacheEntryMatcher.assertEquivalent(resultingEntry, value);
     }
 
     @Test
@@ -121,7 +119,7 @@ class TestAbstractSerializingCacheStorage {
 
         verify(impl).restore("bar");
 
-        assertThat(resultingEntry, CoreMatchers.nullValue());
+        Assertions.assertNull(resultingEntry);
     }
 
     @Test
@@ -143,7 +141,7 @@ class TestAbstractSerializingCacheStorage {
         when(impl.getForUpdateCAS("bar")).thenReturn(null);
 
         impl.updateEntry(key, existing -> {
-            assertThat(existing, CoreMatchers.nullValue());
+            Assertions.assertNull(existing);
             return updatedValue;
         });
 
@@ -181,7 +179,7 @@ class TestAbstractSerializingCacheStorage {
         when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.any())).thenReturn(true);
 
         impl.updateEntry(key, existing -> {
-            assertThat(existing, CoreMatchers.nullValue());
+            Assertions.assertNull(existing);
             return updatedValue;
         });
 
@@ -252,9 +250,9 @@ class TestAbstractSerializingCacheStorage {
         });
 
         final Map<String, HttpCacheEntry> entryMap = impl.getEntries(Arrays.asList(key1, key2));
-        assertThat(entryMap, CoreMatchers.notNullValue());
-        assertThat(entryMap.get(key1), HttpCacheEntryMatcher.equivalent(value1));
-        assertThat(entryMap.get(key2), HttpCacheEntryMatcher.equivalent(value2));
+        Assertions.assertNotNull(entryMap);
+        HttpCacheEntryMatcher.assertEquivalent(entryMap.get(key1), value1);
+        HttpCacheEntryMatcher.assertEquivalent(entryMap.get(key2), value2);
 
         verify(impl, Mockito.times(2)).digestToStorageKey(key1);
         verify(impl, Mockito.times(2)).digestToStorageKey(key2);
@@ -286,9 +284,9 @@ class TestAbstractSerializingCacheStorage {
         });
 
         final Map<String, HttpCacheEntry> entryMap = impl.getEntries(Arrays.asList(key1, key2));
-        assertThat(entryMap, CoreMatchers.notNullValue());
-        assertThat(entryMap.get(key1), HttpCacheEntryMatcher.equivalent(value1));
-        assertThat(entryMap.get(key2), CoreMatchers.nullValue());
+        Assertions.assertNotNull(entryMap);
+        HttpCacheEntryMatcher.assertEquivalent(entryMap.get(key1), value1);
+        Assertions.assertNull(entryMap.get(key2));
 
         verify(impl, Mockito.times(2)).digestToStorageKey(key1);
         verify(impl, Mockito.times(2)).digestToStorageKey(key2);

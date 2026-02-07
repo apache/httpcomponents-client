@@ -55,7 +55,6 @@ import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.MessageSupport;
-import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -336,7 +335,7 @@ class TestProtocolRecommendations {
 
         final ClassicHttpResponse result = execute(request);
 
-        MatcherAssert.assertThat(result, ContainsHeaderMatcher.contains(headerName, headerValue));
+        ContainsHeaderMatcher.assertContains(result, headerName, headerValue);
     }
 
     private void testDoesNotModifyHeaderOnRequests(final String headerName) throws Exception {
@@ -588,7 +587,7 @@ class TestProtocolRecommendations {
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(reqCapture.capture(), Mockito.any());
 
         final ClassicHttpRequest captured = reqCapture.getValue();
-        MatcherAssert.assertThat(captured, ContainsHeaderMatcher.contains("If-Modified-Since", lmDate));
+        ContainsHeaderMatcher.assertContains(captured, "If-Modified-Since", lmDate);
     }
 
     @Test
@@ -620,8 +619,8 @@ class TestProtocolRecommendations {
 
         final ClassicHttpRequest captured = reqCapture.getValue();
 
-        MatcherAssert.assertThat(captured, ContainsHeaderMatcher.contains("If-Modified-Since", lmDate));
-        MatcherAssert.assertThat(captured, ContainsHeaderMatcher.contains("If-None-Match", etag));
+        ContainsHeaderMatcher.assertContains(captured, "If-Modified-Since", lmDate);
+        ContainsHeaderMatcher.assertContains(captured, "If-None-Match", etag);
     }
 
     @Test
@@ -801,9 +800,9 @@ class TestProtocolRecommendations {
         final ClassicHttpResponse result2 = execute(req4);
 
         assertEquals(HttpStatus.SC_OK, result1.getCode());
-        MatcherAssert.assertThat(result1, ContainsHeaderMatcher.contains("ETag", "\"etag1\""));
-        MatcherAssert.assertThat(result1, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(now)));
-        MatcherAssert.assertThat(result2, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(now)));
+        ContainsHeaderMatcher.assertContains(result1, "ETag", "\"etag1\"");
+        ContainsHeaderMatcher.assertContains(result1, "Date", DateUtils.formatStandardDate(now));
+        ContainsHeaderMatcher.assertContains(result2, "Date", DateUtils.formatStandardDate(now));
     }
 
     @Test

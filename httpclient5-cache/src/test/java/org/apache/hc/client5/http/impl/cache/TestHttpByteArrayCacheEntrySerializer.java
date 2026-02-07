@@ -44,8 +44,6 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.util.ByteArrayBuffer;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,8 +70,8 @@ class TestHttpByteArrayCacheEntrySerializer {
         final byte[] serialized = httpCacheEntrySerializer.serialize(storageEntry);
 
         final HttpCacheStorageEntry deserialized = httpCacheEntrySerializer.deserialize(serialized);
-        MatcherAssert.assertThat(deserialized.getKey(), Matchers.equalTo(storageEntry.getKey()));
-        MatcherAssert.assertThat(deserialized.getContent(), HttpCacheEntryMatcher.equivalent(storageEntry.getContent()));
+        Assertions.assertEquals(storageEntry.getKey(), deserialized.getKey());
+        HttpCacheEntryMatcher.assertEquivalent(deserialized.getContent(), storageEntry.getContent());
     }
 
     @Test
@@ -89,8 +87,8 @@ class TestHttpByteArrayCacheEntrySerializer {
         final byte[] serialized = httpCacheEntrySerializer.serialize(storageEntry);
 
         final HttpCacheStorageEntry deserialized = httpCacheEntrySerializer.deserialize(serialized);
-        MatcherAssert.assertThat(deserialized.getKey(), Matchers.equalTo(storageEntry.getKey()));
-        MatcherAssert.assertThat(deserialized.getContent(), HttpCacheEntryMatcher.equivalent(storageEntry.getContent()));
+        Assertions.assertEquals(storageEntry.getKey(), deserialized.getKey());
+        HttpCacheEntryMatcher.assertEquivalent(deserialized.getContent(), storageEntry.getContent());
     }
 
     /**
@@ -331,8 +329,8 @@ class TestHttpByteArrayCacheEntrySerializer {
         final byte[] serialized = httpCacheEntrySerializer.serialize(storageEntry);
 
         final HttpCacheStorageEntry deserialized = httpCacheEntrySerializer.deserialize(serialized);
-        MatcherAssert.assertThat(deserialized.getKey(), Matchers.equalTo(storageEntry.getKey()));
-        MatcherAssert.assertThat(deserialized.getContent(), HttpCacheEntryMatcher.equivalent(storageEntry.getContent()));
+        Assertions.assertEquals(storageEntry.getKey(), deserialized.getKey());
+        HttpCacheEntryMatcher.assertEquivalent(deserialized.getContent(), storageEntry.getContent());
     }
 
     /**
@@ -349,8 +347,8 @@ class TestHttpByteArrayCacheEntrySerializer {
         final byte[] serialized = httpCacheEntrySerializer.serialize(storageEntry);
 
         final HttpCacheStorageEntry deserialized = httpCacheEntrySerializer.deserialize(serialized);
-        MatcherAssert.assertThat(deserialized.getKey(), Matchers.equalTo(storageEntry.getKey()));
-        MatcherAssert.assertThat(deserialized.getContent(), HttpCacheEntryMatcher.equivalent(storageEntry.getContent()));
+        Assertions.assertEquals(storageEntry.getKey(), deserialized.getKey());
+        HttpCacheEntryMatcher.assertEquivalent(deserialized.getContent(), storageEntry.getContent());
     }
 
     /**
@@ -367,8 +365,8 @@ class TestHttpByteArrayCacheEntrySerializer {
         final byte[] serialized = httpCacheEntrySerializer.serialize(storageEntry);
 
         final HttpCacheStorageEntry deserialized = httpCacheEntrySerializer.deserialize(serialized);
-        MatcherAssert.assertThat(deserialized.getKey(), Matchers.equalTo(storageEntry.getKey()));
-        MatcherAssert.assertThat(deserialized.getContent(), HttpCacheEntryMatcher.equivalent(storageEntry.getContent()));
+        Assertions.assertEquals(storageEntry.getKey(), deserialized.getKey());
+        HttpCacheEntryMatcher.assertEquivalent(deserialized.getContent(), storageEntry.getContent());
     }
 
     /**
@@ -390,8 +388,8 @@ class TestHttpByteArrayCacheEntrySerializer {
         final byte[] serialized = httpCacheEntrySerializer.serialize(storageEntry);
 
         final HttpCacheStorageEntry deserialized = httpCacheEntrySerializer.deserialize(serialized);
-        MatcherAssert.assertThat(deserialized.getKey(), Matchers.equalTo(storageEntry.getKey()));
-        MatcherAssert.assertThat(deserialized.getContent(), HttpCacheEntryMatcher.equivalent(storageEntry.getContent()));
+        Assertions.assertEquals(storageEntry.getKey(), deserialized.getKey());
+        HttpCacheEntryMatcher.assertEquivalent(deserialized.getContent(), storageEntry.getContent());
     }
 
     /**

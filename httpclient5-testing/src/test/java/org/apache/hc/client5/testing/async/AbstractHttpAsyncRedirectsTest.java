@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
@@ -64,7 +62,6 @@ import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.TimeValue;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -328,7 +325,7 @@ abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegrationTestBas
                     .build(), null);
             future.get();
         });
-        assertThat(exception.getCause(), CoreMatchers.instanceOf(RedirectException.class));
+        Assertions.assertInstanceOf(RedirectException.class, exception.getCause());
     }
 
     @Test
@@ -355,7 +352,7 @@ abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegrationTestBas
                             .build(), null);
             future.get();
         });
-        assertThat(exception.getCause(), CoreMatchers.instanceOf(CircularRedirectException.class));
+        Assertions.assertInstanceOf(CircularRedirectException.class, exception.getCause());
     }
 
     @Test
@@ -510,7 +507,7 @@ abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegrationTestBas
                             .build(), null);
             future.get();
         });
-        assertThat(exception.getCause(), CoreMatchers.instanceOf(HttpException.class));
+        Assertions.assertInstanceOf(HttpException.class, exception.getCause());
     }
 
     @Test
@@ -538,7 +535,7 @@ abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegrationTestBas
                             .build(), null);
             future.get();
         });
-        assertThat(exception.getCause(), CoreMatchers.instanceOf(ProtocolException.class));
+        Assertions.assertInstanceOf(ProtocolException.class, exception.getCause());
     }
 
     @Test

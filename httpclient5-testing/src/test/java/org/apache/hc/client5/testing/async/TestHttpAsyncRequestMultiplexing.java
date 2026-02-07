@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
@@ -49,7 +47,7 @@ import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
-import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 abstract class TestHttpAsyncRequestMultiplexing extends AbstractIntegrationTestBase {
@@ -87,11 +85,11 @@ abstract class TestHttpAsyncRequestMultiplexing extends AbstractIntegrationTestB
         while (!queue.isEmpty()) {
             final Future<Message<HttpResponse, byte[]>> future = queue.remove();
             final Message<HttpResponse, byte[]> responseMessage = future.get();
-            assertThat(responseMessage, CoreMatchers.notNullValue());
+            Assertions.assertNotNull(responseMessage);
             final HttpResponse response = responseMessage.getHead();
-            assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            Assertions.assertEquals(200, response.getCode());
             final byte[] b2 = responseMessage.getBody();
-            assertThat(b1, CoreMatchers.equalTo(b2));
+            Assertions.assertArrayEquals(b1, b2);
         }
     }
 

@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -45,8 +46,6 @@ import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,11 +82,10 @@ class TestConditionalRequestBuilder {
         Assertions.assertEquals(theUri, newRequest.getRequestUri());
         Assertions.assertEquals(2, newRequest.getHeaders().length);
 
-        MatcherAssert.assertThat(
+        HeadersMatcher.assertSame(
                 newRequest.getHeaders(),
-                HeadersMatcher.same(
-                        new BasicHeader("Accept-Encoding", "gzip"),
-                        new BasicHeader("If-Modified-Since", lastModified)));
+                new BasicHeader("Accept-Encoding", "gzip"),
+                new BasicHeader("If-Modified-Since", lastModified));
     }
 
     @Test
@@ -136,12 +134,11 @@ class TestConditionalRequestBuilder {
         Assertions.assertEquals(theMethod, newRequest.getMethod());
         Assertions.assertEquals(theUri, newRequest.getRequestUri());
 
-        MatcherAssert.assertThat(
+        HeadersMatcher.assertSame(
                 newRequest.getHeaders(),
-                HeadersMatcher.same(
-                        new BasicHeader("Accept-Encoding", "gzip"),
-                        new BasicHeader("If-None-Match", theETag),
-                        new BasicHeader("If-Modified-Since", DateUtils.formatStandardDate(now))));
+                new BasicHeader("Accept-Encoding", "gzip"),
+                new BasicHeader("If-None-Match", theETag),
+                new BasicHeader("If-Modified-Since", DateUtils.formatStandardDate(now)));
     }
 
     @Test
@@ -272,7 +269,9 @@ class TestConditionalRequestBuilder {
         while (it.hasNext()) {
             etags.add(ETag.parse(it.next()));
         }
-        MatcherAssert.assertThat(etags, Matchers.containsInAnyOrder(etag1, etag2, etag3));
+        Assertions.assertEquals(
+                new HashSet<>(Arrays.asList(etag1, etag2, etag3)),
+                new HashSet<>(etags));
     }
 
 }

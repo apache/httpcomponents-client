@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -42,7 +40,7 @@ import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
-import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 abstract class TestHttpAsyncProtocolPolicy extends AbstractIntegrationTestBase {
@@ -74,12 +72,12 @@ abstract class TestHttpAsyncProtocolPolicy extends AbstractIntegrationTestBase {
                         .setPath("/random/2048")
                         .build(), null);
         final SimpleHttpResponse response = future.get();
-        assertThat(response, CoreMatchers.notNullValue());
-        assertThat(response.getCode(), CoreMatchers.equalTo(200));
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(200, response.getCode());
         final String body = response.getBodyText();
-        assertThat(body, CoreMatchers.notNullValue());
-        assertThat(body.length(), CoreMatchers.equalTo(2048));
-        assertThat(versionRef.get(), CoreMatchers.equalTo(version));
+        Assertions.assertNotNull(body);
+        Assertions.assertEquals(2048, body.length());
+        Assertions.assertEquals(version, versionRef.get());
     }
 
 }

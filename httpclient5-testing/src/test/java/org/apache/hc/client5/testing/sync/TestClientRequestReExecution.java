@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.testing.sync;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -45,7 +43,7 @@ import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.util.TimeValue;
-import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -91,7 +89,7 @@ abstract class TestClientRequestReExecution extends AbstractIntegrationTestBase 
             EntityUtils.consume(r.getEntity());
             return r;
         });
-        assertThat(response.getCode(), CoreMatchers.equalTo(HttpStatus.SC_SERVICE_UNAVAILABLE));
+        Assertions.assertEquals(HttpStatus.SC_SERVICE_UNAVAILABLE, response.getCode());
     }
 
     @Test
@@ -112,7 +110,7 @@ abstract class TestClientRequestReExecution extends AbstractIntegrationTestBase 
             EntityUtils.consume(r.getEntity());
             return r;
         });
-        assertThat(response.getCode(), CoreMatchers.equalTo(HttpStatus.SC_OK));
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
     }
 
 }

@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
@@ -59,7 +57,6 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.MessageSupport;
-import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -236,7 +233,7 @@ class TestProtocolRequirements {
         final ArgumentCaptor<ClassicHttpRequest> reqCapture = ArgumentCaptor.forClass(ClassicHttpRequest.class);
         Mockito.verify(mockExecChain).proceed(reqCapture.capture(), Mockito.any());
         final ClassicHttpRequest forwarded = reqCapture.getValue();
-        MatcherAssert.assertThat(forwarded, ContainsHeaderMatcher.contains("X-Unknown-Header", "blahblah"));
+        ContainsHeaderMatcher.assertContains(forwarded, "X-Unknown-Header", "blahblah");
     }
 
     @Test
@@ -245,7 +242,7 @@ class TestProtocolRequirements {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
         final ClassicHttpResponse result = execute(request);
-        MatcherAssert.assertThat(result, ContainsHeaderMatcher.contains("X-Unknown-Header", "blahblah"));
+        ContainsHeaderMatcher.assertContains(result, "X-Unknown-Header", "blahblah");
     }
 
     @Test
@@ -655,7 +652,7 @@ class TestProtocolRequirements {
         // We then add the "residentTime" which is "now - responseTime",
         // which is the current time minus the time the cache entry was created. In this case, that is 8 seconds.
         // So, the total age is "corrected_initial_age" + "residentTime" = 2 + 8 = 10 seconds.
-        assertThat(result, ContainsHeaderMatcher.contains("Age", "10"));
+        ContainsHeaderMatcher.assertContains(result, "Age", "10");
     }
 
     @Test

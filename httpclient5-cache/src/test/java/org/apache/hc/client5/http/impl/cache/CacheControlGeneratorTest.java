@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import org.apache.hc.client5.http.HeaderMatcher;
 import org.apache.hc.client5.http.cache.RequestCacheControl;
 import org.junit.jupiter.api.Assertions;
@@ -39,7 +37,7 @@ class CacheControlGeneratorTest {
 
     @Test
     void testGenerateRequestCacheControlHeader() {
-        assertThat(generator.generate(
+        HeaderMatcher.assertSame(generator.generate(
                         RequestCacheControl.builder()
                                 .setMaxAge(12)
                                 .setMaxStale(23)
@@ -48,10 +46,9 @@ class CacheControlGeneratorTest {
                                 .setNoStore(true)
                                 .setOnlyIfCached(true)
                                 .setStaleIfError(56)
-                                .build()),
-                HeaderMatcher.same("Cache-Control", "max-age=12, max-stale=23, " +
-                        "min-fresh=34, no-cache, no-store, only-if-cached, stale-if-error=56"));
-        assertThat(generator.generate(
+                                .build()), "Cache-Control", "max-age=12, max-stale=23, " +
+                        "min-fresh=34, no-cache, no-store, only-if-cached, stale-if-error=56");
+        HeaderMatcher.assertSame(generator.generate(
                         RequestCacheControl.builder()
                                 .setMaxAge(12)
                                 .setNoCache(true)
@@ -60,20 +57,17 @@ class CacheControlGeneratorTest {
                                 .setNoStore(true)
                                 .setStaleIfError(56)
                                 .setOnlyIfCached(true)
-                                .build()),
-                HeaderMatcher.same("Cache-Control", "max-age=12, max-stale=23, " +
-                        "min-fresh=34, no-cache, no-store, only-if-cached, stale-if-error=56"));
-        assertThat(generator.generate(
+                                .build()), "Cache-Control", "max-age=12, max-stale=23, " +
+                        "min-fresh=34, no-cache, no-store, only-if-cached, stale-if-error=56");
+        HeaderMatcher.assertSame(generator.generate(
                         RequestCacheControl.builder()
                                 .setMaxAge(0)
-                                .build()),
-                HeaderMatcher.same("Cache-Control", "max-age=0"));
-        assertThat(generator.generate(
+                                .build()), "Cache-Control", "max-age=0");
+        HeaderMatcher.assertSame(generator.generate(
                         RequestCacheControl.builder()
                                 .setMaxAge(-1)
                                 .setMinFresh(10)
-                                .build()),
-                HeaderMatcher.same("Cache-Control", "min-fresh=10"));
+                                .build()), "Cache-Control", "min-fresh=10");
     }
 
     @Test

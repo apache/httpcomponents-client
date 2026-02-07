@@ -26,11 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.util.List;
 
-import org.apache.hc.client5.http.NameValuePairMatcher;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
@@ -38,7 +35,6 @@ import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.CharArrayBuffer;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,7 +53,7 @@ class TestAuthChallengeParser {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("aaabbbbccc ");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
-        assertThat(parser.parseToken(buffer, cursor), CoreMatchers.equalTo("aaabbbbccc"));
+        Assertions.assertEquals("aaabbbbccc", parser.parseToken(buffer, cursor));
     }
 
     @Test
@@ -65,7 +61,7 @@ class TestAuthChallengeParser {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("aaabbbbccc, ");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
-        assertThat(parser.parseToken(buffer, cursor), CoreMatchers.equalTo("aaabbbbccc"));
+        Assertions.assertEquals("aaabbbbccc", parser.parseToken(buffer, cursor));
     }
 
     @Test
@@ -73,7 +69,7 @@ class TestAuthChallengeParser {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("aaabbbbccc");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
-        assertThat(parser.parseToken(buffer, cursor), CoreMatchers.equalTo("aaabbbbccc"));
+        Assertions.assertEquals("aaabbbbccc", parser.parseToken(buffer, cursor));
     }
 
     @Test
@@ -81,9 +77,9 @@ class TestAuthChallengeParser {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("aaabbbbccc==== ");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
-        assertThat(parser.parseToken(buffer, cursor), CoreMatchers.equalTo("aaabbbbccc===="));
-        assertThat(cursor.atEnd(), CoreMatchers.equalTo(false));
-        assertThat(buffer.charAt(cursor.getPos()), CoreMatchers.equalTo(' '));
+        Assertions.assertEquals("aaabbbbccc====", parser.parseToken(buffer, cursor));
+        Assertions.assertFalse(cursor.atEnd());
+        Assertions.assertEquals(' ', buffer.charAt(cursor.getPos()));
     }
 
     @Test
@@ -91,8 +87,8 @@ class TestAuthChallengeParser {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("aaabbbbccc=");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
-        assertThat(parser.parseToken(buffer, cursor), CoreMatchers.equalTo("aaabbbbccc="));
-        assertThat(cursor.atEnd(), CoreMatchers.equalTo(true));
+        Assertions.assertEquals("aaabbbbccc=", parser.parseToken(buffer, cursor));
+        Assertions.assertTrue(cursor.atEnd());
     }
 
     @Test
@@ -100,8 +96,8 @@ class TestAuthChallengeParser {
         final CharArrayBuffer buffer = new CharArrayBuffer(16);
         buffer.append("aaabbbbccc======");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
-        assertThat(parser.parseToken(buffer, cursor), CoreMatchers.equalTo("aaabbbbccc======"));
-        assertThat(cursor.atEnd(), CoreMatchers.equalTo(true));
+        Assertions.assertEquals("aaabbbbccc======", parser.parseToken(buffer, cursor));
+        Assertions.assertTrue(cursor.atEnd());
     }
 
     @Test
@@ -109,9 +105,9 @@ class TestAuthChallengeParser {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("aaabbbbccc====,");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
-        assertThat(parser.parseToken(buffer, cursor), CoreMatchers.equalTo("aaabbbbccc===="));
-        assertThat(cursor.atEnd(), CoreMatchers.equalTo(false));
-        assertThat(buffer.charAt(cursor.getPos()), CoreMatchers.equalTo(','));
+        Assertions.assertEquals("aaabbbbccc====", parser.parseToken(buffer, cursor));
+        Assertions.assertFalse(cursor.atEnd());
+        Assertions.assertEquals(',', buffer.charAt(cursor.getPos()));
     }
 
     @Test
@@ -119,9 +115,9 @@ class TestAuthChallengeParser {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("aaabbbbccc=blah");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
-        assertThat(parser.parseToken(buffer, cursor), CoreMatchers.equalTo("aaabbbbccc"));
-        assertThat(cursor.atEnd(), CoreMatchers.equalTo(false));
-        assertThat(buffer.charAt(cursor.getPos()), CoreMatchers.equalTo('='));
+        Assertions.assertEquals("aaabbbbccc", parser.parseToken(buffer, cursor));
+        Assertions.assertFalse(cursor.atEnd());
+        Assertions.assertEquals('=', buffer.charAt(cursor.getPos()));
     }
 
     @Test
@@ -138,7 +134,7 @@ class TestAuthChallengeParser {
         final List<NameValuePair> params = challenge1.getParams();
         Assertions.assertNotNull(params);
         Assertions.assertEquals(1, params.size());
-        assertThat(params.get(0), NameValuePairMatcher.equals("realm", "blah"));
+        assertNameValuePair(params.get(0), "realm", "blah");
     }
 
     @Test
@@ -155,7 +151,7 @@ class TestAuthChallengeParser {
         final List<NameValuePair> params = challenge1.getParams();
         Assertions.assertNotNull(params);
         Assertions.assertEquals(1, params.size());
-        assertThat(params.get(0), NameValuePairMatcher.equals("realm", "blah"));
+        assertNameValuePair(params.get(0), "realm", "blah");
     }
 
     @Test
@@ -195,9 +191,9 @@ class TestAuthChallengeParser {
         final List<NameValuePair> params1 = challenge1.getParams();
         Assertions.assertNotNull(params1);
         Assertions.assertEquals(3, params1.size());
-        assertThat(params1.get(0), NameValuePairMatcher.equals("realm", "blah"));
-        assertThat(params1.get(1), NameValuePairMatcher.equals("param1", "this"));
-        assertThat(params1.get(2), NameValuePairMatcher.equals("param2", "that"));
+        assertNameValuePair(params1.get(0), "realm", "blah");
+        assertNameValuePair(params1.get(1), "param1", "this");
+        assertNameValuePair(params1.get(2), "param2", "that");
 
         final AuthChallenge challenge2 = challenges.get(1);
         Assertions.assertEquals(StandardAuthScheme.BASIC, challenge2.getSchemeName());
@@ -205,10 +201,10 @@ class TestAuthChallengeParser {
         final List<NameValuePair> params2 = challenge2.getParams();
         Assertions.assertNotNull(params2);
         Assertions.assertEquals(4, params2.size());
-        assertThat(params2.get(0), NameValuePairMatcher.equals("realm", "\"yada\""));
-        assertThat(params2.get(1), NameValuePairMatcher.equals("this", null));
-        assertThat(params2.get(2), NameValuePairMatcher.equals("that", ""));
-        assertThat(params2.get(3), NameValuePairMatcher.equals("this-and-that", null));
+        assertNameValuePair(params2.get(0), "realm", "\"yada\"");
+        assertNameValuePair(params2.get(1), "this", null);
+        assertNameValuePair(params2.get(2), "that", "");
+        assertNameValuePair(params2.get(3), "this-and-that", null);
     }
 
     @Test
@@ -227,8 +223,8 @@ class TestAuthChallengeParser {
         final List<NameValuePair> params1 = challenge1.getParams();
         Assertions.assertNotNull(params1);
         Assertions.assertEquals(2, params1.size());
-        assertThat(params1.get(0), NameValuePairMatcher.equals("realm", "blah"));
-        assertThat(params1.get(1), NameValuePairMatcher.equals("param1", "this, param2=that"));
+        assertNameValuePair(params1.get(0), "realm", "blah");
+        assertNameValuePair(params1.get(1), "param1", "this, param2=that");
 
         final AuthChallenge challenge2 = challenges.get(1);
         Assertions.assertEquals(StandardAuthScheme.BASIC, challenge2.getSchemeName());
@@ -236,7 +232,7 @@ class TestAuthChallengeParser {
         final List<NameValuePair> params2 = challenge2.getParams();
         Assertions.assertNotNull(params2);
         Assertions.assertEquals(1, params2.size());
-        assertThat(params2.get(0), NameValuePairMatcher.equals("realm", "\"yada,,,,\""));
+        assertNameValuePair(params2.get(0), "realm", "\"yada,,,,\"");
     }
 
     @Test
@@ -311,8 +307,8 @@ class TestAuthChallengeParser {
         final List<NameValuePair> params1 = challenge1.getParams();
         Assertions.assertNotNull(params1);
         Assertions.assertEquals(2, params1.size());
-        assertThat(params1.get(0), NameValuePairMatcher.equals("blah", null));
-        assertThat(params1.get(1), NameValuePairMatcher.equals("blah", null));
+        assertNameValuePair(params1.get(0), "blah", null);
+        assertNameValuePair(params1.get(1), "blah", null);
     }
 
     @Test
@@ -324,23 +320,29 @@ class TestAuthChallengeParser {
         Assertions.assertNotNull(challenges);
         Assertions.assertEquals(4, challenges.size());
         final AuthChallenge challenge1 = challenges.get(0);
-        assertThat(challenge1.getSchemeName(), CoreMatchers.equalTo("scheme1"));
-        assertThat(challenge1.getValue(), CoreMatchers.equalTo("aaaa"));
-        assertThat(challenge1.getParams(), CoreMatchers.nullValue());
+        Assertions.assertEquals("scheme1", challenge1.getSchemeName());
+        Assertions.assertEquals("aaaa", challenge1.getValue());
+        Assertions.assertNull(challenge1.getParams());
         final AuthChallenge challenge2 = challenges.get(1);
-        assertThat(challenge2.getSchemeName(), CoreMatchers.equalTo("scheme2"));
-        assertThat(challenge2.getValue(), CoreMatchers.equalTo("aaaa=="));
-        assertThat(challenge2.getParams(), CoreMatchers.nullValue());
+        Assertions.assertEquals("scheme2", challenge2.getSchemeName());
+        Assertions.assertEquals("aaaa==", challenge2.getValue());
+        Assertions.assertNull(challenge2.getParams());
         final AuthChallenge challenge3 = challenges.get(2);
-        assertThat(challenge3.getSchemeName(), CoreMatchers.equalTo("scheme3"));
-        assertThat(challenge3.getValue(), CoreMatchers.nullValue());
-        assertThat(challenge3.getParams(), CoreMatchers.notNullValue());
-        assertThat(challenge3.getParams().size(), CoreMatchers.equalTo(1));
-        assertThat(challenge3.getParams().get(0), NameValuePairMatcher.equals("aaaa", "aaaa"));
+        Assertions.assertEquals("scheme3", challenge3.getSchemeName());
+        Assertions.assertNull(challenge3.getValue());
+        Assertions.assertNotNull(challenge3.getParams());
+        Assertions.assertEquals(1, challenge3.getParams().size());
+        assertNameValuePair(challenge3.getParams().get(0), "aaaa", "aaaa");
         final AuthChallenge challenge4 = challenges.get(3);
-        assertThat(challenge4.getSchemeName(), CoreMatchers.equalTo("scheme4"));
-        assertThat(challenge4.getValue(), CoreMatchers.equalTo("aaaa="));
-        assertThat(challenge4.getParams(), CoreMatchers.nullValue());
+        Assertions.assertEquals("scheme4", challenge4.getSchemeName());
+        Assertions.assertEquals("aaaa=", challenge4.getValue());
+        Assertions.assertNull(challenge4.getParams());
+    }
+
+    private static void assertNameValuePair(final NameValuePair pair, final String name, final String value) {
+        Assertions.assertNotNull(pair);
+        Assertions.assertEquals(name, pair.getName());
+        Assertions.assertEquals(value, pair.getValue());
     }
 
 }
