@@ -64,9 +64,6 @@ public final class IoByteCounterExec implements ExecChainHandler {
     private final ObservingOptions opts;
     private final MetricConfig mc;
 
-    private final Counter.Builder reqBuilder;
-    private final Counter.Builder respBuilder;
-
     public IoByteCounterExec(final MeterRegistry meterRegistry,
                              final ObservingOptions opts,
                              final MetricConfig mc) {
@@ -74,13 +71,7 @@ public final class IoByteCounterExec implements ExecChainHandler {
         this.opts = Args.notNull(opts, "observingOptions");
         this.mc = Args.notNull(mc, "metricConfig");
 
-        this.reqBuilder = Counter.builder(mc.prefix + ".request.bytes")
-                .baseUnit("bytes")
-                .description("HTTP request payload size");
-
-        this.respBuilder = Counter.builder(mc.prefix + ".response.bytes")
-                .baseUnit("bytes")
-                .description("HTTP response payload size");
+        // builders are created per request to avoid tag accumulation
     }
 
     @Override
@@ -108,10 +99,22 @@ public final class IoByteCounterExec implements ExecChainHandler {
             final List<Tag> tags = buildTags(request.getMethod(), status, protocol, target, uri);
 
             if (reqBytes >= 0) {
-                reqBuilder.tags(tags).tags(mc.commonTags).register(meterRegistry).increment(reqBytes);
+                Counter.builder(mc.prefix + ".request.bytes")
+                        .baseUnit("bytes")
+                        .description("HTTP request payload size")
+                        .tags(mc.commonTags)
+                        .tags(tags)
+                        .register(meterRegistry)
+                        .increment(reqBytes);
             }
             if (respBytes >= 0) {
-                respBuilder.tags(tags).tags(mc.commonTags).register(meterRegistry).increment(respBytes);
+                Counter.builder(mc.prefix + ".response.bytes")
+                        .baseUnit("bytes")
+                        .description("HTTP response payload size")
+                        .tags(mc.commonTags)
+                        .tags(tags)
+                        .register(meterRegistry)
+                        .increment(respBytes);
             }
         }
     }

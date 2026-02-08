@@ -33,16 +33,24 @@ import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.cache.CachingHttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.cache.CachingHttpClientBuilder;
+import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.observation.binder.ConnPoolMeters;
 import org.apache.hc.client5.http.observation.binder.ConnPoolMetersAsync;
+import org.apache.hc.client5.http.observation.impl.MeteredAsyncConnectionManager;
+import org.apache.hc.client5.http.observation.impl.MeteredConnectionManager;
 import org.apache.hc.client5.http.observation.impl.ObservationAsyncExecInterceptor;
 import org.apache.hc.client5.http.observation.impl.ObservationClassicExecInterceptor;
+import org.apache.hc.client5.http.observation.impl.MeteredDnsResolver;
+import org.apache.hc.client5.http.observation.impl.MeteredTlsStrategy;
 import org.apache.hc.client5.http.observation.interceptors.AsyncIoByteCounterExec;
 import org.apache.hc.client5.http.observation.interceptors.AsyncTimerExec;
 import org.apache.hc.client5.http.observation.interceptors.IoByteCounterExec;
 import org.apache.hc.client5.http.observation.interceptors.TimerExec;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 
 /**
  * Utility class that wires Micrometer / OpenTelemetry instrumentation into
@@ -86,7 +94,9 @@ import org.apache.hc.core5.util.Args;
  *       that surrounds each execution with a start/stop span.</li>
  *   <li>Metric interceptors according to {@link ObservingOptions.MetricSet}:
  *       BASIC (latency timer + response counter), IO (bytes in/out counters),
- *       and CONN_POOL (pool gauges; classic and async variants).</li>
+ *       and CONN_POOL (pool gauges; classic and async variants). Pool lease
+ *       timing is available when using {@link #meteredConnectionManager} or
+ *       {@link #meteredAsyncConnectionManager}.</li>
  * </ul>
  *
  * <p><strong>Thread safety:</strong> This class is stateless. Methods may be
@@ -461,6 +471,111 @@ public final class HttpClientObservationSupport {
         if (o.metricSets.contains(ObservingOptions.MetricSet.IO)) {
             builder.addExecInterceptorAfter(ChainElement.CACHING.name(), IO_ID, new AsyncIoByteCounterExec(meterReg, o, config));
         }
+        if (o.metricSets.contains(ObservingOptions.MetricSet.CONN_POOL)) {
+            ConnPoolMetersAsync.bindTo(builder, meterReg, config);
+        }
+    }
+
+    /**
+     * Wraps a classic connection manager with Micrometer pool-lease metrics if
+     * {@link ObservingOptions.MetricSet#CONN_POOL} is enabled. Otherwise returns
+     * the delegate unchanged.
+     *
+     * @param delegate connection manager to wrap
+     * @param meterReg meter registry to register meters with (must not be {@code null})
+     * @param opts     observation/metric options; when {@code null} {@link ObservingOptions#DEFAULT} is used
+     * @param mc       metric configuration; when {@code null} {@link MetricConfig#DEFAULT} is used
+     * @return metered connection manager or original delegate
+     * @since 5.7
+     */
+    public static HttpClientConnectionManager meteredConnectionManager(final HttpClientConnectionManager delegate,
+                                                                       final MeterRegistry meterReg,
+                                                                       final ObservingOptions opts,
+                                                                       final MetricConfig mc) {
+        Args.notNull(delegate, "delegate");
+        Args.notNull(meterReg, "meterRegistry");
+        final ObservingOptions o = opts != null ? opts : ObservingOptions.DEFAULT;
+        final MetricConfig config = mc != null ? mc : MetricConfig.DEFAULT;
+        if (!o.metricSets.contains(ObservingOptions.MetricSet.CONN_POOL)) {
+            return delegate;
+        }
+        return new MeteredConnectionManager(delegate, meterReg, config, o);
+    }
+
+    /**
+     * Wraps an async connection manager with Micrometer pool-lease metrics if
+     * {@link ObservingOptions.MetricSet#CONN_POOL} is enabled. Otherwise returns
+     * the delegate unchanged.
+     *
+     * @param delegate connection manager to wrap
+     * @param meterReg meter registry to register meters with (must not be {@code null})
+     * @param opts     observation/metric options; when {@code null} {@link ObservingOptions#DEFAULT} is used
+     * @param mc       metric configuration; when {@code null} {@link MetricConfig#DEFAULT} is used
+     * @return metered connection manager or original delegate
+     * @since 5.7
+     */
+    public static AsyncClientConnectionManager meteredAsyncConnectionManager(final AsyncClientConnectionManager delegate,
+                                                                             final MeterRegistry meterReg,
+                                                                             final ObservingOptions opts,
+                                                                             final MetricConfig mc) {
+        Args.notNull(delegate, "delegate");
+        Args.notNull(meterReg, "meterRegistry");
+        final ObservingOptions o = opts != null ? opts : ObservingOptions.DEFAULT;
+        final MetricConfig config = mc != null ? mc : MetricConfig.DEFAULT;
+        if (!o.metricSets.contains(ObservingOptions.MetricSet.CONN_POOL)) {
+            return delegate;
+        }
+        return new MeteredAsyncConnectionManager(delegate, meterReg, config, o);
+    }
+
+    /**
+     * Wraps a DNS resolver with Micrometer metrics if {@link ObservingOptions.MetricSet#DNS}
+     * is enabled. Otherwise returns the delegate unchanged.
+     *
+     * @param delegate underlying DNS resolver
+     * @param meterReg meter registry to register meters with (must not be {@code null})
+     * @param opts     observation/metric options; when {@code null} {@link ObservingOptions#DEFAULT} is used
+     * @param mc       metric configuration; when {@code null} {@link MetricConfig#DEFAULT} is used
+     * @return metered resolver or original delegate
+     * @since 5.7
+     */
+    public static DnsResolver meteredDnsResolver(final DnsResolver delegate,
+                                                 final MeterRegistry meterReg,
+                                                 final ObservingOptions opts,
+                                                 final MetricConfig mc) {
+        Args.notNull(delegate, "delegate");
+        Args.notNull(meterReg, "meterRegistry");
+        final ObservingOptions o = opts != null ? opts : ObservingOptions.DEFAULT;
+        final MetricConfig config = mc != null ? mc : MetricConfig.DEFAULT;
+        if (!o.metricSets.contains(ObservingOptions.MetricSet.DNS)) {
+            return delegate;
+        }
+        return new MeteredDnsResolver(delegate, meterReg, config, o);
+    }
+
+    /**
+     * Wraps a TLS strategy with Micrometer metrics if {@link ObservingOptions.MetricSet#TLS}
+     * is enabled. Otherwise returns the delegate unchanged.
+     *
+     * @param delegate TLS strategy to wrap
+     * @param meterReg meter registry to register meters with (must not be {@code null})
+     * @param opts     observation/metric options; when {@code null} {@link ObservingOptions#DEFAULT} is used
+     * @param mc       metric configuration; when {@code null} {@link MetricConfig#DEFAULT} is used
+     * @return metered strategy or original delegate
+     * @since 5.7
+     */
+    public static TlsStrategy meteredTlsStrategy(final TlsStrategy delegate,
+                                                 final MeterRegistry meterReg,
+                                                 final ObservingOptions opts,
+                                                 final MetricConfig mc) {
+        Args.notNull(delegate, "delegate");
+        Args.notNull(meterReg, "meterRegistry");
+        final ObservingOptions o = opts != null ? opts : ObservingOptions.DEFAULT;
+        final MetricConfig config = mc != null ? mc : MetricConfig.DEFAULT;
+        if (!o.metricSets.contains(ObservingOptions.MetricSet.TLS)) {
+            return delegate;
+        }
+        return new MeteredTlsStrategy(delegate, meterReg, config, o);
     }
 
     /**

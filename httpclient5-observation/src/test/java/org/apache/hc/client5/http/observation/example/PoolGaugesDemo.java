@@ -63,7 +63,8 @@ public final class PoolGaugesDemo {
                 .build();
 
         // Ensure a pooling manager is used so pool gauges exist
-        final HttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        final HttpClientConnectionManager rawCm = new PoolingHttpClientConnectionManager();
+        final HttpClientConnectionManager cm = HttpClientObservationSupport.meteredConnectionManager(rawCm, reg, opts, mc);
         final HttpClientBuilder b = HttpClients.custom().setConnectionManager(cm);
 
         HttpClientObservationSupport.enable(b, obs, reg, opts, mc);
@@ -76,6 +77,9 @@ public final class PoolGaugesDemo {
         System.out.println("pool.leased    present? " + (Search.in(reg).name("http.client.pool.leased").gauge() != null));
         System.out.println("pool.available present? " + (Search.in(reg).name("http.client.pool.available").gauge() != null));
         System.out.println("pool.pending   present? " + (Search.in(reg).name("http.client.pool.pending").gauge() != null));
+
+        System.out.println("pool.lease     present? " + (Search.in(reg).name("http.client.pool.lease").timer() != null));
+        System.out.println("pool.leases    present? " + (Search.in(reg).name("http.client.pool.leases").counter() != null));
 
         System.out.println("--- scrape ---");
         System.out.println(reg.scrape());

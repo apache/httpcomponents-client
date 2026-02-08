@@ -28,9 +28,9 @@ package org.apache.hc.client5.http.observation.example;
 
 import java.util.EnumSet;
 
-import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.core.instrument.Metrics;
-
+import io.micrometer.core.instrument.search.Search;
+import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -41,67 +41,45 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.observation.HttpClientObservationSupport;
 import org.apache.hc.client5.http.observation.MetricConfig;
 import org.apache.hc.client5.http.observation.ObservingOptions;
-
+import org.apache.hc.client5.http.observation.impl.MeteredConnectionManager;
 import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
-import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 
-public final class DnsMetricsDemo {
+public final class ConnectionManagerLeaseDemo {
 
     public static void main(final String[] args) throws Exception {
-        // 1) Prometheus registry
-        final PrometheusMeterRegistry registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
-        Metrics.addRegistry(registry);
+        final PrometheusMeterRegistry reg = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+        Metrics.addRegistry(reg);
 
-        // 2) Observation (no tracer here)
-        final ObservationRegistry observations = ObservationRegistry.create();
-
-        // 3) Metric knobs
-        final MetricConfig mc = MetricConfig.builder()
-                .prefix("demo")
-                .percentiles(1)
-                .build();
-
+        final ObservationRegistry obs = ObservationRegistry.create();
+        final MetricConfig mc = MetricConfig.builder().prefix("demo").build();
         final ObservingOptions opts = ObservingOptions.builder()
-                .metrics(EnumSet.of(
-                        ObservingOptions.MetricSet.BASIC,
-                        ObservingOptions.MetricSet.IO,
-                        ObservingOptions.MetricSet.CONN_POOL,
-                        ObservingOptions.MetricSet.DNS         // <-- we’ll wrap DNS
-                ))
-                .tagLevel(ObservingOptions.TagLevel.EXTENDED)
+                .metrics(EnumSet.of(ObservingOptions.MetricSet.BASIC, ObservingOptions.MetricSet.CONN_POOL))
                 .build();
 
-        // 4) Classic client + real DNS resolver wrapped with metrics
-        final org.apache.hc.client5.http.DnsResolver meteredResolver =
-                HttpClientObservationSupport.meteredDnsResolver(
-                        SystemDefaultDnsResolver.INSTANCE, registry, opts, mc);
+        final HttpClientConnectionManager rawCm = PoolingHttpClientConnectionManagerBuilder.create().build();
+        final HttpClientConnectionManager cm = new MeteredConnectionManager(rawCm, reg, mc, opts);
 
-        final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
-                .setDnsResolver(meteredResolver)
-                .build();
-
-        final HttpClientBuilder builder = HttpClients.custom()
-                .setConnectionManager(cm);
-
-        // record http timers/counters + pool gauges
-        HttpClientObservationSupport.enable(builder, observations, registry, opts, mc);
+        final HttpClientBuilder builder = HttpClients.custom().setConnectionManager(cm);
+        HttpClientObservationSupport.enable(builder, obs, reg, opts, mc);
 
         try (final CloseableHttpClient client = builder.build()) {
-            // Use a target so Host header is correct and connection manager engages normally
             final HttpHost target = new HttpHost("http", "httpbin.org", 80);
             final ClassicHttpResponse rsp = client.executeOpen(
                     target,
                     ClassicRequestBuilder.get("/get").build(),
                     null);
-            System.out.println("[classic DNS]   " + rsp.getCode());
+            System.out.println("status=" + rsp.getCode());
             rsp.close();
         }
 
-        System.out.println("\n--- Prometheus scrape (DNS demo) ---");
-        System.out.println(registry.scrape());
+        System.out.println("pool.lease  present? " + (Search.in(reg).name("demo.pool.lease").timer() != null));
+        System.out.println("pool.leases present? " + (Search.in(reg).name("demo.pool.leases").counter() != null));
+        System.out.println("--- scrape ---");
+        System.out.println(reg.scrape());
     }
 
-    private DnsMetricsDemo() { }
+    private ConnectionManagerLeaseDemo() {
+    }
 }

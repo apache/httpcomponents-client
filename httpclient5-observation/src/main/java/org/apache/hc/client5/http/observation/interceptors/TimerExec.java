@@ -68,9 +68,6 @@ public final class TimerExec implements ExecChainHandler {
     private final ObservingOptions cfg;
     private final MetricConfig mc;
 
-    private final Timer.Builder timerBuilder;
-    private final Counter.Builder counterBuilder;
-
     private final AtomicInteger inflight = new AtomicInteger(0);
 
     /**
@@ -87,17 +84,6 @@ public final class TimerExec implements ExecChainHandler {
         this.registry = Args.notNull(reg, "registry");
         this.cfg = Args.notNull(cfg, "config");
         this.mc = mc != null ? mc : MetricConfig.builder().build();
-
-        final String base = this.mc.prefix + ".";
-        this.timerBuilder = Timer.builder(base + "request").tags(this.mc.commonTags);
-        if (this.mc.percentiles != null && this.mc.percentiles.length > 0) {
-            this.timerBuilder.publishPercentiles(this.mc.percentiles);
-        }
-        if (this.mc.slo != null) {
-            this.timerBuilder.serviceLevelObjectives(this.mc.slo);
-        }
-
-        this.counterBuilder = Counter.builder(base + "response").tags(this.mc.commonTags);
 
         // Tag-aware guard: only register once per (name + tags)
         if (registry.find(this.mc.prefix + ".inflight")
@@ -141,11 +127,20 @@ public final class TimerExec implements ExecChainHandler {
                     tags.add(Tag.of("target", scope.route.getTargetHost().getHostName()));
                 }
 
-                timerBuilder.tags(tags)
-                        .register(registry)
-                        .record(durNanos, TimeUnit.NANOSECONDS);
+                Timer.Builder tb = Timer.builder(mc.prefix + ".request")
+                        .tags(mc.commonTags)
+                        .tags(tags);
+                if (mc.slo != null) {
+                    tb = tb.serviceLevelObjectives(mc.slo);
+                }
+                if (mc.percentiles != null && mc.percentiles.length > 0) {
+                    tb = tb.publishPercentiles(mc.percentiles);
+                }
+                tb.register(registry).record(durNanos, TimeUnit.NANOSECONDS);
 
-                counterBuilder.tags(tags)
+                Counter.builder(mc.prefix + ".response")
+                        .tags(mc.commonTags)
+                        .tags(tags)
                         .register(registry)
                         .increment();
             } finally {

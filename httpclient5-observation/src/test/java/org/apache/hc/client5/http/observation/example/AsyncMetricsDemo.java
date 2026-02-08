@@ -44,6 +44,8 @@ import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.observation.HttpClientObservationSupport;
 import org.apache.hc.client5.http.observation.MetricConfig;
 import org.apache.hc.client5.http.observation.ObservingOptions;
@@ -68,7 +70,10 @@ public final class AsyncMetricsDemo {
                 .tagLevel(ObservingOptions.TagLevel.EXTENDED)
                 .build();
 
-        final HttpAsyncClientBuilder b = HttpAsyncClients.custom();
+        final AsyncClientConnectionManager rawCm = PoolingAsyncClientConnectionManagerBuilder.create().build();
+        final AsyncClientConnectionManager cm =
+                HttpClientObservationSupport.meteredAsyncConnectionManager(rawCm, reg, opts, mc);
+        final HttpAsyncClientBuilder b = HttpAsyncClients.custom().setConnectionManager(cm);
         HttpClientObservationSupport.enable(b, obs, reg, opts, mc);
 
         final CloseableHttpAsyncClient client = b.build();

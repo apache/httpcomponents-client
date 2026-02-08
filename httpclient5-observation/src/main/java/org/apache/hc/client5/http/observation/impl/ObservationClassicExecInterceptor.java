@@ -72,7 +72,7 @@ public final class ObservationClassicExecInterceptor implements ExecChainHandler
 
         final String method = request.getMethod();
         final String uriForName = safeUriForName(request);
-        final String peer = request.getAuthority().getHostName();
+        final String peer = scope.route.getTargetHost().getHostName();
 
         final Observation obs = Observation
                 .createNotStarted("http.client.request", registry)

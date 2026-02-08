@@ -43,6 +43,11 @@ public final class ObservingOptions {
 
     /**
      * Which metric groups to enable.
+     * <p>
+     * {@link MetricSet#TLS} and {@link MetricSet#DNS} are applied when using
+     * {@link org.apache.hc.client5.http.observation.HttpClientObservationSupport#meteredTlsStrategy}
+     * and {@link org.apache.hc.client5.http.observation.HttpClientObservationSupport#meteredDnsResolver}
+     * to wrap the underlying TLS strategy or DNS resolver.
      */
     public enum MetricSet { BASIC, IO, CONN_POOL, TLS, DNS }
 
