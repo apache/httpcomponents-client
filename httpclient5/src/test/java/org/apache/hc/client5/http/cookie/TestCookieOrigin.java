@@ -76,6 +76,11 @@ class TestCookieOrigin {
         Assertions.assertEquals("/", origin.getPath());
         Assertions.assertFalse(origin.isSecure());
     }
+    @Test
+    void testNormalizePathRejectsNull() {
+        Assertions.assertThrows(NullPointerException.class, () ->
+                new CookieOrigin("somehost", 80, null, false));
+    }
 
 }
 
