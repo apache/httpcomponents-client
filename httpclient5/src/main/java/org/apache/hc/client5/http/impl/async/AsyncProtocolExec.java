@@ -159,9 +159,6 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
             // that of the previous authentication exchange.
             targetAuthExchange.reset();
         }
-        if (targetAuthExchange.getPathPrefix() == null) {
-            targetAuthExchange.setPathPrefix(pathPrefix);
-        }
 
         if (authCacheKeeper != null) {
             authCacheKeeper.loadPreemptively(target, pathPrefix, targetAuthExchange, clientContext);
@@ -340,6 +337,9 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                 targetNeedsAuth = authenticator.handleResponse(target, ChallengeType.TARGET, response,
                         targetAuthStrategy, targetAuthExchange, context);
 
+                if (!targetAuthExchange.isConnectionBased() && targetAuthExchange.getPathPrefix() == null) {
+                    targetAuthExchange.setPathPrefix(pathPrefix);
+                }
                 if (authCacheKeeper != null) {
                     authCacheKeeper.updateOnResponse(target, pathPrefix, targetAuthExchange, context);
                 }

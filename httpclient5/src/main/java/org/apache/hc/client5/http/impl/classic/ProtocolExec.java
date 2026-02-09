@@ -163,9 +163,6 @@ public final class ProtocolExec implements ExecChainHandler {
                 // that of the previous authentication exchange.
                 targetAuthExchange.reset();
             }
-            if (targetAuthExchange.getPathPrefix() == null) {
-                targetAuthExchange.setPathPrefix(pathPrefix);
-            }
 
             if (authCacheKeeper != null) {
                 authCacheKeeper.loadPreemptively(target, pathPrefix, targetAuthExchange, context);
@@ -301,6 +298,9 @@ public final class ProtocolExec implements ExecChainHandler {
                 targetNeedsAuth = authenticator.handleResponse(target, ChallengeType.TARGET, response,
                         targetAuthStrategy, targetAuthExchange, context);
 
+                if (!targetAuthExchange.isConnectionBased() && targetAuthExchange.getPathPrefix() == null) {
+                    targetAuthExchange.setPathPrefix(pathPrefix);
+                }
                 if (authCacheKeeper != null) {
                     authCacheKeeper.updateOnResponse(target, pathPrefix, targetAuthExchange, context);
                 }

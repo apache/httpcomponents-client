@@ -276,4 +276,37 @@ class TestProtocolExec {
         Assertions.assertEquals(401, response.getCode());
     }
 
+    @Test
+    void testAuthExchangePathPrefixRestoredAfterChallenge() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+        final ClassicHttpRequest request = new HttpGet("http://foo/blah/a");
+        final HttpClientContext context = HttpClientContext.create();
+
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(new AuthScope(target), "user", "pass".toCharArray())
+                .build());
+
+        final ClassicHttpResponse response1 = new BasicClassicHttpResponse(401, "Huh?");
+        response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
+        final ClassicHttpResponse response2 = new BasicClassicHttpResponse(200, "OK");
+
+        Mockito.when(chain.proceed(Mockito.same(request), Mockito.any()))
+                .thenReturn(response1, response2);
+
+        Mockito.when(targetAuthStrategy.select(
+                        Mockito.eq(ChallengeType.TARGET),
+                        Mockito.any(),
+                        Mockito.<HttpClientContext>any()))
+                .thenReturn(Collections.singletonList(new BasicScheme()));
+
+        Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+        final ClassicHttpResponse finalResponse = protocolExec.execute(request, scope, chain);
+
+        Assertions.assertEquals(200, finalResponse.getCode());
+
+        final AuthExchange authExchange = context.getAuthExchange(target);
+        Assertions.assertEquals("/blah/", authExchange.getPathPrefix());
+    }
 }
