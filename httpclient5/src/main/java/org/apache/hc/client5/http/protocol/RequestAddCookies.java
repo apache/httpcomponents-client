@@ -76,6 +76,28 @@ public class RequestAddCookies implements HttpRequestInterceptor {
 
     private static final Logger LOG = LoggerFactory.getLogger(RequestAddCookies.class);
 
+    private static String normalizeRequestPath(final String rawPath) {
+        if (TextUtils.isBlank(rawPath)) {
+            return "/";
+        }
+        int end = rawPath.length();
+
+        final int queryIndex = rawPath.indexOf('?');
+        if (queryIndex >= 0) {
+            end = queryIndex;
+        }
+        final int fragmentIndex = rawPath.indexOf('#');
+        if (fragmentIndex >= 0 && fragmentIndex < end) {
+            end = fragmentIndex;
+        }
+        if (end == 0) {
+            return "/";
+        }
+        if (end == rawPath.length()) {
+            return rawPath;
+        }
+        return rawPath.substring(0, end);
+    }
     public RequestAddCookies() {
         super();
     }
@@ -99,7 +121,6 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             // Skip adding cookies if the Cookie header is already present
             return;
         }
-
 
         final HttpClientContext clientContext = HttpClientContext.cast(context);
         final String exchangeId = clientContext.getExchangeId();
@@ -141,10 +162,9 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         }
 
         final URIAuthority authority = request.getAuthority();
-        String path = request.getPath();
-        if (TextUtils.isEmpty(path)) {
-            path = "/";
-        }
+
+        final String path = normalizeRequestPath(request.getPath());
+
         String hostName = authority != null ? authority.getHostName() : null;
         if (hostName == null) {
             hostName = route.getTargetHost().getHostName();

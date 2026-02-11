@@ -399,5 +399,4 @@ class TestBasicCookieAttribHandlers {
         h.parse(cookie, "anyone");
         Assertions.assertTrue(cookie.isHttpOnly());
     }
-
 }
