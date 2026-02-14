@@ -26,13 +26,17 @@
  */
 package org.apache.hc.client5.testing.sync;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -57,6 +61,7 @@ import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.BasicTestAuthenticator;
+import org.apache.hc.client5.testing.auth.AuthResult;
 import org.apache.hc.client5.testing.auth.Authenticator;
 import org.apache.hc.client5.testing.auth.BearerAuthenticationHandler;
 import org.apache.hc.client5.testing.classic.AuthenticatingDecorator;
@@ -82,6 +87,7 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.support.BasicResponseBuilder;
 import org.apache.hc.core5.net.URIAuthority;
+import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -339,8 +345,9 @@ abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
 
         Mockito.verify(authStrategy).select(Mockito.any(), Mockito.any(), Mockito.any());
 
-        Assertions.assertEquals(Arrays.asList(401, 200, 200, 200, 200, 200),
-                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()));
+        assertThat(
+                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()),
+                CoreMatchers.equalTo(Arrays.asList(401, 200, 200, 200, 200, 200)));
     }
 
     @Test
@@ -381,8 +388,9 @@ abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
         // There should be only single auth strategy call for all successful message exchanges
         Mockito.verify(authStrategy).select(Mockito.any(), Mockito.any(), Mockito.any());
 
-        Assertions.assertEquals(Arrays.asList(401, 200, 200, 200, 200),
-                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()));
+        assertThat(
+                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()),
+                CoreMatchers.equalTo(Arrays.asList(401, 200, 200, 200, 200)));
 
         responseQueue.clear();
         authCache.clear();
@@ -400,10 +408,11 @@ abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
         }
 
         // There should be an auth strategy call for all successful message exchanges
-        Mockito.verify(authStrategy, Mockito.times(2)).select(Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.verify(authStrategy, Mockito.times(3)).select(Mockito.any(), Mockito.any(), Mockito.any());
 
-        Assertions.assertEquals(Arrays.asList(200, 401, 200, 200, 401, 200),
-                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()));
+        assertThat(
+                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()),
+                CoreMatchers.equalTo(Arrays.asList(200, 401, 200, 401, 200, 401, 200)));
     }
 
     @Test
@@ -813,5 +822,125 @@ abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
             return null;
         });
     }
+
+    @Test
+    void testBasicAuthenticationCredentialsCachingDifferentPathPrefixesSameContext() throws Exception {
+        final List<RequestSnapshot> requests = new CopyOnWriteArrayList<>();
+        final Authenticator authenticator = new BasicTestAuthenticator("test:test", "test realm") {
+            @Override
+            public AuthResult perform(final URIAuthority authority,
+                                      final String requestUri,
+                                      final String credentials) {
+                requests.add(new RequestSnapshot(requestUri, credentials != null));
+                return super.perform(authority, requestUri, credentials);
+            }
+        };
+        configureServerWithBasicAuth(authenticator, bootstrap -> bootstrap.register("*", new EchoHandler()));
+        final HttpHost target = startServer();
+
+        final List<Integer> responseCodes = new CopyOnWriteArrayList<>();
+
+        configureClient(builder -> builder
+                .addResponseInterceptorLast((response, entity, context) -> responseCodes.add(response.getCode())));
+
+        final TestClient client = client();
+
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(target, "test", "test".toCharArray())
+                .build();
+
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAuthCache(new BasicAuthCache());
+        context.setCredentialsProvider(credentialsProvider);
+
+        for (final String requestPath : new String[]{"/blah/a", "/blubb/b"}) {
+            final HttpGet httpGet = new HttpGet(requestPath);
+            client.execute(target, httpGet, context, response -> {
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
+        }
+
+        Assertions.assertEquals(Arrays.asList(401, 200, 401, 200), responseCodes);
+
+        assertHandshakePerPath(requests, "/blah/a");
+        assertHandshakePerPath(requests, "/blubb/b");
+    }
+
+    private static void assertHandshakePerPath(final List<RequestSnapshot> requests, final String path) {
+        final List<RequestSnapshot> filtered = requests.stream()
+                .filter(r -> path.equals(r.path))
+                .collect(Collectors.toList());
+
+        Assertions.assertEquals(2, filtered.size(), "Expected 2 requests for " + path + " (challenge + retry)");
+        Assertions.assertFalse(filtered.get(0).hasAuthorization, "First request to " + path + " must not be preemptive");
+        Assertions.assertTrue(filtered.get(1).hasAuthorization, "Second request to " + path + " must carry Authorization");
+    }
+
+    private static final class RequestSnapshot {
+        private final String path;
+        private final boolean hasAuthorization;
+
+        private RequestSnapshot(final String path, final boolean hasAuthorization) {
+            this.path = path;
+            this.hasAuthorization = hasAuthorization;
+        }
+    }
+
+    @Test
+    void testBasicAuthenticationCredentialsCachingPerPrefixAndReuseWithinPrefix() throws Exception {
+        final List<RequestSnapshot> requests = new CopyOnWriteArrayList<>();
+        final Authenticator authenticator = new BasicTestAuthenticator("test:test", "test realm") {
+            @Override
+            public AuthResult perform(final URIAuthority authority,
+                                      final String requestUri,
+                                      final String credentials) {
+                requests.add(new RequestSnapshot(requestUri, credentials != null));
+                return super.perform(authority, requestUri, credentials);
+            }
+        };
+        configureServerWithBasicAuth(authenticator, bootstrap -> bootstrap.register("*", new EchoHandler()));
+        final HttpHost target = startServer();
+
+        final List<Integer> responseCodes = new CopyOnWriteArrayList<>();
+        configureClient(builder -> builder
+                .addResponseInterceptorLast((response, entity, context) -> responseCodes.add(response.getCode())));
+
+        final TestClient client = client();
+
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(target, "test", "test".toCharArray())
+                .build();
+
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAuthCache(new BasicAuthCache());
+        context.setCredentialsProvider(credentialsProvider);
+
+        // First hit per prefix must challenge; subsequent hits under same prefix should be preemptive (200 only)
+        for (final String requestPath : new String[]{"/blah/a", "/blubb/b", "/blubb/c", "/blah/d"}) {
+            final HttpGet httpGet = new HttpGet(requestPath);
+            client.execute(target, httpGet, context, response -> {
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
+        }
+
+        Assertions.assertEquals(Arrays.asList(401, 200, 401, 200, 200, 200), responseCodes);
+
+        assertHandshakePerPath(requests, "/blah/a");
+        assertHandshakePerPath(requests, "/blubb/b");
+        assertPreemptivePerPath(requests, "/blubb/c");
+        assertPreemptivePerPath(requests, "/blah/d");
+    }
+
+    private static void assertPreemptivePerPath(final List<RequestSnapshot> requests, final String path) {
+        final List<RequestSnapshot> filtered = requests.stream()
+                .filter(r -> path.equals(r.path))
+                .collect(Collectors.toList());
+
+        Assertions.assertEquals(1, filtered.size(), "Expected 1 request for " + path + " (preemptive)");
+        Assertions.assertTrue(filtered.get(0).hasAuthorization, "Request to " + path + " must carry Authorization");
+    }
+
 
 }
