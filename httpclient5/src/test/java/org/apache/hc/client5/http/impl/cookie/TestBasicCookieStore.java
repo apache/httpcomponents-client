@@ -75,6 +75,29 @@ class TestBasicCookieStore {
     }
 
     @Test
+    void testReplacementPreservesCreationTime() {
+        final BasicCookieStore store = new BasicCookieStore();
+        final Instant originalCreation = Instant.now().minus(1, ChronoUnit.DAYS);
+
+        final BasicClientCookie original = new BasicClientCookie("name1", "value1");
+        original.setDomain("example.com");
+        original.setPath("/");
+        original.setCreationDate(originalCreation);
+        store.addCookie(original);
+
+        final BasicClientCookie replacement = new BasicClientCookie("name1", "value2");
+        replacement.setDomain("example.com");
+        replacement.setPath("/");
+        replacement.setCreationDate(Instant.now());
+        store.addCookie(replacement);
+
+        final List<Cookie> list = store.getCookies();
+        Assertions.assertEquals(1, list.size());
+        Assertions.assertEquals("value2", list.get(0).getValue());
+        Assertions.assertEquals(originalCreation, list.get(0).getCreationInstant());
+    }
+
+    @Test
     void testSerialization() throws Exception {
         final BasicCookieStore orig = new BasicCookieStore();
         orig.addCookie(new BasicClientCookie("name1", "value1"));

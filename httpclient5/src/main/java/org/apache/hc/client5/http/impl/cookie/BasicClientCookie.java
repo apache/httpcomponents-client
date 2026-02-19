@@ -330,6 +330,11 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
         this.creationDate = creationDate;
     }
 
+    @Override
+    public void setCreationInstant(final Instant creationDate) {
+        setCreationDate(creationDate);
+    }
+
     public void setAttribute(final String name, final String value) {
         this.attribs.put(name, value);
     }

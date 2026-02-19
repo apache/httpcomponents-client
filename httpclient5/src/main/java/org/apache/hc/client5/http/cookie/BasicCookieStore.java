@@ -82,8 +82,18 @@ public class BasicCookieStore implements CookieStore, Serializable {
         if (cookie != null) {
             lock.writeLock().lock();
             try {
-                // first remove any old cookie that is equivalent
-                cookies.remove(cookie);
+                final Cookie oldCookie = cookies.ceiling(cookie);
+                if (oldCookie != null && CookieIdentityComparator.INSTANCE.compare(oldCookie, cookie) == 0) {
+                    if (cookie instanceof SetCookie) {
+                        final Instant creationInstant = oldCookie.getCreationInstant();
+                        if (creationInstant != null) {
+                            ((SetCookie) cookie).setCreationInstant(creationInstant);
+                        }
+                    }
+                    cookies.remove(oldCookie);
+                } else {
+                    cookies.remove(cookie);
+                }
                 if (!cookie.isExpired(Instant.now())) {
                     cookies.add(cookie);
                 }

@@ -115,5 +115,14 @@ public interface SetCookie extends Cookie {
     default void setHttpOnly(final boolean httpOnly) {
     }
 
+    /**
+     * Sets creation time of the cookie.
+     *
+     * @since 5.7
+     */
+    default void setCreationInstant(final Instant creationInstant) {
+        // no-op by default for backward compatibility
+    }
+
 }
 
