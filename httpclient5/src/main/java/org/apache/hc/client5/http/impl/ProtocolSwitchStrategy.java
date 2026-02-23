@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.core5.annotation.Internal;
@@ -70,6 +71,10 @@ public final class ProtocolSwitchStrategy {
     }
 
     public ProtocolVersion switchProtocol(final HttpMessage response) throws ProtocolException {
+        if (!containsConnectionUpgrade(response)) {
+            throw new ProtocolException("Invalid protocol switch response: missing Connection: Upgrade");
+        }
+
         final AtomicReference<ProtocolVersion> tlsUpgrade = new AtomicReference<>();
 
         parseHeaders(response, HttpHeaders.UPGRADE, (buffer, cursor) -> {
@@ -89,6 +94,16 @@ public final class ProtocolSwitchStrategy {
         } else {
             throw new ProtocolException("Invalid protocol switch response: no TLS version found");
         }
+    }
+
+    private boolean containsConnectionUpgrade(final HttpMessage message) {
+        final AtomicBoolean found = new AtomicBoolean(false);
+        MessageSupport.parseTokens(message, HttpHeaders.CONNECTION, token -> {
+            if ("upgrade".equalsIgnoreCase(token)) {
+                found.set(true);
+            }
+        });
+        return found.get();
     }
 
     private ProtocolVersion parseProtocolVersion(final CharSequence buffer, final ParserCursor cursor) throws ProtocolException {
