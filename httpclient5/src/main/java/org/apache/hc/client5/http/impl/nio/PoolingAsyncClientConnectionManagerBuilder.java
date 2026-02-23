@@ -70,6 +70,10 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
     private boolean messageMultiplexing;
 
+    private AsyncClientConnectionOperator connectionOperator;
+
+    private ConnectionConfig defaultConnectionConfig;
+
     public static PoolingAsyncClientConnectionManagerBuilder create() {
         return new PoolingAsyncClientConnectionManagerBuilder();
     }
@@ -170,6 +174,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
      */
     public final PoolingAsyncClientConnectionManagerBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
         this.connectionConfigResolver = route -> config;
+        this.defaultConnectionConfig = config;
         return this;
     }
 
@@ -266,17 +271,33 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         return this;
     }
 
+    /**
+     * Sets custom {@link AsyncClientConnectionOperator} instance.
+     *
+     * @param connectionOperator the custom connection operator.
+     * @return this instance.
+     * @since 5.6
+     */
+    @Experimental
+    public final PoolingAsyncClientConnectionManagerBuilder setConnectionOperator(
+            final AsyncClientConnectionOperator connectionOperator) {
+        this.connectionOperator = connectionOperator;
+        return this;
+    }
+
     @Internal
     protected AsyncClientConnectionOperator createConnectionOperator(
             final TlsStrategy tlsStrategy,
             final SchemePortResolver schemePortResolver,
-            final DnsResolver dnsResolver) {
+            final DnsResolver dnsResolver,
+            final ConnectionConfig defaultConnectionConfig) {
         return new DefaultAsyncClientConnectionOperator(
                 RegistryBuilder.<TlsStrategy>create()
                         .register(URIScheme.HTTPS.getId(), tlsStrategy)
                         .build(),
                 schemePortResolver,
-                dnsResolver);
+                dnsResolver,
+                defaultConnectionConfig);
     }
 
     public PoolingAsyncClientConnectionManager build() {
@@ -291,7 +312,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
             }
         }
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
-                createConnectionOperator(tlsStrategyCopy, schemePortResolver, dnsResolver),
+                createConnectionOperator(tlsStrategyCopy, schemePortResolver, dnsResolver, defaultConnectionConfig),
                 poolConcurrencyPolicy,
                 poolReusePolicy,
                 null,

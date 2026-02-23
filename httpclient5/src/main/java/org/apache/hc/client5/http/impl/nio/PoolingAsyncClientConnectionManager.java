@@ -166,7 +166,18 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             final TimeValue timeToLive,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
-        this(new DefaultAsyncClientConnectionOperator(tlsStrategyLookup, schemePortResolver, dnsResolver),
+        this(tlsStrategyLookup,poolConcurrencyPolicy,poolReusePolicy,timeToLive,schemePortResolver,dnsResolver,ConnectionConfig.DEFAULT);
+    }
+
+    public PoolingAsyncClientConnectionManager(
+            final Lookup<TlsStrategy> tlsStrategyLookup,
+            final PoolConcurrencyPolicy poolConcurrencyPolicy,
+            final PoolReusePolicy poolReusePolicy,
+            final TimeValue timeToLive,
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver,
+            final ConnectionConfig connectionConfig) {
+        this(new DefaultAsyncClientConnectionOperator(tlsStrategyLookup, schemePortResolver, dnsResolver, connectionConfig),
                 poolConcurrencyPolicy, poolReusePolicy, timeToLive, null, false);
     }
 
@@ -249,6 +260,17 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             }
             this.pool.close(closeMode);
             LOG.debug("Connection pool shut down");
+
+            if (connectionOperator instanceof DefaultAsyncClientConnectionOperator) {
+                try {
+                    ((DefaultAsyncClientConnectionOperator) connectionOperator).shutdown();
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Connection operator shut down");
+                    }
+                } catch (final RuntimeException ex) {
+                    LOG.warn("Connection operator shutdown failed", ex);
+                }
+            }
         }
     }
 
