@@ -62,7 +62,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <httpcore.version>5.4</httpcore.version>
+    <httpcore.version>5.4.1</httpcore.version>
     <log4j.version>2.25.3</log4j.version>
     <brotli4j.version>1.20.0</brotli4j.version>
     <conscrypt.version>2.5.2</conscrypt.version>
@@ -70,7 +70,7 @@
     <memcached.version>2.12.3</memcached.version>
     <slf4j.version>1.7.36</slf4j.version>
     <junit.version>5.14.2</junit.version>
-    <junit.version>5.14.1</junit.version>
+    <junit.version>5.14.3</junit.version>
     <mockito.version>4.11.0</mockito.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <rxjava3.version>3.1.12</rxjava3.version>
@@ -79,10 +79,10 @@
     <api.comparison.version>5.6</api.comparison.version>
     <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer,jdk.net.ExtendedSocketOptions,jdk.net.Sockets</hc.animal-sniffer.signature.ignores>
     <commons.compress.version>1.28.0</commons.compress.version>
-    <zstd.jni.version>1.5.7-6</zstd.jni.version>
-    <micrometer.version>1.16.2</micrometer.version>
-    <micrometer.tracing.version>1.6.2</micrometer.tracing.version>
-    <otel.version>1.58.0</otel.version>     <!-- already used elsewhere -->
+    <zstd.jni.version>1.5.7-7</zstd.jni.version>
+    <micrometer.version>1.16.3</micrometer.version>
+    <micrometer.tracing.version>1.6.3</micrometer.tracing.version>
+    <otel.version>1.59.0</otel.version>     <!-- already used elsewhere -->
     <commons-compress.version>1.26.2</commons-compress.version>
     <caffeine.version>2.9.3</caffeine.version>  <!-- java 8. current version 3.2.3 -->
   </properties>
