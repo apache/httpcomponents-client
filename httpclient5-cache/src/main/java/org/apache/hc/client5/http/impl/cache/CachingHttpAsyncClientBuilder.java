@@ -60,6 +60,7 @@ public class CachingHttpAsyncClientBuilder extends HttpAsyncClientBuilder {
     private SchedulingStrategy schedulingStrategy;
     private CacheConfig cacheConfig;
     private boolean deleteCache;
+    private boolean requestCollapsingEnabled;
 
     public static CachingHttpAsyncClientBuilder create() {
         return new CachingHttpAsyncClientBuilder();
@@ -116,6 +117,18 @@ public class CachingHttpAsyncClientBuilder extends HttpAsyncClientBuilder {
         return this;
     }
 
+    /**
+     * Enables request collapsing for cacheable requests ({@code HTTPCLIENT-1165}). When enabled,
+     * concurrent requests for the same cache key are coalesced so that only one request goes to
+     * the backend while the others wait and then re-check the cache.
+     *
+     * @since 5.7
+     */
+    public CachingHttpAsyncClientBuilder setRequestCollapsingEnabled(final boolean requestCollapsingEnabled) {
+        this.requestCollapsingEnabled = requestCollapsingEnabled;
+        return this;
+    }
+
     @Override
     protected void customizeExecChain(final NamedElementChain<AsyncExecChainHandler> execChainDefinition) {
         final CacheConfig config = this.cacheConfig != null ? this.cacheConfig : CacheConfig.DEFAULT;
@@ -160,7 +173,8 @@ public class CachingHttpAsyncClientBuilder extends HttpAsyncClientBuilder {
         final AsyncCachingExec cachingExec = new AsyncCachingExec(
                 httpCache,
                 cacheRevalidator,
-                config);
+                config,
+                requestCollapsingEnabled);
         execChainDefinition.addBefore(ChainElement.PROTOCOL.name(), cachingExec, ChainElement.CACHING.name());
     }
 
