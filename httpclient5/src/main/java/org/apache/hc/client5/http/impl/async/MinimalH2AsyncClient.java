@@ -54,6 +54,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
@@ -79,8 +80,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Minimal implementation of HTTP/2 only {@link CloseableHttpAsyncClient}. This client
  * is optimized for HTTP/2 multiplexing message transport and does not support advanced
- * HTTP protocol functionality such as request execution via a proxy, state management,
- * authentication and request redirects.
+ * HTTP protocol functionality such as state management, authentication and request redirects.
  * <p>
  * Concurrent message exchanges with the same connection route executed by
  * this client will get automatically multiplexed over a single physical HTTP/2
@@ -115,7 +115,7 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                 pushConsumerRegistry,
                 threadFactory);
         this.connectionInitiator = new MultihomeConnectionInitiator(getConnectionInitiator(), dnsResolver);
-        this.connPool = new InternalH2ConnPool(this.connectionInitiator, object -> null, tlsStrategy);
+        this.connPool = new InternalH2ConnPool(this.connectionInitiator, object -> null, tlsStrategy, eventHandlerFactory);
     }
 
     @Override
@@ -143,8 +143,14 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                 @SuppressWarnings("deprecation")
                 final Timeout connectTimeout = requestConfig.getConnectTimeout();
                 final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
+                final HttpHost proxy = requestConfig.getProxy();
+                final HttpRoute route = proxy != null ? new HttpRoute(
+                        target,
+                        null,
+                        proxy,
+                        URIScheme.HTTPS.same(target.getSchemeName())) : new HttpRoute(target);
 
-                final Future<IOSession> sessionFuture = connPool.getSession(new HttpRoute(target), connectTimeout,
+                final Future<IOSession> sessionFuture = connPool.getSession(route, connectTimeout,
                     new FutureCallback<IOSession>() {
 
                     @Override
