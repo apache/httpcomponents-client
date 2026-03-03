@@ -43,6 +43,7 @@ import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -358,6 +359,47 @@ public class AuthenticationHandler {
             authExchange.setState(AuthExchange.State.CHALLENGED);
             authExchange.setOptions(authOptions);
             return true;
+        }
+        return false;
+    }
+
+    /**
+     * Determines whether proxy authentication is needed for the given response,
+     * updating the {@link AuthExchange} and auth cache state as appropriate.
+     *
+     * @since 5.7
+     */
+    public boolean needProxyAuthentication(
+            final AuthExchange proxyAuthExchange,
+            final HttpHost proxy,
+            final HttpResponse response,
+            final AuthenticationStrategy proxyAuthStrategy,
+            final AuthCacheKeeper authCacheKeeper,
+            final HttpClientContext context) throws AuthenticationException, MalformedChallengeException {
+        final RequestConfig config = context.getRequestConfigOrDefault();
+        if (config.isAuthenticationEnabled()) {
+            final boolean proxyAuthRequested = isChallenged(
+                    proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
+            final boolean proxyMutualAuthRequired = isChallengeExpected(proxyAuthExchange);
+
+            if (authCacheKeeper != null) {
+                if (proxyAuthRequested) {
+                    authCacheKeeper.updateOnChallenge(proxy, null, proxyAuthExchange, context);
+                } else {
+                    authCacheKeeper.updateOnNoChallenge(proxy, null, proxyAuthExchange, context);
+                }
+            }
+
+            if (proxyAuthRequested || proxyMutualAuthRequired) {
+                final boolean updated = handleResponse(
+                        proxy, ChallengeType.PROXY, response, proxyAuthStrategy, proxyAuthExchange, context);
+
+                if (authCacheKeeper != null) {
+                    authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);
+                }
+
+                return updated;
+            }
         }
         return false;
     }
