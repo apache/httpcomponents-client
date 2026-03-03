@@ -50,6 +50,7 @@ import org.apache.hc.client5.http.io.LeaseRequest;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.io.SocketConfig;
@@ -60,6 +61,7 @@ import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -112,10 +114,10 @@ class TestPoolingHttpClientConnectionManager {
         Mockito.when(conn.isConsistent()).thenReturn(true);
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
         Mockito.when(pool.lease(
-                Mockito.eq(route),
-                Mockito.eq(null),
-                Mockito.any(),
-                Mockito.eq(null)))
+                        Mockito.eq(route),
+                        Mockito.eq(null),
+                        Mockito.any(),
+                        Mockito.any(FutureCallback.class)))
                 .thenReturn(future);
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
@@ -137,10 +139,10 @@ class TestPoolingHttpClientConnectionManager {
 
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
         Mockito.when(pool.lease(
-                Mockito.eq(route),
-                Mockito.eq(null),
-                Mockito.any(),
-                Mockito.eq(null)))
+                        Mockito.eq(route),
+                        Mockito.eq(null),
+                        Mockito.any(),
+                        Mockito.any(FutureCallback.class)))
                 .thenReturn(future);
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
@@ -160,15 +162,73 @@ class TestPoolingHttpClientConnectionManager {
 
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenThrow(new TimeoutException());
         Mockito.when(pool.lease(
-                Mockito.eq(route),
-                Mockito.eq(null),
-                Mockito.any(),
-                Mockito.eq(null)))
+                        Mockito.eq(route),
+                        Mockito.eq(null),
+                        Mockito.any(),
+                        Mockito.any(FutureCallback.class)))
                 .thenReturn(future);
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         Assertions.assertThrows(TimeoutException.class, () ->
                 connRequest1.get(Timeout.ofSeconds(1)));
+    }
+
+    @Test
+    void testLeaseFutureTimeoutLateLeaseReleased() throws Exception {
+        final HttpHost target = new HttpHost("localhost", 80);
+        final HttpRoute route = new HttpRoute(target);
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECOND);
+
+        final ArgumentCaptor<FutureCallback> callbackCaptor = ArgumentCaptor.forClass(FutureCallback.class);
+
+        Mockito.when(pool.lease(
+                        Mockito.eq(route),
+                        Mockito.eq(null),
+                        Mockito.any(),
+                        callbackCaptor.capture()))
+                .thenReturn(future);
+        Mockito.when(future.cancel(true)).thenReturn(false);
+        Mockito.when(future.get(1, TimeUnit.SECONDS)).thenAnswer(invocation -> {
+            callbackCaptor.getValue().completed(entry);
+            throw new TimeoutException();
+        });
+
+        final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
+        Assertions.assertThrows(TimeoutException.class, () ->
+                connRequest1.get(Timeout.ofSeconds(1)));
+
+        Mockito.verify(future).cancel(true);
+        Mockito.verify(pool).release(entry, false);
+        Mockito.verify(future, Mockito.never()).get(0L, TimeUnit.MILLISECONDS);
+    }
+
+    @Test
+    void testLeaseFutureInterruptedLateLeaseReleased() throws Exception {
+        final HttpHost target = new HttpHost("localhost", 80);
+        final HttpRoute route = new HttpRoute(target);
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECOND);
+
+        final ArgumentCaptor<FutureCallback> callbackCaptor = ArgumentCaptor.forClass(FutureCallback.class);
+
+        Mockito.when(pool.lease(
+                        Mockito.eq(route),
+                        Mockito.eq(null),
+                        Mockito.any(),
+                        callbackCaptor.capture()))
+                .thenReturn(future);
+        Mockito.when(future.cancel(true)).thenReturn(false);
+        Mockito.when(future.get(1, TimeUnit.SECONDS)).thenAnswer(invocation -> {
+            callbackCaptor.getValue().completed(entry);
+            throw new InterruptedException();
+        });
+
+        final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
+        Assertions.assertThrows(InterruptedException.class, () ->
+                connRequest1.get(Timeout.ofSeconds(1)));
+
+        Mockito.verify(future).cancel(true);
+        Mockito.verify(pool).release(entry, false);
+        Mockito.verify(future, Mockito.never()).get(0L, TimeUnit.MILLISECONDS);
     }
 
     @Test
@@ -181,10 +241,10 @@ class TestPoolingHttpClientConnectionManager {
 
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
         Mockito.when(pool.lease(
-                Mockito.eq(route),
-                Mockito.eq(null),
-                Mockito.any(),
-                Mockito.eq(null)))
+                        Mockito.eq(route),
+                        Mockito.eq(null),
+                        Mockito.any(),
+                        Mockito.any(FutureCallback.class)))
                 .thenReturn(future);
         Mockito.when(conn.isOpen()).thenReturn(true);
         Mockito.when(conn.isConsistent()).thenReturn(true);
@@ -210,10 +270,10 @@ class TestPoolingHttpClientConnectionManager {
 
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
         Mockito.when(pool.lease(
-                Mockito.eq(route),
-                Mockito.eq(null),
-                Mockito.any(),
-                Mockito.eq(null)))
+                        Mockito.eq(route),
+                        Mockito.eq(null),
+                        Mockito.any(),
+                        Mockito.any(FutureCallback.class)))
                 .thenReturn(future);
         Mockito.when(conn.isOpen()).thenReturn(Boolean.FALSE);
 
@@ -241,10 +301,10 @@ class TestPoolingHttpClientConnectionManager {
         Mockito.when(conn.isOpen()).thenReturn(false);
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
         Mockito.when(pool.lease(
-                Mockito.eq(route),
-                Mockito.eq(null),
-                Mockito.any(),
-                Mockito.eq(null)))
+                        Mockito.eq(route),
+                        Mockito.eq(null),
+                        Mockito.any(),
+                        Mockito.any(FutureCallback.class)))
                 .thenReturn(future);
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
@@ -308,10 +368,10 @@ class TestPoolingHttpClientConnectionManager {
         Mockito.when(conn.isOpen()).thenReturn(false);
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
         Mockito.when(pool.lease(
-                Mockito.eq(route),
-                Mockito.eq(null),
-                Mockito.any(),
-                Mockito.eq(null)))
+                        Mockito.eq(route),
+                        Mockito.eq(null),
+                        Mockito.any(),
+                        Mockito.any(FutureCallback.class)))
                 .thenReturn(future);
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
@@ -376,7 +436,6 @@ class TestPoolingHttpClientConnectionManager {
         }, "Attempting to lease a connection after shutdown should throw an exception.");
     }
 
-
     @Test
     void testIsShutdown() {
         // Setup phase
@@ -392,7 +451,6 @@ class TestPoolingHttpClientConnectionManager {
         Assertions.assertTrue(mgr.isClosed(), "Connection manager should be shutdown after close() is called.");
     }
 
-
     @Test
     void testConcurrentShutdown() throws InterruptedException {
         final ExecutorService executor = Executors.newFixedThreadPool(2);
@@ -404,6 +462,5 @@ class TestPoolingHttpClientConnectionManager {
 
         Assertions.assertTrue(mgr.isClosed(), "Connection manager should be shutdown after concurrent calls to shutdown.");
     }
-
 
 }

@@ -56,6 +56,7 @@ import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -369,7 +370,36 @@ public class PoolingHttpClientConnectionManager
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} endpoint lease request ({}) {}", id, requestTimeout, ConnPoolSupport.formatStats(route, state, pool));
         }
-        final Future<PoolEntry<HttpRoute, ManagedHttpClientConnection>> leaseFuture = this.pool.lease(route, state, requestTimeout, null);
+        final AtomicBoolean aborted = new AtomicBoolean(false);
+        final AtomicBoolean resultObtained = new AtomicBoolean(false);
+        final AtomicReference<PoolEntry<HttpRoute, ManagedHttpClientConnection>> lateEntryRef = new AtomicReference<>();
+        final Future<PoolEntry<HttpRoute, ManagedHttpClientConnection>> leaseFuture = this.pool.lease(
+                route,
+                state,
+                requestTimeout,
+                new FutureCallback<PoolEntry<HttpRoute, ManagedHttpClientConnection>>() {
+
+                    @Override
+                    public void completed(final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry) {
+                        lateEntryRef.set(poolEntry);
+                        if (aborted.get()) {
+                            if (lateEntryRef.compareAndSet(poolEntry, null)) {
+                                pool.release(poolEntry, false);
+                            }
+                        } else if (resultObtained.get()) {
+                            lateEntryRef.compareAndSet(poolEntry, null);
+                        }
+                    }
+
+                    @Override
+                    public void failed(final Exception ex) {
+                    }
+
+                    @Override
+                    public void cancelled() {
+                    }
+
+                });
         return new LeaseRequest() {
             // Using a ReentrantLock specific to each LeaseRequest instance to maintain the original
             // synchronization semantics. This ensures that each LeaseRequest has its own unique lock.
@@ -388,8 +418,15 @@ public class PoolingHttpClientConnectionManager
                     final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry;
                     try {
                         poolEntry = leaseFuture.get(timeout.getDuration(), timeout.getTimeUnit());
-                    } catch (final TimeoutException ex) {
+                        resultObtained.set(true);
+                        lateEntryRef.compareAndSet(poolEntry, null);
+                    } catch (final TimeoutException | InterruptedException ex) {
+                        aborted.set(true);
                         leaseFuture.cancel(true);
+                        final PoolEntry<HttpRoute, ManagedHttpClientConnection> latePoolEntry = lateEntryRef.getAndSet(null);
+                        if (latePoolEntry != null) {
+                            pool.release(latePoolEntry, false);
+                        }
                         throw ex;
                     }
                     if (LOG.isDebugEnabled()) {
@@ -467,7 +504,18 @@ public class PoolingHttpClientConnectionManager
 
             @Override
             public boolean cancel() {
-                return leaseFuture.cancel(true);
+                lock.lock();
+                try {
+                    aborted.set(true);
+                    final boolean cancelled = leaseFuture.cancel(true);
+                    final PoolEntry<HttpRoute, ManagedHttpClientConnection> latePoolEntry = lateEntryRef.getAndSet(null);
+                    if (latePoolEntry != null) {
+                        pool.release(latePoolEntry, false);
+                    }
+                    return cancelled;
+                } finally {
+                    lock.unlock();
+                }
             }
 
         };

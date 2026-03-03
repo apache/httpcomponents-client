@@ -29,7 +29,13 @@ package org.apache.hc.client5.testing.sync;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 import org.apache.hc.client5.http.HttpRoute;
@@ -63,6 +69,7 @@ import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.AfterEach;
@@ -387,6 +394,100 @@ class TestConnectionManagement {
 
         final HttpConnection connection = ((ConnectionHolder) endpoint2).get();
         Assertions.assertEquals(connectionSocketTimeout, connection.getSocketTimeout());
+
+        connManager.close();
+    }
+
+    @Test
+    void testConnectionRequestTimeout() throws Exception {
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
+
+        connManager.setMaxTotal(1);
+
+        final HttpRoute route = new HttpRoute(target, null, false);
+        final Timeout connRequestTimeout = Timeout.ofMicroseconds(1);
+
+        final int concurrentThreads = 10;
+        final CountDownLatch countDownLatch = new CountDownLatch(concurrentThreads);
+        final AtomicLong n = new AtomicLong(concurrentThreads * 100);
+
+        final ExecutorService executorService = Executors.newFixedThreadPool(concurrentThreads);
+        for (int i = 0; i < concurrentThreads; i++) {
+            executorService.execute(() -> {
+                try {
+                    while (n.decrementAndGet() > 0) {
+                        try {
+                            final LeaseRequest request = connManager.lease("id1", route, connRequestTimeout, null);
+                            final ConnectionEndpoint connectionEndpoint = request.get(connRequestTimeout);
+                            connManager.release(connectionEndpoint, null, null);
+                        } catch (final InterruptedException ex) {
+                            Thread.currentThread().interrupt();
+                            Assertions.fail("Unexpected exception", ex);
+                        } catch (final TimeoutException | ExecutionException ignored) {
+                        }
+                    }
+                } finally {
+                    countDownLatch.countDown();
+                }
+            });
+        }
+
+        Assertions.assertTrue(countDownLatch.await(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit()));
+        Assertions.assertTrue(n.get() <= 0);
+
+        final PoolStats stats = connManager.getStats(route);
+        Assertions.assertEquals(0, stats.getLeased());
+
+        connManager.close();
+    }
+
+    @Test
+    void testConnectionRequestCancelLateLeaseReleased() throws Exception {
+        configureServer(bootstrap -> bootstrap
+                .register("/random/*", new RandomHandler()));
+        final HttpHost target = startServer();
+
+        connManager.setMaxTotal(1);
+
+        final HttpRoute route = new HttpRoute(target, null, false);
+        final Timeout t = Timeout.ofSeconds(5);
+
+        final LeaseRequest holdRequest = connManager.lease("hold", route, t, null);
+        final ConnectionEndpoint heldEndpoint = holdRequest.get(t);
+
+        final LeaseRequest pendingRequest = connManager.lease("pending", route, t, null);
+
+        connManager.release(heldEndpoint, null, null);
+
+        PoolStats stats;
+        final long deadline1 = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        for (;;) {
+            stats = connManager.getStats(route);
+            if (stats.getLeased() == 1) {
+                break;
+            }
+            if (System.nanoTime() > deadline1) {
+                break;
+            }
+            Thread.yield();
+        }
+        Assertions.assertEquals(1, stats.getLeased(), "Expected pending lease to complete and become leased");
+        Assertions.assertFalse(pendingRequest.cancel(), "Expected cancel() to lose the race once lease is completed");
+
+        final long deadline2 = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        for (;;) {
+            stats = connManager.getStats(route);
+            if (stats.getLeased() == 0) {
+                break;
+            }
+            if (System.nanoTime() > deadline2) {
+                break;
+            }
+            Thread.yield();
+        }
+        Assertions.assertEquals(0, stats.getLeased(), "Late-completed lease must not remain stranded after cancel()");
 
         connManager.close();
     }
