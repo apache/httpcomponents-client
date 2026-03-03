@@ -189,6 +189,12 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
+    public HttpRoute getEstablishedRoute() {
+        final Endpoint endpoint = sessionRef.get();
+        return endpoint != null ? endpoint.route : null;
+    }
+
+    @Override
     public Cancellable connectEndpoint(
             final HttpClientContext context,
             final FutureCallback<AsyncExecRuntime> callback) {

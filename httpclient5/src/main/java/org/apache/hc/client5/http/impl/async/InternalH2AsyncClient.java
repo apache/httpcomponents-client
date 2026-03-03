@@ -108,11 +108,7 @@ public final class InternalH2AsyncClient extends InternalAbstractHttpAsyncClient
             final HttpHost httpHost,
             final HttpRequest request,
             final HttpClientContext clientContext) throws HttpException {
-        final HttpRoute route = routePlanner.determineRoute(httpHost, request, clientContext);
-        if (route.isTunnelled()) {
-            throw new HttpException("HTTP/2 tunneling not supported");
-        }
-        return route;
+        return routePlanner.determineRoute(httpHost, request, clientContext);
     }
 
 }
