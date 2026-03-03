@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
+import org.apache.hc.client5.http.ConnectAlpnProvider;
 import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteTracker;
@@ -47,6 +48,7 @@ import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.AlpnHeaderSupport;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.AuthenticationHandler;
 import org.apache.hc.client5.http.impl.routing.BasicRouteDirector;
@@ -99,11 +101,23 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
     private final AuthCacheKeeper authCacheKeeper;
     private final HttpRouteDirector routeDirector;
 
+    private final ConnectAlpnProvider alpnProvider;
+
+
     public AsyncConnectExec(
             final HttpProcessor proxyHttpProcessor,
             final AuthenticationStrategy proxyAuthStrategy,
             final SchemePortResolver schemePortResolver,
             final boolean authCachingDisabled) {
+       this(proxyHttpProcessor, proxyAuthStrategy, schemePortResolver, authCachingDisabled, null);
+    }
+
+    public AsyncConnectExec(
+            final HttpProcessor proxyHttpProcessor,
+            final AuthenticationStrategy proxyAuthStrategy,
+            final SchemePortResolver schemePortResolver,
+            final boolean authCachingDisabled,
+            final ConnectAlpnProvider alpnProvider) {
         Args.notNull(proxyHttpProcessor, "Proxy HTTP processor");
         Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         this.proxyHttpProcessor = proxyHttpProcessor;
@@ -111,6 +125,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         this.authenticator = new AuthenticationHandler();
         this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(schemePortResolver);
         this.routeDirector = BasicRouteDirector.INSTANCE;
+        this.alpnProvider = alpnProvider;
     }
 
     static class State {
@@ -275,7 +290,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} create tunnel", exchangeId);
                 }
-                createTunnel(state, proxy, target, scope, new AsyncExecCallback() {
+                createTunnel(state, proxy, target, route, scope, new AsyncExecCallback() {
 
                     @Override
                     public AsyncDataConsumer handleResponse(final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
@@ -380,6 +395,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             final State state,
             final HttpHost proxy,
             final HttpHost nextHop,
+            final HttpRoute route,
             final AsyncExecChain.Scope scope,
             final AsyncExecCallback asyncExecCallback) {
 
@@ -426,6 +442,13 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                 final HttpRequest connect = new BasicHttpRequest(Method.CONNECT, nextHop, nextHop.toHostString());
                 connect.setVersion(HttpVersion.HTTP_1_1);
 
+                // --- RFC 7639: inject ALPN header (if provided) ----------------
+                if (alpnProvider != null) {
+                    final List<String> alpn = alpnProvider.getAlpnForTunnel(nextHop, route);
+                    if (alpn != null && !alpn.isEmpty()) {
+                        connect.setHeader(AlpnHeaderSupport.formatValue(alpn));
+                    }
+                }
                 proxyHttpProcessor.process(connect, null, clientContext);
                 authenticator.addAuthResponse(proxy, ChallengeType.PROXY, connect, proxyAuthExchange, clientContext);
 
