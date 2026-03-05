@@ -28,7 +28,9 @@
 package org.apache.hc.client5.testing.sync;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.config.ConnectionConfig;
@@ -39,8 +41,9 @@ import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.LeaseRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.classic.RandomHandler;
-import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
-import org.apache.hc.client5.testing.extension.sync.TestClient;
+import org.apache.hc.client5.testing.extension.sync.TestServer;
+import org.apache.hc.client5.testing.extension.sync.TestServerBootstrap;
+import org.apache.hc.client5.testing.extension.sync.TestServerResources;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpConnection;
@@ -57,28 +60,48 @@ import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestConnControl;
 import org.apache.hc.core5.http.protocol.RequestContent;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Tests for {@code PoolingHttpClientConnectionManager} that do require a server
  * to communicate with.
  */
-class TestConnectionManagement extends AbstractIntegrationTestBase {
+class TestConnectionManagement {
 
-    public TestConnectionManagement() {
-        super(URIScheme.HTTP, ClientProtocolLevel.STANDARD);
+    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
+
+    @RegisterExtension
+    private final TestServerResources testResources;
+
+    PoolingHttpClientConnectionManager connManager;
+    ConnectionEndpoint.RequestExecutor exec;
+
+    TestConnectionManagement() {
+        this.testResources = new TestServerResources(URIScheme.HTTP, TIMEOUT);
     }
 
-    ConnectionEndpoint.RequestExecutor exec;
+    public void configureServer(final Consumer<TestServerBootstrap> serverCustomizer) {
+        testResources.configureServer(serverCustomizer);
+    }
+
+    public HttpHost startServer() throws Exception {
+        final TestServer server = testResources.server();
+        final InetSocketAddress inetSocketAddress = server.start();
+        return new HttpHost(testResources.scheme().id, "localhost", inetSocketAddress.getPort());
+    }
 
     @BeforeEach
     void setup() {
+        connManager = new PoolingHttpClientConnectionManager();
         exec = new ConnectionEndpoint.RequestExecutor() {
 
             final HttpRequestExecutor requestExecutor = new HttpRequestExecutor();
@@ -97,6 +120,13 @@ class TestConnectionManagement extends AbstractIntegrationTestBase {
         };
     }
 
+    @AfterEach
+    void cleanup() {
+        if (connManager != null) {
+            connManager.close(CloseMode.IMMEDIATE);
+        }
+    }
+
     /**
      * Tests releasing and re-using a connection after a response is read.
      */
@@ -106,8 +136,6 @@ class TestConnectionManagement extends AbstractIntegrationTestBase {
                 .register("/random/*", new RandomHandler()));
         final HttpHost target = startServer();
 
-        final TestClient client = client();
-        final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
         connManager.setMaxTotal(1);
 
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -171,8 +199,6 @@ class TestConnectionManagement extends AbstractIntegrationTestBase {
                 .register("/random/*", new RandomHandler()));
         final HttpHost target = startServer();
 
-        final TestClient client = client();
-        final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
         connManager.setMaxTotal(1);
 
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -239,8 +265,6 @@ class TestConnectionManagement extends AbstractIntegrationTestBase {
     @Test
     void testCloseExpiredIdleConnections() throws Exception {
         final HttpHost target = startServer();
-        final TestClient client = client();
-        final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
         connManager.setMaxTotal(1);
 
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -281,18 +305,13 @@ class TestConnectionManagement extends AbstractIntegrationTestBase {
         configureServer(bootstrap -> bootstrap
                 .register("/random/*", new RandomHandler()));
         final HttpHost target = startServer();
-
-        configureClient(builder -> builder
-                .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+        connManager = PoolingHttpClientConnectionManagerBuilder.create()
                         .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
                         .setConnPoolPolicy(PoolReusePolicy.LIFO)
                         .setDefaultConnectionConfig(ConnectionConfig.custom()
                                 .setTimeToLive(TimeValue.ofMilliseconds(100))
                                 .build())
-                        .build()));
-        final TestClient client = client();
-
-        final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
+                        .build();
         connManager.setMaxTotal(1);
 
         final HttpRoute route = new HttpRoute(target, null, false);
@@ -336,8 +355,6 @@ class TestConnectionManagement extends AbstractIntegrationTestBase {
 
         final Timeout connectionSocketTimeout = Timeout.ofMinutes(5);
 
-        final TestClient client = client();
-        final PoolingHttpClientConnectionManager connManager = client.getConnectionManager();
         connManager.setMaxTotal(1);
         connManager.setDefaultConnectionConfig(ConnectionConfig.custom()
                 .setSocketTimeout(connectionSocketTimeout)
