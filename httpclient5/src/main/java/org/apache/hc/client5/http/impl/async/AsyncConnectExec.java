@@ -250,6 +250,16 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                     public void completed(final AsyncExecRuntime execRuntime) {
                         final HttpHost proxy = route.getProxyHost();
                         tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
+                        if (route.isTunnelled() && execRuntime instanceof InternalH2AsyncExecRuntime) {
+                            if (route.getHopCount() > 2) {
+                                asyncExecCallback.failed(new HttpException("Proxy chains are not supported"));
+                                return;
+                            }
+                            tracker.tunnelTarget(false);
+                            if (route.isLayered()) {
+                                tracker.layerProtocol(route.isSecure());
+                            }
+                        }
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("{} connected to proxy", exchangeId);
                         }
