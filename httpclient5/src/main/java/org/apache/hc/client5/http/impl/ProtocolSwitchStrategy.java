@@ -66,6 +66,10 @@ public final class ProtocolSwitchStrategy {
     }
 
     public ProtocolVersion switchProtocol(final HttpMessage response) throws ProtocolException {
+        if (!containsConnectionUpgrade(response)) {
+            throw new ProtocolException("Invalid protocol switch response: missing Connection: Upgrade");
+        }
+
         final AtomicReference<ProtocolVersion> tlsUpgrade = new AtomicReference<>();
 
         parseHeaders(response, HttpHeaders.UPGRADE, (buffer, cursor) -> {
@@ -85,6 +89,49 @@ public final class ProtocolSwitchStrategy {
         } else {
             throw new ProtocolException("Invalid protocol switch response: no TLS version found");
         }
+    }
+
+    private boolean containsConnectionUpgrade(final HttpMessage message) throws ProtocolException {
+        final Iterator<Header> it = message.headerIterator(HttpHeaders.CONNECTION);
+        while (it.hasNext()) {
+            final Header header = it.next();
+            if (header instanceof FormattedHeader) {
+                final CharArrayBuffer buf = ((FormattedHeader) header).getBuffer();
+                final ParserCursor cursor = new ParserCursor(0, buf.length());
+                cursor.updatePos(((FormattedHeader) header).getValuePos());
+                if (containsUpgradeToken(buf, cursor)) {
+                    return true;
+                }
+            } else {
+                final String value = header.getValue();
+                if (value == null) {
+                    continue;
+                }
+                final ParserCursor cursor = new ParserCursor(0, value.length());
+                if (containsUpgradeToken(value, cursor)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean containsUpgradeToken(final CharSequence buffer, final ParserCursor cursor) throws ProtocolException {
+        while (!cursor.atEnd()) {
+            TOKENIZER.skipWhiteSpace(buffer, cursor);
+            final String token = TOKENIZER.parseToken(buffer, cursor, UPGRADE_TOKEN_DELIMITER);
+            if (token.equalsIgnoreCase("upgrade")) {
+                return true;
+            }
+            TOKENIZER.skipWhiteSpace(buffer, cursor);
+            if (!cursor.atEnd()) {
+                final char ch = buffer.charAt(cursor.getPos());
+                if (ch == ',') {
+                    cursor.updatePos(cursor.getPos() + 1);
+                }
+            }
+        }
+        return false;
     }
 
     private ProtocolVersion parseProtocolVersion(final CharSequence buffer, final ParserCursor cursor) throws ProtocolException {
