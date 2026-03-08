@@ -84,6 +84,7 @@ import org.apache.hc.core5.pool.RouteSegmentedConnPool;
 import org.apache.hc.core5.pool.StrictConnPool;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Deadline;
+import org.apache.hc.core5.util.DeadlineTimeoutException;
 import org.apache.hc.core5.util.Identifiable;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
@@ -388,6 +389,12 @@ public class PoolingHttpClientConnectionManager
                     final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry;
                     try {
                         poolEntry = leaseFuture.get(timeout.getDuration(), timeout.getTimeUnit());
+                    } catch (final ExecutionException ex) {
+                        leaseFuture.cancel(true);
+                        if (ex.getCause() instanceof DeadlineTimeoutException) {
+                            throw (DeadlineTimeoutException) ex.getCause();
+                        }
+                        throw ex;
                     } catch (final TimeoutException ex) {
                         leaseFuture.cancel(true);
                         throw ex;

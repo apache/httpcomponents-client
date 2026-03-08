@@ -95,6 +95,7 @@ import org.apache.hc.core5.reactor.ProtocolIOSession;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Deadline;
+import org.apache.hc.core5.util.DeadlineTimeoutException;
 import org.apache.hc.core5.util.Identifiable;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
@@ -401,7 +402,18 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             @Override
             public AsyncConnectionEndpoint get(
                     final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-                return resultFuture.get(timeout, unit);
+                try {
+                    return resultFuture.get(timeout, unit);
+                } catch (final ExecutionException ex) {
+                    leaseFuture.cancel(true);
+                    if (ex.getCause() instanceof DeadlineTimeoutException) {
+                        throw (DeadlineTimeoutException) ex.getCause();
+                    }
+                    throw ex;
+                } catch (final TimeoutException ex) {
+                    leaseFuture.cancel(true);
+                    throw ex;
+                }
             }
 
             @Override
