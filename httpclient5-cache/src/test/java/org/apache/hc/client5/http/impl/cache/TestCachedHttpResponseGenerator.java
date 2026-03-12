@@ -56,6 +56,8 @@ class TestCachedHttpResponseGenerator {
         entry = HttpTestUtils.makeCacheEntry();
         request = HttpTestUtils.makeDefaultRequest();
         mockValidityPolicy = mock(CacheValidityPolicy.class);
+        when(mockValidityPolicy.getCurrentAge(isA(HttpCacheEntry.class), isA(Instant.class)))
+                .thenReturn(TimeValue.ofSeconds(0L));
         impl = new CachedHttpResponseGenerator(mockValidityPolicy);
     }
 
@@ -93,15 +95,17 @@ class TestCachedHttpResponseGenerator {
     }
 
     @Test
-    void testAgeHeaderIsNotPopulatedIfCurrentAgeOfCacheEntryIsZero() throws Exception {
+    void testAgeHeaderIsPopulatedIfCurrentAgeOfCacheEntryIsZero() throws Exception {
         currentAge(TimeValue.ofSeconds(0L));
 
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
         verify(mockValidityPolicy).getCurrentAge(same(entry), isA(Instant.class));
 
+        // A cache MUST generate an Age header field
         final Header ageHdr = response.getFirstHeader("Age");
-        Assertions.assertNull(ageHdr);
+        Assertions.assertNotNull(ageHdr);
+        Assertions.assertEquals(0L, Long.parseLong(ageHdr.getValue()));
     }
 
     @Test

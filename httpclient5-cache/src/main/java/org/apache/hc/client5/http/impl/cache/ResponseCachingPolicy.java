@@ -131,13 +131,18 @@ class ResponseCachingPolicy {
             }
         }
 
-        if (cacheControl.isMustUnderstand() && !understoodStatusCode(code)) {
-            // must-understand cache directive overrides no-store
-            LOG.debug("Response contains a status code that the cache does not understand, so it's not cacheable");
-            return false;
-        }
-
-        if (isExplicitlyNonCacheable(cacheControl)) {
+        if (cacheControl.isMustUnderstand()) {
+            if (!understoodStatusCode(code)) {
+                // must-understand: cache does not understand the status code, do not store
+                LOG.debug("Response contains a status code that the cache does not understand, so it's not cacheable");
+                return false;
+            }
+            // Status code is in a recognized range; treat no-store as overridden.
+            if (sharedCache && cacheControl.isCachePrivate()) {
+                LOG.debug("Response is private and cannot be cached by a shared cache");
+                return false;
+            }
+        } else if (isExplicitlyNonCacheable(cacheControl)) {
             LOG.debug("Response is explicitly non-cacheable per cache control directive");
             return false;
         }
@@ -185,12 +190,19 @@ class ResponseCachingPolicy {
         return isExplicitlyCacheable(cacheControl, response) || isHeuristicallyCacheable(cacheControl, code, responseDate, responseExpires);
     }
 
+    // Heuristically cacheable status codes
     private static boolean isKnownCacheableStatusCode(final int status) {
         return status == HttpStatus.SC_OK ||
                 status == HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION ||
+                status == HttpStatus.SC_NO_CONTENT ||
                 status == HttpStatus.SC_MULTIPLE_CHOICES ||
                 status == HttpStatus.SC_MOVED_PERMANENTLY ||
-                status == HttpStatus.SC_GONE;
+                status == 308 /* Permanent Redirect */ ||
+                status == HttpStatus.SC_NOT_FOUND ||
+                status == HttpStatus.SC_METHOD_NOT_ALLOWED ||
+                status == HttpStatus.SC_GONE ||
+                status == HttpStatus.SC_REQUEST_URI_TOO_LONG ||
+                status == HttpStatus.SC_NOT_IMPLEMENTED;
     }
 
     private static boolean isKnownNonCacheableStatusCode(final int status) {
@@ -345,8 +357,8 @@ class ResponseCachingPolicy {
             return DEFAULT_FRESHNESS_DURATION; // 5 minutes
         }
 
-        // Check if s-maxage is present and use its value if it is
-        if (cacheControl.getSharedMaxAge() != -1) {
+        // s-maxage applies only to shared caches
+        if (sharedCache && cacheControl.getSharedMaxAge() != -1) {
             return Duration.ofSeconds(cacheControl.getSharedMaxAge());
         } else if (cacheControl.getMaxAge() != -1) {
             return Duration.ofSeconds(cacheControl.getMaxAge());
