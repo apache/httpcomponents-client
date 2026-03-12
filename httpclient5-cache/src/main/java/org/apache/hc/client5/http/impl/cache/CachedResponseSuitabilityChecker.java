@@ -102,11 +102,6 @@ class CachedResponseSuitabilityChecker {
             return CacheSuitability.MISMATCH;
         }
 
-        if (!requestHeadersMatch(request, entry)) {
-            LOG.debug("Request headers nominated by the cached response do not match those of the request associated with the cache entry");
-            return CacheSuitability.MISMATCH;
-        }
-
         if (requestCacheControl.isNoCache()) {
             LOG.debug("Request contained no-cache directive; the cache entry must be re-validated");
             return CacheSuitability.REVALIDATION_REQUIRED;
@@ -148,7 +143,8 @@ class CachedResponseSuitabilityChecker {
             return CacheSuitability.REVALIDATION_REQUIRED;
         }
 
-        if (!fresh && sharedCache && responseCacheControl.isProxyRevalidate()) {
+        if (!fresh && sharedCache
+                && (responseCacheControl.isProxyRevalidate() || responseCacheControl.getSharedMaxAge() > -1)) {
             LOG.debug("Response from cache is not suitable due to the response proxy-revalidate requirement");
             return CacheSuitability.REVALIDATION_REQUIRED;
         }
