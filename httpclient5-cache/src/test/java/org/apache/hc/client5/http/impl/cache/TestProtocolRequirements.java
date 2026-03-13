@@ -1638,7 +1638,7 @@ class TestProtocolRequirements {
     }
 
     @Test
-    void testTransmitsAgeHeaderIfIncomingAgeHeaderTooBig() throws Exception {
+    void testReplacesAgeHeaderIfIncomingAgeHeaderTooBig() throws Exception {
         final String reallyOldAge = "1" + Long.MAX_VALUE;
         originResponse.setHeader("Age",reallyOldAge);
 
@@ -1646,8 +1646,12 @@ class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assertions.assertEquals(reallyOldAge,
-                            result.getFirstHeader("Age").getValue());
+        // A cache MUST generate an Age header field, replacing any present in the response
+        // with a value equal to the stored response's current_age
+        final Header ageHdr = result.getFirstHeader("Age");
+        Assertions.assertNotNull(ageHdr);
+        final long ageValue = Long.parseLong(ageHdr.getValue());
+        Assertions.assertTrue(ageValue >= 0);
     }
 
     @Test

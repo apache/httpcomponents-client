@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cache;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Random;
@@ -370,14 +369,15 @@ class TestResponseCachingPolicy {
     }
 
     @Test
-    void testControlWithout200Cacheable() {
-        HttpResponse response404 = new BasicHttpResponse(HttpStatus.SC_NOT_FOUND, "");
+    void testControlWithNonCacheableStatusCode() {
+        // 402 Payment Required is not a heuristically cacheable status code
+        HttpResponse response402 = new BasicHttpResponse(HttpStatus.SC_PAYMENT_REQUIRED, "");
 
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response404));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response402));
 
-        response404 = new BasicHttpResponse(HttpStatus.SC_GATEWAY_TIMEOUT, "");
+        response402 = new BasicHttpResponse(HttpStatus.SC_GATEWAY_TIMEOUT, "");
 
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response404));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response402));
     }
 
     @Test
@@ -814,77 +814,21 @@ class TestResponseCachingPolicy {
     }
 
     @Test
-    void testIsResponseCacheableNullCacheControl() {
-
-        // Set up test data
-        final Duration tenSecondsFromNow = Duration.ofSeconds(10);
-
+    void testCacheableWithExpiresAndMaxAge() {
         response = new BasicHttpResponse(HttpStatus.SC_OK, "");
         response.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
-        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatStandardDate(Instant.now().plus(tenSecondsFromNow)));
+        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatStandardDate(Instant.now().plusSeconds(10)));
 
-
-        // Create ResponseCachingPolicy instance and test the method
         policy = new ResponseCachingPolicy(true, false, false);
         request = new BasicHttpRequest("GET", "/foo");
+
+        // Cacheable with Expires header alone
         assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
-    }
 
-
-    @Test
-    void testIsResponseCacheableNotNullCacheControlSmaxAge60() {
-
-        // Set up test data
-        final Duration tenSecondsFromNow = Duration.ofSeconds(10);
-
-        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
-        response.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
-        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatStandardDate(Instant.now().plus(tenSecondsFromNow)));
-
-
-        // Create ResponseCachingPolicy instance and test the method
-        policy = new ResponseCachingPolicy(true, false, false);
-        request = new BasicHttpRequest("GET", "/foo");
+        // Cacheable with explicit max-age
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(60)
                 .build();
-        assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
-    }
-
-    @Test
-    void testIsResponseCacheableNotNullCacheControlMaxAge60() {
-
-        // Set up test data
-        final Duration tenSecondsFromNow = Duration.ofSeconds(10);
-
-        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
-        response.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
-        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatStandardDate(Instant.now().plus(tenSecondsFromNow)));
-
-
-        // Create ResponseCachingPolicy instance and test the method
-        policy = new ResponseCachingPolicy(true, false, false);
-        request = new BasicHttpRequest("GET", "/foo");
-        responseCacheControl = ResponseCacheControl.builder()
-                .setMaxAge(60)
-                .build();
-        assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
-    }
-
-    @Test
-    void testIsResponseCacheableNotExsiresAndDate() {
-
-        // Set up test data
-        final Duration tenSecondsFromNow = Duration.ofSeconds(10);
-
-        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
-        response.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
-        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatStandardDate(Instant.now().plus(tenSecondsFromNow)));
-
-
-        // Create ResponseCachingPolicy instance and test the method
-        policy = new ResponseCachingPolicy(true, false, false);
-        request = new BasicHttpRequest("GET", "/foo");
         assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
@@ -998,6 +942,119 @@ class TestResponseCachingPolicy {
         final boolean isCacheable = policy.isResponseCacheable(responseCacheControl, request, response);
         Assertions.assertTrue(isCacheable,
                 "Response with must-revalidate and Authorization header should be cacheable in shared cache.");
+    }
+
+    @Test
+    void testMustUnderstandWithNoStoreAndUnderstoodStatusIsCacheable() {
+        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Length", "0");
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMustUnderstand(true)
+                .setNoStore(true)
+                .setCachePublic(true)
+                .build();
+        assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
+    }
+
+    @Test
+    void testMustUnderstandWithNoStoreAndUnknownStatusIsNotCacheable() {
+        response = new BasicHttpResponse(600, "");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Length", "0");
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMustUnderstand(true)
+                .setNoStore(true)
+                .setCachePublic(true)
+                .build();
+        assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
+    }
+
+    @Test
+    void testNoStoreWithoutMustUnderstandIsNotCacheable() {
+        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Length", "0");
+        responseCacheControl = ResponseCacheControl.builder()
+                .setNoStore(true)
+                .build();
+        assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
+    }
+
+    @Test
+    void testMustUnderstandWithNoStoreAndPrivateNotCacheableBySharedCache() {
+        // must-understand overrides no-store but private must still be enforced
+        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Length", "0");
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMustUnderstand(true)
+                .setNoStore(true)
+                .setCachePrivate(true)
+                .build();
+        assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
+    }
+
+    @Test
+    void testMustUnderstandWithNoStoreAndPrivateCacheableByNonSharedCache() {
+        policy = new ResponseCachingPolicy(false, false, false);
+        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Length", "0");
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMustUnderstand(true)
+                .setNoStore(true)
+                .setCachePrivate(true)
+                .build();
+        assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
+    }
+
+    @Test
+    void testPrivateCacheIgnoresSharedMaxAgeForFreshness() {
+        policy = new ResponseCachingPolicy(false, false, false);
+        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Length", "0");
+        responseCacheControl = ResponseCacheControl.builder()
+                .setSharedMaxAge(0)
+                .setMaxAge(3600)
+                .build();
+        assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
+    }
+
+    @Test
+    void testHeuristicallyCacheable204() {
+        response = new BasicHttpResponse(HttpStatus.SC_NO_CONTENT, "");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Last-Modified", DateUtils.formatStandardDate(sixSecondsAgo));
+        assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
+    }
+
+    @Test
+    void testHeuristicallyCacheable404() {
+        response = new BasicHttpResponse(HttpStatus.SC_NOT_FOUND, "");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Length", "0");
+        response.setHeader("Last-Modified", DateUtils.formatStandardDate(sixSecondsAgo));
+        assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
+    }
+
+    @Test
+    void testHeuristicallyCacheable405() {
+        response = new BasicHttpResponse(HttpStatus.SC_METHOD_NOT_ALLOWED, "");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Length", "0");
+        response.setHeader("Last-Modified", DateUtils.formatStandardDate(sixSecondsAgo));
+        assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
+    }
+
+    @Test
+    void testHeuristicallyCacheable501() {
+        response = new BasicHttpResponse(HttpStatus.SC_NOT_IMPLEMENTED, "");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Length", "0");
+        response.setHeader("Last-Modified", DateUtils.formatStandardDate(sixSecondsAgo));
+        assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
 }

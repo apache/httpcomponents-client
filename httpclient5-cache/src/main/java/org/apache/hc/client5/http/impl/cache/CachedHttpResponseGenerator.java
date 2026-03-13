@@ -79,12 +79,10 @@ class CachedHttpResponseGenerator {
         }
 
         final TimeValue age = this.validityStrategy.getCurrentAge(entry, now);
-        if (TimeValue.isPositive(age)) {
-            if (age.compareTo(CacheSupport.MAX_AGE) >= 0) {
-                response.setHeader(HttpHeaders.AGE, Long.toString(CacheSupport.MAX_AGE.toSeconds()));
-            } else {
-                response.setHeader(HttpHeaders.AGE, Long.toString(age.toSeconds()));
-            }
+        if (age.compareTo(CacheSupport.MAX_AGE) >= 0) {
+            response.setHeader(HttpHeaders.AGE, Long.toString(CacheSupport.MAX_AGE.toSeconds()));
+        } else {
+            response.setHeader(HttpHeaders.AGE, Long.toString(age.toSeconds()));
         }
 
         return response;

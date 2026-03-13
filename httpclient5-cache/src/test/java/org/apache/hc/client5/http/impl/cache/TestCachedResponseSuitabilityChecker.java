@@ -458,6 +458,36 @@ class TestCachedResponseSuitabilityChecker {
     }
 
     @Test
+    void testNotSuitableIfStaleWithSharedMaxAgeInSharedCache() {
+        final CacheConfig sharedConfig = CacheConfig.custom()
+                .setSharedCache(true)
+                .build();
+        impl = new CachedResponseSuitabilityChecker(sharedConfig);
+        entry = makeEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setSharedMaxAge(5)
+                .build();
+        Assertions.assertEquals(CacheSuitability.REVALIDATION_REQUIRED,
+                impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
+    }
+
+    @Test
+    void testSuitableIfFreshWithSharedMaxAgeInSharedCache() {
+        final CacheConfig sharedConfig = CacheConfig.custom()
+                .setSharedCache(true)
+                .build();
+        impl = new CachedResponseSuitabilityChecker(sharedConfig);
+        entry = makeEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setSharedMaxAge(3600)
+                .build();
+        Assertions.assertEquals(CacheSuitability.FRESH,
+                impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
+    }
+
+    @Test
     void testSuitableIfErrorRequestCacheControl() {
         // Prepare a cache entry with HEAD method
         entry = makeEntry(Method.GET, "/foo",
