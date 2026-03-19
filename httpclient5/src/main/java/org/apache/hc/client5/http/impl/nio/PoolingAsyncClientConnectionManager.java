@@ -502,6 +502,15 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} connecting endpoint to {} ({})", ConnPoolSupport.getId(endpoint), firstHop, connectTimeout);
         }
+        final Object connectAttachment;
+        if (route.isTunnelled()) {
+            connectAttachment = null;
+        } else if (attachment instanceof TlsConfig) {
+            connectAttachment = attachment;
+        } else {
+            connectAttachment = resolveTlsConfig(route.getTargetHost());
+        }
+
         final Future<ManagedAsyncClientConnection> connectFuture = connectionOperator.connect(
                 connectionInitiator,
                 firstHop,
@@ -509,7 +518,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 route.getTargetName(),
                 route.getLocalSocketAddress(),
                 connectTimeout,
-                route.isTunnelled() ? null : resolveTlsConfig(route.getTargetHost()),
+                connectAttachment,
                 context,
                 new FutureCallback<ManagedAsyncClientConnection>() {
 
