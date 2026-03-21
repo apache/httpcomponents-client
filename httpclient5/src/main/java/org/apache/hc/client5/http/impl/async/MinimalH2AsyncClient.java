@@ -142,6 +142,7 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                 }
                 @SuppressWarnings("deprecation")
                 final Timeout connectTimeout = requestConfig.getConnectTimeout();
+                final Timeout responseTimeout = requestConfig.getResponseTimeout();
                 final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
 
                 final Future<IOSession> sessionFuture = connPool.getSession(new HttpRoute(target), connectTimeout,
@@ -224,16 +225,22 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                                     new RequestExecutionCommand(
                                             new LoggingAsyncClientExchangeHandler(LOG, exchangeId, internalExchangeHandler),
                                             pushHandlerFactory,
-                                            cancellable,
-                                            clientContext),
+                                            clientContext,
+                                            streamControl -> {
+                                                streamControl.setTimeout(responseTimeout);
+                                                cancellable.setDependency(streamControl);
+                                            }),
                                     Command.Priority.NORMAL);
                         } else {
                             session.enqueue(
                                     new RequestExecutionCommand(
                                             internalExchangeHandler,
                                             pushHandlerFactory,
-                                            cancellable,
-                                            clientContext),
+                                            clientContext,
+                                            streamControl -> {
+                                                streamControl.setTimeout(responseTimeout);
+                                                cancellable.setDependency(streamControl);
+                                            }),
                                     Command.Priority.NORMAL);
                         }
                     }

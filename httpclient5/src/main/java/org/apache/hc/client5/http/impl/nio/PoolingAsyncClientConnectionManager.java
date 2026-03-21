@@ -50,6 +50,7 @@ import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -819,7 +820,15 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             }
             context.setProtocolVersion(connection.getProtocolVersion());
             connection.submitCommand(
-                    new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, context),
+                    new RequestExecutionCommand(
+                            exchangeHandler,
+                            pushHandlerFactory,
+                            context,
+                            streamControl -> {
+                                final HttpClientContext clientContext = HttpClientContext.cast(context);
+                                final Timeout responseTimeout = clientContext.getRequestConfigOrDefault().getResponseTimeout();
+                                streamControl.setTimeout(responseTimeout);
+                            }),
                     Command.Priority.NORMAL);
         }
 

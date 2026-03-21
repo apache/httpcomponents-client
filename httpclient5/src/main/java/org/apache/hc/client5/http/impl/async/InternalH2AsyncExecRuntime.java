@@ -297,17 +297,25 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
                 : exchangeHandler;
         final ComplexCancellable complexCancellable = new ComplexCancellable();
         final IOSession session = endpoint.session;
+        final RequestConfig requestConfig = context.getRequestConfigOrDefault();
+        final Timeout responseTimeout = requestConfig.getResponseTimeout();
         if (session.isOpen()) {
             if (log.isDebugEnabled()) {
                 log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
             }
             context.setProtocolVersion(HttpVersion.HTTP_2);
             session.enqueue(
-                    new RequestExecutionCommand(actual, pushHandlerFactory, complexCancellable, context),
+                    new RequestExecutionCommand(
+                            actual,
+                            pushHandlerFactory,
+                            context,
+                            streamControl -> {
+                                streamControl.setTimeout(responseTimeout);
+                                complexCancellable.setDependency(streamControl);
+                            }),
                     Command.Priority.NORMAL);
         } else {
             final HttpRoute route = endpoint.route;
-            final RequestConfig requestConfig = context.getRequestConfigOrDefault();
             @SuppressWarnings("deprecation")
             final Timeout connectTimeout = requestConfig.getConnectTimeout();
             connPool.getSession(route, connectTimeout, new FutureCallback<IOSession>() {
@@ -321,7 +329,14 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
                     }
                     context.setProtocolVersion(HttpVersion.HTTP_2);
                     ioSession.enqueue(
-                            new RequestExecutionCommand(actual, pushHandlerFactory, complexCancellable, context),
+                            new RequestExecutionCommand(
+                                    actual,
+                                    pushHandlerFactory,
+                                    context,
+                                    streamControl -> {
+                                        streamControl.setTimeout(responseTimeout);
+                                        complexCancellable.setDependency(streamControl);
+                                    }),
                             Command.Priority.NORMAL);
                 }
 
