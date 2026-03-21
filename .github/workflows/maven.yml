@@ -22,7 +22,6 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -43,10 +42,45 @@ jobs:
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           ${{ runner.os }}-maven-
-    - name: Set up JDK ${{ matrix.java }}
+    - name: Select JDK toolchain version
+      run: |
+        case '${{ matrix.java }}' in
+          8)
+            echo 'HC_BUILD_TOOLCHAIN_VERSION=1.8' >> "$GITHUB_ENV"
+            ;;
+          *)
+            echo 'HC_BUILD_TOOLCHAIN_VERSION=${{ matrix.java }}' >> "$GITHUB_ENV"
+            ;;
+        esac
+    - name: Set up toolchain JDK ${{ matrix.java }}
+      id: setup-java-toolchain
       uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: ${{ matrix.java }}
+    - name: Set up JDK 17 for Maven
+      uses: actions/setup-java@v5
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+    - name: Configure Maven toolchains
+      env:
+        TOOLCHAIN_JAVA_HOME: ${{ steps.setup-java-toolchain.outputs.path }}
+      run: |
+        mkdir -p "${HOME}/.m2"
+        cat > "${HOME}/.m2/toolchains.xml" <<EOF
+        <?xml version="1.0" encoding="UTF-8"?>
+        <toolchains>
+          <toolchain>
+            <type>jdk</type>
+            <provides>
+              <version>${HC_BUILD_TOOLCHAIN_VERSION}</version>
+            </provides>
+            <configuration>
+              <jdkHome>${TOOLCHAIN_JAVA_HOME}</jdkHome>
+            </configuration>
+          </toolchain>
+        </toolchains>
+        EOF
     - name: Build with Maven
-      run: ./mvnw -V --file pom.xml --no-transfer-progress -DtrimStackTrace=false -Djunit.jupiter.execution.parallel.enabled=false -P-use-toolchains,docker
+      run: ./mvnw -V --file pom.xml --no-transfer-progress -DtrimStackTrace=false -Djunit.jupiter.execution.parallel.enabled=false -Dhc.build.toolchain.version="${HC_BUILD_TOOLCHAIN_VERSION}" -Pdocker
