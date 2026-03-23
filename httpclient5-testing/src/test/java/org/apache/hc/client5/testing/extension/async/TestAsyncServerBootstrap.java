@@ -66,7 +66,7 @@ public class TestAsyncServerBootstrap {
     }
 
     private final URIScheme scheme;
-    private final ServerProtocolLevel serverProtocolLevel;
+    private ServerProtocolLevel serverProtocolLevel;
 
     private final List<HandlerEntry<Supplier<AsyncServerExchangeHandler>>> handlerList;
     private Timeout timeout;
@@ -77,6 +77,10 @@ public class TestAsyncServerBootstrap {
         this.scheme = scheme != null ? scheme : URIScheme.HTTP;
         this.serverProtocolLevel = serverProtocolLevel != null ? serverProtocolLevel : ServerProtocolLevel.STANDARD;
         this.handlerList = new ArrayList<>();
+    }
+
+    public void setServerProtocolLevel(final ServerProtocolLevel serverProtocolLevel) {
+        this.serverProtocolLevel = serverProtocolLevel;
     }
 
     public ServerProtocolLevel getProtocolLevel() {
