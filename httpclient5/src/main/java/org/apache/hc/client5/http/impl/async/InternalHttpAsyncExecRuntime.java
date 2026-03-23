@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.async;
 
 import java.io.InterruptedIOException;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -44,7 +45,10 @@ import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
@@ -327,6 +331,43 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         return new ReleasingAsyncClientExchangeHandler(handler, this::releaseSlot);
     }
 
+    private Cancellable doExecute(
+            final String id,
+            final AsyncConnectionEndpoint endpoint,
+            final AsyncClientExchangeHandler exchangeHandler,
+            final HttpClientContext context) {
+        if (log.isDebugEnabled()) {
+            log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
+        }
+        final RequestConfig requestConfig = context.getRequestConfigOrDefault();
+        final Timeout responseTimeout = requestConfig.getResponseTimeout();
+        final EndpointInfo endpointInfo = endpoint.getInfo();
+        final ProtocolVersion version = endpointInfo != null ? endpointInfo.getProtocol() : null;
+        final boolean isH2 = version != null && version.greaterEquals(HttpVersion.HTTP_2);
+        if (!isH2 && responseTimeout != null) {
+            endpoint.setSocketTimeout(responseTimeout);
+        }
+        endpoint.execute(id, exchangeHandler, pushHandlerFactory, context);
+        if (isH2 || requestConfig.isHardCancellationEnabled()) {
+            return new Cancellable() {
+
+                private final AtomicBoolean cancelled = new AtomicBoolean();
+
+                @Override
+                public boolean cancel() {
+                    if (cancelled.compareAndSet(false, true)) {
+                        exchangeHandler.cancel();
+                        return true;
+                    }
+                    return false;
+                }
+
+            };
+        } else {
+            return Operations.nonCancellable();
+        }
+    }
+
     @Override
     public Cancellable execute(
             final String id, final AsyncClientExchangeHandler exchangeHandler, final HttpClientContext context) {
@@ -336,33 +377,18 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                     "Execution pipeline queue limit reached (max=" + maxQueued + ")"));
             return Operations.nonCancellable();
         }
-        final AsyncClientExchangeHandler actual = guard(exchangeHandler);
+        final AsyncClientExchangeHandler handler = guard(exchangeHandler);
         if (endpoint.isConnected()) {
-            if (log.isDebugEnabled()) {
-                log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
-            }
-            final RequestConfig requestConfig = context.getRequestConfigOrDefault();
-            final Timeout responseTimeout = requestConfig.getResponseTimeout();
-            if (responseTimeout != null) {
-                endpoint.setSocketTimeout(responseTimeout);
-            }
-            endpoint.execute(id, actual, pushHandlerFactory, context);
-            if (context.getRequestConfigOrDefault().isHardCancellationEnabled()) {
-                return () -> {
-                    actual.cancel();
-                    return true;
-                };
-            }
+            return doExecute(id, endpoint, handler, context);
         } else {
-            connectEndpoint(context, new FutureCallback<AsyncExecRuntime>() {
+            final ComplexCancellable complexCancellable = new ComplexCancellable();
+            final Cancellable connectCancellable = connectEndpoint(context, new FutureCallback<AsyncExecRuntime>() {
 
                 @Override
                 public void completed(final AsyncExecRuntime runtime) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
-                    }
                     try {
-                        endpoint.execute(id, actual, pushHandlerFactory, context);
+                        final Cancellable executeCancellable = doExecute(id, endpoint, handler, context);
+                        complexCancellable.setDependency(executeCancellable);
                     } catch (final RuntimeException ex) {
                         failed(ex);
                     }
@@ -370,17 +396,18 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
                 @Override
                 public void failed(final Exception ex) {
-                    actual.failed(ex);
+                    handler.failed(ex);
                 }
 
                 @Override
                 public void cancelled() {
-                    actual.failed(new InterruptedIOException());
+                    handler.failed(new InterruptedIOException());
                 }
 
             });
+            complexCancellable.setDependency(connectCancellable);
+            return complexCancellable;
         }
-        return Operations.nonCancellable();
     }
 
     @Override
