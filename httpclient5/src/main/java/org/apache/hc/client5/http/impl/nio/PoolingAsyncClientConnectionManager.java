@@ -496,6 +496,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = internalEndpoint.getPoolEntry();
         final HttpRoute route = poolEntry.getRoute();
         final Path unixDomainSocket = route.getUnixDomainSocket();
+        final String namedPipe = route.getNamedPipe();
         final HttpHost firstHop = route.getProxyHost() != null ? route.getProxyHost() : route.getTargetHost();
         final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
         final Timeout connectTimeout = timeout != null ? timeout : connectionConfig.getConnectTimeout();
@@ -516,6 +517,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 connectionInitiator,
                 firstHop,
                 unixDomainSocket,
+                namedPipe,
                 route.getTargetName(),
                 route.getLocalSocketAddress(),
                 connectTimeout,

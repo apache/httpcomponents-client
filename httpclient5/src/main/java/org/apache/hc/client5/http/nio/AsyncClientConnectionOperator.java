@@ -134,6 +134,41 @@ public interface AsyncClientConnectionOperator {
     }
 
     /**
+     * Initiates operation to create a connection to the remote endpoint using
+     * the provided {@link ConnectionInitiator}, optionally via a Windows Named Pipe.
+     *
+     * @param connectionInitiator the connection initiator.
+     * @param endpointHost the address of the remote endpoint.
+     * @param unixDomainSocket the path to the UDS through which to connect, or {@code null}.
+     * @param namedPipe the Windows Named Pipe path, or {@code null}.
+     * @param endpointName the name of the remote endpoint, or {@code null}.
+     * @param localAddress the address of the local endpoint.
+     * @param connectTimeout the timeout of the connect operation.
+     * @param attachment the attachment.
+     * @param context the execution context.
+     * @param callback the future result callback.
+     * @since 5.7
+     */
+    default Future<ManagedAsyncClientConnection> connect(
+            ConnectionInitiator connectionInitiator,
+            HttpHost endpointHost,
+            Path unixDomainSocket,
+            String namedPipe,
+            NamedEndpoint endpointName,
+            SocketAddress localAddress,
+            Timeout connectTimeout,
+            Object attachment,
+            HttpContext context,
+            FutureCallback<ManagedAsyncClientConnection> callback) {
+        if (namedPipe != null) {
+            throw new UnsupportedOperationException(getClass().getName()
+                    + " does not support Windows Named Pipes in async mode");
+        }
+        return connect(connectionInitiator, endpointHost, unixDomainSocket, endpointName, localAddress,
+            connectTimeout, attachment, context, callback);
+    }
+
+    /**
      * Upgrades transport security of the given managed connection
      * by using the TLS security protocol.
      *
