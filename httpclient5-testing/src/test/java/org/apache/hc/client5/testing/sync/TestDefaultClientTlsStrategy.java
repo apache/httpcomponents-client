@@ -30,7 +30,6 @@ package org.apache.hc.client5.testing.sync;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Objects;
 
@@ -370,7 +369,7 @@ class TestDefaultClientTlsStrategy {
 
         final HttpHost target1 = new HttpHost("https", "localhost", server.getLocalPort());
 
-        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+        try (final Socket socket = new Socket("localhost", server.getLocalPort())) {
             final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.CLIENT,
@@ -388,7 +387,7 @@ class TestDefaultClientTlsStrategy {
 
         final HttpHost target2 = new HttpHost("https", "some-other-host", server.getLocalPort());
 
-        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+        try (final Socket socket = new Socket("localhost", server.getLocalPort())) {
             final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.CLIENT,
@@ -403,7 +402,7 @@ class TestDefaultClientTlsStrategy {
                             context));
         }
 
-        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+        try (final Socket socket = new Socket("localhost", server.getLocalPort())) {
             final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.CLIENT,
@@ -432,7 +431,7 @@ class TestDefaultClientTlsStrategy {
 
         final HttpHost target1 = new HttpHost("https", "localhost", server.getLocalPort());
 
-        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+        try (final Socket socket = new Socket("localhost", server.getLocalPort())) {
             final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.BUILTIN,
@@ -450,7 +449,7 @@ class TestDefaultClientTlsStrategy {
 
         final HttpHost target2 = new HttpHost("https", "some-other-host", server.getLocalPort());
 
-        try (final Socket socket = new Socket(InetAddress.getLocalHost(), server.getLocalPort())) {
+        try (final Socket socket = new Socket("localhost", server.getLocalPort())) {
             final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
                     SSLTestContexts.createClientSSLContext(),
                     HostnameVerificationPolicy.BUILTIN,
