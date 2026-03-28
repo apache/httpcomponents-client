@@ -86,6 +86,8 @@
     <otel.version>1.60.1</otel.version>     <!-- already used elsewhere -->
     <commons-compress.version>1.26.2</commons-compress.version>
     <caffeine.version>2.9.3</caffeine.version>  <!-- java 8. current version 3.2.3 -->
+    <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>
+    <jackson.version>2.21.1</jackson.version>
   </properties>
 
   <dependencyManagement>
@@ -114,6 +116,11 @@
       <dependency>
         <groupId>org.apache.httpcomponents.core5</groupId>
         <artifactId>httpcore5-reactive</artifactId>
+        <version>${httpcore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-jackson2</artifactId>
         <version>${httpcore.version}</version>
       </dependency>
       <dependency>
@@ -271,6 +278,16 @@
         <artifactId>caffeine</artifactId>
         <version>${caffeine.version}</version>
       </dependency>
+      <dependency>
+        <groupId>jakarta.ws.rs</groupId>
+        <artifactId>jakarta.ws.rs-api</artifactId>
+        <version>${jakarta.ws.rs.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -281,6 +298,7 @@
     <module>httpclient5-fluent</module>
     <module>httpclient5-websocket</module>
     <module>httpclient5-cache</module>
+    <module>httpclient5-jakarta-rest-client</module>
     <module>httpclient5-testing</module>
   </modules>
 
