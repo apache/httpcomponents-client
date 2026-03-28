@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.async;
 
 import java.io.InterruptedIOException;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -347,25 +346,23 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         if (!isH2 && responseTimeout != null) {
             endpoint.setSocketTimeout(responseTimeout);
         }
-        endpoint.execute(id, exchangeHandler, pushHandlerFactory, context);
-        if (isH2 || requestConfig.isHardCancellationEnabled()) {
-            return new Cancellable() {
-
-                private final AtomicBoolean cancelled = new AtomicBoolean();
-
-                @Override
-                public boolean cancel() {
-                    if (cancelled.compareAndSet(false, true)) {
-                        exchangeHandler.cancel();
-                        return true;
-                    }
-                    return false;
-                }
-
-            };
-        } else {
-            return Operations.nonCancellable();
+        final ComplexCancellable complexCancellable = new ComplexCancellable();
+        endpoint.execute(
+                id,
+                exchangeHandler,
+                pushHandlerFactory,
+                context,
+                isH2 ? streamControl -> {
+                    streamControl.setTimeout(responseTimeout);
+                    complexCancellable.setDependency(streamControl);
+                } : null);
+        if (!isH2 && requestConfig.isHardCancellationEnabled()) {
+            complexCancellable.setDependency(() -> {
+                exchangeHandler.cancel();
+                return true;
+            });
         }
+        return complexCancellable;
     }
 
     @Override

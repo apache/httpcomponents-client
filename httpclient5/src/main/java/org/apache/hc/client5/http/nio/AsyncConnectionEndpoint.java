@@ -35,6 +35,8 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.BasicFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.function.Callback;
+import org.apache.hc.core5.http.StreamControl;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
@@ -68,6 +70,28 @@ public abstract class AsyncConnectionEndpoint implements ModalCloseable {
             AsyncClientExchangeHandler exchangeHandler,
             HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             HttpContext context);
+
+    /**
+     * Initiates a message exchange using the given handler.
+     *
+     * @param id                 unique operation ID or {@code null}.
+     * @param exchangeHandler    the message exchange handler.
+     * @param pushHandlerFactory the push handler factory.
+     * @param context            the execution context.
+     * @param initiationCallback Optional callback for message exchanges
+     *                           executed over a separate stream. The callback
+     *                           provides a interface allowing to control
+     *                           the process of message exchange execution.
+     * @since 5.7
+     */
+    public void execute(
+            final String id,
+            final AsyncClientExchangeHandler exchangeHandler,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
+            final HttpContext context,
+            final Callback<StreamControl> initiationCallback) {
+        execute(id, exchangeHandler, pushHandlerFactory, context);
+    }
 
     /**
      * Determines if the connection to the remote endpoint is still open and valid.

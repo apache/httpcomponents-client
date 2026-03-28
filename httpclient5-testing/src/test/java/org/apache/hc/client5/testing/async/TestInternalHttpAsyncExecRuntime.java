@@ -28,6 +28,7 @@ package org.apache.hc.client5.testing.async;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
@@ -53,6 +54,7 @@ import org.apache.hc.core5.http.Message;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.nio.support.AsyncClientPipeline;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
+import org.apache.hc.core5.http2.H2StreamResetException;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
@@ -195,6 +197,67 @@ public class TestInternalHttpAsyncExecRuntime {
             // The message exchange should not get aborted and is expected to successfully complete
             final Message<HttpResponse, byte[]> message = resultFuture.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
             Assertions.assertNotNull(message);
+            Assertions.assertFalse(testRuntime.isAborted());
+            // The underlying connection is expected to stay valid
+            Assertions.assertTrue(testRuntime.isEndpointConnected());
+            testRuntime.markConnectionReusable(null, TimeValue.ofMinutes(1));
+            testRuntime.releaseEndpoint();
+
+            final PoolStats totalStats = connectionManager.getTotalStats();
+            Assertions.assertTrue(totalStats.getAvailable() > 0);
+        }
+    }
+
+    @Test
+    void testExecutionCancellation_http12_connectionAlive() throws Exception {
+        configureServer(bootstrap -> {
+            bootstrap.setServerProtocolLevel(ServerProtocolLevel.H2_ONLY);
+            bootstrap.register("/random/*", AsyncRandomHandler::new);
+        });
+        final HttpHost target = startServer();
+
+        final TestAsyncClient client = startClient();
+        final ConnectionInitiator connectionInitiator = client.getImplementation();
+        final PoolingAsyncClientConnectionManager connectionManager = client.getConnectionManager();
+        for (int i = 0; i < REQ_NUM; i++) {
+            final HttpClientContext context = HttpClientContext.create();
+
+            final InternalTestHttpAsyncExecRuntime testRuntime = new InternalTestHttpAsyncExecRuntime(
+                    connectionManager,
+                    connectionInitiator,
+                    TlsConfig.custom()
+                            .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_2)
+                            .build());
+            final Future<Boolean> connectFuture = testRuntime.leaseAndConnect(target, context);
+            Assertions.assertTrue(connectFuture.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit()));
+
+            final BasicFuture<Message<HttpResponse, byte[]>> resultFuture = new BasicFuture<>(null);
+            final Cancellable cancellable = testRuntime.execute(
+                    "test-" + i,
+                    AsyncClientPipeline.assemble()
+                            .request(createRequest(target))
+                            .noContent()
+                            .response().asByteArray()
+                            .result(new FutureContribution<Message<HttpResponse, byte[]>>(resultFuture) {
+
+                                @Override
+                                public void completed(final Message<HttpResponse, byte[]> result) {
+                                    resultFuture.completed(result);
+                                }
+
+                            })
+                            .create(),
+                    context);
+            // sleep a bit
+            Thread.sleep(i % 10);
+            cancellable.cancel();
+
+            // The message exchange is expected to get aborted
+            try {
+                resultFuture.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+            } catch (final ExecutionException ex) {
+                Assertions.assertInstanceOf(H2StreamResetException.class, ex.getCause());
+            }
             Assertions.assertFalse(testRuntime.isAborted());
             // The underlying connection is expected to stay valid
             Assertions.assertTrue(testRuntime.isEndpointConnected());
