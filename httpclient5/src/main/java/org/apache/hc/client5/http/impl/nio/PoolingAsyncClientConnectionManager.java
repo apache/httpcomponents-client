@@ -50,7 +50,6 @@ import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -59,11 +58,13 @@ import org.apache.hc.core5.concurrent.BasicFuture;
 import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.StreamControl;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
@@ -813,7 +814,8 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 final String exchangeId,
                 final AsyncClientExchangeHandler exchangeHandler,
                 final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
-                final HttpContext context) {
+                final HttpContext context,
+                final Callback<StreamControl> initiationCallback) {
             final ManagedAsyncClientConnection connection = getValidatedPoolEntry().getConnection();
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} executing exchange {} over {}", id, exchangeId, ConnPoolSupport.getId(connection));
@@ -824,12 +826,17 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                             exchangeHandler,
                             pushHandlerFactory,
                             context,
-                            streamControl -> {
-                                final HttpClientContext clientContext = HttpClientContext.cast(context);
-                                final Timeout responseTimeout = clientContext.getRequestConfigOrDefault().getResponseTimeout();
-                                streamControl.setTimeout(responseTimeout);
-                            }),
+                            initiationCallback),
                     Command.Priority.NORMAL);
+        }
+
+        @Override
+        public void execute(
+                final String id,
+                final AsyncClientExchangeHandler exchangeHandler,
+                final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
+                final HttpContext context) {
+            execute(id, exchangeHandler, pushHandlerFactory, context, null);
         }
 
         @Override
