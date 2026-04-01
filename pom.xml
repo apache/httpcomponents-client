@@ -65,8 +65,8 @@
     <!-- Maven itself runs on Java 17+, but compilation and tests can still use an older toolchain JDK. -->
     <hc.build.toolchain.version>${maven.compiler.source}</hc.build.toolchain.version>
     <httpcore.version>5.5-alpha1</httpcore.version>
-    <log4j.version>2.25.3</log4j.version>
-    <brotli4j.version>1.20.0</brotli4j.version>
+    <log4j.version>2.25.4</log4j.version>
+    <brotli4j.version>1.22.0</brotli4j.version>
     <conscrypt.version>2.5.2</conscrypt.version>
     <ehcache.version>3.11.1</ehcache.version>
     <memcached.version>2.12.3</memcached.version>
@@ -81,9 +81,9 @@
     <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer,jdk.net.ExtendedSocketOptions,jdk.net.Sockets</hc.animal-sniffer.signature.ignores>
     <commons.compress.version>1.28.0</commons.compress.version>
     <zstd.jni.version>1.5.7-7</zstd.jni.version>
-    <micrometer.version>1.16.3</micrometer.version>
-    <micrometer.tracing.version>1.6.3</micrometer.tracing.version>
-    <otel.version>1.59.0</otel.version>     <!-- already used elsewhere -->
+    <micrometer.version>1.16.4</micrometer.version>
+    <micrometer.tracing.version>1.6.4</micrometer.tracing.version>
+    <otel.version>1.60.1</otel.version>     <!-- already used elsewhere -->
     <commons-compress.version>1.26.2</commons-compress.version>
     <caffeine.version>2.9.3</caffeine.version>  <!-- java 8. current version 3.2.3 -->
   </properties>
@@ -351,7 +351,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.5.0</version>
+        <version>3.6.2</version>
         <executions>
           <execution>
             <id>enforce-java-runtime</id>
