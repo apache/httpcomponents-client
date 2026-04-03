@@ -26,12 +26,9 @@
  */
 package org.apache.hc.client5.http.impl;
 
-import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.core5.annotation.Internal;
-import org.apache.hc.core5.http.FormattedHeader;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpMessage;
 import org.apache.hc.core5.http.HttpVersion;
@@ -39,10 +36,9 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.ProtocolVersionParser;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.ssl.TLS;
-import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.hc.core5.util.Tokenizer;
 
 /**
@@ -62,6 +58,14 @@ public final class ProtocolSwitchStrategy {
     private interface HeaderConsumer {
 
         void accept(CharSequence buffer, ParserCursor cursor) throws ProtocolException;
+
+    }
+
+    private static class InternalProtocolException extends RuntimeException {
+
+        public InternalProtocolException(final ProtocolException cause) {
+            super(cause);
+        }
 
     }
 
@@ -109,43 +113,27 @@ public final class ProtocolSwitchStrategy {
         }
     }
 
-
-    private void parseHeaders(final HttpMessage message, final String name, final HeaderConsumer consumer)
-            throws ProtocolException {
-        final Iterator<Header> it = message.headerIterator(name);
-        while (it.hasNext()) {
-            parseHeader(it.next(), consumer);
-        }
-    }
-
-    private void parseHeader(final Header header, final HeaderConsumer consumer) throws ProtocolException {
-        Args.notNull(header, "Header");
-        if (header instanceof FormattedHeader) {
-            final CharArrayBuffer buf = ((FormattedHeader) header).getBuffer();
-            final ParserCursor cursor = new ParserCursor(0, buf.length());
-            cursor.updatePos(((FormattedHeader) header).getValuePos());
-            parseHeaderElements(buf, cursor, consumer);
-        } else {
-            final String value = header.getValue();
-            if (value == null) {
-                return;
-            }
-            final ParserCursor cursor = new ParserCursor(0, value.length());
-            parseHeaderElements(value, cursor, consumer);
-        }
-    }
-
-    private void parseHeaderElements(final CharSequence buffer,
-                                     final ParserCursor cursor,
-                                     final HeaderConsumer consumer) throws ProtocolException {
-        while (!cursor.atEnd()) {
-            consumer.accept(buffer, cursor);
-            if (!cursor.atEnd()) {
-                final char ch = buffer.charAt(cursor.getPos());
-                if (ch == ',') {
-                    cursor.updatePos(cursor.getPos() + 1);
-                }
-            }
+    //TODO To be replaced by MessageSupport method that can propagate ProtocolException
+    private void parseHeaders(final HttpMessage message,
+                              final String name,
+                              final HeaderConsumer consumer) throws ProtocolException {
+        try {
+            MessageSupport.parseHeaders(
+                    message,
+                    name,
+                    (cs1, c1) ->
+                            MessageSupport.parseElementList(
+                                    cs1,
+                                    c1,
+                                    (cs2, c2) -> {
+                                        try {
+                                            consumer.accept(cs2, c2);
+                                        } catch (final ProtocolException ex) {
+                                            throw new InternalProtocolException(ex);
+                                        }
+                                    }));
+        } catch (final InternalProtocolException ex) {
+            throw (ProtocolException) ex.getCause();
         }
     }
 

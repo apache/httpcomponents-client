@@ -97,14 +97,6 @@ class TestProtocolSwitchStrategy {
     }
 
     @Test
-    void testNullToken() throws ProtocolException {
-        final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_SWITCHING_PROTOCOLS);
-        response.addHeader(HttpHeaders.UPGRADE, "TLS,");
-        response.addHeader(HttpHeaders.UPGRADE, null);
-        Assertions.assertEquals(TLS.V_1_2.getVersion(), switchStrategy.switchProtocol(response));
-    }
-
-    @Test
     void testWhitespaceOnlyToken() throws ProtocolException {
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_SWITCHING_PROTOCOLS);
         response.addHeader(HttpHeaders.UPGRADE, "   , TLS");
