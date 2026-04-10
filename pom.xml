@@ -65,7 +65,7 @@
     <!-- Maven itself runs on Java 17+, but compilation and tests can still use an older toolchain JDK. -->
     <hc.build.toolchain.version>${maven.compiler.source}</hc.build.toolchain.version>
     <httpcore.version>5.5-alpha1</httpcore.version>
-    <log4j.version>2.25.3</log4j.version>
+    <log4j.version>2.25.4</log4j.version>
     <brotli4j.version>1.20.0</brotli4j.version>
     <conscrypt.version>2.5.2</conscrypt.version>
     <ehcache.version>3.11.1</ehcache.version>
