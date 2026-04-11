@@ -95,12 +95,16 @@ public class ConnectionConfig implements Cloneable {
     }
 
     /**
-     * Gets the timeout until a new connection is fully established.
+     * Gets the timeout until the target endpoint acknowledges accepting the connection request.
+     * <p>
+     * Note that isn't the same time as the new connection being fully established. An HTTPS connection cannot be considered fully established until the TLS
+     * handshake has been successfully completed.
+     * </p>
      * <p>
      * A timeout value of zero is interpreted as an infinite timeout.
      * </p>
      *
-     * @return the timeout until a new connection is fully established, defaults to 3 minutes.
+     * @return the ttimeout until the target endpoint acknowledges accepting the connection request, defaults to 3 minutes.
      * @see Builder#setConnectTimeout(Timeout)
      */
     public Timeout getConnectTimeout() {
