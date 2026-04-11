@@ -119,6 +119,11 @@
         <version>${httpcore.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-jackson2</artifactId>
+        <version>${httpcore.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.httpcomponents.client5</groupId>
         <artifactId>httpclient5</artifactId>
         <version>${project.version}</version>

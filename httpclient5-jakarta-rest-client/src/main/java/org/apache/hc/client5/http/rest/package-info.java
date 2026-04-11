@@ -27,6 +27,6 @@
 
 /**
  * Type-safe REST client that generates implementations from Jakarta REST annotated
- * interfaces, backed by the classic Apache HttpClient transport.
+ * interfaces, backed by the async Apache HttpClient transport.
  */
 package org.apache.hc.client5.http.rest;

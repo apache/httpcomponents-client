@@ -31,7 +31,7 @@ import java.io.UncheckedIOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.nio.charset.Charset;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,36 +39,49 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
-import org.apache.hc.client5.http.classic.HttpClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.Message;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.nio.AsyncEntityProducer;
+import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
+import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityProducer;
+import org.apache.hc.core5.http.nio.entity.DiscardingEntityConsumer;
+import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
+import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
+import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
+import org.apache.hc.core5.jackson2.http.JsonObjectEntityProducer;
+import org.apache.hc.core5.jackson2.http.JsonResponseConsumers;
+import org.apache.hc.core5.net.URIBuilder;
+import org.apache.hc.core5.util.Args;
 
 /**
  * {@link InvocationHandler} that translates interface method calls into HTTP requests
- * executed through the classic {@link HttpClient} transport. Each method is mapped to
- * its HTTP verb, URI template and parameter bindings at proxy creation time.
+ * executed through the async {@link CloseableHttpAsyncClient} transport. Each method is
+ * mapped to its HTTP verb, URI template and parameter bindings at proxy creation time.
  */
 final class RestInvocationHandler implements InvocationHandler {
 
     private static final int ERROR_STATUS_THRESHOLD = 300;
 
-    private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
-    private static final int BYTE_MASK = 0xFF;
-    private static final int HI_NIBBLE_SHIFT = 4;
-    private static final int LO_NIBBLE_MASK = 0x0F;
-
-    private final HttpClient httpClient;
-    private final String baseUriStr;
+    private final CloseableHttpAsyncClient httpClient;
+    private final URI baseUri;
+    private final ObjectMapper objectMapper;
     private final Map<Method, MethodInvoker> invokerMap;
 
-    RestInvocationHandler(final HttpClient client, final URI base,
-                          final Map<Method, ClientResourceMethod> methods) {
+    RestInvocationHandler(final CloseableHttpAsyncClient client, final URI base,
+                          final Map<Method, ClientResourceMethod> methods,
+                          final ObjectMapper mapper) {
         this.httpClient = client;
-        this.baseUriStr = base.toString();
+        this.baseUri = base;
+        this.objectMapper = mapper;
         this.invokerMap = buildInvokers(methods);
     }
 
@@ -78,8 +91,7 @@ final class RestInvocationHandler implements InvocationHandler {
         for (final Map.Entry<Method, ClientResourceMethod> entry : methods.entrySet()) {
             final ClientResourceMethod rm = entry.getValue();
             final String acceptHeader = rm.getProduces().length > 0 ? joinMediaTypes(rm.getProduces()) : null;
-            final ContentType consumeType = rm.getConsumes().length > 0
-                    ? ContentType.parse(rm.getConsumes()[0]) : null;
+            final ContentType consumeType = rm.getConsumes().length > 0 ? ContentType.parse(rm.getConsumes()[0]) : null;
             result.put(entry.getKey(), new MethodInvoker(rm, acceptHeader, consumeType));
         }
         return result;
@@ -129,12 +141,15 @@ final class RestInvocationHandler implements InvocationHandler {
             for (int i = 0; i < params.length; i++) {
                 final ClientResourceMethod.ParamInfo pi = params[i];
                 final Object val = args[i];
-                final String strVal = val != null ? val.toString() : pi.getDefaultValue();
+                final String strVal = val != null ? paramToString(val) : pi.getDefaultValue();
                 switch (pi.getSource()) {
                     case PATH:
-                        if (strVal != null) {
-                            pathParams.put(pi.getName(), strVal);
+                        if (strVal == null) {
+                            throw new IllegalArgumentException(
+                                    "Path parameter \"" + pi.getName()
+                                            + "\" must not be null");
                         }
+                        pathParams.put(pi.getName(), strVal);
                         break;
                     case QUERY:
                         if (strVal != null) {
@@ -156,10 +171,9 @@ final class RestInvocationHandler implements InvocationHandler {
             }
         }
 
-        final String expandedPath = expandTemplate(rm.getPathTemplate(), pathParams);
-        final String fullUri = buildUri(expandedPath, queryParams);
-        final BasicClassicHttpRequest request =
-                new BasicClassicHttpRequest(rm.getHttpMethod(), fullUri);
+        final URI requestUri = buildRequestUri(rm.getPathTemplate(), pathParams, queryParams);
+        final BasicHttpRequest request =
+                new BasicHttpRequest(rm.getHttpMethod(), requestUri);
 
         if (invoker.acceptHeader != null) {
             request.addHeader(HttpHeaders.ACCEPT, invoker.acceptHeader);
@@ -167,111 +181,123 @@ final class RestInvocationHandler implements InvocationHandler {
         for (final Map.Entry<String, String> entry : headerParams.entrySet()) {
             request.addHeader(entry.getKey(), entry.getValue());
         }
+
+        final AsyncEntityProducer entityProducer;
         if (bodyParam != null) {
-            final ContentType ct = invoker.consumeType != null
-                    ? invoker.consumeType
-                    : bodyParam instanceof String
-                            ? ContentType.create("text/plain", StandardCharsets.UTF_8)
-                            : ContentType.APPLICATION_OCTET_STREAM;
-            final byte[] bodyBytes = writeBody(bodyParam, ct.getCharset());
-            request.setEntity(new ByteArrayEntity(bodyBytes, ct));
+            entityProducer = createEntityProducer(bodyParam, invoker.consumeType);
+        } else {
+            entityProducer = null;
         }
 
         final Class<?> rawType = rm.getMethod().getReturnType();
+        final BasicRequestProducer requestProducer =
+                new BasicRequestProducer(request, entityProducer);
         try {
-            return httpClient.execute(request, response -> {
-                final int status = response.getCode();
-                if (status >= ERROR_STATUS_THRESHOLD) {
-                    final byte[] body = response.getEntity() != null
-                            ? EntityUtils.toByteArray(response.getEntity()) : null;
-                    throw new RestClientResponseException(
-                            status, response.getReasonPhrase(), body);
-                }
-                if (rawType == void.class || rawType == Void.class) {
-                    EntityUtils.consume(response.getEntity());
-                    return null;
-                }
-                if (response.getEntity() == null) {
-                    return null;
-                }
-                if (rawType == byte[].class) {
-                    return EntityUtils.toByteArray(response.getEntity());
-                }
-                if (rawType == String.class) {
-                    return EntityUtils.toString(response.getEntity());
-                }
-                EntityUtils.consume(response.getEntity());
-                throw new UnsupportedOperationException(
-                        "Return type " + rawType.getName() + " is not supported;"
-                        + " only void, String and byte[] are supported");
-            });
+            if (rawType == void.class || rawType == Void.class) {
+                final Message<HttpResponse, Void> result = awaitResult(
+                        httpClient.execute(requestProducer,
+                                new BasicResponseConsumer<>(
+                                        new DiscardingEntityConsumer<>()),
+                                null));
+                checkStatus(result.getHead(), null);
+                return null;
+            }
+            if (rawType == byte[].class) {
+                final Message<HttpResponse, byte[]> result = awaitResult(
+                        httpClient.execute(requestProducer,
+                                new BasicResponseConsumer<>(
+                                        new BasicAsyncEntityConsumer()),
+                                null));
+                final byte[] body = result.getBody();
+                checkStatus(result.getHead(), body);
+                return body;
+            }
+            if (rawType == String.class) {
+                final Message<HttpResponse, String> result = awaitResult(
+                        httpClient.execute(requestProducer,
+                                new StringResponseConsumer(), null));
+                throwIfError(result);
+                return result.getBody();
+            }
+            @SuppressWarnings("unchecked") final Class<Object> objectType = (Class<Object>) rawType;
+            final Message<HttpResponse, Object> result = awaitResult(
+                    httpClient.execute(requestProducer,
+                            JsonResponseConsumers.create(objectMapper, objectType,
+                                    BasicAsyncEntityConsumer::new),
+                            null));
+            throwIfError(result);
+            return result.getBody();
+        } catch (final RestClientResponseException ex) {
+            throw ex;
         } catch (final IOException ex) {
             throw new UncheckedIOException(ex);
         }
     }
 
-    private static byte[] writeBody(final Object body, final Charset charset) {
-        if (body instanceof byte[]) {
-            return (byte[]) body;
-        }
-        if (body instanceof String) {
-            return ((String) body).getBytes(charset != null ? charset : StandardCharsets.UTF_8);
-        }
-        throw new UnsupportedOperationException(
-                "Cannot serialize " + body.getClass().getName()
-                + "; only String and byte[] request bodies are supported");
-    }
-
-    private String buildUri(final String path, final Map<String, List<String>> query) {
-        final int estimate = baseUriStr.length() + path.length() + query.size() * 32;
-        final StringBuilder sb = new StringBuilder(estimate);
-        if (baseUriStr.endsWith("/") && path.startsWith("/")) {
-            sb.append(baseUriStr, 0, baseUriStr.length() - 1);
-        } else {
-            sb.append(baseUriStr);
-        }
-        sb.append(path);
-        if (!query.isEmpty()) {
-            sb.append('?');
-            boolean first = true;
-            for (final Map.Entry<String, List<String>> entry : query.entrySet()) {
-                final String encodedKey = percentEncodeComponent(entry.getKey());
+    private URI buildRequestUri(final String pathTemplate,
+                                final Map<String, String> pathParams,
+                                final Map<String, List<String>> queryParams) {
+        try {
+            final URIBuilder uriBuilder = new URIBuilder(baseUri);
+            final String[] segments = expandPathSegments(pathTemplate, pathParams);
+            if (segments.length > 0) {
+                uriBuilder.appendPathSegments(segments);
+            }
+            for (final Map.Entry<String, List<String>> entry : queryParams.entrySet()) {
                 for (final String value : entry.getValue()) {
-                    if (!first) {
-                        sb.append('&');
-                    }
-                    sb.append(encodedKey).append('=').append(percentEncodeComponent(value));
-                    first = false;
+                    uriBuilder.addParameter(entry.getKey(), value);
                 }
             }
+            return uriBuilder.build();
+        } catch (final URISyntaxException ex) {
+            throw new IllegalStateException("Invalid URI: " + ex.getMessage(), ex);
         }
-        return sb.toString();
     }
 
     /**
-     * Expands URI template variables with percent-encoded values in a single pass.
+     * Expands a path template by splitting it into segments, substituting template
+     * variables with raw values. Encoding is deferred to {@link URIBuilder}.
      */
-    static String expandTemplate(final String template,
-                                 final Map<String, String> variables) {
-        if (variables.isEmpty()) {
-            return template;
+    static String[] expandPathSegments(final String template,
+                                       final Map<String, String> variables) {
+        if (template == null || template.isEmpty() || "/".equals(template)) {
+            return new String[0];
         }
-        final StringBuilder sb = new StringBuilder(template.length());
+        final String[] rawSegments = template.split("/");
+        final List<String> result = new ArrayList<>(rawSegments.length);
+        for (final String segment : rawSegments) {
+            if (segment.isEmpty()) {
+                continue;
+            }
+            result.add(expandSegment(segment, variables));
+        }
+        return result.toArray(new String[0]);
+    }
+
+    /**
+     * Expands template variables within a single path segment.
+     */
+    static String expandSegment(final String segment,
+                                final Map<String, String> variables) {
+        if (segment.indexOf('{') < 0) {
+            return segment;
+        }
+        final StringBuilder sb = new StringBuilder(segment.length());
         int i = 0;
-        while (i < template.length()) {
-            final char c = template.charAt(i);
+        while (i < segment.length()) {
+            final char c = segment.charAt(i);
             if (c == '{') {
-                final int close = template.indexOf('}', i);
+                final int close = segment.indexOf('}', i);
                 if (close < 0) {
-                    sb.append(template, i, template.length());
+                    sb.append(segment, i, segment.length());
                     break;
                 }
-                final String name = template.substring(i + 1, close);
+                final String name = segment.substring(i + 1, close);
                 final String value = variables.get(name);
                 if (value != null) {
-                    sb.append(percentEncodeComponent(value));
+                    sb.append(value);
                 } else {
-                    sb.append(template, i, close + 1);
+                    sb.append(segment, i, close + 1);
                 }
                 i = close + 1;
             } else {
@@ -282,37 +308,88 @@ final class RestInvocationHandler implements InvocationHandler {
         return sb.toString();
     }
 
-    /**
-     * Percent-encodes a value for use in a URI component per RFC 3986.
-     */
-    static String percentEncodeComponent(final String value) {
-        final byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
-        final StringBuilder sb = new StringBuilder(bytes.length);
-        for (final byte b : bytes) {
-            final int ch = b & BYTE_MASK;
-            if (isUnreserved(ch)) {
-                sb.append((char) ch);
-            } else {
-                sb.append('%');
-                sb.append(HEX_DIGITS[ch >> HI_NIBBLE_SHIFT]);
-                sb.append(HEX_DIGITS[ch & LO_NIBBLE_MASK]);
-            }
+    private AsyncEntityProducer createEntityProducer(final Object body,
+                                                     final ContentType consumeType) {
+        if (body instanceof byte[]) {
+            final ContentType ct = consumeType != null
+                    ? consumeType : ContentType.APPLICATION_OCTET_STREAM;
+            return new BasicAsyncEntityProducer((byte[]) body, ct);
         }
-        return sb.toString();
+        if (body instanceof String) {
+            final ContentType ct = consumeType != null
+                    ? consumeType : ContentType.create("text/plain", StandardCharsets.UTF_8);
+            return new StringAsyncEntityProducer((CharSequence) body, ct);
+        }
+        return new JsonObjectEntityProducer<>(body, objectMapper, consumeType);
     }
 
-    private static boolean isUnreserved(final int ch) {
-        return ch >= 'A' && ch <= 'Z'
-                || ch >= 'a' && ch <= 'z'
-                || ch >= '0' && ch <= '9'
-                || ch == '-' || ch == '.' || ch == '_' || ch == '~';
+    private static <T> T awaitResult(final Future<T> future) throws IOException {
+        try {
+            return future.get();
+        } catch (final ExecutionException ex) {
+            final Throwable cause = ex.getCause();
+            if (cause instanceof RestClientResponseException) {
+                throw (RestClientResponseException) cause;
+            }
+            if (cause instanceof IOException) {
+                throw (IOException) cause;
+            }
+            throw new IOException("Request execution failed", cause);
+        } catch (final InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Request interrupted", ex);
+        }
+    }
+
+    private static void checkStatus(final HttpResponse response,
+                                    final byte[] body) {
+        if (response.getCode() >= ERROR_STATUS_THRESHOLD) {
+            throw new RestClientResponseException(
+                    response.getCode(), response.getReasonPhrase(),
+                    body != null && body.length > 0 ? body : null);
+        }
+    }
+
+    /**
+     * Throws {@link RestClientResponseException} if the message carries an error.
+     * Both {@link StringResponseConsumer} and the Jackson2 response consumer are
+     * configured with {@link BasicAsyncEntityConsumer} on the error path, so the
+     * error object is always {@code byte[]}.
+     */
+    private static void throwIfError(final Message<HttpResponse, ?> result) {
+        final Object error = result.error();
+        if (error != null) {
+            if (!(error instanceof byte[])) {
+                throw new IllegalStateException(
+                        "Expected byte[] error body, got "
+                                + error.getClass().getName());
+            }
+            final HttpResponse head = result.getHead();
+            final byte[] errorBytes = (byte[]) error;
+            throw new RestClientResponseException(
+                    head.getCode(), head.getReasonPhrase(),
+                    errorBytes.length > 0 ? errorBytes : null);
+        }
+    }
+
+    /**
+     * Converts a parameter value to its string representation for use in URI
+     * path segments, query parameters or HTTP headers. Enums are converted using
+     * {@link Enum#name()} to ensure round-trip compatibility with {@code valueOf}.
+     */
+    static String paramToString(final Object value) {
+        Args.notNull(value, "Parameter value");
+        if (value instanceof Enum) {
+            return ((Enum<?>) value).name();
+        }
+        return value.toString();
     }
 
     private Object handleObjectMethod(final Object proxy, final Method method,
                                       final Object[] args) {
         final String name = method.getName();
         if ("toString".equals(name)) {
-            return "RestProxy[" + baseUriStr + "]";
+            return "RestProxy[" + baseUri + "]";
         }
         if ("hashCode".equals(name)) {
             return System.identityHashCode(proxy);

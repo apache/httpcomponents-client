@@ -59,14 +59,12 @@ final class ClientResourceMethod {
 
         private final ParamSource source;
         private final String name;
-        private final Class<?> type;
         private final String defaultValue;
 
         ParamInfo(final ParamSource paramSource, final String paramName,
-                  final Class<?> paramType, final String defValue) {
+                  final String defValue) {
             this.source = paramSource;
             this.name = paramName;
-            this.type = paramType;
             this.defaultValue = defValue;
         }
 
@@ -76,10 +74,6 @@ final class ClientResourceMethod {
 
         String getName() {
             return name;
-        }
-
-        Class<?> getType() {
-            return type;
         }
 
         String getDefaultValue() {
@@ -196,8 +190,7 @@ final class ClientResourceMethod {
 
             final ParamInfo[] params = scanParameters(m);
             validatePathParams(m, combinedPath, params);
-            validateReturnType(m);
-            validateBodyTypes(m, params);
+            validateConsumes(m, cons, params);
             final String strippedPath = stripRegex(combinedPath);
             result.add(new ClientResourceMethod(m, verb, strippedPath, prod, cons, params));
         }
@@ -215,12 +208,11 @@ final class ClientResourceMethod {
     }
 
     private static ParamInfo[] scanParameters(final Method m) {
-        final Class<?>[] types = m.getParameterTypes();
         final Annotation[][] annotations = m.getParameterAnnotations();
-        final ParamInfo[] result = new ParamInfo[types.length];
+        final ParamInfo[] result = new ParamInfo[annotations.length];
         int bodyCount = 0;
-        for (int i = 0; i < types.length; i++) {
-            result[i] = resolveParam(types[i], annotations[i]);
+        for (int i = 0; i < annotations.length; i++) {
+            result[i] = resolveParam(annotations[i]);
             if (result[i].getSource() == ParamSource.BODY) {
                 bodyCount++;
             }
@@ -233,8 +225,7 @@ final class ClientResourceMethod {
         return result;
     }
 
-    private static ParamInfo resolveParam(final Class<?> type,
-                                          final Annotation[] annotations) {
+    private static ParamInfo resolveParam(final Annotation[] annotations) {
         String defVal = null;
         for (final Annotation a : annotations) {
             if (a instanceof DefaultValue) {
@@ -243,16 +234,16 @@ final class ClientResourceMethod {
         }
         for (final Annotation a : annotations) {
             if (a instanceof PathParam) {
-                return new ParamInfo(ParamSource.PATH, ((PathParam) a).value(), type, defVal);
+                return new ParamInfo(ParamSource.PATH, ((PathParam) a).value(), defVal);
             }
             if (a instanceof QueryParam) {
-                return new ParamInfo(ParamSource.QUERY, ((QueryParam) a).value(), type, defVal);
+                return new ParamInfo(ParamSource.QUERY, ((QueryParam) a).value(), defVal);
             }
             if (a instanceof HeaderParam) {
-                return new ParamInfo(ParamSource.HEADER, ((HeaderParam) a).value(), type, defVal);
+                return new ParamInfo(ParamSource.HEADER, ((HeaderParam) a).value(), defVal);
             }
         }
-        return new ParamInfo(ParamSource.BODY, null, type, null);
+        return new ParamInfo(ParamSource.BODY, null, null);
     }
 
     private static void validatePathParams(final Method m, final String path,
@@ -280,27 +271,17 @@ final class ClientResourceMethod {
         }
     }
 
-    private static void validateReturnType(final Method m) {
-        final Class<?> rt = m.getReturnType();
-        if (rt != void.class && rt != Void.class
-                && rt != String.class && rt != byte[].class) {
-            throw new IllegalStateException("Method " + m.getName()
-                    + ": return type " + rt.getName() + " is not supported;"
-                    + " only void, String and byte[] are allowed");
+    private static void validateConsumes(final Method m,
+                                            final String[] consumes,
+                                            final ParamInfo[] params) {
+        if (consumes.length <= 1) {
+            return;
         }
-    }
-
-    private static void validateBodyTypes(final Method m,
-                                          final ParamInfo[] params) {
         for (final ParamInfo pi : params) {
             if (pi.getSource() == ParamSource.BODY) {
-                final Class<?> bt = pi.getType();
-                if (bt != String.class && bt != byte[].class) {
-                    throw new IllegalStateException("Method " + m.getName()
-                            + ": body parameter type " + bt.getName()
-                            + " is not supported;"
-                            + " only String and byte[] are allowed");
-                }
+                throw new IllegalStateException("Method " + m.getName()
+                        + " has a request body and multiple @Consumes"
+                        + " values; exactly one is required");
             }
         }
     }

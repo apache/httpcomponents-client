@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.rest;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -46,8 +47,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
@@ -62,7 +63,7 @@ class RestClientBuilderTest {
 
     static HttpServer server;
     static int port;
-    static CloseableHttpClient httpClient;
+    static CloseableHttpAsyncClient httpClient;
 
     // --- Test interfaces ---
 
@@ -183,6 +184,71 @@ class RestClientBuilderTest {
         String get();
     }
 
+    public static class Widget {
+
+        public int id;
+        public String name;
+
+        public Widget() {
+        }
+
+        public Widget(final int id, final String name) {
+            this.id = id;
+            this.name = name;
+        }
+    }
+
+    @Path("/json")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public interface JsonWidgetApi {
+
+        @GET
+        @Path("/{id}")
+        Widget get(@PathParam("id") int id);
+
+        @POST
+        Widget create(Widget widget);
+    }
+
+    @Path("/jsonerror")
+    @Produces(MediaType.APPLICATION_JSON)
+    public interface JsonErrorApi {
+
+        @GET
+        @Path("/{code}")
+        Widget getError(@PathParam("code") int code);
+    }
+
+    @Path("/inspect")
+    public interface InspectJsonApi {
+
+        @POST
+        @Path("/json")
+        @Consumes("application/vnd.api+json")
+        @Produces(MediaType.TEXT_PLAIN)
+        String postJson(Widget widget);
+    }
+
+    @Path("/charstatus")
+    public interface CharStatusApi {
+
+        @GET
+        @Path("/{code}")
+        @Produces(MediaType.TEXT_PLAIN)
+        String getStatus(@PathParam("code") int code);
+    }
+
+    public enum Color { RED, GREEN, BLUE }
+
+    @Path("/echo")
+    public interface EnumQueryApi {
+
+        @GET
+        @Produces(MediaType.TEXT_PLAIN)
+        String echo(@QueryParam("msg") Color color);
+    }
+
     @Path("/bad")
     public interface BadMultiBodyApi {
 
@@ -206,18 +272,12 @@ class RestClientBuilderTest {
         String get(@PathParam("id") int id);
     }
 
-    @Path("/bad")
-    public interface BadReturnTypeApi {
-
-        @GET
-        Integer get();
-    }
-
-    @Path("/bad")
-    public interface BadBodyTypeApi {
+    @Path("/multi")
+    public interface MultiConsumesBodyApi {
 
         @POST
-        String post(Integer body);
+        @Consumes({"application/json", "application/xml"})
+        String post(String body);
     }
 
     // --- Server setup ---
@@ -348,11 +408,54 @@ class RestClientBuilderTest {
                                     "binary-data",
                                     ContentType.APPLICATION_OCTET_STREAM));
                         })
+                .register("/json",
+                        (request, response, context) -> {
+                            final String body =
+                                    EntityUtils.toString(request.getEntity());
+                            response.setCode(201);
+                            response.setEntity(new StringEntity(
+                                    body, ContentType.APPLICATION_JSON));
+                        })
+                .register("/json/*",
+                        (request, response, context) -> {
+                            final String path = request.getRequestUri();
+                            final String idStr = path.substring(
+                                    path.lastIndexOf('/') + 1);
+                            response.setCode(200);
+                            response.setEntity(new StringEntity(
+                                    "{\"id\":" + idStr
+                                            + ",\"name\":\"W-" + idStr + "\"}",
+                                    ContentType.APPLICATION_JSON));
+                        })
+                .register("/jsonerror/*",
+                        (request, response, context) -> {
+                            final String path = request.getRequestUri();
+                            final int code = Integer.parseInt(
+                                    path.substring(
+                                            path.lastIndexOf('/') + 1));
+                            response.setCode(code);
+                            response.setEntity(new StringEntity(
+                                    "{\"error\":\"status " + code + "\"}",
+                                    ContentType.APPLICATION_JSON));
+                        })
                 .register("/charset",
                         (request, response, context) -> {
                             final byte[] bytes = "caf\u00e9"
                                     .getBytes(StandardCharsets.ISO_8859_1);
                             response.setCode(200);
+                            response.setEntity(new ByteArrayEntity(bytes,
+                                    ContentType.create("text/plain",
+                                            "ISO-8859-1")));
+                        })
+                .register("/charstatus/*",
+                        (request, response, context) -> {
+                            final String path = request.getRequestUri();
+                            final int code = Integer.parseInt(
+                                    path.substring(
+                                            path.lastIndexOf('/') + 1));
+                            final byte[] bytes = "caf\u00e9"
+                                    .getBytes(StandardCharsets.ISO_8859_1);
+                            response.setCode(code);
                             response.setEntity(new ByteArrayEntity(bytes,
                                     ContentType.create("text/plain",
                                             "ISO-8859-1")));
@@ -370,7 +473,8 @@ class RestClientBuilderTest {
                 .create();
         server.start();
         port = server.getLocalPort();
-        httpClient = HttpClients.createDefault();
+        httpClient = HttpAsyncClients.createDefault();
+        httpClient.start();
     }
 
     @AfterAll
@@ -507,6 +611,51 @@ class RestClientBuilderTest {
         assertEquals("none", api.get());
     }
 
+    @Test
+    void testJsonPojoGet() {
+        final JsonWidgetApi api = proxy(JsonWidgetApi.class);
+        final Widget w = api.get(42);
+        assertEquals(42, w.id);
+        assertEquals("W-42", w.name);
+    }
+
+    @Test
+    void testJsonPojoPostRoundTrip() {
+        final JsonWidgetApi api = proxy(JsonWidgetApi.class);
+        final Widget w = api.create(new Widget(0, "New"));
+        assertEquals(0, w.id);
+        assertEquals("New", w.name);
+    }
+
+    @Test
+    void testJsonPojoErrorResponse() {
+        final JsonErrorApi api = proxy(JsonErrorApi.class);
+        final RestClientResponseException ex = assertThrows(
+                RestClientResponseException.class,
+                () -> api.getError(500));
+        assertEquals(500, ex.getStatusCode());
+        assertNotNull(ex.getResponseBody());
+    }
+
+    @Test
+    void testPojoBodyHonorsConsumesMediaType() {
+        final InspectJsonApi api = proxy(InspectJsonApi.class);
+        final String ct = api.postJson(new Widget(1, "test"));
+        assertTrue(ct.startsWith("application/vnd.api+json"), ct);
+    }
+
+    @Test
+    void testNonUtf8ErrorResponsePreservesBytes() {
+        final CharStatusApi api = proxy(CharStatusApi.class);
+        final RestClientResponseException ex = assertThrows(
+                RestClientResponseException.class,
+                () -> api.getStatus(500));
+        assertEquals(500, ex.getStatusCode());
+        assertArrayEquals(
+                "caf\u00e9".getBytes(StandardCharsets.ISO_8859_1),
+                ex.getResponseBody());
+    }
+
     // --- Validation tests ---
 
     @Test
@@ -562,21 +711,19 @@ class RestClientBuilderTest {
     }
 
     @Test
-    void testRejectsUnsupportedReturnType() {
+    void testRejectsMultipleConsumesWithBody() {
         assertThrows(IllegalStateException.class, () ->
                 RestClientBuilder.newBuilder()
                         .baseUri("http://localhost")
                         .httpClient(httpClient)
-                        .build(BadReturnTypeApi.class));
+                        .build(MultiConsumesBodyApi.class));
     }
 
     @Test
-    void testRejectsUnsupportedBodyType() {
-        assertThrows(IllegalStateException.class, () ->
-                RestClientBuilder.newBuilder()
-                        .baseUri("http://localhost")
-                        .httpClient(httpClient)
-                        .build(BadBodyTypeApi.class));
+    void testNullPathParamThrows() {
+        final EchoPathApi api = proxy(EchoPathApi.class);
+        assertThrows(IllegalArgumentException.class,
+                () -> api.echoPath(null));
     }
 
     @Test
@@ -624,6 +771,12 @@ class RestClientBuilderTest {
         final RestClientResponseException ex =
                 new RestClientResponseException(204, "No Content", null);
         assertNull(ex.getResponseBody());
+    }
+
+    @Test
+    void testEnumQueryParamUsesName() {
+        final EnumQueryApi api = proxy(EnumQueryApi.class);
+        assertEquals("GREEN", api.echo(Color.GREEN));
     }
 
 }

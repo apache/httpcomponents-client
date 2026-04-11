@@ -33,19 +33,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.hc.client5.http.classic.HttpClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.core5.util.Args;
 
 /**
  * Builds type-safe REST client proxies from Jakarta REST annotated interfaces. The proxy
- * translates each method call into an HTTP request executed through the classic
- * {@link HttpClient} transport.
+ * translates each method call into an HTTP request executed through the async
+ * {@link CloseableHttpAsyncClient} transport, which supports both HTTP/1.1 and HTTP/2.
  *
  * <p>Minimal usage:</p>
  * <pre>
- * try (CloseableHttpClient client = HttpClients.createDefault()) {
+ * try (CloseableHttpAsyncClient client = HttpAsyncClients.createDefault()) {
+ *     client.start();
  *     UserApi api = RestClientBuilder.newBuilder()
- *             .baseUri("http://api.example.com")
+ *             .baseUri("<a href="http://api.example.com">...</a>")
  *             .httpClient(client)
  *             .build(UserApi.class);
  *     String json = api.getUser(42);
@@ -53,17 +56,20 @@ import org.apache.hc.core5.util.Args;
  * </pre>
  *
  * <p>Both {@code baseUri} and {@code httpClient} are required. The caller owns the
- * client lifecycle.</p>
+ * client lifecycle, including the call to {@code start()} before use.</p>
  *
- * <p>Methods may return {@code String}, {@code byte[]}, or {@code void}. Non-2xx
- * responses throw {@link RestClientResponseException}.</p>
+ * <p>Methods may return {@code String}, {@code byte[]}, {@code void}, or any type
+ * deserializable by the configured Jackson {@link ObjectMapper}. Request bodies may be
+ * {@code String}, {@code byte[]}, or any type serializable by the ObjectMapper.
+ * Non-2xx responses throw {@link RestClientResponseException}.</p>
  *
  * @since 5.7
  */
 public final class RestClientBuilder {
 
     private URI baseUri;
-    private HttpClient httpClient;
+    private CloseableHttpAsyncClient httpClient;
+    private ObjectMapper objectMapper;
 
     private RestClientBuilder() {
     }
@@ -102,21 +108,36 @@ public final class RestClientBuilder {
     }
 
     /**
-     * Sets the {@link HttpClient} to use for requests. The caller owns the client
-     * lifecycle.
+     * Sets the async HTTP client to use for requests. The caller owns the client
+     * lifecycle, including the call to {@link CloseableHttpAsyncClient#start()}.
      *
-     * @param client the HTTP client, must not be {@code null}.
+     * @param client the async HTTP client, must not be {@code null}.
      * @return this builder for chaining.
+     * @since 5.7
      */
-    public RestClientBuilder httpClient(final HttpClient client) {
+    public RestClientBuilder httpClient(final CloseableHttpAsyncClient client) {
         Args.notNull(client, "HTTP client");
         this.httpClient = client;
         return this;
     }
 
     /**
+     * Sets the Jackson {@link ObjectMapper} for JSON serialization and deserialization.
+     * If not set, a default ObjectMapper is used.
+     *
+     * @param mapper the object mapper, must not be {@code null}.
+     * @return this builder for chaining.
+     * @since 5.7
+     */
+    public RestClientBuilder objectMapper(final ObjectMapper mapper) {
+        Args.notNull(mapper, "Object mapper");
+        this.objectMapper = mapper;
+        return this;
+    }
+
+    /**
      * Scans the given interface for Jakarta REST annotations and creates a proxy that
-     * implements it by dispatching HTTP requests through the configured client.
+     * implements it by dispatching HTTP requests through the configured async client.
      *
      * @param <T>   the interface type.
      * @param iface the Jakarta REST annotated interface class.
@@ -140,7 +161,8 @@ public final class RestClientBuilder {
 
         final List<ClientResourceMethod> methods = ClientResourceMethod.scan(iface);
         if (methods.isEmpty()) {
-            throw new IllegalStateException("No Jakarta REST methods found on " + iface.getName());
+            throw new IllegalStateException(
+                    "No Jakarta REST methods found on " + iface.getName());
         }
         final Map<Method, ClientResourceMethod> methodMap =
                 new HashMap<>(methods.size());
@@ -148,10 +170,13 @@ public final class RestClientBuilder {
             methodMap.put(rm.getMethod(), rm);
         }
 
+        final ObjectMapper mapper = objectMapper != null
+                ? objectMapper : new ObjectMapper();
+
         return (T) Proxy.newProxyInstance(
                 iface.getClassLoader(),
                 new Class<?>[]{iface},
-                new RestInvocationHandler(httpClient, baseUri, methodMap));
+                new RestInvocationHandler(httpClient, baseUri, methodMap, mapper));
     }
 
 }

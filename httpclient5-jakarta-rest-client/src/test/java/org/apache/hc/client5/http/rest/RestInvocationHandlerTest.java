@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.rest;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
@@ -37,50 +38,11 @@ import org.junit.jupiter.api.Test;
 class RestInvocationHandlerTest {
 
     @Test
-    void testEncodeSpace() {
-        assertEquals("hello%20world", RestInvocationHandler.percentEncodeComponent("hello world"));
-    }
-
-    @Test
-    void testEncodeSlash() {
-        assertEquals("a%2Fb", RestInvocationHandler.percentEncodeComponent("a/b"));
-    }
-
-    @Test
-    void testEncodeUnicode() {
-        assertEquals("%C3%A9", RestInvocationHandler.percentEncodeComponent("\u00e9"));
-    }
-
-    @Test
-    void testEncodeTildeIsUnreserved() {
-        assertEquals("~user", RestInvocationHandler.percentEncodeComponent("~user"));
-    }
-
-    @Test
-    void testEncodePlus() {
-        assertEquals("a%2Bb", RestInvocationHandler.percentEncodeComponent("a+b"));
-    }
-
-    @Test
-    void testEncodeHyphenDotUnderscore() {
-        assertEquals("a-b.c_d",
-                RestInvocationHandler.percentEncodeComponent("a-b.c_d"));
-    }
-
-    @Test
-    void testEncodeAlphaNumericPassthrough() {
-        assertEquals("AZaz09", RestInvocationHandler.percentEncodeComponent("AZaz09"));
-    }
-
-    @Test
-    void testEncodeEmptyString() {
-        assertEquals("", RestInvocationHandler.percentEncodeComponent(""));
-    }
-
-    @Test
     void testExpandSingleVariable() {
         final Map<String, String> vars = Collections.singletonMap("id", "42");
-        assertEquals("/items/42", RestInvocationHandler.expandTemplate("/items/{id}", vars));
+        assertArrayEquals(
+                new String[]{"items", "42"},
+                RestInvocationHandler.expandPathSegments("/items/{id}", vars));
     }
 
     @Test
@@ -88,18 +50,88 @@ class RestInvocationHandlerTest {
         final Map<String, String> vars = new LinkedHashMap<>();
         vars.put("group", "admin");
         vars.put("id", "7");
-        assertEquals("/admin/users/7", RestInvocationHandler.expandTemplate("/{group}/users/{id}", vars));
+        assertArrayEquals(
+                new String[]{"admin", "users", "7"},
+                RestInvocationHandler.expandPathSegments("/{group}/users/{id}", vars));
     }
 
     @Test
-    void testExpandEncodesValues() {
+    void testExpandPreservesRawValues() {
         final Map<String, String> vars = Collections.singletonMap("name", "hello world");
-        assertEquals("/items/hello%20world", RestInvocationHandler.expandTemplate("/items/{name}", vars));
+        assertArrayEquals(
+                new String[]{"items", "hello world"},
+                RestInvocationHandler.expandPathSegments("/items/{name}", vars));
     }
 
     @Test
     void testExpandNoVariables() {
-        assertEquals("/plain", RestInvocationHandler.expandTemplate("/plain", Collections.emptyMap()));
+        assertArrayEquals(
+                new String[]{"plain"},
+                RestInvocationHandler.expandPathSegments("/plain", Collections.emptyMap()));
+    }
+
+    @Test
+    void testExpandEmptyTemplate() {
+        assertArrayEquals(
+                new String[0],
+                RestInvocationHandler.expandPathSegments("/", Collections.emptyMap()));
+    }
+
+    @Test
+    void testExpandSegmentNoVariable() {
+        assertEquals("plain",
+                RestInvocationHandler.expandSegment("plain", Collections.emptyMap()));
+    }
+
+    @Test
+    void testExpandSegmentSingleVariable() {
+        final Map<String, String> vars = Collections.singletonMap("id", "42");
+        assertEquals("42",
+                RestInvocationHandler.expandSegment("{id}", vars));
+    }
+
+    @Test
+    void testExpandSegmentMixedContent() {
+        final Map<String, String> vars = new LinkedHashMap<>();
+        vars.put("group", "admin");
+        vars.put("id", "7");
+        assertEquals("admin-7",
+                RestInvocationHandler.expandSegment("{group}-{id}", vars));
+    }
+
+    @Test
+    void testExpandSegmentUnknownVariable() {
+        assertEquals("{unknown}",
+                RestInvocationHandler.expandSegment("{unknown}", Collections.emptyMap()));
+    }
+
+    @Test
+    void testParamToStringBasicTypes() {
+        assertEquals("42", RestInvocationHandler.paramToString(42));
+        assertEquals("true", RestInvocationHandler.paramToString(true));
+        assertEquals("hello", RestInvocationHandler.paramToString("hello"));
+    }
+
+    enum Color { RED, GREEN, BLUE }
+
+    enum OverriddenToString {
+        ALPHA;
+
+        @Override
+        public String toString() {
+            return "custom-alpha";
+        }
+    }
+
+    @Test
+    void testParamToStringEnumUsesName() {
+        assertEquals("RED", RestInvocationHandler.paramToString(Color.RED));
+        assertEquals("GREEN", RestInvocationHandler.paramToString(Color.GREEN));
+    }
+
+    @Test
+    void testParamToStringEnumIgnoresOverriddenToString() {
+        assertEquals("ALPHA", RestInvocationHandler.paramToString(OverriddenToString.ALPHA));
     }
 
 }
