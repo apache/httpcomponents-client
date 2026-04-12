@@ -104,7 +104,7 @@ public class ConnectionConfig implements Cloneable {
      * A timeout value of zero is interpreted as an infinite timeout.
      * </p>
      *
-     * @return the ttimeout until the target endpoint acknowledges accepting the connection request, defaults to 3 minutes.
+     * @return the timeout until the target endpoint acknowledges accepting the connection request, defaults to 3 minutes.
      * @see Builder#setConnectTimeout(Timeout)
      */
     public Timeout getConnectTimeout() {
