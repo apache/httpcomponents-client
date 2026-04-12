@@ -61,6 +61,7 @@ import org.apache.hc.core5.websocket.WebSocketExtensions;
 import org.apache.hc.core5.websocket.WebSocketHandler;
 import org.apache.hc.core5.websocket.WebSocketHandshake;
 import org.apache.hc.core5.websocket.WebSocketSession;
+import org.apache.hc.core5.websocket.exceptions.WebSocketProtocolException;
 
 final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandler {
 
@@ -160,6 +161,13 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
             try {
                 handler.onOpen(session);
                 new WebSocketServerProcessor(session, handler, config.getMaxMessageSize()).process();
+            } catch (final WebSocketProtocolException ex) {
+                handler.onError(session, ex);
+                try {
+                    session.close(ex.closeCode, ex.getMessage());
+                } catch (final IOException ignore) {
+                    // ignore
+                }
             } catch (final Exception ex) {
                 handler.onError(session, ex);
                 try {
