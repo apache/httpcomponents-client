@@ -404,7 +404,11 @@ public final class WebSocketSessionEngine {
                     final byte[] comp = WebSocketBufferOps.toBytes(payload);
                     final byte[] plain;
                     try {
-                        plain = decChain.decode(comp);
+                        plain = decChain.decode(comp, cfg.getMaxMessageSize());
+                    } catch (final WebSocketProtocolException wspe) {
+                        initiateClose(wspe.closeCode, wspe.getMessage());
+                        inbuf.clear();
+                        return;
                     } catch (final Exception e) {
                         initiateClose(1007, "Extension decode failed");
                         inbuf.clear();
@@ -506,7 +510,10 @@ public final class WebSocketSessionEngine {
         byte[] data = body;
         if (compressed && decChain != null) {
             try {
-                data = decChain.decode(body);
+                data = decChain.decode(body, cfg.getMaxMessageSize());
+            } catch (final WebSocketProtocolException wspe) {
+                initiateClose(wspe.closeCode, wspe.getMessage());
+                return;
             } catch (final Exception e) {
                 try {
                     listener.onError(e);

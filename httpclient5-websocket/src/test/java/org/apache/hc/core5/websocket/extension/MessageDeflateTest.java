@@ -30,10 +30,13 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
+import org.apache.hc.core5.websocket.exceptions.WebSocketProtocolException;
 import org.apache.hc.core5.websocket.frame.FrameHeaderBits;
 import org.junit.jupiter.api.Test;
 
@@ -78,6 +81,56 @@ final class MessageDeflateTest {
         assertFalse(endsWithTail(wire), "tail must be stripped on wire");
 
         final byte[] roundTrip = dec.decode(wire);
+        assertArrayEquals(plain, roundTrip);
+    }
+
+    @Test
+    void decode_withinLimit_succeeds() throws Exception {
+        final PerMessageDeflate pmce = new PerMessageDeflate(true, true, true, null, null);
+        final WebSocketExtensionChain.Encoder enc = pmce.newEncoder();
+        final WebSocketExtensionChain.Decoder dec = pmce.newDecoder();
+
+        final byte[] plain = "hello world hello world hello world".getBytes(StandardCharsets.UTF_8);
+        final byte[] wire = enc.encode(plain, true, true).payload;
+
+        // Limit comfortably above the inflated size.
+        final byte[] roundTrip = dec.decode(wire, plain.length + 16);
+        assertArrayEquals(plain, roundTrip);
+    }
+
+    @Test
+    void decode_inflationBomb_isRejectedDuringInflate() {
+        // A small, highly compressible payload that inflates to a much larger plaintext.
+        final byte[] plain = new byte[64 * 1024];
+        Arrays.fill(plain, (byte) 'A');
+
+        final PerMessageDeflate pmce = new PerMessageDeflate(true, true, true, null, null);
+        final WebSocketExtensionChain.Encoder enc = pmce.newEncoder();
+        final WebSocketExtensionChain.Decoder dec = pmce.newDecoder();
+
+        final byte[] wire = enc.encode(plain, true, true).payload;
+        // Sanity: the compressed wire form is far smaller than the inflated payload.
+        assertTrue(wire.length < plain.length / 4,
+                "test setup: payload should be highly compressible, was " + wire.length + " vs " + plain.length);
+
+        // maxDecodedSize is well below the inflated size; decode must abort with 1009.
+        final WebSocketProtocolException ex = assertThrows(WebSocketProtocolException.class,
+                () -> dec.decode(wire, 1024L));
+        assertEquals(1009, ex.closeCode);
+        assertEquals("Message too big", ex.getMessage());
+    }
+
+    @Test
+    void decode_zeroLimitMeansUnlimited() throws Exception {
+        final PerMessageDeflate pmce = new PerMessageDeflate(true, true, true, null, null);
+        final WebSocketExtensionChain.Encoder enc = pmce.newEncoder();
+        final WebSocketExtensionChain.Decoder dec = pmce.newDecoder();
+
+        final byte[] plain = new byte[8 * 1024];
+        Arrays.fill(plain, (byte) 'B');
+        final byte[] wire = enc.encode(plain, true, true).payload;
+
+        final byte[] roundTrip = dec.decode(wire, 0L);
         assertArrayEquals(plain, roundTrip);
     }
 

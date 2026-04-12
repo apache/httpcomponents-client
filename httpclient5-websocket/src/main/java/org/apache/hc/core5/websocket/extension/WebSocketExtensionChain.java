@@ -76,5 +76,17 @@ public interface WebSocketExtensionChain {
          * Decode a full message produced with this extension.
          */
         byte[] decode(byte[] payload) throws Exception;
+
+        /**
+         * Decode a full message, aborting as soon as the produced output exceeds
+         * {@code maxDecodedSize}. A non-positive limit means no limit. Implementations
+         * that may expand input (e.g. permessage-deflate) MUST honour the limit during
+         * the expansion step, not only after it, to prevent decompression-bomb attacks.
+         *
+         * @since 5.7
+         */
+        default byte[] decode(final byte[] payload, final long maxDecodedSize) throws Exception {
+            return decode(payload);
+        }
     }
 }

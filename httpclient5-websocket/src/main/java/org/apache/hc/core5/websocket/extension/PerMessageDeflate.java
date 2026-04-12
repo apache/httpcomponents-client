@@ -31,6 +31,7 @@ import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
 import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.websocket.exceptions.WebSocketProtocolException;
 import org.apache.hc.core5.websocket.frame.FrameHeaderBits;
 
 /**
@@ -144,6 +145,11 @@ public final class PerMessageDeflate implements WebSocketExtensionChain {
 
             @Override
             public byte[] decode(final byte[] compressedMessage) throws Exception {
+                return decode(compressedMessage, 0L);
+            }
+
+            @Override
+            public byte[] decode(final byte[] compressedMessage, final long maxDecodedSize) throws Exception {
                 final byte[] withTail;
                 if (compressedMessage == null || compressedMessage.length == 0) {
                     withTail = TAIL.clone();
@@ -156,10 +162,17 @@ public final class PerMessageDeflate implements WebSocketExtensionChain {
                 inf.setInput(withTail);
                 final ByteArrayOutputStream out = new ByteArrayOutputStream(Math.max(128, withTail.length * 2));
                 final byte[] buf = new byte[Math.min(16384, Math.max(1024, withTail.length * 2))];
+                long produced = 0L;
                 while (!inf.needsInput()) {
                     final int n = inf.inflate(buf);
                     if (n > 0) {
+                        // Enforce the decoded size cap during inflation, not after, so a small
+                        // compressed payload cannot expand into a huge buffer before we react.
+                        if (maxDecodedSize > 0L && produced + n > maxDecodedSize) {
+                            throw new WebSocketProtocolException(1009, "Message too big");
+                        }
                         out.write(buf, 0, n);
+                        produced += n;
                     } else {
                         break;
                     }
