@@ -125,9 +125,21 @@ public final class ExtensionChain {
          * Decode a full message (reverse order if stacking).
          */
         public byte[] decode(final byte[] data) throws Exception {
+            return decode(data, 0L);
+        }
+
+        /**
+         * Decode a full message (reverse order if stacking), enforcing a hard cap on
+         * the decoded payload size at every step. A non-positive {@code maxDecodedSize}
+         * disables the cap. The cap is propagated into each extension so that expanding
+         * extensions (e.g. permessage-deflate) abort during expansion rather than after.
+         *
+         * @since 5.7
+         */
+        public byte[] decode(final byte[] data, final long maxDecodedSize) throws Exception {
             byte[] out = data;
             for (int i = decs.size() - 1; i >= 0; i--) {
-                out = decs.get(i).decode(out);
+                out = decs.get(i).decode(out, maxDecodedSize);
             }
             return out;
         }
