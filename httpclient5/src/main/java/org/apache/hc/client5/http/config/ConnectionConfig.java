@@ -44,6 +44,16 @@ public class ConnectionConfig implements Cloneable {
 
     private static final Timeout DEFAULT_CONNECT_TIMEOUT = Timeout.ofMinutes(3);
 
+    /**
+     * The default connection configuration.
+     * <ul>
+     *  <li>Timeout connectTimeout: 3 minutes</li>
+     *  <li>Timeout socketTimeout: {@code null} (undefined)</li>
+     *  <li>Timeout idleTimeout: {@code null} (undefined)</li>
+     *  <li>TimeValue validateAfterInactivity: {@code null} (undefined)</li>
+     *  <li>TimeValue timeToLive: {@code null} (undefined)</li>
+     * </ul>
+     */
     public static final ConnectionConfig DEFAULT = new Builder().build();
 
     private final Timeout connectTimeout;
@@ -74,6 +84,10 @@ public class ConnectionConfig implements Cloneable {
     }
 
     /**
+     * Gets the default socket timeout value for I/O operations on connections created by this configuration.
+     * A timeout value of zero is interpreted as an infinite timeout.
+     *
+     * @return the default socket timeout value, defaults to null.
      * @see Builder#setSocketTimeout(Timeout)
      */
     public Timeout getSocketTimeout() {
@@ -81,6 +95,16 @@ public class ConnectionConfig implements Cloneable {
     }
 
     /**
+     * Gets the timeout until the target endpoint acknowledges accepting the connection request.
+     * <p>
+     * Note that isn't the same time as the new connection being fully established. An HTTPS connection cannot be considered fully established until the TLS
+     * handshake has been successfully completed.
+     * </p>
+     * <p>
+     * A timeout value of zero is interpreted as an infinite timeout.
+     * </p>
+     *
+     * @return the timeout until the target endpoint acknowledges accepting the connection request, defaults to 3 minutes.
      * @see Builder#setConnectTimeout(Timeout)
      */
     public Timeout getConnectTimeout() {
@@ -88,6 +112,12 @@ public class ConnectionConfig implements Cloneable {
     }
 
     /**
+     * Gets the maximum period of idleness for a connection.
+     * <p>
+     * Implementations can use this value to discard connections that have been idle for too long.
+     * </p>
+     *
+     * @return the maximum period of idleness for a connection, defaults to null.
      * @see Builder#setIdleTimeout(Timeout)
      */
     public Timeout getIdleTimeout() {
@@ -95,6 +125,9 @@ public class ConnectionConfig implements Cloneable {
     }
 
     /**
+     * Gets the period of inactivity after which persistent connections must be re-validated.
+     *
+     * @return the period of inactivity after which persistent connections must be re-validated, defaults to null.
      * @see Builder#setValidateAfterInactivity(TimeValue)
      */
     public TimeValue getValidateAfterInactivity() {
@@ -102,6 +135,9 @@ public class ConnectionConfig implements Cloneable {
     }
 
     /**
+     * Gets the total span of time connections can be kept alive or execute requests.
+     *
+     * @return the total span of time connections can be kept alive or execute requests, defaults to null.
      * @see Builder#setTimeToLive(TimeValue) (TimeValue)
      */
     public TimeValue getTimeToLive() {
@@ -126,10 +162,21 @@ public class ConnectionConfig implements Cloneable {
         return builder.toString();
     }
 
+    /**
+     * Creates a new builder for {@link ConnectionConfig}.
+     *
+     * @return a new builder for {@link ConnectionConfig}.
+     */
     public static ConnectionConfig.Builder custom() {
         return new Builder();
     }
 
+    /**
+     * Creates a new builder for {@link ConnectionConfig} based on an existing instance.
+     *
+     * @param config the instance to copy.
+     * @return a new builder for {@link ConnectionConfig}.
+     */
     public static ConnectionConfig.Builder copy(final ConnectionConfig config) {
         return new Builder()
                 .setConnectTimeout(config.getConnectTimeout())
@@ -138,6 +185,9 @@ public class ConnectionConfig implements Cloneable {
                 .setTimeToLive(config.getTimeToLive());
     }
 
+    /**
+     * Builder for {@link ConnectionConfig}.
+     */
     public static class Builder {
 
         private Timeout socketTimeout;
@@ -152,6 +202,10 @@ public class ConnectionConfig implements Cloneable {
         }
 
         /**
+         * Sets the default socket timeout value for I/O operations on connections created by this configuration.
+         *
+         * @param soTimeout The default socket timeout value for I/O operations.
+         * @param timeUnit The time unit of the soTimeout parameter.
          * @return this instance.
          * @see #setSocketTimeout(Timeout)
          */
@@ -161,7 +215,7 @@ public class ConnectionConfig implements Cloneable {
         }
 
         /**
-         * Determines the default socket timeout value for I/O operations on
+         * Sets the default socket timeout value for I/O operations on
          * connections created by this configuration.
          * A timeout value of zero is interpreted as an infinite timeout.
          * <p>
@@ -174,6 +228,7 @@ public class ConnectionConfig implements Cloneable {
          * Default: {@code null} (undefined)
          * </p>
          *
+         * @param soTimeout The default socket timeout value for I/O operations.
          * @return this instance.
          */
         public Builder setSocketTimeout(final Timeout soTimeout) {
@@ -182,7 +237,7 @@ public class ConnectionConfig implements Cloneable {
         }
 
         /**
-         * Determines the timeout until a new connection is fully established.
+         * Sets the timeout until a new connection is fully established.
          * <p>
          * A timeout value of zero is interpreted as an infinite timeout.
          * </p>
@@ -190,6 +245,7 @@ public class ConnectionConfig implements Cloneable {
          * Default: 3 minutes
          * </p>
          *
+         * @param connectTimeout The timeout until a new connection is fully established.
          * @return this instance.
          */
         public Builder setConnectTimeout(final Timeout connectTimeout) {
@@ -198,6 +254,10 @@ public class ConnectionConfig implements Cloneable {
         }
 
         /**
+         * Sets the timeout until a new connection is fully established.
+         *
+         * @param connectTimeout The timeout until a new connection is fully established.
+         * @param timeUnit The time unit of the timeout parameter.
          * @return this instance.
          * @see #setConnectTimeout(Timeout)
          */
@@ -217,6 +277,7 @@ public class ConnectionConfig implements Cloneable {
          * Default: {@code null} (undefined)
          * </p>
          *
+         * @param idleTimeout The maximum period of idleness for a connection.
          * @return this instance.
          *
          * @since 5.6
@@ -227,6 +288,13 @@ public class ConnectionConfig implements Cloneable {
         }
 
         /**
+         * Sets the maximum period of idleness for a connection.
+         * <p>
+         * Connections that are idle for longer than {@code idleTimeout} are no longer eligible for reuse.
+         * </p>
+         *
+         * @param idleTimeout The maximum period of idleness for a connection.
+         * @param timeUnit
          * @return this instance.
          * @see #setIdleTimeout(Timeout)
          */
@@ -236,13 +304,14 @@ public class ConnectionConfig implements Cloneable {
         }
 
         /**
-         * Defines period of inactivity after which persistent connections must
+         * Sets the period of inactivity after which persistent connections must
          * be re-validated prior to being leased to the consumer. Negative values passed
          * to this method disable connection validation.
          * <p>
          * Default: {@code null} (undefined)
          * </p>
          *
+         * @param validateAfterInactivity The period of inactivity after which persistent connections must be re-validated.
          * @return this instance.
          */
         public Builder setValidateAfterInactivity(final TimeValue validateAfterInactivity) {
@@ -251,6 +320,10 @@ public class ConnectionConfig implements Cloneable {
         }
 
         /**
+         * Sets the period of inactivity after which persistent connections must be re-validated prior to being leased to the consumer.
+         *
+         * @param validateAfterInactivity The period of inactivity after which persistent connections must be re-validated.
+         * @param timeUnit The time unit of the validateAfterInactivity parameter.
          * @return this instance.
          * @see #setValidateAfterInactivity(TimeValue)
          */
@@ -265,6 +338,7 @@ public class ConnectionConfig implements Cloneable {
          * Default: {@code null} (undefined)
          * </p>
          *
+         * @param timeToLive The total span of time connections can be kept alive or execute requests.
          * @return this instance.
          */
         public Builder setTimeToLive(final TimeValue timeToLive) {
@@ -273,6 +347,10 @@ public class ConnectionConfig implements Cloneable {
         }
 
         /**
+         * Sets the total span of time connections can be kept alive or execute requests.
+         *
+         * @param timeToLive The total span of time connections can be kept alive or execute requests.
+         * @param timeUnit The time unit of the timeToLive parameter.
          * @return this instance.
          * @see #setTimeToLive(TimeValue)
          */
@@ -281,6 +359,11 @@ public class ConnectionConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * Builds a new {@link ConnectionConfig} instance based on the values provided to the setters methods.
+         *
+         * @return a new {@link ConnectionConfig} instance.
+         */
         public ConnectionConfig build() {
             return new ConnectionConfig(
                     connectTimeout != null ? connectTimeout : DEFAULT_CONNECT_TIMEOUT,
