@@ -26,13 +26,17 @@
  */
 package org.apache.hc.core5.websocket;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.zip.Deflater;
 
+import org.apache.hc.core5.websocket.exceptions.WebSocketProtocolException;
 import org.junit.jupiter.api.Test;
 
 class PerMessageDeflateExtensionTest {
@@ -54,6 +58,42 @@ class PerMessageDeflateExtensionTest {
         joined.write(toBytes(out2));
 
         assertEquals("fragmented message", WebSocketSession.decodeText(ByteBuffer.wrap(joined.toByteArray())));
+    }
+
+    @Test
+    void decodeWithinLimitSucceeds() throws Exception {
+        final byte[] plain = "hello world hello world hello world".getBytes(StandardCharsets.UTF_8);
+        final byte[] compressed = deflateWithSyncFlush(plain);
+
+        final PerMessageDeflateExtension ext = new PerMessageDeflateExtension();
+        final ByteBuffer out = ext.decode(WebSocketFrameType.TEXT, true, ByteBuffer.wrap(compressed), plain.length + 16L);
+
+        assertArrayEquals(plain, toBytes(out));
+    }
+
+    @Test
+    void decodeInflationBombIsRejectedDuringInflate() {
+        final byte[] plain = new byte[64 * 1024];
+        Arrays.fill(plain, (byte) 'A');
+        final byte[] compressed = deflateWithSyncFlush(plain);
+
+        final PerMessageDeflateExtension ext = new PerMessageDeflateExtension();
+        final WebSocketProtocolException ex = assertThrows(WebSocketProtocolException.class,
+                () -> ext.decode(WebSocketFrameType.BINARY, true, ByteBuffer.wrap(compressed), 1024L));
+        assertEquals(1009, ex.closeCode);
+        assertEquals("Message too big", ex.getMessage());
+    }
+
+    @Test
+    void decodeZeroLimitMeansUnlimited() throws Exception {
+        final byte[] plain = new byte[8 * 1024];
+        Arrays.fill(plain, (byte) 'B');
+        final byte[] compressed = deflateWithSyncFlush(plain);
+
+        final PerMessageDeflateExtension ext = new PerMessageDeflateExtension();
+        final ByteBuffer out = ext.decode(WebSocketFrameType.BINARY, true, ByteBuffer.wrap(compressed), 0L);
+
+        assertArrayEquals(plain, toBytes(out));
     }
 
     private static byte[] deflateWithSyncFlush(final byte[] input) {

@@ -112,11 +112,12 @@ class WebSocketFrameReader {
             payload[i] = (byte) (payload[i] ^ maskKey[i % 4]);
         }
         ByteBuffer data = ByteBuffer.wrap(payload);
+        final long maxOutputSize = config.getMaxMessageSize();
         if (rsv1 && rsv1Extension != null) {
-            data = rsv1Extension.decode(type, fin, data);
+            data = rsv1Extension.decode(type, fin, data, maxOutputSize);
             continuationCompressed = !fin && (type == WebSocketFrameType.TEXT || type == WebSocketFrameType.BINARY);
         } else if (type == WebSocketFrameType.CONTINUATION && continuationCompressed && rsv1Extension != null) {
-            data = rsv1Extension.decode(type, fin, data);
+            data = rsv1Extension.decode(type, fin, data, maxOutputSize);
             if (fin) {
                 continuationCompressed = false;
             }
@@ -124,10 +125,10 @@ class WebSocketFrameReader {
             continuationCompressed = false;
         }
         if (rsv2 && rsv2Extension != null) {
-            data = rsv2Extension.decode(type, fin, data);
+            data = rsv2Extension.decode(type, fin, data, maxOutputSize);
         }
         if (rsv3 && rsv3Extension != null) {
-            data = rsv3Extension.decode(type, fin, data);
+            data = rsv3Extension.decode(type, fin, data, maxOutputSize);
         }
         return new WebSocketFrame(fin, false, false, false, type, data);
     }

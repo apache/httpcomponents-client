@@ -51,6 +51,22 @@ public interface WebSocketExtension {
         return payload;
     }
 
+    /**
+     * Decode a frame payload, aborting as soon as the produced output exceeds
+     * {@code maxOutputSize}. A non-positive limit means no limit. Implementations
+     * that may expand input (e.g. permessage-deflate) MUST honour the limit during
+     * the expansion step, not only after it, to prevent decompression-bomb attacks.
+     *
+     * @since 5.7
+     */
+    default ByteBuffer decode(
+            final WebSocketFrameType type,
+            final boolean fin,
+            final ByteBuffer payload,
+            final long maxOutputSize) throws WebSocketException {
+        return decode(type, fin, payload);
+    }
+
     default ByteBuffer encode(
             final WebSocketFrameType type,
             final boolean fin,

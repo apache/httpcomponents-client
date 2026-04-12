@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
+import org.apache.hc.core5.websocket.exceptions.WebSocketProtocolException;
+
 public final class PerMessageDeflateExtension implements WebSocketExtension {
 
     private static final byte[] TAIL = new byte[]{0x00, 0x00, (byte) 0xFF, (byte) 0xFF};
@@ -76,6 +78,14 @@ public final class PerMessageDeflateExtension implements WebSocketExtension {
 
     @Override
     public ByteBuffer decode(final WebSocketFrameType type, final boolean fin, final ByteBuffer payload) throws WebSocketException {
+        return decode(type, fin, payload, 0L);
+    }
+
+    @Override
+    public ByteBuffer decode(final WebSocketFrameType type,
+                             final boolean fin,
+                             final ByteBuffer payload,
+                             final long maxOutputSize) throws WebSocketException {
         if (!isDataFrame(type) && type != WebSocketFrameType.CONTINUATION) {
             throw new WebSocketException("Unsupported frame type for permessage-deflate: " + type);
         }
@@ -94,14 +104,23 @@ public final class PerMessageDeflateExtension implements WebSocketExtension {
         inflater.setInput(withTail);
         final ByteArrayOutputStream out = new ByteArrayOutputStream(Math.max(128, input.length));
         final byte[] buffer = new byte[Math.min(16384, Math.max(1024, input.length * 2))];
+        long produced = 0L;
         try {
             while (!inflater.needsInput()) {
                 final int count = inflater.inflate(buffer);
                 if (count == 0 && inflater.needsInput()) {
                     break;
                 }
+                // Enforce the decoded size cap during inflation, not after, so a small
+                // compressed payload cannot expand into a huge buffer before we react.
+                if (maxOutputSize > 0L && produced + count > maxOutputSize) {
+                    throw new WebSocketProtocolException(1009, "Message too big");
+                }
                 out.write(buffer, 0, count);
+                produced += count;
             }
+        } catch (final WebSocketProtocolException wspe) {
+            throw wspe;
         } catch (final Exception ex) {
             throw new WebSocketException("Unable to inflate payload", ex);
         }
