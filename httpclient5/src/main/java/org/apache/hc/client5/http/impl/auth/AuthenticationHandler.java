@@ -28,7 +28,6 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -47,7 +46,6 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -56,10 +54,9 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.message.ParserCursor;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Asserts;
-import org.apache.hc.core5.util.CharArrayBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -169,43 +166,27 @@ public class AuthenticationHandler {
             final HttpResponse response,
             final HttpClientContext context) {
         final Map<String, AuthChallenge> challengeMap = new HashMap<>();
-        final Iterator<Header> headerIterator = response.headerIterator(
-                challengeType == ChallengeType.PROXY ? HttpHeaders.PROXY_AUTHENTICATE : HttpHeaders.WWW_AUTHENTICATE);
-        while (headerIterator.hasNext()) {
-            final Header header = headerIterator.next();
-            final CharArrayBuffer buffer;
-            final int pos;
-            if (header instanceof FormattedHeader) {
-                buffer = ((FormattedHeader) header).getBuffer();
-                pos = ((FormattedHeader) header).getValuePos();
-            } else {
-                final String s = header.getValue();
-                if (s == null) {
-                    continue;
-                }
-                buffer = new CharArrayBuffer(s.length());
-                buffer.append(s);
-                pos = 0;
-            }
-            final ParserCursor cursor = new ParserCursor(pos, buffer.length());
-            final List<AuthChallenge> authChallenges;
-            try {
-                authChallenges = parser.parse(challengeType, buffer, cursor);
-            } catch (final ParseException ex) {
-                if (LOG.isWarnEnabled()) {
-                    final HttpClientContext clientContext = HttpClientContext.cast(context);
-                    final String exchangeId = clientContext.getExchangeId();
-                    LOG.warn("{} Malformed challenge: {}", exchangeId, header.getValue());
-                }
-                continue;
-            }
-            for (final AuthChallenge authChallenge : authChallenges) {
-                final String schemeName = authChallenge.getSchemeName().toLowerCase(Locale.ROOT);
-                if (!challengeMap.containsKey(schemeName)) {
-                    challengeMap.put(schemeName, authChallenge);
-                }
-            }
-        }
+        MessageSupport.parseHeaders(
+                response,
+                challengeType == ChallengeType.PROXY ? HttpHeaders.PROXY_AUTHENTICATE : HttpHeaders.WWW_AUTHENTICATE,
+                (buffer, cursor) -> {
+                    try {
+                        final List<AuthChallenge> authChallenges = parser.parse(challengeType, buffer, cursor);
+                        for (final AuthChallenge authChallenge : authChallenges) {
+                            final String schemeName = authChallenge.getSchemeName().toLowerCase(Locale.ROOT);
+                            if (!challengeMap.containsKey(schemeName)) {
+                                challengeMap.put(schemeName, authChallenge);
+                            }
+                        }
+                    } catch (final ParseException ex) {
+                        if (LOG.isWarnEnabled()) {
+                            final HttpClientContext clientContext = HttpClientContext.cast(context);
+                            final String exchangeId = clientContext.getExchangeId();
+                            LOG.warn("{} Malformed challenge", exchangeId);
+                        }
+                    }
+
+                });
         return challengeMap;
     }
 

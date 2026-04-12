@@ -34,6 +34,7 @@ import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.message.BasicHeaderValueParser;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.TextUtils;
@@ -107,19 +108,52 @@ public class AuthChallengeParser {
         }
         final List<AuthChallenge> challenges = new ArrayList<>(internalChallenges.size());
         for (final ChallengeInt internal : internalChallenges) {
-            final List<NameValuePair> params = internal.params;
-            String token68 = null;
-            if (params.size() == 1) {
-                final NameValuePair param = params.get(0);
-                if (param.getValue() == null) {
-                    token68 = param.getName();
-                    params.clear();
-                }
-            }
-            challenges.add(
-                    new AuthChallenge(challengeType, internal.schemeName, token68, !params.isEmpty() ? params : null));
+            challenges.add(parseInt(challengeType, internal));
         }
         return challenges;
+    }
+
+    /**
+     * Parses the given sequence of characters into a single {@link AuthChallenge}.
+     *
+     * @param challengeType the type of challenge (target or proxy).
+     * @param schemeName the scheme name
+     * @param buffer the sequence of characters to be parsed.
+     * @param cursor the parser cursor.
+     * @return auth challenge.
+     *
+     * @since 5.7
+     */
+    public AuthChallenge parse(
+            final ChallengeType challengeType,
+            final String schemeName,
+            final CharSequence buffer,
+            final ParserCursor cursor) {
+        final List<NameValuePair> params = new ArrayList<>();
+        while (!cursor.atEnd()) {
+            final NameValuePair param = BasicHeaderValueParser.INSTANCE.parseNameValuePair(buffer, cursor);
+            params.add(param);
+            if (!cursor.atEnd()) {
+                final char ch = buffer.charAt(cursor.getPos());
+                if (ch == ',') {
+                    cursor.updatePos(cursor.getPos() + 1);
+                }
+            }
+        }
+        return new AuthChallenge(challengeType, schemeName, null, params);
+    }
+
+    AuthChallenge parseInt(final ChallengeType challengeType, final ChallengeInt internal) {
+        final List<NameValuePair> params = internal.params;
+        String token68 = null;
+        if (params.size() == 1) {
+            final NameValuePair param = params.get(0);
+            if (param.getValue() == null) {
+                token68 = param.getName();
+                params.clear();
+            }
+        }
+        return new AuthChallenge(challengeType, internal.schemeName, token68, !params.isEmpty() ? params : null);
     }
 
     ChallengeInt parseChallenge(

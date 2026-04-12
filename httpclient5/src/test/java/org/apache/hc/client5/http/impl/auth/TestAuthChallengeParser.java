@@ -345,4 +345,21 @@ class TestAuthChallengeParser {
         Assertions.assertEquals(value, pair.getValue());
     }
 
+    @Test
+    void testParseAuthInfo() throws Exception {
+        final CharArrayBuffer buffer = new CharArrayBuffer(64);
+        buffer.append("  realm = blah, this, that  , name = value ");
+        final ParserCursor cursor = new ParserCursor(0, buffer.length());
+        final AuthChallenge challenge = parser.parse(ChallengeType.TARGET, StandardAuthScheme.BASIC, buffer, cursor);
+        Assertions.assertEquals(StandardAuthScheme.BASIC, challenge.getSchemeName());
+        Assertions.assertNull(challenge.getValue());
+        final List<NameValuePair> params = challenge.getParams();
+        Assertions.assertNotNull(params);
+        Assertions.assertEquals(4, params.size());
+        assertNameValuePair(params.get(0), "realm", "blah");
+        assertNameValuePair(params.get(1), "this", null);
+        assertNameValuePair(params.get(2), "that", null);
+        assertNameValuePair(params.get(3), "name", "value");
+    }
+
 }
