@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.auth;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
@@ -48,6 +49,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.message.BasicHeader;
@@ -58,6 +60,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 class TestAuthenticationHandler {
@@ -479,6 +482,49 @@ class TestAuthenticationHandler {
                 Mockito.eq(defaultHost),
                 Mockito.any(HttpRequest.class),
                 Mockito.any(HttpContext.class));
+    }
+
+    private static String getParam(final AuthChallenge authChallenge, final String name) {
+        for (final NameValuePair param : authChallenge.getParams()) {
+            if (param.getName().equalsIgnoreCase(name)) {
+                return param.getValue();
+            }
+        }
+        return null;
+    }
+
+    @Test
+    void testAuthenticationInfoProcessedOnSuccessResponse() throws Exception {
+        final HttpHost host = new HttpHost("somehost", 80);
+        final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
+        response.addHeader(new BasicHeader("Authentication-Info", "sid=\"sid-1\", data=\"dj1hYmM\""));
+
+        final AuthScheme authScheme = Mockito.mock(AuthScheme.class);
+        Mockito.when(authScheme.getName()).thenReturn(StandardAuthScheme.SCRAM_SHA_256);
+        Mockito.when(authScheme.isChallengeExpected()).thenReturn(Boolean.TRUE);
+        Mockito.when(authScheme.isChallengeComplete()).thenReturn(Boolean.FALSE);
+
+        this.authExchange.select(authScheme);
+        this.authExchange.setState(AuthExchange.State.HANDSHAKE);
+
+        final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
+
+        Assertions.assertFalse(this.httpAuthenticator.handleResponse(
+                host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
+        Assertions.assertEquals(AuthExchange.State.SUCCESS, this.authExchange.getState());
+
+        final ArgumentCaptor<AuthChallenge> challengeCaptor = ArgumentCaptor.forClass(AuthChallenge.class);
+        Mockito.verify(authScheme).processChallenge(
+                Mockito.eq(host),
+                Mockito.eq(false),
+                challengeCaptor.capture(),
+                Mockito.same(this.context));
+
+        final AuthChallenge challenge = challengeCaptor.getValue();
+        Assertions.assertNotNull(challenge);
+        Assertions.assertEquals(StandardAuthScheme.SCRAM_SHA_256, challenge.getSchemeName());
+        Assertions.assertEquals("sid-1", getParam(challenge, "sid"));
+        Assertions.assertEquals("dj1hYmM", getParam(challenge, "data"));
     }
 
 }

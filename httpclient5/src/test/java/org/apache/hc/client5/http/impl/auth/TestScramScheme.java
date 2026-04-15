@@ -24,7 +24,6 @@
  * <http://www.apache.org/>.
  *
  */
-
 package org.apache.hc.client5.http.impl.auth;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -63,7 +62,7 @@ final class TestScramScheme {
     private static final String REALM = "s1";
     private static final String USER = "u";
     private static final String PASS = "p";
-
+    private static final String SID = "sid-1";
 
     static String b64(final byte[] b) {
         return Base64.getEncoder().withoutPadding().encodeToString(b);
@@ -71,10 +70,6 @@ final class TestScramScheme {
 
     static byte[] b64d(final String s) {
         return Base64.getDecoder().decode(s);
-    }
-
-    static String b64s(final String s) {
-        return b64(s.getBytes(StandardCharsets.UTF_8));
     }
 
     static String deb64s(final String s) {
@@ -86,7 +81,9 @@ final class TestScramScheme {
         int i = 0;
         while (i < s.length()) {
             final int eq = s.indexOf('=', i);
-            if (eq < 0) break;
+            if (eq < 0) {
+                break;
+            }
             final String k = s.substring(i, eq);
             i = eq + 1;
             final StringBuilder v = new StringBuilder();
@@ -105,7 +102,6 @@ final class TestScramScheme {
     }
 
     static Map<String, String> splitHeader(final String header) {
-        // "SCRAM-SHA-256 realm="...", data="..."" -> name/value map (lowercase keys)
         final int sp = header.indexOf(' ');
         final String params = header.substring(sp + 1);
         final Map<String, String> map = new HashMap<>();
@@ -136,7 +132,6 @@ final class TestScramScheme {
         return mac.doFinal(msg.getBytes(StandardCharsets.UTF_8));
     }
 
-
     @Test
     void strictScram_fullRoundtrip_completes() throws Exception {
         final ScramScheme scheme = new ScramScheme();
@@ -145,40 +140,36 @@ final class TestScramScheme {
                 new UsernamePasswordCredentials(USER, PASS.toCharArray()));
         final HttpClientContext ctx = HttpClientContext.create();
 
-        // 401 announce (no data)
         scheme.processChallenge(HOST, true,
                 new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
                         new BasicNameValuePair("realm", REALM)),
                 ctx);
         assertTrue(scheme.isResponseReady(HOST, creds, ctx));
 
-        // Authorization (client-first)
         final String authz1 = scheme.generateAuthResponse(HOST, null, ctx);
         final Map<String, String> h1 = splitHeader(authz1);
         assertEquals(REALM, h1.get("realm"));
         final String clientFirst = deb64s(h1.get("data"));
-        assertTrue(clientFirst.startsWith("n,,"), "GS2 header missing");
+        assertTrue(clientFirst.startsWith("n,,"));
         final String clientFirstBare = clientFirst.substring("n,,".length());
-        final Map<String, String> cf1 = parseCsvAttrs(clientFirstBare);
-        final String clientNonce = cf1.get("r");
+        final String clientNonce = parseCsvAttrs(clientFirstBare).get("r");
         assertNotNull(clientNonce);
 
-        // 401 server-first
         final String saltB64 = b64("salt-256".getBytes(StandardCharsets.UTF_8));
         final int iters = 4096;
         final String serverFirst = "r=" + clientNonce + "XYZ,s=" + saltB64 + ",i=" + iters;
         scheme.processChallenge(HOST, true,
                 new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
-                        new BasicNameValuePair("sid", "sid-1"),
+                        new BasicNameValuePair("sid", SID),
                         new BasicNameValuePair("data", b64(serverFirst.getBytes(StandardCharsets.UTF_8)))),
                 ctx);
 
         final String authz2 = scheme.generateAuthResponse(HOST, null, ctx);
         final Map<String, String> h2 = splitHeader(authz2);
-        assertEquals("sid-1", h2.get("sid"));
+        assertEquals(SID, h2.get("sid"));
         final String clientFinal = deb64s(h2.get("data"));
         final Map<String, String> cf2 = parseCsvAttrs(clientFinal);
-        assertEquals("biws", cf2.get("c")); // Base64("n,,")
+        assertEquals("biws", cf2.get("c"));
 
         final String clientFinalNoProof = "c=" + cf2.get("c") + ",r=" + cf2.get("r");
         final String authMessage = clientFirstBare + "," + serverFirst + "," + clientFinalNoProof;
@@ -188,47 +179,16 @@ final class TestScramScheme {
 
         scheme.processChallenge(HOST, false,
                 new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("sid", SID),
                         new BasicNameValuePair("data", b64(("v=" + vB64).getBytes(StandardCharsets.UTF_8)))),
                 ctx);
 
-        assertTrue(scheme.isChallengeComplete());
+        assertFalse(scheme.isChallengeComplete());
     }
-
-    @Test
-    void strictScram_invalidServerNonce_rejectedAt401() throws Exception {
-        final ScramScheme scheme = new ScramScheme();
-        final BasicCredentialsProvider creds = new BasicCredentialsProvider();
-        creds.setCredentials(new AuthScope(HOST, REALM, scheme.getName()),
-                new UsernamePasswordCredentials(USER, PASS.toCharArray()));
-        final HttpClientContext ctx = HttpClientContext.create();
-
-        // 401 announce
-        scheme.processChallenge(HOST, true,
-                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
-                        new BasicNameValuePair("realm", REALM)),
-                ctx);
-        assertTrue(scheme.isResponseReady(HOST, creds, ctx));
-
-        // Send client-first so the client nonce is generated and state is correct.
-        // We don't need the header content here.
-        scheme.generateAuthResponse(HOST, null, ctx);
-
-        // Bad server-first: nonce does NOT start with the client nonce
-        final String badServerFirst = "r=NOTPREFIXED,s=" + b64("salt".getBytes(StandardCharsets.UTF_8)) + ",i=4096";
-
-        final AuthenticationException ex = assertThrows(AuthenticationException.class, () ->
-                scheme.processChallenge(HOST, true,
-                        new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
-                                new BasicNameValuePair("data", b64(badServerFirst.getBytes(StandardCharsets.UTF_8)))),
-                        ctx));
-
-        assertTrue(ex.getMessage().toLowerCase(Locale.ROOT).contains("nonce"));
-    }
-
 
     @Test
     void strictScram_lowIterations_warnsButSucceeds() throws Exception {
-        final ScramScheme scheme = new ScramScheme(4096, 0, null); // warn only
+        final ScramScheme scheme = new ScramScheme(4096, 0, 100000, null);
         final BasicCredentialsProvider creds = new BasicCredentialsProvider();
         creds.setCredentials(new AuthScope(HOST, REALM, scheme.getName()),
                 new UsernamePasswordCredentials(USER, PASS.toCharArray()));
@@ -244,11 +204,11 @@ final class TestScramScheme {
         final String clientFirstBare = deb64s(splitHeader(authz1).get("data")).substring("n,,".length());
         final String clientNonce = parseCsvAttrs(clientFirstBare).get("r");
 
-        // server-first with i=1024 (below warn threshold)
         final String saltB64 = b64("salt-low".getBytes(StandardCharsets.UTF_8));
         final String serverFirst = "r=" + clientNonce + "Z,s=" + saltB64 + ",i=1024";
         scheme.processChallenge(HOST, true,
                 new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("sid", SID),
                         new BasicNameValuePair("data", b64(serverFirst.getBytes(StandardCharsets.UTF_8)))),
                 ctx);
 
@@ -262,18 +222,44 @@ final class TestScramScheme {
         final byte[] serverKey = hmac(salted, "Server Key");
         final String vB64 = b64(hmac(serverKey, authMessage));
 
-        // 2xx with v -> success
         scheme.processChallenge(HOST, false,
                 new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("sid", SID),
                         new BasicNameValuePair("data", b64(("v=" + vB64).getBytes(StandardCharsets.UTF_8)))),
                 ctx);
 
+        assertFalse(scheme.isChallengeComplete());
+    }
+
+    @Test
+    void strictScram_invalidServerNonce_rejectedAt401() throws Exception {
+        final ScramScheme scheme = new ScramScheme();
+        final BasicCredentialsProvider creds = new BasicCredentialsProvider();
+        creds.setCredentials(new AuthScope(HOST, REALM, scheme.getName()),
+                new UsernamePasswordCredentials(USER, PASS.toCharArray()));
+        final HttpClientContext ctx = HttpClientContext.create();
+
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("realm", REALM)),
+                ctx);
+        assertTrue(scheme.isResponseReady(HOST, creds, ctx));
+        scheme.generateAuthResponse(HOST, null, ctx);
+
+        final String badServerFirst = "r=NOTPREFIXED,s=" + b64("salt".getBytes(StandardCharsets.UTF_8)) + ",i=4096";
+        final AuthenticationException ex = assertThrows(AuthenticationException.class, () ->
+                scheme.processChallenge(HOST, true,
+                        new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                                new BasicNameValuePair("sid", SID),
+                                new BasicNameValuePair("data", b64(badServerFirst.getBytes(StandardCharsets.UTF_8)))),
+                        ctx));
+        assertTrue(ex.getMessage().toLowerCase(Locale.ROOT).contains("nonce"));
         assertTrue(scheme.isChallengeComplete());
     }
 
     @Test
     void strictScram_minIterations_enforced() throws Exception {
-        final ScramScheme scheme = new ScramScheme(4096, 4096, null); // hard min 4096
+        final ScramScheme scheme = new ScramScheme(4096, 4096, 100000, null);
         final BasicCredentialsProvider creds = new BasicCredentialsProvider();
         creds.setCredentials(new AuthScope(HOST, REALM, scheme.getName()),
                 new UsernamePasswordCredentials(USER, PASS.toCharArray()));
@@ -289,14 +275,160 @@ final class TestScramScheme {
         final String clientFirstBare = deb64s(splitHeader(authz1).get("data")).substring("n,,".length());
         final String clientNonce = parseCsvAttrs(clientFirstBare).get("r");
 
-        // server-first with i=1024 (below hard min) -> fail immediately at processChallenge(401)
         final String serverFirst = "r=" + clientNonce + "Z,s=" + b64("salt".getBytes(StandardCharsets.UTF_8)) + ",i=1024";
         final AuthenticationException ex = assertThrows(AuthenticationException.class, () ->
                 scheme.processChallenge(HOST, true,
                         new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                                new BasicNameValuePair("sid", SID),
                                 new BasicNameValuePair("data", b64(serverFirst.getBytes(StandardCharsets.UTF_8)))),
                         ctx));
         assertTrue(ex.getMessage().toLowerCase(Locale.ROOT).contains("iteration"));
+        assertTrue(scheme.isChallengeComplete());
+    }
+
+    @Test
+    void strictScram_maxIterations_enforced() throws Exception {
+        final ScramScheme scheme = new ScramScheme(4096, 0, 8192, null);
+        final BasicCredentialsProvider creds = new BasicCredentialsProvider();
+        creds.setCredentials(new AuthScope(HOST, REALM, scheme.getName()),
+                new UsernamePasswordCredentials(USER, PASS.toCharArray()));
+        final HttpClientContext ctx = HttpClientContext.create();
+
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("realm", REALM)),
+                ctx);
+        assertTrue(scheme.isResponseReady(HOST, creds, ctx));
+
+        final String authz1 = scheme.generateAuthResponse(HOST, null, ctx);
+        final String clientFirstBare = deb64s(splitHeader(authz1).get("data")).substring("n,,".length());
+        final String clientNonce = parseCsvAttrs(clientFirstBare).get("r");
+
+        final String serverFirst = "r=" + clientNonce + "Z,s=" + b64("salt".getBytes(StandardCharsets.UTF_8)) + ",i=20000";
+        final AuthenticationException ex = assertThrows(AuthenticationException.class, () ->
+                scheme.processChallenge(HOST, true,
+                        new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                                new BasicNameValuePair("sid", SID),
+                                new BasicNameValuePair("data", b64(serverFirst.getBytes(StandardCharsets.UTF_8)))),
+                        ctx));
+        assertTrue(ex.getMessage().toLowerCase(Locale.ROOT).contains("maximum"));
+        assertTrue(scheme.isChallengeComplete());
+    }
+
+    @Test
+    void strictScram_missingSidInServerFirst_isMalformed() throws Exception {
+        final ScramScheme scheme = new ScramScheme();
+        final BasicCredentialsProvider creds = new BasicCredentialsProvider();
+        creds.setCredentials(new AuthScope(HOST, REALM, scheme.getName()),
+                new UsernamePasswordCredentials(USER, PASS.toCharArray()));
+        final HttpClientContext ctx = HttpClientContext.create();
+
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("realm", REALM)),
+                ctx);
+        assertTrue(scheme.isResponseReady(HOST, creds, ctx));
+        final String authz1 = scheme.generateAuthResponse(HOST, null, ctx);
+        final String clientFirstBare = deb64s(splitHeader(authz1).get("data")).substring("n,,".length());
+        final String clientNonce = parseCsvAttrs(clientFirstBare).get("r");
+
+        final String serverFirst = "r=" + clientNonce + "Z,s=" + b64("salt".getBytes(StandardCharsets.UTF_8)) + ",i=4096";
+        final MalformedChallengeException ex = assertThrows(MalformedChallengeException.class, () ->
+                scheme.processChallenge(HOST, true,
+                        new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                                new BasicNameValuePair("data", b64(serverFirst.getBytes(StandardCharsets.UTF_8)))),
+                        ctx));
+        assertTrue(ex.getMessage().toLowerCase(Locale.ROOT).contains("sid"));
+        assertTrue(scheme.isChallengeComplete());
+    }
+
+    @Test
+    void strictScram_authInfo_missingSid_fails() throws Exception {
+        final ScramScheme scheme = new ScramScheme();
+        final BasicCredentialsProvider creds = new BasicCredentialsProvider();
+        creds.setCredentials(new AuthScope(HOST, REALM, scheme.getName()),
+                new UsernamePasswordCredentials(USER, PASS.toCharArray()));
+        final HttpClientContext ctx = HttpClientContext.create();
+
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("realm", REALM)),
+                ctx);
+        assertTrue(scheme.isResponseReady(HOST, creds, ctx));
+
+        final String authz1 = scheme.generateAuthResponse(HOST, null, ctx);
+        final String clientFirstBare = deb64s(splitHeader(authz1).get("data")).substring("n,,".length());
+        final String clientNonce = parseCsvAttrs(clientFirstBare).get("r");
+
+        final String saltB64 = b64("salt".getBytes(StandardCharsets.UTF_8));
+        final String serverFirst = "r=" + clientNonce + "Z,s=" + saltB64 + ",i=4096";
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("sid", SID),
+                        new BasicNameValuePair("data", b64(serverFirst.getBytes(StandardCharsets.UTF_8)))),
+                ctx);
+
+        final String authz2 = scheme.generateAuthResponse(HOST, null, ctx);
+        final String clientFinal = deb64s(splitHeader(authz2).get("data"));
+        final Map<String, String> cf = parseCsvAttrs(clientFinal);
+        final String clientFinalNoProof = "c=" + cf.get("c") + ",r=" + cf.get("r");
+        final String authMessage = clientFirstBare + "," + serverFirst + "," + clientFinalNoProof;
+        final byte[] salted = pbkdf2(PASS.toCharArray(), b64d(saltB64), 4096, 32);
+        final byte[] serverKey = hmac(salted, "Server Key");
+        final String vB64 = b64(hmac(serverKey, authMessage));
+
+        final MalformedChallengeException ex = assertThrows(MalformedChallengeException.class, () ->
+                scheme.processChallenge(HOST, false,
+                        new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                                new BasicNameValuePair("data", b64(("v=" + vB64).getBytes(StandardCharsets.UTF_8)))),
+                        ctx));
+        assertTrue(ex.getMessage().toLowerCase(Locale.ROOT).contains("sid"));
+        assertTrue(scheme.isChallengeComplete());
+    }
+
+    @Test
+    void strictScram_authInfo_sidMismatch_fails() throws Exception {
+        final ScramScheme scheme = new ScramScheme();
+        final BasicCredentialsProvider creds = new BasicCredentialsProvider();
+        creds.setCredentials(new AuthScope(HOST, REALM, scheme.getName()),
+                new UsernamePasswordCredentials(USER, PASS.toCharArray()));
+        final HttpClientContext ctx = HttpClientContext.create();
+
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("realm", REALM)),
+                ctx);
+        assertTrue(scheme.isResponseReady(HOST, creds, ctx));
+
+        final String authz1 = scheme.generateAuthResponse(HOST, null, ctx);
+        final String clientFirstBare = deb64s(splitHeader(authz1).get("data")).substring("n,,".length());
+        final String clientNonce = parseCsvAttrs(clientFirstBare).get("r");
+
+        final String saltB64 = b64("salt".getBytes(StandardCharsets.UTF_8));
+        final String serverFirst = "r=" + clientNonce + "Z,s=" + saltB64 + ",i=4096";
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("sid", SID),
+                        new BasicNameValuePair("data", b64(serverFirst.getBytes(StandardCharsets.UTF_8)))),
+                ctx);
+
+        final String authz2 = scheme.generateAuthResponse(HOST, null, ctx);
+        final String clientFinal = deb64s(splitHeader(authz2).get("data"));
+        final Map<String, String> cf = parseCsvAttrs(clientFinal);
+        final String clientFinalNoProof = "c=" + cf.get("c") + ",r=" + cf.get("r");
+        final String authMessage = clientFirstBare + "," + serverFirst + "," + clientFinalNoProof;
+        final byte[] salted = pbkdf2(PASS.toCharArray(), b64d(saltB64), 4096, 32);
+        final byte[] serverKey = hmac(salted, "Server Key");
+        final String vB64 = b64(hmac(serverKey, authMessage));
+
+        final AuthenticationException ex = assertThrows(AuthenticationException.class, () ->
+                scheme.processChallenge(HOST, false,
+                        new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                                new BasicNameValuePair("sid", "sid-other"),
+                                new BasicNameValuePair("data", b64(("v=" + vB64).getBytes(StandardCharsets.UTF_8)))),
+                        ctx));
+        assertTrue(ex.getMessage().toLowerCase(Locale.ROOT).contains("sid"));
+        assertTrue(scheme.isChallengeComplete());
     }
 
     @Test
@@ -320,19 +452,20 @@ final class TestScramScheme {
         final String serverFirst = "r=" + clientNonce + "Z,s=" + b64("salt".getBytes(StandardCharsets.UTF_8)) + ",i=4096";
         scheme.processChallenge(HOST, true,
                 new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("sid", SID),
                         new BasicNameValuePair("data", b64(serverFirst.getBytes(StandardCharsets.UTF_8)))),
                 ctx);
 
-        // client-final
         scheme.generateAuthResponse(HOST, null, ctx);
 
-        // 2xx with wrong v
         final MalformedChallengeException ex = assertThrows(MalformedChallengeException.class, () ->
                 scheme.processChallenge(HOST, false,
                         new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                                new BasicNameValuePair("sid", SID),
                                 new BasicNameValuePair("data", b64("v=WRONG".getBytes(StandardCharsets.UTF_8)))),
                         ctx));
         assertTrue(ex.getMessage().toLowerCase(Locale.ROOT).contains("signature"));
+        assertTrue(scheme.isChallengeComplete());
     }
 
     @Test
@@ -356,18 +489,20 @@ final class TestScramScheme {
         final String serverFirst = "r=" + clientNonce + "Z,s=" + b64("salt".getBytes(StandardCharsets.UTF_8)) + ",i=4096";
         scheme.processChallenge(HOST, true,
                 new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("sid", SID),
                         new BasicNameValuePair("data", b64(serverFirst.getBytes(StandardCharsets.UTF_8)))),
                 ctx);
 
         scheme.generateAuthResponse(HOST, null, ctx);
 
-        // 2xx with e=
         final AuthenticationException ex = assertThrows(AuthenticationException.class, () ->
                 scheme.processChallenge(HOST, false,
                         new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                                new BasicNameValuePair("sid", SID),
                                 new BasicNameValuePair("data", b64("e=server-fail".getBytes(StandardCharsets.UTF_8)))),
                         ctx));
         assertTrue(ex.getMessage().contains("server error"));
+        assertTrue(scheme.isChallengeComplete());
     }
 
     @Test
@@ -378,9 +513,11 @@ final class TestScramScheme {
         final MalformedChallengeException ex = assertThrows(MalformedChallengeException.class, () ->
                 scheme.processChallenge(HOST, true,
                         new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                                new BasicNameValuePair("sid", SID),
                                 new BasicNameValuePair("data", "%%%not-base64%%%")),
                         ctx));
         assertTrue(ex.getMessage().toLowerCase(Locale.ROOT).contains("base64"));
+        assertTrue(scheme.isChallengeComplete());
     }
 
     @Test
@@ -391,9 +528,11 @@ final class TestScramScheme {
         final MalformedChallengeException ex = assertThrows(MalformedChallengeException.class, () ->
                 scheme.processChallenge(HOST, true,
                         new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                                new BasicNameValuePair("sid", SID),
                                 new BasicNameValuePair("data", b64("r=only".getBytes(StandardCharsets.UTF_8)))),
                         ctx));
         assertTrue(ex.getMessage().toLowerCase(Locale.ROOT).contains("missing"));
+        assertTrue(scheme.isChallengeComplete());
     }
 
     @Test
@@ -404,7 +543,6 @@ final class TestScramScheme {
                 new UsernamePasswordCredentials(USER, PASS.toCharArray()));
         final HttpClientContext ctx = HttpClientContext.create();
 
-        // Test that we can generate a response without receiving a challenge first
         assertTrue(scheme.isResponseReady(HOST, creds, ctx));
         final String response = scheme.generateAuthResponse(HOST, null, ctx);
         assertNotNull(response);
@@ -427,31 +565,38 @@ final class TestScramScheme {
                 new UsernamePasswordCredentials(USER, PASS.toCharArray()));
         final HttpClientContext ctx = HttpClientContext.create();
 
-        // Go through the initial flow
         scheme.processChallenge(HOST, true,
                 new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
                         new BasicNameValuePair("realm", REALM)),
                 ctx);
+        assertTrue(scheme.isResponseReady(HOST, creds, ctx));
+        final String authz1 = scheme.generateAuthResponse(HOST, null, ctx);
+        final String clientFirstBare = deb64s(splitHeader(authz1).get("data")).substring("n,,".length());
+        final String clientNonce = parseCsvAttrs(clientFirstBare).get("r");
+
+        final String serverFirst = "r=" + clientNonce + "Z,s=" + b64("salt".getBytes(StandardCharsets.UTF_8)) + ",i=4096";
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("sid", SID),
+                        new BasicNameValuePair("data", b64(serverFirst.getBytes(StandardCharsets.UTF_8)))),
+                ctx);
         scheme.generateAuthResponse(HOST, null, ctx);
 
-        // Test with invalid base64 in Authentication-Info
         final MalformedChallengeException ex = assertThrows(MalformedChallengeException.class, () ->
                 scheme.processChallenge(HOST, false,
                         new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                                new BasicNameValuePair("sid", SID),
                                 new BasicNameValuePair("data", "invalid-base64")),
                         ctx));
         assertTrue(ex.getMessage().toLowerCase(Locale.ROOT).contains("base64"));
+        assertTrue(scheme.isChallengeComplete());
     }
 
     @Test
     void testInvalidStateTransition() throws Exception {
         final ScramScheme scheme = new ScramScheme();
-        final BasicCredentialsProvider creds = new BasicCredentialsProvider();
-        creds.setCredentials(new AuthScope(HOST, REALM, scheme.getName()),
-                new UsernamePasswordCredentials(USER, PASS.toCharArray()));
         final HttpClientContext ctx = HttpClientContext.create();
 
-        // Try to generate a response without proper state setup
         final AuthenticationException ex = assertThrows(AuthenticationException.class, () ->
                 scheme.generateAuthResponse(HOST, null, ctx));
         assertTrue(ex.getMessage().toLowerCase(Locale.ROOT).contains("sequence"));
@@ -465,7 +610,6 @@ final class TestScramScheme {
                 new UsernamePasswordCredentials(USER, "".toCharArray()));
         final HttpClientContext ctx = HttpClientContext.create();
 
-        // This should work without throwing exceptions
         scheme.processChallenge(HOST, true,
                 new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
                         new BasicNameValuePair("realm", REALM)),
@@ -483,7 +627,6 @@ final class TestScramScheme {
                 new UsernamePasswordCredentials(specialUser, specialPass.toCharArray()));
         final HttpClientContext ctx = HttpClientContext.create();
 
-        // Test the full flow with special characters
         scheme.processChallenge(HOST, true,
                 new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
                         new BasicNameValuePair("realm", REALM)),

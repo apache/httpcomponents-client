@@ -227,6 +227,19 @@ public class AuthenticationHandler {
         }
 
         final Map<String, AuthChallenge> challengeMap = extractChallengeMap(challengeType, response, clientContext);
+        if (challengeMap.isEmpty() && !challenged && isChallengeExpected) {
+            final AuthScheme authScheme = authExchange.getAuthScheme();
+            if (authScheme != null) {
+                MessageSupport.parseHeaders(
+                        response,
+                        challengeType == ChallengeType.PROXY ? "Proxy-Authentication-Info" : "Authentication-Info",
+                        (buffer, cursor) -> {
+                            final String schemeName = authScheme.getName();
+                            final AuthChallenge authChallenge = parser.parse(challengeType, schemeName, buffer, cursor);
+                            challengeMap.put(schemeName.toLowerCase(Locale.ROOT), authChallenge);
+                        });
+            }
+        }
 
         if (challengeMap.isEmpty()) {
             if (LOG.isDebugEnabled()) {
