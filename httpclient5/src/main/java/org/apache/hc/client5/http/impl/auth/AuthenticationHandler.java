@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.impl.auth;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,8 +53,10 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicHeaderValueParser;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Asserts;
@@ -227,6 +230,30 @@ public class AuthenticationHandler {
         }
 
         final Map<String, AuthChallenge> challengeMap = extractChallengeMap(challengeType, response, clientContext);
+        if (challengeMap.isEmpty() && !challenged && isChallengeExpected) {
+            final AuthScheme authScheme = authExchange.getAuthScheme();
+            if (authScheme != null) {
+                MessageSupport.parseHeaders(
+                        response,
+                        challengeType == ChallengeType.PROXY ? "Proxy-Authentication-Info" : "Authentication-Info",
+                        (buffer, cursor) -> {
+                            final String schemeName = authScheme.getName();
+                            final List<NameValuePair> params = new ArrayList<>();
+                            while (!cursor.atEnd()) {
+                                final NameValuePair param = BasicHeaderValueParser.INSTANCE.parseNameValuePair(buffer, cursor);
+                                params.add(param);
+                                if (!cursor.atEnd()) {
+                                    final char ch = buffer.charAt(cursor.getPos());
+                                    if (ch == ',') {
+                                        cursor.updatePos(cursor.getPos() + 1);
+                                    }
+                                }
+                            }
+                            final AuthChallenge authChallenge = new AuthChallenge(challengeType, schemeName, null, params);
+                            challengeMap.put(schemeName.toLowerCase(Locale.ROOT), authChallenge);
+                        });
+            }
+        }
 
         if (challengeMap.isEmpty()) {
             if (LOG.isDebugEnabled()) {

@@ -80,6 +80,9 @@ public final class ScramScheme implements AuthScheme {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScramScheme.class);
 
+    private static final int DEFAULT_WARN_MIN_ITERATIONS = 4096;
+    private static final int DEFAULT_MAX_ITERATIONS_ALLOWED = 100000;
+
     // RFC 7804 / RFC 5802 fixed no-CB GS2 header and its base64 value for 'c='
     private static final String GS2_HEADER = "n,,";
     private static final String C_BIND_B64 = "biws"; // base64("n,,")
@@ -100,6 +103,7 @@ public final class ScramScheme implements AuthScheme {
     private final SecureRandom secureRandom;
     private final int warnMinIterations;
     private final int minIterationsRequired;
+    private final int maxIterationsAllowed;
 
     private State state = State.INIT;
     private boolean complete;
@@ -128,7 +132,7 @@ public final class ScramScheme implements AuthScheme {
      * @since 5.6
      */
     public ScramScheme() {
-        this(4096, 0, null);
+        this(DEFAULT_WARN_MIN_ITERATIONS, 0, DEFAULT_MAX_ITERATIONS_ALLOWED, null);
     }
 
     /**
@@ -140,8 +144,26 @@ public final class ScramScheme implements AuthScheme {
      * @since 5.6
      */
     public ScramScheme(final int warnMinIterations, final int minIterationsRequired, final SecureRandom rnd) {
+        this(warnMinIterations, minIterationsRequired, DEFAULT_MAX_ITERATIONS_ALLOWED, rnd);
+    }
+
+    /**
+     * Constructor with custom iteration policy.
+     *
+     * @param warnMinIterations     warn if iteration count is lower than this (0 disables warnings)
+     * @param minIterationsRequired fail if iteration count is lower than this (0 disables enforcement)
+     * @param maxIterationsAllowed  fail if iteration count is greater than this (must be positive)
+     * @param rnd                   optional secure random source (null uses system default)
+     * @since 5.6
+     */
+    public ScramScheme(
+            final int warnMinIterations,
+            final int minIterationsRequired,
+            final int maxIterationsAllowed,
+            final SecureRandom rnd) {
         this.warnMinIterations = Math.max(0, warnMinIterations);
         this.minIterationsRequired = Math.max(0, minIterationsRequired);
+        this.maxIterationsAllowed = Args.positive(maxIterationsAllowed, "Max iterations allowed");
         this.secureRandom = rnd != null ? rnd : new SecureRandom();
     }
 
@@ -206,9 +228,10 @@ public final class ScramScheme implements AuthScheme {
         Args.notNull(context, "HTTP context");
 
         if (authChallenge == null) {
-            if (!challenged) {
-                // Final response with no Authentication-Info: nothing to do
-                return;
+            if (!challenged && this.state == State.CLIENT_FINAL_SENT) {
+                zeroAndClearExpectedV();
+                this.state = State.FAILED;
+                throw new AuthenticationException("Missing SCRAM Authentication-Info");
             }
             throw new MalformedChallengeException("Null SCRAM challenge");
         }
@@ -232,10 +255,32 @@ public final class ScramScheme implements AuthScheme {
                 return;
             }
 
+            final String sid = params.get("sid");
+            if (sid == null || sid.isEmpty()) {
+                zeroAndClearExpectedV();
+                this.state = State.FAILED;
+                throw new MalformedChallengeException("SCRAM server-first missing sid");
+            }
+
             // server-first (data present)
-            final String decoded = b64ToString(data);
+            final String decoded;
+            try {
+                decoded = b64ToString(data);
+            } catch (final MalformedChallengeException ex) {
+                zeroAndClearExpectedV();
+                this.state = State.FAILED;
+                throw ex;
+            }
             this.serverFirstRaw = decoded;
-            final Map<String, String> attrs = parseAttrs(decoded);
+
+            final Map<String, String> attrs;
+            try {
+                attrs = parseAttrs(decoded);
+            } catch (final MalformedChallengeException ex) {
+                zeroAndClearExpectedV();
+                this.state = State.FAILED;
+                throw ex;
+            }
 
             final String r = attrs.get("r");
             final String s = attrs.get("s");
@@ -249,7 +294,6 @@ public final class ScramScheme implements AuthScheme {
                 throw new AuthenticationException("SCRAM server nonce does not start with client nonce");
             }
 
-            this.sid = params.get("sid");
             try {
                 this.salt = B64D.decode(s);
                 if (this.salt.length == 0) {
@@ -274,10 +318,16 @@ public final class ScramScheme implements AuthScheme {
                 throw new AuthenticationException(
                         "SCRAM iteration count below required minimum: " + this.iterations + " < " + this.minIterationsRequired);
             }
+            if (this.iterations > this.maxIterationsAllowed) {
+                this.state = State.FAILED;
+                throw new AuthenticationException(
+                        "SCRAM iteration count above allowed maximum: " + this.iterations + " > " + this.maxIterationsAllowed);
+            }
             if (this.warnMinIterations > 0 && this.iterations < this.warnMinIterations && LOG.isWarnEnabled()) {
                 LOG.warn("SCRAM iteration count ({}) lower than recommended ({})", this.iterations, warnMinIterations);
             }
 
+            this.sid = sid;
             this.serverNonce = r;
             this.state = State.SERVER_FIRST_RCVD;
             this.complete = false;
@@ -285,14 +335,49 @@ public final class ScramScheme implements AuthScheme {
             return;
         }
 
+        if (this.state != State.CLIENT_FINAL_SENT) {
+            final State currentState = this.state;
+            zeroAndClearExpectedV();
+            this.state = State.FAILED;
+            throw new AuthenticationException("SCRAM final response out of sequence: " + currentState);
+        }
+
+        final String sid = params.get("sid");
+        if (sid == null || sid.isEmpty()) {
+            zeroAndClearExpectedV();
+            this.state = State.FAILED;
+            throw new MalformedChallengeException("SCRAM Authentication-Info missing sid");
+        }
+        if (this.sid == null || !this.sid.equals(sid)) {
+            zeroAndClearExpectedV();
+            this.state = State.FAILED;
+            throw new AuthenticationException("SCRAM sid mismatch");
+        }
+
         // --- final-response path (Authentication-Info on any status) ---
         // For Authentication-Info, RFC 7804 does NOT mandate a scheme token; do NOT enforce scheme name here.
         final String data = params.get("data");
         if (data == null) {
-            return;
+            zeroAndClearExpectedV();
+            this.state = State.FAILED;
+            throw new MalformedChallengeException("SCRAM Authentication-Info missing data");
         }
-        final String decoded = b64ToString(data);
-        final Map<String, String> attrs = parseAttrs(decoded);
+        final String decoded;
+        try {
+            decoded = b64ToString(data);
+        } catch (final MalformedChallengeException ex) {
+            zeroAndClearExpectedV();
+            this.state = State.FAILED;
+            throw ex;
+        }
+        final Map<String, String> attrs;
+        try {
+            attrs = parseAttrs(decoded);
+        } catch (final MalformedChallengeException ex) {
+            zeroAndClearExpectedV();
+            this.state = State.FAILED;
+            throw ex;
+        }
         final String err = attrs.get("e");
         if (err != null) {
             this.state = State.FAILED;
@@ -303,7 +388,9 @@ public final class ScramScheme implements AuthScheme {
         }
         final String vB64 = attrs.get("v");
         if (vB64 == null) {
-            return;
+            zeroAndClearExpectedV();
+            this.state = State.FAILED;
+            throw new MalformedChallengeException("SCRAM Authentication-Info missing v");
         }
 
         // compare 'v' in constant time; treat bad base64 for v as a signature mismatch (tests expect "signature")
@@ -335,7 +422,7 @@ public final class ScramScheme implements AuthScheme {
      */
     @Override
     public boolean isChallengeComplete() {
-        return this.complete || this.state == State.COMPLETE || this.state == State.FAILED;
+        return this.state == State.FAILED;
     }
 
     /**
@@ -486,9 +573,7 @@ public final class ScramScheme implements AuthScheme {
 
             final StringBuilder sb = new StringBuilder(64);
             sb.append(StandardAuthScheme.SCRAM_SHA_256).append(' ');
-            if (this.sid != null) {
-                sb.append("sid=").append(quoteParam(this.sid)).append(", ");
-            }
+            sb.append("sid=").append(quoteParam(this.sid)).append(", ");
             sb.append("data=").append(quoteParam(data)); // quoted
 
             this.state = State.CLIENT_FINAL_SENT;
