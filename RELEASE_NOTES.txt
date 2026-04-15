@@ -1,3 +1,50 @@
+Release 5.6.1
+------------------
+
+This is a maintenance release disables experimental SCRAM auth scheme by default and
+fixes SCRAM final response handling. The SCRAM auth scheme can be re-enabled by
+choosing a custom auth scheme preference sequence that explicitly includes SCRAM auth.
+
+
+Change Log
+-------------------
+
+* Fix SCRAM final response handling.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Auth challenge parsing code improvement.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Add missing Javadoc for ConnectionConfig (#820).
+  Contributed by Gary Gregory <garydgregory at gmail.com>
+
+* Bug fix: Corrected async message exchange cancellation logic in
+  InternalHttpAsyncExecRuntime.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2417: Honor TlsConfig attachment in async connect path.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2414: Fix Basic auth cache scoping across path prefixes (#802).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2415: Normalize CookieOrigin path for cookie matching (#803).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Bug fix: Corrected sleep time calculation in IdleConnectionEvictor; use 1 minute sleep
+  time by default.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* DefaultManagedHttpClientConnection: Restore original socket timeout.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* HTTPCLIENT-2411: Use standard HTTP-date format for synthesized Date header (#775).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Fix NPE in connection evictor setup (#774).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+
 Release 5.6
 ------------------
 
