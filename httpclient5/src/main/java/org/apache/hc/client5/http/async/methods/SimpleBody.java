@@ -55,8 +55,8 @@ public final class SimpleBody {
         if (body.length() > 2048) {
             return new SimpleBody(null, body, contentType);
         }
-        final Charset charset = (contentType != null ? contentType : ContentType.DEFAULT_TEXT).getCharset();
-        final byte[] bytes = body.getBytes(charset != null ? charset : StandardCharsets.US_ASCII);
+        final Charset charset = (contentType != null ? contentType : ContentType.DEFAULT_TEXT).getCharset(StandardCharsets.UTF_8);
+        final byte[] bytes = body.getBytes(charset);
         return new SimpleBody(bytes, null, contentType);
     }
 
@@ -83,8 +83,8 @@ public final class SimpleBody {
         if (bodyAsBytes != null) {
             return bodyAsBytes;
         } else if (bodyAsText != null) {
-            final Charset charset = (contentType != null ? contentType : ContentType.DEFAULT_TEXT).getCharset();
-            return bodyAsText.getBytes(charset != null ? charset : StandardCharsets.US_ASCII);
+            final Charset charset = (contentType != null ? contentType : ContentType.DEFAULT_TEXT).getCharset(StandardCharsets.UTF_8);
+            return bodyAsText.getBytes(charset);
         } else {
             return null;
         }
@@ -97,8 +97,8 @@ public final class SimpleBody {
      */
     public String getBodyText() {
         if (bodyAsBytes != null) {
-            final Charset charset = (contentType != null ? contentType : ContentType.DEFAULT_TEXT).getCharset();
-            return new String(bodyAsBytes, charset != null ? charset : StandardCharsets.US_ASCII);
+            final Charset charset = (contentType != null ? contentType : ContentType.DEFAULT_TEXT).getCharset(StandardCharsets.UTF_8);
+            return new String(bodyAsBytes, charset);
         }
         return bodyAsText;
     }
@@ -128,4 +128,3 @@ public final class SimpleBody {
     }
 
 }
-
