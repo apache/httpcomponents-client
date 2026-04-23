@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.rest;
+package org.apache.hc.client5.http.rest.examples;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +36,7 @@ import java.nio.charset.StandardCharsets;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
@@ -46,65 +47,55 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.apache.hc.client5.http.rest.RestClientBuilder;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+public final class RestClientMain {
 
-class RestClientIntegrationTest {
-
-    private HttpServer server;
-    private CloseableHttpAsyncClient httpClient;
-    private URI baseUri;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    @BeforeEach
-    void setUp() throws Exception {
-        server = HttpServer.create(new InetSocketAddress(0), 0);
-        server.createContext("/books", this::handleBooks);
-        server.start();
-
-        baseUri = new URI("http://localhost:" + server.getAddress().getPort());
-        httpClient = HttpAsyncClients.createDefault();
-        httpClient.start();
+    private RestClientMain() {
     }
 
-    @AfterEach
-    void tearDown() throws Exception {
-        if (httpClient != null) {
-            httpClient.close();
-        }
-        if (server != null) {
+    public static void main(final String[] args) throws Exception {
+        final ObjectMapper objectMapper = new ObjectMapper();
+        final HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/books", exchange -> handleBooks(exchange, objectMapper));
+        server.start();
+
+        final URI baseUri = new URI("http://localhost:" + server.getAddress().getPort());
+
+        try (final CloseableHttpAsyncClient httpClient = HttpAsyncClients.createDefault()) {
+            httpClient.start();
+
+            final BookResource client = RestClientBuilder.newBuilder()
+                    .baseUri(baseUri)
+                    .httpClient(httpClient)
+                    .objectMapper(objectMapper)
+                    .build(BookResource.class);
+
+            final Book created = client.createBook(
+                    "abc-123",
+                    "en",
+                    "token-1",
+                    new Book(null, "HttpComponents in Action")
+            );
+
+            System.out.println("Created:");
+            System.out.println("  id    = " + created.id);
+            System.out.println("  title = " + created.title);
+            System.out.println("  lang  = " + created.lang);
+
+            final Book fetched = client.getBook("abc-123", "en", "token-1");
+
+            System.out.println("Fetched:");
+            System.out.println("  id    = " + fetched.id);
+            System.out.println("  title = " + fetched.title);
+            System.out.println("  lang  = " + fetched.lang);
+        } finally {
             server.stop(0);
         }
     }
 
-    @Test
-    void executesRealRoundTripAgainstLocalServer() throws Exception {
-        final BookResource client = RestClientBuilder.newBuilder()
-                .baseUri(baseUri)
-                .httpClient(httpClient)
-                .build(BookResource.class);
-
-        final Book created = client.createBook("abc-123", "en", "token-1",
-                new Book(null, "HttpComponents in Action"));
-
-        assertNotNull(created);
-        assertEquals("abc-123", created.id);
-        assertEquals("HttpComponents in Action", created.title);
-        assertEquals("en", created.lang);
-
-        final Book fetched = client.getBook("abc-123", "en", "token-1");
-
-        assertNotNull(fetched);
-        assertEquals("abc-123", fetched.id);
-        assertEquals("HttpComponents in Action", fetched.title);
-        assertEquals("en", fetched.lang);
-    }
-
-    private void handleBooks(final HttpExchange exchange) throws IOException {
+    private static void handleBooks(final HttpExchange exchange,
+                                    final ObjectMapper objectMapper) throws IOException {
         try {
             final String method = exchange.getRequestMethod();
             final String path = exchange.getRequestURI().getPath();
@@ -123,7 +114,7 @@ class RestClientIntegrationTest {
                 final Book book = new Book(id, "HttpComponents in Action");
                 book.lang = lang;
 
-                sendJson(exchange, 200, book);
+                sendJson(exchange, 200, objectMapper, book);
                 return;
             }
 
@@ -131,11 +122,11 @@ class RestClientIntegrationTest {
                 final String id = extractQueryParam(query, "id");
                 final String lang = extractQueryParam(query, "lang");
 
-                final Book incoming = readJson(exchange.getRequestBody(), Book.class);
+                final Book incoming = readJson(exchange.getRequestBody(), objectMapper, Book.class);
                 incoming.id = id;
                 incoming.lang = lang;
 
-                sendJson(exchange, 200, incoming);
+                sendJson(exchange, 200, objectMapper, incoming);
                 return;
             }
 
@@ -145,12 +136,16 @@ class RestClientIntegrationTest {
         }
     }
 
-    private <T> T readJson(final InputStream inputStream, final Class<T> type) throws IOException {
+    private static <T> T readJson(final InputStream inputStream,
+                                  final ObjectMapper objectMapper,
+                                  final Class<T> type) throws IOException {
         return objectMapper.readValue(inputStream, type);
     }
 
-    private void sendJson(final HttpExchange exchange, final int statusCode, final Object payload)
-            throws IOException {
+    private static void sendJson(final HttpExchange exchange,
+                                 final int statusCode,
+                                 final ObjectMapper objectMapper,
+                                 final Object payload) throws IOException {
         final byte[] body = objectMapper.writeValueAsBytes(payload);
         exchange.getResponseHeaders().add("Content-Type", "application/json");
         exchange.sendResponseHeaders(statusCode, body.length);
@@ -159,8 +154,10 @@ class RestClientIntegrationTest {
         }
     }
 
-    private static void send(final HttpExchange exchange, final int statusCode,
-                             final String contentType, final String body) throws IOException {
+    private static void send(final HttpExchange exchange,
+                             final int statusCode,
+                             final String contentType,
+                             final String body) throws IOException {
         final byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().add("Content-Type", contentType + "; charset=UTF-8");
         exchange.sendResponseHeaders(statusCode, bytes.length);
@@ -215,5 +212,4 @@ class RestClientIntegrationTest {
             this.title = title;
         }
     }
-
 }

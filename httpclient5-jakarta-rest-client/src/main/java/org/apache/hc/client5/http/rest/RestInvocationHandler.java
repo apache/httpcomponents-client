@@ -320,7 +320,7 @@ final class RestInvocationHandler implements InvocationHandler {
                     ? consumeType : ContentType.create("text/plain", StandardCharsets.UTF_8);
             return new StringAsyncEntityProducer((CharSequence) body, ct);
         }
-        return new JsonObjectEntityProducer<>(body, objectMapper, consumeType);
+        return new JsonObjectEntityProducer<>(body, objectMapper);
     }
 
     private static <T> T awaitResult(final Future<T> future) throws IOException {
