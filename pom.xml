@@ -77,6 +77,7 @@
     <rxjava3.version>3.1.12</rxjava3.version>
     <testcontainers.version>1.21.4</testcontainers.version>
     <junixsocket.version>2.10.1</junixsocket.version>
+    <jna.version>5.16.0</jna.version>
     <api.comparison.version>5.6</api.comparison.version>
     <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer,jdk.net.ExtendedSocketOptions,jdk.net.Sockets</hc.animal-sniffer.signature.ignores>
     <commons.compress.version>1.28.0</commons.compress.version>
@@ -188,6 +189,12 @@
         <artifactId>junixsocket-core</artifactId>
         <version>${junixsocket.version}</version>
         <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>net.java.dev.jna</groupId>
+        <artifactId>jna-platform</artifactId>
+        <version>${jna.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.junit</groupId>

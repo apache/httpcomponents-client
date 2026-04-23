@@ -73,6 +73,11 @@ abstract class TestContentCodings extends AbstractIntegrationTestBase {
         super(scheme, ClientProtocolLevel.STANDARD, useUnixDomainSocket);
     }
 
+    protected TestContentCodings(final URIScheme scheme, final boolean useUnixDomainSocket,
+                                 final boolean useNamedPipe) {
+        super(scheme, ClientProtocolLevel.STANDARD, useUnixDomainSocket, useNamedPipe);
+    }
+
     /**
      * Test for when we don't get an entity back; e.g. for a 204 or 304 response; nothing blows
      * up with the new behaviour.

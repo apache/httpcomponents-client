@@ -67,6 +67,7 @@ public class RequestConfig implements Cloneable {
     private final boolean hardCancellationEnabled;
     private final boolean protocolUpgradeEnabled;
     private final Path unixDomainSocket;
+    private final String namedPipe;
     /**
      * HTTP/2 Priority header value to emit when using H2+. Null means “don’t emit”.
      */
@@ -78,7 +79,7 @@ public class RequestConfig implements Cloneable {
     protected RequestConfig() {
         this(false, null, null, false, false, 0, false, null, null,
                 DEFAULT_CONNECTION_REQUEST_TIMEOUT, null, null, DEFAULT_CONN_KEEP_ALIVE, false, false, false, null,
-                null);
+                null, null);
     }
 
     RequestConfig(
@@ -99,6 +100,7 @@ public class RequestConfig implements Cloneable {
             final boolean hardCancellationEnabled,
             final boolean protocolUpgradeEnabled,
             final Path unixDomainSocket,
+            final String namedPipe,
             final PriorityValue h2Priority) {
         super();
         this.expectContinueEnabled = expectContinueEnabled;
@@ -118,6 +120,7 @@ public class RequestConfig implements Cloneable {
         this.hardCancellationEnabled = hardCancellationEnabled;
         this.protocolUpgradeEnabled = protocolUpgradeEnabled;
         this.unixDomainSocket = unixDomainSocket;
+        this.namedPipe = namedPipe;
         this.h2Priority = h2Priority;
     }
 
@@ -244,6 +247,14 @@ public class RequestConfig implements Cloneable {
     }
 
     /**
+     * @see Builder#setNamedPipe(String)
+     * @since 5.7
+     */
+    public String getNamedPipe() {
+        return namedPipe;
+    }
+
+    /**
      * Returns the HTTP/2+ priority preference for this request or {@code null} if unset.
      * @since 5.6
      */
@@ -278,6 +289,7 @@ public class RequestConfig implements Cloneable {
         builder.append(", hardCancellationEnabled=").append(hardCancellationEnabled);
         builder.append(", protocolUpgradeEnabled=").append(protocolUpgradeEnabled);
         builder.append(", unixDomainSocket=").append(unixDomainSocket);
+        builder.append(", namedPipe=").append(namedPipe);
         builder.append(", h2Priority=").append(h2Priority);
         builder.append("]");
         return builder.toString();
@@ -306,6 +318,7 @@ public class RequestConfig implements Cloneable {
             .setHardCancellationEnabled(config.isHardCancellationEnabled())
             .setProtocolUpgradeEnabled(config.isProtocolUpgradeEnabled())
             .setUnixDomainSocket(config.getUnixDomainSocket())
+            .setNamedPipe(config.getNamedPipe())
             .setH2Priority(config.getH2Priority());
     }
 
@@ -328,6 +341,7 @@ public class RequestConfig implements Cloneable {
         private boolean hardCancellationEnabled;
         private boolean protocolUpgradeEnabled;
         private Path unixDomainSocket;
+        private String namedPipe;
         private PriorityValue h2Priority;
 
         Builder() {
@@ -687,6 +701,25 @@ public class RequestConfig implements Cloneable {
         }
 
         /**
+         * Sets the Windows Named Pipe path to use for the connection.
+         * <p>
+         * When set, the connection will use the specified Windows Named Pipe
+         * instead of a TCP socket. This is useful for communicating with local
+         * services like Docker Desktop on Windows (e.g. {@code \\.\pipe\docker_engine}).
+         * </p>
+         * <p>
+         * Default: {@code null}
+         * </p>
+         *
+         * @return this instance.
+         * @since 5.7
+         */
+        public Builder setNamedPipe(final String namedPipe) {
+            this.namedPipe = namedPipe;
+            return this;
+        }
+
+        /**
          * Sets HTTP/2+ request priority. If {@code null}, the header is not emitted.
          * @since 5.6
          */
@@ -715,6 +748,7 @@ public class RequestConfig implements Cloneable {
                     hardCancellationEnabled,
                     protocolUpgradeEnabled,
                     unixDomainSocket,
+                    namedPipe,
                     h2Priority);
         }
 

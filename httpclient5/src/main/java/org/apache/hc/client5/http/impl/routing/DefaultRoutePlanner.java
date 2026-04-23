@@ -103,6 +103,13 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
             }
             return new HttpRoute(target, secure, unixDomainSocket);
         }
+        final String namedPipe = config.getNamedPipe();
+        if (namedPipe != null) {
+            if (proxy != null) {
+                throw new UnsupportedOperationException("Proxies are not supported over Windows Named Pipes");
+            }
+            return new HttpRoute(target, secure, namedPipe);
+        }
         final InetAddress inetAddress = determineLocalAddress(target, context);
         if (proxy == null) {
             return new HttpRoute(target, authority, inetAddress, secure);

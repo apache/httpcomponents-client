@@ -128,6 +128,41 @@ public interface HttpClientConnectionOperator {
     }
 
     /**
+     * Connect the given managed connection to the remote endpoint.
+     *
+     * @param conn the managed connection.
+     * @param endpointHost the address of the remote endpoint.
+     * @param endpointName the name of the remote endpoint, if different from the endpoint host name,
+     *                   {@code null} otherwise.
+     * @param unixDomainSocket the path to the Unix domain socket, or {@code null} if none.
+     * @param namedPipe the Windows Named Pipe path (e.g. {@code \\.\pipe\docker_engine}), or {@code null} if none.
+     * @param localAddress the address of the local endpoint.
+     * @param connectTimeout the timeout of the connect operation.
+     * @param socketConfig the socket configuration.
+     * @param attachment connect request attachment.
+     * @param context the execution context.
+     *
+     * @since 5.7
+     */
+    default void connect(
+        ManagedHttpClientConnection conn,
+        HttpHost endpointHost,
+        NamedEndpoint endpointName,
+        Path unixDomainSocket,
+        String namedPipe,
+        InetSocketAddress localAddress,
+        Timeout connectTimeout,
+        SocketConfig socketConfig,
+        Object attachment,
+        HttpContext context) throws IOException {
+        if (namedPipe != null) {
+            throw new UnsupportedOperationException(getClass().getName() + " does not support Windows Named Pipes");
+        }
+        connect(conn, endpointHost, endpointName, unixDomainSocket, localAddress, connectTimeout, socketConfig,
+            attachment, context);
+    }
+
+    /**
      * Upgrades transport security of the given managed connection
      * by using the TLS security protocol.
      *
