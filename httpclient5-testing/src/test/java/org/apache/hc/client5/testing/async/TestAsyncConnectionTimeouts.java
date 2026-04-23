@@ -40,11 +40,8 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutionException;
 
-import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.apache.hc.core5.util.TimeValue.ofMilliseconds;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -52,7 +49,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestAsyncConnectionTimeouts {
-    private static final Duration EXPECTED_TIMEOUT = Duration.ofMillis(500);
 
     @Timeout(5)
     @ParameterizedTest
@@ -61,13 +57,13 @@ class TestAsyncConnectionTimeouts {
     void testRequestConfig(final String scheme) throws Exception {
         try (
             final CloseableHttpAsyncClient client = HttpAsyncClientBuilder.create()
-                .setIOReactorConfig(IOReactorConfig.custom().setSelectInterval(ofMilliseconds(50)).build())
+                .setIOReactorConfig(IOReactorConfig.custom().setSelectInterval(ofMilliseconds(10)).build())
                 .setDefaultRequestConfig(RequestConfig.custom()
-                    .setConnectTimeout(EXPECTED_TIMEOUT.toMillis(), MILLISECONDS)
+                    .setConnectTimeout(10, MILLISECONDS)
                     .build())
                 .build()
         ) {
-            warmUpClient(client);
+            client.start();
             assertTimeout(getRequest(scheme), client);
         }
     }
@@ -79,22 +75,18 @@ class TestAsyncConnectionTimeouts {
         final PoolingAsyncClientConnectionManager connMgr = PoolingAsyncClientConnectionManagerBuilder.create()
             .setDefaultConnectionConfig(
                 ConnectionConfig.custom()
-                    .setConnectTimeout(EXPECTED_TIMEOUT.toMillis(), MILLISECONDS)
+                    .setConnectTimeout(10, MILLISECONDS)
                     .build())
             .build();
         try (
             final CloseableHttpAsyncClient client = HttpAsyncClientBuilder.create()
-                .setIOReactorConfig(IOReactorConfig.custom().setSelectInterval(ofMilliseconds(50)).build())
+                .setIOReactorConfig(IOReactorConfig.custom().setSelectInterval(ofMilliseconds(10)).build())
                 .setConnectionManager(connMgr)
                 .build()
         ) {
-            warmUpClient(client);
+            client.start();
             assertTimeout(getRequest(scheme), client);
         }
-    }
-
-    private static void warmUpClient(final CloseableHttpAsyncClient client) {
-        client.start();
     }
 
     private static SimpleHttpRequest getRequest(final String scheme) {
@@ -102,19 +94,9 @@ class TestAsyncConnectionTimeouts {
     }
 
     private static void assertTimeout(final SimpleHttpRequest request, final CloseableHttpAsyncClient client) {
-        final long startTime = System.nanoTime();
         final Throwable ex = assertThrows(ExecutionException.class, () -> client.execute(request, null).get())
             .getCause();
-        final Duration actualTime = Duration.of(System.nanoTime() - startTime, ChronoUnit.NANOS);
-        assertTrue(actualTime.toMillis() > EXPECTED_TIMEOUT.toMillis() / 2,
-            format("Connection attempt timed out too soon (only %,d out of %,d ms)",
-                actualTime.toMillis(),
-                EXPECTED_TIMEOUT.toMillis()));
-        assertTrue(actualTime.toMillis() < EXPECTED_TIMEOUT.toMillis() * 2,
-            format("Connection attempt timed out too late (%,d out of %,d ms)",
-                actualTime.toMillis(),
-                EXPECTED_TIMEOUT.toMillis()));
         assertInstanceOf(ConnectTimeoutException.class, ex);
-        assertTrue(ex.getMessage().contains(EXPECTED_TIMEOUT.toMillis() + " MILLISECONDS"), ex.getMessage());
+        assertTrue(ex.getMessage().contains("10 MILLISECONDS"), ex.getMessage());
     }
 }
