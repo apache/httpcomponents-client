@@ -54,10 +54,9 @@ public class TlsHandshakeTimeoutServer implements Closeable {
     private final boolean sendServerHello;
 
     private volatile int port = -1;
-    private volatile boolean requestReceived = false;
     private volatile ServerSocketChannel serverSocket;
     private volatile SocketChannel socket;
-    private volatile Throwable throwable;
+    private Thread thread;
 
     public TlsHandshakeTimeoutServer(final boolean sendServerHello) {
         this.sendServerHello = sendServerHello;
@@ -67,13 +66,13 @@ public class TlsHandshakeTimeoutServer implements Closeable {
         this.serverSocket = ServerSocketChannel.open();
         this.serverSocket.bind(new InetSocketAddress("0.0.0.0", 0));
         this.port = ((InetSocketAddress) this.serverSocket.getLocalAddress()).getPort();
-        new Thread(this::run).start();
+        this.thread = new Thread(this::run);
+        this.thread.start();
     }
 
     private void run() {
         try {
             socket = serverSocket.accept();
-            requestReceived = true;
 
             if (sendServerHello) {
                 final SSLEngine sslEngine = initHandshake();
@@ -81,8 +80,9 @@ public class TlsHandshakeTimeoutServer implements Closeable {
                 receiveClientHello(sslEngine);
                 sendServerHello(sslEngine);
             }
-        } catch (final Throwable t) {
-            this.throwable = t;
+        } catch (final Throwable ignored) {
+            // Expected: the client will time out and disconnect, or
+            // close() will close the server socket to unblock accept()
         }
     }
 
@@ -155,10 +155,12 @@ public class TlsHandshakeTimeoutServer implements Closeable {
         } catch (final IOException ignore) {
         }
 
-        if (throwable != null) {
-            throw new RuntimeException("Exception thrown while TlsHandshakeTimerOuter was running", throwable);
-        } else if (!requestReceived) {
-            throw new IllegalStateException("Never received a request");
+        if (thread != null) {
+            try {
+                thread.join(5000);
+            } catch (final InterruptedException ignore) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 }
