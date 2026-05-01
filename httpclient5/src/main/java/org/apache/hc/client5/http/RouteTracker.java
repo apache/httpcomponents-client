@@ -55,6 +55,9 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     /** The Unix domain socket to connect through, if any. */
     private final Path unixDomainSocket;
 
+    /** The Windows Named Pipe to connect through, if any. */
+    private final String namedPipe;
+
     // the attributes above are fixed at construction time
     // now follow attributes that indicate the established route
 
@@ -82,24 +85,37 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      *                  {@code null} for the default
      */
     public RouteTracker(final HttpHost target, final InetAddress local) {
-        this(target, local, null);
+        this(target, local, null, null);
     }
 
     /**
      * Creates a new route tracker.
-     * The target and origin need to be specified at creation time.
      *
      * @param target              the host to which to route
-     * @param local               the local address to route from, or
-     *                            {@code null} for the default
-     * @param unixDomainSocket    the path to the Unix domain socket
-     *                            through which to connect, or {@code null}
+     * @param local               the local address to route from, or {@code null}
+     * @param unixDomainSocket    the path to the Unix domain socket, or {@code null}
      */
     public RouteTracker(final HttpHost target, final InetAddress local, final Path unixDomainSocket) {
+        this(target, local, unixDomainSocket, null);
+    }
+
+    /**
+     * Creates a new route tracker.
+     *
+     * @param target              the host to which to route
+     * @param local               the local address to route from, or {@code null}
+     * @param unixDomainSocket    the path to the Unix domain socket, or {@code null}
+     * @param namedPipe           the Windows Named Pipe path, or {@code null}
+     *
+     * @since 5.7
+     */
+    public RouteTracker(final HttpHost target, final InetAddress local, final Path unixDomainSocket,
+                        final String namedPipe) {
         Args.notNull(target, "Target host");
         this.targetHost = target;
         this.localAddress = local;
         this.unixDomainSocket = unixDomainSocket;
+        this.namedPipe = namedPipe;
         this.tunnelled = TunnelType.PLAIN;
         this.layered = LayerType.PLAIN;
     }
@@ -123,7 +139,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      * @param route     the route to track
      */
     public RouteTracker(final HttpRoute route) {
-        this(route.getTargetHost(), route.getLocalAddress(), route.getUnixDomainSocket());
+        this(route.getTargetHost(), route.getLocalAddress(), route.getUnixDomainSocket(), route.getNamedPipe());
     }
 
     /**
@@ -219,6 +235,11 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     }
 
     @Override
+    public String getNamedPipe() {
+        return this.namedPipe;
+    }
+
+    @Override
     public int getHopCount() {
         int hops = 0;
         if (this.connected) {
@@ -293,6 +314,8 @@ public final class RouteTracker implements RouteInfo, Cloneable {
             return null;
         } else if (this.unixDomainSocket != null) {
             return new HttpRoute(this.targetHost, this.secure, this.unixDomainSocket);
+        } else if (this.namedPipe != null) {
+            return new HttpRoute(this.targetHost, this.secure, this.namedPipe);
         } else {
             return new HttpRoute(this.targetHost, this.localAddress,
                 this.proxyChain, this.secure,
@@ -327,6 +350,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
                         Objects.equals(this.targetHost, that.targetHost) &&
                         Objects.equals(this.localAddress, that.localAddress) &&
                         Objects.equals(this.unixDomainSocket, that.unixDomainSocket) &&
+                        Objects.equals(this.namedPipe, that.namedPipe) &&
                         Objects.equals(this.proxyChain, that.proxyChain);
     }
 
@@ -344,6 +368,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         hash = LangUtils.hashCode(hash, this.targetHost);
         hash = LangUtils.hashCode(hash, this.localAddress);
         hash = LangUtils.hashCode(hash, this.unixDomainSocket);
+        hash = LangUtils.hashCode(hash, this.namedPipe);
         if (this.proxyChain != null) {
             for (final HttpHost element : this.proxyChain) {
                 hash = LangUtils.hashCode(hash, element);
@@ -371,6 +396,8 @@ public final class RouteTracker implements RouteInfo, Cloneable {
             cab.append("->");
         } else if (this.unixDomainSocket != null) {
             cab.append(this.unixDomainSocket).append("->");
+        } else if (this.namedPipe != null) {
+            cab.append(this.namedPipe).append("->");
         }
         cab.append('{');
         if (this.connected) {

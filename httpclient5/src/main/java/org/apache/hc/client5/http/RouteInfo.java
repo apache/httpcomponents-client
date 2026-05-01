@@ -100,6 +100,16 @@ public interface RouteInfo {
     }
 
     /**
+     * Obtains the Windows Named Pipe through which to connect to the target host.
+     *
+     * @return  the named pipe path (e.g. {@code \\.\pipe\docker_engine}), or {@code null} if none
+     * @since 5.7
+     */
+    default String getNamedPipe() {
+        return null;
+    }
+
+    /**
      * Obtains the number of hops in this route.
      * A direct route has one hop. A route through a proxy has two hops.
      * A route through a chain of <i>n</i> proxies has <i>n+1</i> hops.
