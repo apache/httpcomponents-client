@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.impl.async;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -41,7 +42,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -79,112 +79,163 @@ import org.slf4j.LoggerFactory;
 public class InternalHttpAsyncExecRuntimeQueueCapTest {
 
     @Test
-    void testFailFastWhenQueueFull() throws Exception {
+    void testRequestsQueuedWhenOverCap() throws Exception {
         final FakeEndpoint endpoint = new FakeEndpoint();
         final FakeManager manager = new FakeManager(endpoint);
+
         final InternalHttpAsyncExecRuntime runtime = new InternalHttpAsyncExecRuntime(
                 LoggerFactory.getLogger("test"),
                 manager,
                 new NoopInitiator(),
                 new NoopPushFactory(),
                 TlsConfig.DEFAULT,
-                2,
-                new AtomicInteger()
-        );
+                new SharedRequestExecutionQueue(2));
 
         final HttpClientContext ctx = HttpClientContext.create();
         ctx.setRequestConfig(RequestConfig.custom().build());
 
-        runtime.acquireEndpoint("id", new HttpRoute(new HttpHost("localhost", 80)), null, ctx, new FutureCallback<AsyncExecRuntime>() {
-            @Override
-            public void completed(final AsyncExecRuntime result) {
-            }
-
-            @Override
-            public void failed(final Exception ex) {
-                fail(ex);
-            }
-
-            @Override
-            public void cancelled() {
-                fail("cancelled");
-            }
-        });
-
-        final CountDownLatch rejected = new CountDownLatch(1);
+        runtime.acquireEndpoint("id", new HttpRoute(new HttpHost("localhost", 80)), null, ctx, new NoopRuntimeCallback());
 
         final LatchingHandler h1 = new LatchingHandler();
         final LatchingHandler h2 = new LatchingHandler();
+        final LatchingHandler h3 = new LatchingHandler();
+
         runtime.execute("r1", h1, ctx);
         runtime.execute("r2", h2, ctx);
-
-        final LatchingHandler h3 = new LatchingHandler() {
-            @Override
-            public void failed(final Exception cause) {
-                super.failed(cause);
-                rejected.countDown();
-            }
-        };
         runtime.execute("r3", h3, ctx);
 
-        assertTrue(rejected.await(2, TimeUnit.SECONDS), "r3 should be failed fast");
-        assertTrue(h3.failedException.get() instanceof RejectedExecutionException);
+        assertTrue(waitFor(() -> endpoint.executedCount() == 2, 2, TimeUnit.SECONDS), "r1 and r2 should start");
+        assertTrue(endpoint.executedIds.contains("r1"));
+        assertTrue(endpoint.executedIds.contains("r2"));
+        assertTrue(!endpoint.executedIds.contains("r3"), "r3 should be queued, not started yet");
+
+        endpoint.completeOne(); // releases a slot and should trigger queued r3
+
+        assertTrue(waitFor(() -> endpoint.executedIds.contains("r3"), 2, TimeUnit.SECONDS), "r3 should start after slot release");
+
         assertNull(h1.failedException.get());
         assertNull(h2.failedException.get());
+        assertNull(h3.failedException.get());
     }
 
     @Test
     void testSlotReleasedOnTerminalSignalAllowsNext() throws Exception {
         final FakeEndpoint endpoint = new FakeEndpoint();
         final FakeManager manager = new FakeManager(endpoint);
+
         final InternalHttpAsyncExecRuntime runtime = new InternalHttpAsyncExecRuntime(
                 LoggerFactory.getLogger("test"),
                 manager,
                 new NoopInitiator(),
                 new NoopPushFactory(),
                 TlsConfig.DEFAULT,
-                1,
-                new AtomicInteger()
-        );
+                new SharedRequestExecutionQueue(1));
 
         final HttpClientContext ctx = HttpClientContext.create();
         ctx.setRequestConfig(RequestConfig.custom().build());
 
-        runtime.acquireEndpoint("id", new HttpRoute(new HttpHost("localhost", 80)), null, ctx,
-                new FutureCallback<AsyncExecRuntime>() {
-                    @Override
-                    public void completed(final AsyncExecRuntime result) {
-                    }
-
-                    @Override
-                    public void failed(final Exception ex) {
-                        fail(ex);
-                    }
-
-                    @Override
-                    public void cancelled() {
-                        fail("cancelled");
-                    }
-                });
+        runtime.acquireEndpoint("id", new HttpRoute(new HttpHost("localhost", 80)), null, ctx, new NoopRuntimeCallback());
 
         final LatchingHandler h1 = new LatchingHandler();
-        runtime.execute("r1", h1, ctx);
-
         final LatchingHandler h2 = new LatchingHandler();
-        runtime.execute("r2", h2, ctx);
-        assertTrue(h2.awaitFailed(2, TimeUnit.SECONDS));
-        assertTrue(h2.failedException.get() instanceof RejectedExecutionException);
 
-        // free the slot via releaseResources(), not failed()
+        runtime.execute("r1", h1, ctx);
+        runtime.execute("r2", h2, ctx);
+
+        assertTrue(waitFor(() -> endpoint.executedIds.contains("r1"), 2, TimeUnit.SECONDS));
+        assertTrue(!endpoint.executedIds.contains("r2"), "r2 should be queued until r1 completes");
+
         endpoint.completeOne();
 
-        final LatchingHandler h3 = new LatchingHandler();
-        runtime.execute("r3", h3, ctx);
-        Thread.sleep(150);
-        assertNull(h3.failedException.get(), "r3 should not be rejected after slot released");
-        h3.cancel();
+        assertTrue(waitFor(() -> endpoint.executedIds.contains("r2"), 2, TimeUnit.SECONDS), "r2 should start after r1 completes");
+
+        assertNull(h1.failedException.get());
+        assertNull(h2.failedException.get());
     }
 
+    @Test
+    void testRecursiveReentryCausesSOEWithoutCap() {
+        final ImmediateFailEndpoint endpoint = new ImmediateFailEndpoint();
+        final FakeManager manager = new FakeManager(endpoint);
+
+        // no queue => old synchronous recursion behaviour remains
+        final InternalHttpAsyncExecRuntime runtime = new InternalHttpAsyncExecRuntime(
+                LoggerFactory.getLogger("test"),
+                manager,
+                new NoopInitiator(),
+                new NoopPushFactory(),
+                TlsConfig.DEFAULT,
+                null);
+
+        final HttpClientContext ctx = HttpClientContext.create();
+        ctx.setRequestConfig(RequestConfig.custom().build());
+
+        runtime.acquireEndpoint("id", new HttpRoute(new HttpHost("localhost", 80)), null, ctx, new NoopRuntimeCallback());
+
+        final ReentrantHandler loop = new ReentrantHandler(runtime, ctx);
+
+        assertThrows(StackOverflowError.class, () -> runtime.execute("loop", loop, ctx));
+    }
+
+    @Test
+    void testCapBreaksRecursiveReentry() throws Exception {
+        final ImmediateFailEndpoint endpoint = new ImmediateFailEndpoint();
+        final FakeManager manager = new FakeManager(endpoint);
+
+        // queue => no synchronous recursion -> no SOE
+        final InternalHttpAsyncExecRuntime runtime = new InternalHttpAsyncExecRuntime(
+                LoggerFactory.getLogger("test"),
+                manager,
+                new NoopInitiator(),
+                new NoopPushFactory(),
+                TlsConfig.DEFAULT,
+                new SharedRequestExecutionQueue(1));
+
+        final HttpClientContext ctx = HttpClientContext.create();
+        ctx.setRequestConfig(RequestConfig.custom().build());
+
+        runtime.acquireEndpoint("id", new HttpRoute(new HttpHost("localhost", 80)), null, ctx, new NoopRuntimeCallback());
+
+        final CountDownLatch done = new CountDownLatch(1);
+        final BoundedReentrantHandler loop = new BoundedReentrantHandler(runtime, ctx, 50, done);
+
+        assertDoesNotThrow(() -> runtime.execute("loop", loop, ctx));
+        assertTrue(done.await(2, TimeUnit.SECONDS), "Expected bounded re-entry loop to complete without SOE");
+        assertTrue(loop.invocations.get() >= 1);
+        assertTrue(loop.lastException.get() instanceof IOException);
+    }
+
+    private static boolean waitFor(final Condition condition, final long time, final TimeUnit unit) throws InterruptedException {
+        final long deadline = System.nanoTime() + unit.toNanos(time);
+        while (System.nanoTime() < deadline) {
+            if (condition.get()) {
+                return true;
+            }
+            Thread.sleep(10);
+        }
+        return condition.get();
+    }
+
+    @FunctionalInterface
+    private interface Condition {
+        boolean get();
+    }
+
+    private static final class NoopRuntimeCallback implements FutureCallback<AsyncExecRuntime> {
+        @Override
+        public void completed(final AsyncExecRuntime result) {
+        }
+
+        @Override
+        public void failed(final Exception ex) {
+            fail(ex);
+        }
+
+        @Override
+        public void cancelled() {
+            fail("cancelled");
+        }
+    }
 
     private static final class NoopInitiator implements ConnectionInitiator {
         @Override
@@ -267,36 +318,37 @@ public class InternalHttpAsyncExecRuntimeQueueCapTest {
 
     private static final class FakeEndpoint extends AsyncConnectionEndpoint {
         volatile boolean connected = true;
-        private final ConcurrentLinkedQueue<AsyncClientExchangeHandler> inFlight = new ConcurrentLinkedQueue<>();
+
+        private static final class InFlightEntry {
+            final String id;
+            final AsyncClientExchangeHandler handler;
+
+            InFlightEntry(final String id, final AsyncClientExchangeHandler handler) {
+                this.id = id;
+                this.handler = handler;
+            }
+        }
+
+        final ConcurrentLinkedQueue<String> executedIds = new ConcurrentLinkedQueue<>();
+        private final ConcurrentLinkedQueue<InFlightEntry> inFlight = new ConcurrentLinkedQueue<>();
 
         @Override
         public void execute(final String id,
                             final AsyncClientExchangeHandler handler,
                             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
                             final HttpContext context) {
-            // keep the guarded handler so tests can signal terminal events
-            inFlight.add(handler);
+            executedIds.add(id);
+            inFlight.add(new InFlightEntry(id, handler));
         }
 
-        // helpers for tests
-        void failOne(final Exception ex) {
-            final AsyncClientExchangeHandler h = inFlight.poll();
-            if (h != null) {
-                h.failed(ex);
-            }
-        }
-
-        void cancelOne() {
-            final AsyncClientExchangeHandler h = inFlight.poll();
-            if (h != null) {
-                h.cancel();
-            }
+        int executedCount() {
+            return executedIds.size();
         }
 
         void completeOne() {
-            final AsyncClientExchangeHandler h = inFlight.poll();
-            if (h != null) {
-                h.releaseResources();
+            final InFlightEntry e = inFlight.poll();
+            if (e != null) {
+                e.handler.releaseResources();
             }
         }
 
@@ -319,8 +371,6 @@ public class InternalHttpAsyncExecRuntimeQueueCapTest {
             return null;
         }
     }
-
-
 
     private static class LatchingHandler implements AsyncClientExchangeHandler {
         final AtomicReference<Exception> failedException = new AtomicReference<>();
@@ -378,94 +428,6 @@ public class InternalHttpAsyncExecRuntimeQueueCapTest {
         }
     }
 
-    @Test
-    void testRecursiveReentryCausesSOEWithoutCap() {
-        final ImmediateFailEndpoint endpoint = new ImmediateFailEndpoint();
-        final FakeManager manager = new FakeManager(endpoint);
-
-        final InternalHttpAsyncExecRuntime runtime = new InternalHttpAsyncExecRuntime(
-                LoggerFactory.getLogger("test"),
-                manager,
-                new NoopInitiator(),
-                new NoopPushFactory(),
-                TlsConfig.DEFAULT,
-                -1,
-                null // no cap, no counter
-        );
-
-        final HttpClientContext ctx = HttpClientContext.create();
-        ctx.setRequestConfig(RequestConfig.custom().build());
-
-        runtime.acquireEndpoint("id", new HttpRoute(new HttpHost("localhost", 80)), null, ctx,
-                new FutureCallback<AsyncExecRuntime>() {
-                    @Override
-                    public void completed(final AsyncExecRuntime result) {
-                    }
-
-                    @Override
-                    public void failed(final Exception ex) {
-                        fail(ex);
-                    }
-
-                    @Override
-                    public void cancelled() {
-                        fail("cancelled");
-                    }
-                });
-
-        final ReentrantHandler loop = new ReentrantHandler(runtime, ctx);
-
-        assertThrows(StackOverflowError.class, () -> {
-            runtime.execute("loop", loop, ctx); // execute -> endpoint.execute -> failed() -> execute -> ...
-        });
-    }
-
-    @Test
-    void testCapBreaksRecursiveReentry() throws Exception {
-        final ImmediateFailEndpoint endpoint = new ImmediateFailEndpoint();
-        final FakeManager manager = new FakeManager(endpoint);
-
-        final InternalHttpAsyncExecRuntime runtime = new InternalHttpAsyncExecRuntime(
-                LoggerFactory.getLogger("test"),
-                manager,
-                new NoopInitiator(),
-                new NoopPushFactory(),
-                TlsConfig.DEFAULT,
-                1,
-                new AtomicInteger()
-        );
-
-        final HttpClientContext ctx = HttpClientContext.create();
-        ctx.setRequestConfig(RequestConfig.custom().build());
-
-        runtime.acquireEndpoint("id", new HttpRoute(new HttpHost("localhost", 80)), null, ctx,
-                new FutureCallback<AsyncExecRuntime>() {
-                    @Override
-                    public void completed(final AsyncExecRuntime result) {
-                    }
-
-                    @Override
-                    public void failed(final Exception ex) {
-                        fail(ex);
-                    }
-
-                    @Override
-                    public void cancelled() {
-                        fail("cancelled");
-                    }
-                });
-
-        final ReentrantHandler loop = new ReentrantHandler(runtime, ctx);
-
-        // Should NOT blow the stack; the re-entrant call should be rejected.
-        runtime.execute("loop", loop, ctx);
-        // allow the immediate fail+re-submit path to run
-        Thread.sleep(50);
-
-        assertTrue(loop.lastException.get() instanceof RejectedExecutionException,
-                "Expected rejection to break the recursion");
-    }
-
     /**
      * Endpoint that synchronously fails any handler passed to execute().
      */
@@ -513,9 +475,78 @@ public class InternalHttpAsyncExecRuntimeQueueCapTest {
         @Override
         public void failed(final Exception cause) {
             lastException.set(cause);
-            // Re-enter only if this was NOT the cap rejecting us
-            if (!(cause instanceof RejectedExecutionException)) {
+            runtime.execute("loop/reenter", this, ctx);
+        }
+
+        @Override
+        public void produceRequest(final RequestChannel channel, final HttpContext context) {
+        }
+
+        @Override
+        public void consumeResponse(final HttpResponse response, final EntityDetails entityDetails, final HttpContext context) {
+        }
+
+        @Override
+        public void consumeInformation(final HttpResponse response, final HttpContext context) {
+        }
+
+        @Override
+        public void cancel() {
+        }
+
+        @Override
+        public int available() {
+            return 0;
+        }
+
+        @Override
+        public void produce(final DataStreamChannel channel) {
+        }
+
+        @Override
+        public void updateCapacity(final CapacityChannel capacityChannel) {
+        }
+
+        @Override
+        public void consume(final ByteBuffer src) {
+        }
+
+        @Override
+        public void streamEnd(final List<? extends Header> trailers) {
+        }
+
+        @Override
+        public void releaseResources() {
+        }
+    }
+
+    private static final class BoundedReentrantHandler implements AsyncClientExchangeHandler {
+        private final InternalHttpAsyncExecRuntime runtime;
+        private final HttpClientContext ctx;
+        private final AtomicInteger remaining;
+        private final CountDownLatch done;
+
+        final AtomicInteger invocations = new AtomicInteger(0);
+        final AtomicReference<Exception> lastException = new AtomicReference<>();
+
+        BoundedReentrantHandler(final InternalHttpAsyncExecRuntime runtime,
+                                final HttpClientContext ctx,
+                                final int maxReentries,
+                                final CountDownLatch done) {
+            this.runtime = runtime;
+            this.ctx = ctx;
+            this.remaining = new AtomicInteger(maxReentries);
+            this.done = done;
+        }
+
+        @Override
+        public void failed(final Exception cause) {
+            invocations.incrementAndGet();
+            lastException.set(cause);
+            if (remaining.getAndDecrement() > 0) {
                 runtime.execute("loop/reenter", this, ctx);
+            } else {
+                done.countDown();
             }
         }
 
