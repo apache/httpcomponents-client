@@ -58,10 +58,21 @@ import org.apache.hc.core5.util.Args;
  * <p>Both {@code baseUri} and {@code httpClient} are required. The caller owns the
  * client lifecycle, including the call to {@code start()} before use.</p>
  *
- * <p>Methods may return {@code String}, {@code byte[]}, {@code void}, or any type
- * deserializable by the configured Jackson {@link ObjectMapper}. Request bodies may be
- * {@code String}, {@code byte[]}, or any type serializable by the ObjectMapper.
- * Non-2xx responses throw {@link RestClientResponseException}.</p>
+ * <p>Methods may return {@code String}, {@code byte[]}, {@code void}, any type
+ * deserializable by the configured Jackson {@link ObjectMapper}, or
+ * {@link jakarta.ws.rs.core.Response}. Any of these may also be wrapped in
+ * {@link java.util.concurrent.CompletionStage} or
+ * {@link java.util.concurrent.CompletableFuture} for non-blocking dispatch. Request
+ * bodies may be {@code String}, {@code byte[]}, or any type serializable by the
+ * ObjectMapper.</p>
+ *
+ * <p>Non-2xx responses throw {@link RestClientResponseException} (or complete the
+ * stage exceptionally with one) unless the method returns
+ * {@link jakarta.ws.rs.core.Response}, in which case the response is delivered to
+ * the caller for direct inspection.</p>
+ *
+ * <p>{@link jakarta.ws.rs.core.Response} entities are buffered in memory and
+ * decoded on demand by {@code readEntity(...)}.</p>
  *
  * @since 5.7
  */
