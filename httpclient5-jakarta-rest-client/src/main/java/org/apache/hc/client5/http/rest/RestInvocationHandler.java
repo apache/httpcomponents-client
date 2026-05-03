@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -39,12 +41,18 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
+
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpResponse;
@@ -55,6 +63,7 @@ import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.entity.DiscardingEntityConsumer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
+import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.apache.hc.core5.jackson2.http.JsonObjectEntityProducer;
@@ -92,9 +101,36 @@ final class RestInvocationHandler implements InvocationHandler {
             final ClientResourceMethod rm = entry.getValue();
             final String acceptHeader = rm.getProduces().length > 0 ? joinMediaTypes(rm.getProduces()) : null;
             final ContentType consumeType = rm.getConsumes().length > 0 ? ContentType.parse(rm.getConsumes()[0]) : null;
-            result.put(entry.getKey(), new MethodInvoker(rm, acceptHeader, consumeType));
+            final boolean async = isAsync(rm.getMethod());
+            final Class<?> responseType = resolveResponseType(rm.getMethod(), async);
+            result.put(entry.getKey(), new MethodInvoker(rm, acceptHeader, consumeType, responseType, async));
         }
         return result;
+    }
+
+    private static boolean isAsync(final Method method) {
+        final Class<?> rt = method.getReturnType();
+        return rt == CompletionStage.class || rt == CompletableFuture.class;
+    }
+
+    private static Class<?> resolveResponseType(final Method method, final boolean async) {
+        if (!async) {
+            return method.getReturnType();
+        }
+        final Type generic = method.getGenericReturnType();
+        if (generic instanceof ParameterizedType) {
+            final Type inner = ((ParameterizedType) generic).getActualTypeArguments()[0];
+            if (inner instanceof Class) {
+                return (Class<?>) inner;
+            }
+            if (inner instanceof ParameterizedType) {
+                final Type raw = ((ParameterizedType) inner).getRawType();
+                if (raw instanceof Class) {
+                    return (Class<?>) raw;
+                }
+            }
+        }
+        return Object.class;
     }
 
     private static String joinMediaTypes(final String[] types) {
@@ -189,49 +225,111 @@ final class RestInvocationHandler implements InvocationHandler {
             entityProducer = null;
         }
 
-        final Class<?> rawType = rm.getMethod().getReturnType();
         final BasicRequestProducer requestProducer =
                 new BasicRequestProducer(request, entityProducer);
-        try {
-            if (rawType == void.class || rawType == Void.class) {
-                final Message<HttpResponse, Void> result = awaitResult(
-                        httpClient.execute(requestProducer,
-                                new BasicResponseConsumer<>(
-                                        new DiscardingEntityConsumer<>()),
-                                null));
-                checkStatus(result.getHead(), null);
-                return null;
-            }
-            if (rawType == byte[].class) {
-                final Message<HttpResponse, byte[]> result = awaitResult(
-                        httpClient.execute(requestProducer,
-                                new BasicResponseConsumer<>(
-                                        new BasicAsyncEntityConsumer()),
-                                null));
-                final byte[] body = result.getBody();
-                checkStatus(result.getHead(), body);
-                return body;
-            }
-            if (rawType == String.class) {
-                final Message<HttpResponse, String> result = awaitResult(
-                        httpClient.execute(requestProducer,
-                                new StringResponseConsumer(), null));
-                throwIfError(result);
-                return result.getBody();
-            }
-            @SuppressWarnings("unchecked") final Class<Object> objectType = (Class<Object>) rawType;
-            final Message<HttpResponse, Object> result = awaitResult(
-                    httpClient.execute(requestProducer,
-                            JsonResponseConsumers.create(objectMapper, objectType,
-                                    BasicAsyncEntityConsumer::new),
-                            null));
-            throwIfError(result);
-            return result.getBody();
-        } catch (final RestClientResponseException ex) {
-            throw ex;
-        } catch (final IOException ex) {
-            throw new UncheckedIOException(ex);
+        final CompletableFuture<Object> future = dispatchAsync(invoker, requestProducer);
+        if (invoker.async) {
+            return future;
         }
+        return awaitSync(future);
+    }
+
+    private CompletableFuture<Object> dispatchAsync(final MethodInvoker invoker,
+                                                    final BasicRequestProducer requestProducer) {
+        final Class<?> rawType = invoker.responseType;
+        final ClientResourceMethod rm = invoker.resourceMethod;
+
+        if (rawType == void.class || rawType == Void.class) {
+            return submit(requestProducer, new BasicResponseConsumer<>(new DiscardingEntityConsumer<>()))
+                    .thenApply(result -> {
+                        checkStatus(result.getHead(), null);
+                        return null;
+                    });
+        }
+        if (rawType == Response.class) {
+            return submit(requestProducer, new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()))
+                    .thenApply(result -> new RestClientResponse(result.getHead(), result.getBody(), objectMapper));
+        }
+        if (rawType == Request.class) {
+            return submit(requestProducer, new BasicResponseConsumer<>(new DiscardingEntityConsumer<>()))
+                    .thenApply(result -> {
+                        checkStatus(result.getHead(), null);
+                        return new RestClientRequest(rm.getHttpMethod());
+                    });
+        }
+        if (rawType == byte[].class) {
+            return submit(requestProducer, new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()))
+                    .thenApply(result -> {
+                        final byte[] body = result.getBody();
+                        checkStatus(result.getHead(), body);
+                        return body;
+                    });
+        }
+        if (rawType == String.class) {
+            return submit(requestProducer, new StringResponseConsumer())
+                    .thenApply(result -> {
+                        throwIfError(result);
+                        return result.getBody();
+                    });
+        }
+        @SuppressWarnings("unchecked") final Class<Object> objectType = (Class<Object>) rawType;
+        return submit(requestProducer,
+                JsonResponseConsumers.create(objectMapper, objectType, BasicAsyncEntityConsumer::new))
+                .thenApply(result -> {
+                    throwIfError(result);
+                    return result.getBody();
+                });
+    }
+
+    private <T> CompletableFuture<Message<HttpResponse, T>> submit(
+            final BasicRequestProducer requestProducer,
+            final AsyncResponseConsumer<Message<HttpResponse, T>> responseConsumer) {
+        final CompletableFuture<Message<HttpResponse, T>> cf = new CompletableFuture<>();
+        httpClient.execute(requestProducer, responseConsumer, null,
+                new FutureCallback<Message<HttpResponse, T>>() {
+
+                    @Override
+                    public void completed(final Message<HttpResponse, T> result) {
+                        cf.complete(result);
+                    }
+
+                    @Override
+                    public void failed(final Exception ex) {
+                        cf.completeExceptionally(ex);
+                    }
+
+                    @Override
+                    public void cancelled() {
+                        cf.cancel(false);
+                    }
+                });
+        return cf;
+    }
+
+    private static Object awaitSync(final CompletableFuture<Object> future) {
+        try {
+            return future.get();
+        } catch (final ExecutionException ex) {
+            throw unwrap(ex.getCause());
+        } catch (final CompletionException ex) {
+            throw unwrap(ex.getCause());
+        } catch (final InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new UncheckedIOException(new IOException("Request interrupted", ex));
+        }
+    }
+
+    private static RuntimeException unwrap(final Throwable cause) {
+        if (cause instanceof RestClientResponseException) {
+            return (RestClientResponseException) cause;
+        }
+        if (cause instanceof RuntimeException) {
+            return (RuntimeException) cause;
+        }
+        if (cause instanceof IOException) {
+            return new UncheckedIOException((IOException) cause);
+        }
+        return new UncheckedIOException(new IOException("Request execution failed", cause));
     }
 
     private URI buildRequestUri(final String pathTemplate,
@@ -323,24 +421,6 @@ final class RestInvocationHandler implements InvocationHandler {
         return new JsonObjectEntityProducer<>(body, objectMapper);
     }
 
-    private static <T> T awaitResult(final Future<T> future) throws IOException {
-        try {
-            return future.get();
-        } catch (final ExecutionException ex) {
-            final Throwable cause = ex.getCause();
-            if (cause instanceof RestClientResponseException) {
-                throw (RestClientResponseException) cause;
-            }
-            if (cause instanceof IOException) {
-                throw (IOException) cause;
-            }
-            throw new IOException("Request execution failed", cause);
-        } catch (final InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            throw new IOException("Request interrupted", ex);
-        }
-    }
-
     private static void checkStatus(final HttpResponse response,
                                     final byte[] body) {
         if (response.getCode() >= ERROR_STATUS_THRESHOLD) {
@@ -405,12 +485,17 @@ final class RestInvocationHandler implements InvocationHandler {
         final ClientResourceMethod resourceMethod;
         final String acceptHeader;
         final ContentType consumeType;
+        final Class<?> responseType;
+        final boolean async;
 
         MethodInvoker(final ClientResourceMethod rm, final String accept,
-                      final ContentType consume) {
+                      final ContentType consume, final Class<?> responseType,
+                      final boolean async) {
             this.resourceMethod = rm;
             this.acceptHeader = accept;
             this.consumeType = consume;
+            this.responseType = responseType;
+            this.async = async;
         }
     }
 
