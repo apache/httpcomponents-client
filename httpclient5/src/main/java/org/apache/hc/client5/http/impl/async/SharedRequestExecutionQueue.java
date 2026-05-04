@@ -37,8 +37,7 @@ import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.util.Args;
 
 /**
- * Shared FIFO execution queue with a hard cap on concurrently executing tasks.
- * Tasks beyond the cap are queued and executed when in-flight count drops.
+ * Shared FIFO execution queue with a cap on concurrently executing requests.
  */
 @Internal
 final class SharedRequestExecutionQueue {
@@ -47,28 +46,58 @@ final class SharedRequestExecutionQueue {
     private final AtomicInteger inFlight;
     private final ConcurrentLinkedQueue<Entry> queue;
     private final AtomicBoolean draining;
+    private final AtomicBoolean closed;
 
     SharedRequestExecutionQueue(final int maxConcurrent) {
-        Args.positive(maxConcurrent, "maxConcurrent");
-        this.maxConcurrent = maxConcurrent;
-        this.inFlight = new AtomicInteger(0);
+        this.maxConcurrent = Args.positive(maxConcurrent, "Max concurrent requests");
+        this.inFlight = new AtomicInteger();
         this.queue = new ConcurrentLinkedQueue<>();
-        this.draining = new AtomicBoolean(false);
+        this.draining = new AtomicBoolean();
+        this.closed = new AtomicBoolean();
     }
 
-    Cancellable enqueue(final Runnable task, final Cancellable onCancel) {
-        Args.notNull(task, "task");
-        Args.notNull(onCancel, "onCancel");
+    Cancellable enqueue(final Runnable task, final Runnable onCancel) {
+        Args.notNull(task, "Task");
+        Args.notNull(onCancel, "Cancel callback");
 
         final Entry entry = new Entry(task, onCancel);
+
+        if (closed.get()) {
+            entry.cancel();
+            return entry;
+        }
+
         queue.add(entry);
+
+        if (closed.get()) {
+            cancelPending();
+            return entry;
+        }
+
         drain();
         return entry;
     }
 
     void completed() {
         inFlight.decrementAndGet();
-        drain();
+        if (closed.get()) {
+            cancelPending();
+        } else {
+            drain();
+        }
+    }
+
+    void close() {
+        if (closed.compareAndSet(false, true)) {
+            cancelPending();
+        }
+    }
+
+    private void cancelPending() {
+        Entry entry;
+        while ((entry = queue.poll()) != null) {
+            entry.cancel();
+        }
     }
 
     private void drain() {
@@ -77,10 +106,14 @@ final class SharedRequestExecutionQueue {
                 return;
             }
             try {
-                while (inFlight.get() < maxConcurrent) {
+                while (!closed.get() && inFlight.get() < maxConcurrent) {
                     final Entry entry = queue.poll();
                     if (entry == null) {
                         break;
+                    }
+                    if (closed.get()) {
+                        entry.cancel();
+                        continue;
                     }
                     if (!entry.tryStart()) {
                         continue;
@@ -91,22 +124,28 @@ final class SharedRequestExecutionQueue {
             } finally {
                 draining.set(false);
             }
-            if (inFlight.get() >= maxConcurrent || queue.isEmpty()) {
+
+            if (closed.get() || inFlight.get() >= maxConcurrent || queue.isEmpty()) {
                 return;
             }
         }
     }
 
+    private enum State {
 
-    private enum State { QUEUED, STARTED, CANCELLED }
+        QUEUED,
+        STARTED,
+        CANCELLED
+
+    }
 
     private static final class Entry implements Cancellable {
 
         private final Runnable task;
-        private final Cancellable onCancel;
+        private final Runnable onCancel;
         private final AtomicReference<State> state;
 
-        Entry(final Runnable task, final Cancellable onCancel) {
+        Entry(final Runnable task, final Runnable onCancel) {
             this.task = task;
             this.onCancel = onCancel;
             this.state = new AtomicReference<>(State.QUEUED);
@@ -123,11 +162,12 @@ final class SharedRequestExecutionQueue {
         @Override
         public boolean cancel() {
             if (state.compareAndSet(State.QUEUED, State.CANCELLED)) {
-                onCancel.cancel();
+                onCancel.run();
                 return true;
             }
             return false;
         }
+
     }
 
 }

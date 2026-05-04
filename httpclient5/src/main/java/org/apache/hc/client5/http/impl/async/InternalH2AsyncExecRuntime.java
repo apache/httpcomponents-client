@@ -279,10 +279,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
                         wrapped.failed(ex);
                     }
                 },
-                () -> {
-                    exchangeHandler.cancel();
-                    return true;
-                });
+                exchangeHandler::cancel);
 
         complexCancellable.setDependency(queued);
         return complexCancellable;

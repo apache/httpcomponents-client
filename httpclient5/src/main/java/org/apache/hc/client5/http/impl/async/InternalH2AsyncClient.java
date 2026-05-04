@@ -49,6 +49,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,6 +108,14 @@ public final class InternalH2AsyncClient extends InternalAbstractHttpAsyncClient
             throw new HttpException("HTTP/2 tunneling not supported");
         }
         return route;
+    }
+
+    @Override
+    void internalClose(final CloseMode closeMode) {
+        if (executionQueue != null) {
+            executionQueue.close();
+        }
+        super.internalClose(closeMode);
     }
 
 }
