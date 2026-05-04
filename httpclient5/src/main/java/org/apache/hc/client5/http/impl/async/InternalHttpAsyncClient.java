@@ -53,6 +53,7 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,6 +118,14 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
     @Override
     HttpRoute determineRoute(final HttpHost httpHost, final HttpRequest request, final HttpClientContext clientContext) throws HttpException {
         return routePlanner.determineRoute(httpHost, request, clientContext);
+    }
+
+    @Override
+    void internalClose(final CloseMode closeMode) {
+        if (executionQueue != null) {
+            executionQueue.close();
+        }
+        super.internalClose(closeMode);
     }
 
 }

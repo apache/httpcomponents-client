@@ -393,13 +393,14 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                         wrapped.failed(ex);
                     }
                 },
-                () -> {
-                    exchangeHandler.cancel();
-                    return true;
-                });
+                exchangeHandler::cancel);
 
-        complexCancellable.setDependency(queued);
-        return complexCancellable;
+        return () -> {
+            if (queued.cancel()) {
+                return true;
+            }
+            return complexCancellable.cancel();
+        };
     }
 
     @Override
