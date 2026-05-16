@@ -54,6 +54,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
@@ -61,9 +62,11 @@ import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.nio.command.RequestExecutionCommand;
+import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
@@ -79,8 +82,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Minimal implementation of HTTP/2 only {@link CloseableHttpAsyncClient}. This client
  * is optimized for HTTP/2 multiplexing message transport and does not support advanced
- * HTTP protocol functionality such as request execution via a proxy, state management,
- * authentication and request redirects.
+ * HTTP protocol functionality such as state management, authentication and request redirects.
  * <p>
  * Concurrent message exchanges with the same connection route executed by
  * this client will get automatically multiplexed over a single physical HTTP/2
@@ -99,6 +101,8 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
     MinimalH2AsyncClient(
             final IOEventHandlerFactory eventHandlerFactory,
             final AsyncPushConsumerRegistry pushConsumerRegistry,
+            final H2Config h2Config,
+            final CharCodingConfig charCodingConfig,
             final IOReactorConfig reactorConfig,
             final ThreadFactory threadFactory,
             final ThreadFactory workerThreadFactory,
@@ -115,7 +119,13 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                 pushConsumerRegistry,
                 threadFactory);
         this.connectionInitiator = new MultihomeConnectionInitiator(getConnectionInitiator(), dnsResolver);
-        this.connPool = new InternalH2ConnPool(this.connectionInitiator, object -> null, tlsStrategy);
+        this.connPool = new InternalH2ConnPool(
+                this.connectionInitiator,
+                object -> null,
+                tlsStrategy,
+                new H2RouteOperator(
+                        tlsStrategy,
+                        new H2TunnelProtocolStarter(h2Config, charCodingConfig)));
     }
 
     @Override
@@ -144,8 +154,14 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                 final Timeout connectTimeout = requestConfig.getConnectTimeout();
                 final Timeout responseTimeout = requestConfig.getResponseTimeout();
                 final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
+                final HttpHost proxy = requestConfig.getProxy();
+                final HttpRoute route = proxy != null ? new HttpRoute(
+                        target,
+                        null,
+                        proxy,
+                        URIScheme.HTTPS.same(target.getSchemeName())) : new HttpRoute(target);
 
-                final Future<IOSession> sessionFuture = connPool.getSession(new HttpRoute(target), connectTimeout,
+                final Future<IOSession> sessionFuture = connPool.getSession(route, connectTimeout,
                     new FutureCallback<IOSession>() {
 
                     @Override
