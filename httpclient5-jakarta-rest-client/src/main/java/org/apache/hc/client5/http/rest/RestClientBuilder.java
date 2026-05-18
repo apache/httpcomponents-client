@@ -29,9 +29,9 @@ package org.apache.hc.client5.http.rest;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -156,33 +156,26 @@ public final class RestClientBuilder {
      * @throws IllegalArgumentException if the class is not an interface.
      * @throws IllegalStateException    if no base URI or client has been set, or if the
      *                                  interface has no Jakarta REST annotated methods.
+     * @throws RestResourceException if the interface violates Jakarta REST contract.
      */
     @SuppressWarnings("unchecked")
     public <T> T build(final Class<T> iface) {
         Args.notNull(iface, "Interface class");
-        if (!iface.isInterface()) {
-            throw new IllegalArgumentException(iface.getName() + " is not an interface");
-        }
+        Args.check(iface.isInterface(), "%s is not an interface", iface.getName());
         if (baseUri == null) {
             throw new IllegalStateException("baseUri is required");
         }
         if (httpClient == null) {
             throw new IllegalStateException("httpClient is required");
         }
-
-        final List<ClientResourceMethod> methods = ClientResourceMethod.scan(iface);
+        final List<ResourceMethod> methods = ResourceIfaceScanner.scan(iface);
         if (methods.isEmpty()) {
-            throw new IllegalStateException(
-                    "No Jakarta REST methods found on " + iface.getName());
+            throw new RestResourceException("No Jakarta REST methods found on interface '" + iface.getName() + "'");
         }
-        final Map<Method, ClientResourceMethod> methodMap =
-                new HashMap<>(methods.size());
-        for (final ClientResourceMethod rm : methods) {
-            methodMap.put(rm.getMethod(), rm);
-        }
+        final Map<Method, ResourceMethod> methodMap = methods.stream()
+                .collect(Collectors.toMap(ResourceMethod::getMethod, e -> e));
 
-        final ObjectMapper mapper = objectMapper != null
-                ? objectMapper : new ObjectMapper();
+        final ObjectMapper mapper = objectMapper != null ? objectMapper : new ObjectMapper();
 
         return (T) Proxy.newProxyInstance(
                 iface.getClassLoader(),

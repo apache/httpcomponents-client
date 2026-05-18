@@ -686,7 +686,7 @@ class RestClientBuilderTest {
 
     @Test
     void testRejectsMultipleBodyParams() {
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(RestResourceException.class, () ->
                 RestClientBuilder.newBuilder()
                         .baseUri("http://localhost")
                         .httpClient(httpClient)
@@ -695,7 +695,7 @@ class RestClientBuilderTest {
 
     @Test
     void testRejectsPathParamMismatch() {
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(RestResourceException.class, () ->
                 RestClientBuilder.newBuilder()
                         .baseUri("http://localhost")
                         .httpClient(httpClient)
@@ -704,7 +704,7 @@ class RestClientBuilderTest {
 
     @Test
     void testRejectsMissingPathParam() {
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(RestResourceException.class, () ->
                 RestClientBuilder.newBuilder()
                         .baseUri("http://localhost")
                         .httpClient(httpClient)
@@ -713,7 +713,7 @@ class RestClientBuilderTest {
 
     @Test
     void testRejectsMultipleConsumesWithBody() {
-        assertThrows(IllegalStateException.class, () ->
+        assertThrows(RestResourceException.class, () ->
                 RestClientBuilder.newBuilder()
                         .baseUri("http://localhost")
                         .httpClient(httpClient)

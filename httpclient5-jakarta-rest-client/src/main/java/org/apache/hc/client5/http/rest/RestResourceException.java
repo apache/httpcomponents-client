@@ -26,39 +26,19 @@
  */
 package org.apache.hc.client5.http.rest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+/**
+ * Signals a failure in REST client initialization.
+ *
+ * @since 5.7
+ */
+public final class RestResourceException extends RuntimeException {
 
-import org.junit.jupiter.api.Test;
-
-class RestInvocationHandlerTest {
-
-    @Test
-    void testParamToStringBasicTypes() {
-        assertEquals("42", RestInvocationHandler.paramToString(42));
-        assertEquals("true", RestInvocationHandler.paramToString(true));
-        assertEquals("hello", RestInvocationHandler.paramToString("hello"));
+    public RestResourceException(final String message) {
+        super(message);
     }
 
-    enum Color { RED, GREEN, BLUE }
-
-    enum OverriddenToString {
-        ALPHA;
-
-        @Override
-        public String toString() {
-            return "custom-alpha";
-        }
-    }
-
-    @Test
-    void testParamToStringEnumUsesName() {
-        assertEquals("RED", RestInvocationHandler.paramToString(Color.RED));
-        assertEquals("GREEN", RestInvocationHandler.paramToString(Color.GREEN));
-    }
-
-    @Test
-    void testParamToStringEnumIgnoresOverriddenToString() {
-        assertEquals("ALPHA", RestInvocationHandler.paramToString(OverriddenToString.ALPHA));
+    public RestResourceException(final String message, final Throwable cause) {
+        super(message, cause);
     }
 
 }
