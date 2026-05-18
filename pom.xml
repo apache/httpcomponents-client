@@ -88,6 +88,7 @@
     <caffeine.version>2.9.3</caffeine.version>  <!-- java 8. current version 3.2.3 -->
     <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>
     <jackson.version>2.21.1</jackson.version>
+    <assertj.version>3.27.7</assertj.version>
   </properties>
 
   <dependencyManagement>
@@ -287,6 +288,11 @@
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
         <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>${assertj.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
