@@ -203,15 +203,22 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
             final HttpContext context) {
         Args.notNull(response, "response");
 
+        if (execCount > this.maxRetries || !this.retriableCodes.contains(response.getCode())) {
+            return false;
+        }
+
         if (context != null) {
             final HttpClientContext clientContext = HttpClientContext.cast(context);
             final RequestConfig requestConfig = clientContext.getRequestConfigOrDefault();
             final Timeout responseTimeout = requestConfig.getResponseTimeout();
-            if (responseTimeout != null && defaultRetryInterval.compareTo(responseTimeout) > 0) {
-                return false;
+            if (responseTimeout != null) {
+                final TimeValue retryInterval = getRetryInterval(response, execCount, context);
+                if (retryInterval.compareTo(responseTimeout) > 0) {
+                    return false;
+                }
             }
         }
-        return execCount <= this.maxRetries && retriableCodes.contains(response.getCode());
+        return true;
     }
 
     @Override

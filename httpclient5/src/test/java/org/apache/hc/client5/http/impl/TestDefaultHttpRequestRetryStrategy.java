@@ -188,4 +188,17 @@ class TestDefaultHttpRequestRetryStrategy {
         Assertions.assertTrue(retryStrategy.retryRequest(request, new IOException(), 1, null));
     }
 
+    @Test
+    void testRetryRequestWithResponseTimeoutAndRetryAfterHeader() {
+        final HttpResponse response = new BasicHttpResponse(429, "Too Many Requests");
+        response.setHeader(HttpHeaders.RETRY_AFTER, "321");
+
+        final HttpClientContext context = HttpClientContext.create();
+        context.setRequestConfig(RequestConfig.custom()
+                .setResponseTimeout(Timeout.ofSeconds(2L))
+                .build());
+
+        Assertions.assertFalse(retryStrategy.retryRequest(response, 1, context));
+    }
+
 }
