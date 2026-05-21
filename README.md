@@ -26,7 +26,7 @@ Apache HttpComponents Client
 Welcome to the HttpClient component of the Apache HttpComponents project.
 
 [![GitHub Actions Status](https://github.com/apache/httpcomponents-client/workflows/Java%20CI/badge.svg)](https://github.com/apache/httpcomponents-client/actions)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.apache.httpcomponents.client5/httpclient5/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.apache.httpcomponents.client5/httpclient5)
+[![Maven Central](https://maven-badges.sml.io/maven-central/org.apache.httpcomponents.client5/httpclient5/badge.svg)](https://maven-badges.sml.io/maven-central/org.apache.httpcomponents.client5/httpclient5)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Building Instructions
