@@ -50,8 +50,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class RestClientIntegrationTest {
 
@@ -91,17 +90,17 @@ class RestClientIntegrationTest {
         final Book created = client.createBook("abc-123", "en", "token-1",
                 new Book(null, "HttpComponents in Action"));
 
-        assertNotNull(created);
-        assertEquals("abc-123", created.id);
-        assertEquals("HttpComponents in Action", created.title);
-        assertEquals("en", created.lang);
+        assertThat(created).isNotNull();
+        assertThat(created.id).isEqualTo("abc-123");
+        assertThat(created.title).isEqualTo("HttpComponents in Action");
+        assertThat(created.lang).isEqualTo("en");
 
         final Book fetched = client.getBook("abc-123", "en", "token-1");
 
-        assertNotNull(fetched);
-        assertEquals("abc-123", fetched.id);
-        assertEquals("HttpComponents in Action", fetched.title);
-        assertEquals("en", fetched.lang);
+        assertThat(fetched).isNotNull();
+        assertThat(fetched.id).isEqualTo("abc-123");
+        assertThat(fetched.title).isEqualTo("HttpComponents in Action");
+        assertThat(fetched.lang).isEqualTo("en");
     }
 
     private void handleBooks(final HttpExchange exchange) throws IOException {

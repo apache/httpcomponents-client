@@ -26,12 +26,8 @@
  */
 package org.apache.hc.client5.http.rest;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.nio.charset.StandardCharsets;
 
@@ -501,32 +497,32 @@ class RestClientBuilderTest {
     void testGetSingleWidget() {
         final WidgetApi api = proxy(WidgetApi.class);
         final String json = api.get(42);
-        assertTrue(json.contains("\"id\":42"));
-        assertTrue(json.contains("\"name\":\"W-42\""));
+        assertThat(json.contains("\"id\":42")).isTrue();
+        assertThat(json.contains("\"name\":\"W-42\"")).isTrue();
     }
 
     @Test
     void testGetWidgetList() {
         final WidgetApi api = proxy(WidgetApi.class);
         final String json = api.list();
-        assertTrue(json.contains("\"name\":\"A\""));
-        assertTrue(json.contains("\"name\":\"B\""));
+        assertThat(json.contains("\"name\":\"A\"")).isTrue();
+        assertThat(json.contains("\"name\":\"B\"")).isTrue();
     }
 
     @Test
     void testPostWidget() {
         final WidgetApi api = proxy(WidgetApi.class);
         final String json = api.create("{\"id\":0,\"name\":\"New\"}");
-        assertTrue(json.contains("\"id\":99"));
-        assertTrue(json.contains("\"name\":\"Created\""));
+        assertThat(json.contains("\"id\":99")).isTrue();
+        assertThat(json.contains("\"name\":\"Created\"")).isTrue();
     }
 
     @Test
     void testPutWidget() {
         final WidgetApi api = proxy(WidgetApi.class);
         final String json = api.update(7, "{\"id\":0,\"name\":\"Up\"}");
-        assertTrue(json.contains("\"id\":7"));
-        assertTrue(json.contains("\"name\":\"Updated\""));
+        assertThat(json.contains("\"id\":7")).isTrue();
+        assertThat(json.contains("\"name\":\"Updated\"")).isTrue();
     }
 
     @Test
@@ -538,130 +534,122 @@ class RestClientBuilderTest {
     @Test
     void testQueryParam() {
         final EchoApi api = proxy(EchoApi.class);
-        assertEquals("hello", api.echo("hello"));
+        assertThat(api.echo("hello")).isEqualTo("hello");
     }
 
     @Test
     void testMultiValueQueryParam() {
         final EchoApi api = proxy(EchoApi.class);
         final String result = api.echoMulti("alpha", "beta");
-        assertTrue(result.contains("tag=alpha"));
-        assertTrue(result.contains("tag=beta"));
+        assertThat(result.contains("tag=alpha")).isTrue();
+        assertThat(result.contains("tag=beta")).isTrue();
     }
 
     @Test
     void testHeaderParam() {
         final EchoApi api = proxy(EchoApi.class);
-        assertEquals("myTag", api.echoHeader("myTag"));
+        assertThat(api.echoHeader("myTag")).isEqualTo("myTag");
     }
 
     @Test
     void testErrorThrowsException() {
         final StatusApi api = proxy(StatusApi.class);
-        final RestClientResponseException ex = assertThrows(
-                RestClientResponseException.class,
-                () -> api.getStatus(404));
-        assertEquals(404, ex.getStatusCode());
+        final RestClientResponseException ex = assertThatExceptionOfType(RestClientResponseException.class).isThrownBy(() -> api.getStatus(404)).actual();
+        assertThat(ex.getStatusCode()).isEqualTo(404);
     }
 
     @Test
     void testPathParamEncoding() {
         final EchoPathApi api = proxy(EchoPathApi.class);
-        assertEquals("hello%20world", api.echoPath("hello world"));
-        assertEquals("~user", api.echoPath("~user"));
+        assertThat(api.echoPath("hello world")).isEqualTo("hello%20world");
+        assertThat(api.echoPath("~user")).isEqualTo("~user");
     }
 
     @Test
     void testDefaultValue() {
         final DefaultsApi api = proxy(DefaultsApi.class);
-        assertEquals("red", api.withDefault(null));
-        assertEquals("blue", api.withDefault("blue"));
+        assertThat(api.withDefault(null)).isEqualTo("red");
+        assertThat(api.withDefault("blue")).isEqualTo("blue");
     }
 
     @Test
     void testByteArrayReturn() {
         final BytesApi api = proxy(BytesApi.class);
         final byte[] data = api.getBytes();
-        assertEquals("binary-data", new String(data,
-                StandardCharsets.UTF_8));
+        assertThat(new String(data,
+                StandardCharsets.UTF_8)).isEqualTo("binary-data");
     }
 
     @Test
     void testProxyToString() {
         final EchoApi api = proxy(EchoApi.class);
-        assertTrue(api.toString().startsWith("RestProxy["));
+        assertThat(api.toString().startsWith("RestProxy[")).isTrue();
     }
 
     @Test
     void testInferredContentTypeForStringBody() {
         final InspectApi api = proxy(InspectApi.class);
         final String ct = api.postString("hello");
-        assertTrue(ct.startsWith("text/plain"), ct);
+        assertThat(ct.startsWith("text/plain")).as(ct).isTrue();
     }
 
     @Test
     void testInferredContentTypeForByteArrayBody() {
         final InspectApi api = proxy(InspectApi.class);
         final String ct = api.postBytes(new byte[]{1, 2, 3});
-        assertTrue(ct.startsWith("application/octet-stream"), ct);
+        assertThat(ct.startsWith("application/octet-stream")).as(ct).isTrue();
     }
 
     @Test
     void testNoAcceptHeaderWithoutProduces() {
         final NoProduceApi api = proxy(NoProduceApi.class);
-        assertEquals("none", api.get());
+        assertThat(api.get()).isEqualTo("none");
     }
 
     @Test
     void testJsonPojoGet() {
         final JsonWidgetApi api = proxy(JsonWidgetApi.class);
         final Widget w = api.get(42);
-        assertEquals(42, w.id);
-        assertEquals("W-42", w.name);
+        assertThat(w.id).isEqualTo(42);
+        assertThat(w.name).isEqualTo("W-42");
     }
 
     @Test
     void testJsonPojoPostRoundTrip() {
         final JsonWidgetApi api = proxy(JsonWidgetApi.class);
         final Widget w = api.create(new Widget(0, "New"));
-        assertEquals(0, w.id);
-        assertEquals("New", w.name);
+        assertThat(w.id).isEqualTo(0);
+        assertThat(w.name).isEqualTo("New");
     }
 
     @Test
     void testJsonPojoErrorResponse() {
         final JsonErrorApi api = proxy(JsonErrorApi.class);
-        final RestClientResponseException ex = assertThrows(
-                RestClientResponseException.class,
-                () -> api.getError(500));
-        assertEquals(500, ex.getStatusCode());
-        assertNotNull(ex.getResponseBody());
+        final RestClientResponseException ex = assertThatExceptionOfType(RestClientResponseException.class).isThrownBy(() -> api.getError(500)).actual();
+        assertThat(ex.getStatusCode()).isEqualTo(500);
+        assertThat(ex.getResponseBody()).isNotNull();
     }
 
     @Disabled("Custom JSON content types for POJO bodies not supported by current core API")
     void testPojoBodyHonorsConsumesMediaType() {
         final InspectJsonApi api = proxy(InspectJsonApi.class);
         final String ct = api.postJson(new Widget(1, "test"));
-        assertTrue(ct.startsWith("application/vnd.api+json"), ct);
+        assertThat(ct.startsWith("application/vnd.api+json")).as(ct).isTrue();
     }
 
     @Test
     void testNonUtf8ErrorResponsePreservesBytes() {
         final CharStatusApi api = proxy(CharStatusApi.class);
-        final RestClientResponseException ex = assertThrows(
-                RestClientResponseException.class,
-                () -> api.getStatus(500));
-        assertEquals(500, ex.getStatusCode());
-        assertArrayEquals(
-                "caf\u00e9".getBytes(StandardCharsets.ISO_8859_1),
-                ex.getResponseBody());
+        final RestClientResponseException ex = assertThatExceptionOfType(RestClientResponseException.class).isThrownBy(() -> api.getStatus(500)).actual();
+        assertThat(ex.getStatusCode()).isEqualTo(500);
+        assertThat(ex.getResponseBody()).containsExactly("caf\u00e9".getBytes(StandardCharsets.ISO_8859_1));
     }
 
     // --- Validation tests ---
 
     @Test
     void testRejectsNonInterface() {
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
                 RestClientBuilder.newBuilder()
                         .baseUri("http://localhost")
                         .httpClient(httpClient)
@@ -670,7 +658,7 @@ class RestClientBuilderTest {
 
     @Test
     void testRequiresBaseUri() {
-        assertThrows(IllegalStateException.class, () ->
+        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() ->
                 RestClientBuilder.newBuilder()
                         .httpClient(httpClient)
                         .build(EchoApi.class));
@@ -678,7 +666,7 @@ class RestClientBuilderTest {
 
     @Test
     void testRequiresHttpClient() {
-        assertThrows(IllegalStateException.class, () ->
+        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() ->
                 RestClientBuilder.newBuilder()
                         .baseUri("http://localhost")
                         .build(EchoApi.class));
@@ -686,7 +674,7 @@ class RestClientBuilderTest {
 
     @Test
     void testRejectsMultipleBodyParams() {
-        assertThrows(RestResourceException.class, () ->
+        assertThatExceptionOfType(RestResourceException.class).isThrownBy(() ->
                 RestClientBuilder.newBuilder()
                         .baseUri("http://localhost")
                         .httpClient(httpClient)
@@ -695,7 +683,7 @@ class RestClientBuilderTest {
 
     @Test
     void testRejectsPathParamMismatch() {
-        assertThrows(RestResourceException.class, () ->
+        assertThatExceptionOfType(RestResourceException.class).isThrownBy(() ->
                 RestClientBuilder.newBuilder()
                         .baseUri("http://localhost")
                         .httpClient(httpClient)
@@ -704,7 +692,7 @@ class RestClientBuilderTest {
 
     @Test
     void testRejectsMissingPathParam() {
-        assertThrows(RestResourceException.class, () ->
+        assertThatExceptionOfType(RestResourceException.class).isThrownBy(() ->
                 RestClientBuilder.newBuilder()
                         .baseUri("http://localhost")
                         .httpClient(httpClient)
@@ -713,7 +701,7 @@ class RestClientBuilderTest {
 
     @Test
     void testRejectsMultipleConsumesWithBody() {
-        assertThrows(RestResourceException.class, () ->
+        assertThatExceptionOfType(RestResourceException.class).isThrownBy(() ->
                 RestClientBuilder.newBuilder()
                         .baseUri("http://localhost")
                         .httpClient(httpClient)
@@ -723,28 +711,27 @@ class RestClientBuilderTest {
     @Test
     void testNullPathParamThrows() {
         final EchoPathApi api = proxy(EchoPathApi.class);
-        assertThrows(IllegalArgumentException.class,
-                () -> api.echoPath(null));
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> api.echoPath(null));
     }
 
     @Test
     void testQueryParamSpaceEncodedAsPercent20() {
         final EchoApi api = proxy(EchoApi.class);
         final String result = api.echo("hello world");
-        assertEquals("hello%20world", result);
+        assertThat(result).isEqualTo("hello%20world");
     }
 
     @Test
     void testQueryParamLiteralPlusEncodedAsPercent2B() {
         final EchoApi api = proxy(EchoApi.class);
         final String result = api.echo("a+b");
-        assertEquals("a%2Bb", result);
+        assertThat(result).isEqualTo("a%2Bb");
     }
 
     @Test
     void testStringResponseRespectsEntityCharset() {
         final CharsetApi api = proxy(CharsetApi.class);
-        assertEquals("caf\u00e9", api.get());
+        assertThat(api.get()).isEqualTo("caf\u00e9");
     }
 
     @Test
@@ -754,30 +741,29 @@ class RestClientBuilderTest {
                 new RestClientResponseException(500, "error", original);
         original[0] = 99;
         final byte[] body = ex.getResponseBody();
-        assertEquals(1, body[0]);
+        assertThat((int) body[0]).isEqualTo(1);
         body[1] = 99;
-        assertEquals(2, ex.getResponseBody()[1]);
+        assertThat((int) ex.getResponseBody()[1]).isEqualTo(2);
     }
 
     @Test
     void testStringBodyEncodedWithConsumesCharset() {
         final EchoBodyApi api = proxy(EchoBodyApi.class);
         final byte[] result = api.post("caf\u00e9");
-        assertArrayEquals(
-                "caf\u00e9".getBytes(StandardCharsets.ISO_8859_1), result);
+        assertThat(result).containsExactly("caf\u00e9".getBytes(StandardCharsets.ISO_8859_1));
     }
 
     @Test
     void testResponseExceptionNullBody() {
         final RestClientResponseException ex =
                 new RestClientResponseException(204, "No Content", null);
-        assertNull(ex.getResponseBody());
+        assertThat(ex.getResponseBody()).isNull();
     }
 
     @Test
     void testEnumQueryParamUsesName() {
         final EnumQueryApi api = proxy(EnumQueryApi.class);
-        assertEquals("GREEN", api.echo(Color.GREEN));
+        assertThat(api.echo(Color.GREEN)).isEqualTo("GREEN");
     }
 
 }

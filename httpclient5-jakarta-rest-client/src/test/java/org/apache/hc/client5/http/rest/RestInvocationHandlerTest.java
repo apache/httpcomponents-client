@@ -26,7 +26,8 @@
  */
 package org.apache.hc.client5.http.rest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 import org.junit.jupiter.api.Test;
 
@@ -34,9 +35,9 @@ class RestInvocationHandlerTest {
 
     @Test
     void testParamToStringBasicTypes() {
-        assertEquals("42", RestInvocationHandler.paramToString(42));
-        assertEquals("true", RestInvocationHandler.paramToString(true));
-        assertEquals("hello", RestInvocationHandler.paramToString("hello"));
+        assertThat(RestInvocationHandler.paramToString(42)).isEqualTo("42");
+        assertThat(RestInvocationHandler.paramToString(true)).isEqualTo("true");
+        assertThat(RestInvocationHandler.paramToString("hello")).isEqualTo("hello");
     }
 
     enum Color { RED, GREEN, BLUE }
@@ -52,13 +53,13 @@ class RestInvocationHandlerTest {
 
     @Test
     void testParamToStringEnumUsesName() {
-        assertEquals("RED", RestInvocationHandler.paramToString(Color.RED));
-        assertEquals("GREEN", RestInvocationHandler.paramToString(Color.GREEN));
+        assertThat(RestInvocationHandler.paramToString(Color.RED)).isEqualTo("RED");
+        assertThat(RestInvocationHandler.paramToString(Color.GREEN)).isEqualTo("GREEN");
     }
 
     @Test
     void testParamToStringEnumIgnoresOverriddenToString() {
-        assertEquals("ALPHA", RestInvocationHandler.paramToString(OverriddenToString.ALPHA));
+        assertThat(RestInvocationHandler.paramToString(OverriddenToString.ALPHA)).isEqualTo("ALPHA");
     }
 
 }
