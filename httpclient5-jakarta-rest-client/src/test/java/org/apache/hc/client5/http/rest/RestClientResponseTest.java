@@ -54,11 +54,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class RestClientResponseTest {
 
@@ -95,15 +91,15 @@ class RestClientResponseTest {
     void successResponseExposesStatusBodyAndHeaders() {
         final EchoApi api = build();
         try (Response response = api.echo("abc")) {
-            assertEquals(200, response.getStatus());
-            assertEquals(Response.Status.OK, response.getStatusInfo().toEnum());
-            assertEquals("OK", response.getStatusInfo().getReasonPhrase());
-            assertNotNull(response.getMediaType());
-            assertEquals("application", response.getMediaType().getType());
-            assertEquals("json", response.getMediaType().getSubtype());
-            assertEquals("custom-value", response.getHeaderString("X-Custom"));
-            assertTrue(response.hasEntity());
-            assertEquals("{\"id\":\"abc\"}", response.readEntity(String.class));
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(response.getStatusInfo().toEnum()).isEqualTo(Response.Status.OK);
+            assertThat(response.getStatusInfo().getReasonPhrase()).isEqualTo("OK");
+            assertThat(response.getMediaType()).isNotNull();
+            assertThat(response.getMediaType().getType()).isEqualTo("application");
+            assertThat(response.getMediaType().getSubtype()).isEqualTo("json");
+            assertThat(response.getHeaderString("X-Custom")).isEqualTo("custom-value");
+            assertThat(response.hasEntity()).isTrue();
+            assertThat(response.readEntity(String.class)).isEqualTo("{\"id\":\"abc\"}");
         }
     }
 
@@ -112,7 +108,7 @@ class RestClientResponseTest {
         final EchoApi api = build();
         try (Response response = api.echo("xyz")) {
             final Echo echo = response.readEntity(Echo.class);
-            assertEquals("xyz", echo.id);
+            assertThat(echo.id).isEqualTo("xyz");
         }
     }
 
@@ -121,9 +117,9 @@ class RestClientResponseTest {
         final EchoApi api = build();
         try (Response response = api.echo("abc")) {
             final JsonNode node = response.readEntity(JsonNode.class);
-            assertNotNull(node);
-            assertTrue(node.isObject());
-            assertEquals("abc", node.get("id").asText());
+            assertThat(node).isNotNull();
+            assertThat(node.isObject()).isTrue();
+            assertThat(node.get("id").asText()).isEqualTo("abc");
         }
     }
 
@@ -135,9 +131,9 @@ class RestClientResponseTest {
             final Echo pojo = response.readEntity(Echo.class);
             final JsonNode second = response.readEntity(JsonNode.class);
 
-            assertEquals("abc", pojo.id);
-            assertEquals("abc", first.get("id").asText());
-            assertSame(first, second);
+            assertThat(pojo.id).isEqualTo("abc");
+            assertThat(first.get("id").asText()).isEqualTo("abc");
+            assertThat(second).isSameAs(first);
         }
     }
 
@@ -149,9 +145,9 @@ class RestClientResponseTest {
         final JsonNode node = OBJECT_MAPPER.createObjectNode().put("id", "abc");
 
         try (Response response = new RestClientResponse(httpResponse, node, OBJECT_MAPPER)) {
-            assertSame(node, response.readEntity(JsonNode.class));
-            assertEquals("abc", response.readEntity(Echo.class).id);
-            assertEquals("{\"id\":\"abc\"}", response.readEntity(String.class));
+            assertThat(response.readEntity(JsonNode.class)).isSameAs(node);
+            assertThat(response.readEntity(Echo.class).id).isEqualTo("abc");
+            assertThat(response.readEntity(String.class)).isEqualTo("{\"id\":\"abc\"}");
         }
     }
 
@@ -159,9 +155,9 @@ class RestClientResponseTest {
     void errorResponsesAreReturnedNotThrown() {
         final EchoApi api = build();
         try (Response response = api.failing()) {
-            assertEquals(418, response.getStatus());
-            assertEquals(Response.Status.Family.CLIENT_ERROR, response.getStatusInfo().getFamily());
-            assertEquals("nope", response.readEntity(String.class));
+            assertThat(response.getStatus()).isEqualTo(418);
+            assertThat(response.getStatusInfo().getFamily()).isEqualTo(Response.Status.Family.CLIENT_ERROR);
+            assertThat(response.readEntity(String.class)).isEqualTo("nope");
         }
     }
 
@@ -169,9 +165,9 @@ class RestClientResponseTest {
     void emptyBodyHasNoEntity() {
         final EchoApi api = build();
         try (Response response = api.empty()) {
-            assertEquals(204, response.getStatus());
-            assertFalse(response.hasEntity());
-            assertTrue(response.getAllowedMethods().contains("GET"));
+            assertThat(response.getStatus()).isEqualTo(204);
+            assertThat(response.hasEntity()).isFalse();
+            assertThat(response.getAllowedMethods().contains("GET")).isTrue();
         }
     }
 
@@ -180,8 +176,8 @@ class RestClientResponseTest {
         final EchoApi api = build();
         final CompletionStage<Response> stage = api.echoAsync("abc");
         try (Response response = stage.toCompletableFuture().get(5, TimeUnit.SECONDS)) {
-            assertEquals(200, response.getStatus());
-            assertEquals("abc", response.readEntity(Echo.class).id);
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(response.readEntity(Echo.class).id).isEqualTo("abc");
         }
     }
 
@@ -189,8 +185,8 @@ class RestClientResponseTest {
     void completionStageOfResponseDeliversNon2xxAsValue() throws Exception {
         final EchoApi api = build();
         try (Response response = api.failingAsync().toCompletableFuture().get(5, TimeUnit.SECONDS)) {
-            assertEquals(418, response.getStatus());
-            assertEquals("nope", response.readEntity(String.class));
+            assertThat(response.getStatus()).isEqualTo(418);
+            assertThat(response.readEntity(String.class)).isEqualTo("nope");
         }
     }
 
@@ -199,8 +195,8 @@ class RestClientResponseTest {
         final EchoApi api = build();
 
         try (Response response = api.echoFuture("abc").get(5, TimeUnit.SECONDS)) {
-            assertEquals(200, response.getStatus());
-            assertEquals("abc", response.readEntity(Echo.class).id);
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(response.readEntity(Echo.class).id).isEqualTo("abc");
         }
     }
 

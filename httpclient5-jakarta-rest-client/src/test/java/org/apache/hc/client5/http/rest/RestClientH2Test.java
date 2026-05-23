@@ -26,9 +26,8 @@
  */
 package org.apache.hc.client5.http.rest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -176,33 +175,31 @@ class RestClientH2Test {
     @Test
     void testStringGetOverH2() {
         final EchoApi api = proxy(EchoApi.class);
-        assertEquals("hello", api.echo("hello"));
+        assertThat(api.echo("hello")).isEqualTo("hello");
     }
 
     @Test
     void testJsonPojoGetOverH2() {
         final JsonWidgetApi api = proxy(JsonWidgetApi.class);
         final Widget w = api.get(42);
-        assertEquals(42, w.id);
-        assertEquals("W-42", w.name);
+        assertThat(w.id).isEqualTo(42);
+        assertThat(w.name).isEqualTo("W-42");
     }
 
     @Test
     void testJsonPojoPostOverH2() {
         final JsonWidgetApi api = proxy(JsonWidgetApi.class);
         final Widget w = api.create(new Widget(7, "Created"));
-        assertEquals(7, w.id);
-        assertEquals("Created", w.name);
+        assertThat(w.id).isEqualTo(7);
+        assertThat(w.name).isEqualTo("Created");
     }
 
     @Test
     void testErrorResponseOverH2() {
         final JsonErrorApi api = proxy(JsonErrorApi.class);
-        final RestClientResponseException ex = assertThrows(
-                RestClientResponseException.class,
-                () -> api.getError(500));
-        assertEquals(500, ex.getStatusCode());
-        assertNotNull(ex.getResponseBody());
+        final RestClientResponseException ex = assertThatExceptionOfType(RestClientResponseException.class).isThrownBy(() -> api.getError(500)).actual();
+        assertThat(ex.getStatusCode()).isEqualTo(500);
+        assertThat(ex.getResponseBody()).isNotNull();
     }
 
     @Test
