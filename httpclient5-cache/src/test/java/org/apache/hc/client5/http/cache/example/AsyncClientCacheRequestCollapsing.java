@@ -26,111 +26,94 @@
  */
 package org.apache.hc.client5.http.cache.example;
 
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import com.sun.net.httpserver.HttpServer;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
+import org.apache.hc.client5.http.cache.CacheContextBuilder;
+import org.apache.hc.client5.http.cache.HttpCacheContext;
+import org.apache.hc.client5.http.cache.RequestCacheControl;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.cache.CacheConfig;
-import org.apache.hc.client5.http.impl.cache.CachingHttpAsyncClientBuilder;
-import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.client5.http.impl.cache.CachingHttpAsyncClients;
+import org.apache.hc.client5.http.impl.cache.HeapResourceFactory;
+import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.io.CloseMode;
 
 /**
- * Demonstrates optional request collapsing for concurrent async cache misses.
+ * This is an example demonstrating how to enable request collapsing in the async HTTP cache.
+ * When enabled, concurrent requests for the same cache key are coalesced so that only one
+ * request goes to the backend while the others wait and then re-check the cache.
  */
 public class AsyncClientCacheRequestCollapsing {
 
-    private static final int REQUEST_COUNT = 20;
-
     public static void main(final String[] args) throws Exception {
-        final AtomicInteger originHits = new AtomicInteger();
 
-        final ExecutorService executorService = Executors.newFixedThreadPool(REQUEST_COUNT);
-        final HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
-        server.setExecutor(executorService);
+        final HttpHost target = new HttpHost("https", "www.apache.org");
 
-        server.createContext("/resource", exchange -> {
-            final int count = originHits.incrementAndGet();
-
-            try {
-                Thread.sleep(500);
-            } catch (final InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
-
-            final byte[] body = ("payload-" + count).getBytes(StandardCharsets.UTF_8);
-            exchange.getResponseHeaders().add(HttpHeaders.CACHE_CONTROL, "public, max-age=60");
-            exchange.getResponseHeaders().add(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8");
-            exchange.sendResponseHeaders(200, body.length);
-            try (final OutputStream outputStream = exchange.getResponseBody()) {
-                outputStream.write(body);
-            }
-        });
-
-        try {
-            server.start();
-
-            final String requestUri = "http://localhost:" + server.getAddress().getPort() + "/resource";
-
-            originHits.set(0);
-            executeBurst(requestUri, false);
-            System.out.println("Origin hits without request collapsing: " + originHits.get());
-
-            originHits.set(0);
-            executeBurst(requestUri, true);
-            System.out.println("Origin hits with request collapsing:    " + originHits.get());
-        } finally {
-            server.stop(0);
-            executorService.shutdownNow();
-            if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
-                throw new IllegalStateException("Server executor did not terminate");
-            }
-        }
-    }
-
-    private static void executeBurst(final String requestUri, final boolean requestCollapsingEnabled) throws Exception {
-        final CloseableHttpAsyncClient client = CachingHttpAsyncClientBuilder.create()
+        try (final CloseableHttpAsyncClient httpclient = CachingHttpAsyncClients.custom()
                 .setCacheConfig(CacheConfig.custom()
-                        .setRequestCollapsingEnabled(requestCollapsingEnabled)
+                        .setMaxObjectSize(200000)
+                        .setHeuristicCachingEnabled(true)
+                        .setRequestCollapsingEnabled(true)
                         .build())
-                .build();
+                .setResourceFactory(HeapResourceFactory.INSTANCE)
+                .build()) {
 
-        client.start();
-        try {
-            final List<Future<SimpleHttpResponse>> futures = new ArrayList<>();
+            httpclient.start();
 
-            for (int i = 0; i < REQUEST_COUNT; i++) {
-                final SimpleHttpRequest request = SimpleRequestBuilder.get(requestUri).build();
-                futures.add(client.execute(
-                        SimpleRequestProducer.create(request),
+            final int burst = 5;
+            final List<Future<SimpleHttpResponse>> futures = new ArrayList<>(burst);
+
+            for (int i = 0; i < burst; i++) {
+                final SimpleHttpRequest httpget = SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/")
+                        .build();
+
+                // One context per request: HttpCacheContext is not thread-safe.
+                final HttpCacheContext context = CacheContextBuilder.create()
+                        .setCacheControl(RequestCacheControl.DEFAULT)
+                        .build();
+
+                System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
+                futures.add(httpclient.execute(
+                        SimpleRequestProducer.create(httpget),
                         SimpleResponseConsumer.create(),
-                        null));
+                        context,
+                        new FutureCallback<SimpleHttpResponse>() {
+
+                            @Override
+                            public void completed(final SimpleHttpResponse response) {
+                                System.out.println(httpget + "->" + new StatusLine(response));
+                                System.out.println("Cache status: " + context.getCacheResponseStatus());
+                            }
+
+                            @Override
+                            public void failed(final Exception ex) {
+                                System.out.println(httpget + "->" + ex);
+                            }
+
+                            @Override
+                            public void cancelled() {
+                                System.out.println(httpget + " cancelled");
+                            }
+
+                        }));
             }
 
             for (final Future<SimpleHttpResponse> future : futures) {
-                final SimpleHttpResponse response = future.get(5, TimeUnit.SECONDS);
-                if (response.getCode() != 200) {
-                    throw new IllegalStateException("Unexpected response: " + response.getCode());
-                }
+                future.get();
             }
-        } finally {
-            client.close(CloseMode.IMMEDIATE);
+
+            httpclient.close(CloseMode.GRACEFUL);
         }
     }
-
 }
