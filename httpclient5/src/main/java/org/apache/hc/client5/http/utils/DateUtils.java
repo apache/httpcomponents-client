@@ -37,10 +37,15 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.function.BiFunction;
 
+import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.MessageHeaders;
+import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.CharArrayBuffer;
+import org.apache.hc.core5.util.Tokenizer;
 
 /**
  * A utility class for parsing and formatting HTTP dates as used in cookies and
@@ -156,12 +161,28 @@ public final class DateUtils {
      * @since 5.2
      */
     public static Instant parseDate(final String dateValue, final DateTimeFormatter... dateFormatters) {
+        return parseDate((CharSequence) dateValue, dateFormatters);
+    }
+
+    /**
+     * Parses the date value using the given date/time formats.
+     * <p>This method can handle strings without time-zone information by failing gracefully, in which case
+     * it returns {@code null}.</p>
+     *
+     * @param dateValue the instant value to parse
+     * @param dateFormatters the date/time formats to use
+     *
+     * @return the parsed instant or null if input could not be parsed
+     *
+     * @since 5.7
+     */
+    public static Instant parseDate(final CharSequence dateValue, final DateTimeFormatter... dateFormatters) {
         Args.notNull(dateValue, "Date value");
-        String v = dateValue;
+        CharSequence v = dateValue;
         // trim single quotes around date if present
         // see issue #5279
-        if (v.length() > 1 && v.startsWith("'") && v.endsWith("'")) {
-            v = v.substring (1, v.length() - 1);
+        if (v.length() > 1 && v.charAt(0) == '\'' && v.charAt(v.length() - 1) == '\'') {
+            v = v.subSequence(1, v.length() - 1);
         }
 
         for (final DateTimeFormatter dateFormatter : dateFormatters) {
@@ -188,6 +209,43 @@ public final class DateUtils {
     }
 
     /**
+     *  TODO to be replaced by method from core MessageSupport
+     */
+    private static <T> T parserHeaderValue(final Header header, final BiFunction<CharSequence, ParserCursor, T> transformation) {
+        Args.notNull(header, "Header");
+        if (header instanceof FormattedHeader) {
+            final CharArrayBuffer buf = ((FormattedHeader) header).getBuffer();
+            final ParserCursor cursor = new ParserCursor(0, buf.length());
+            cursor.updatePos(((FormattedHeader) header).getValuePos());
+            return transformation.apply(buf, cursor);
+        } else {
+            final String value = header.getValue();
+            final ParserCursor cursor = new ParserCursor(0, value.length());
+            return transformation.apply(value, cursor);
+        }
+    }
+
+    /**
+     * Parses the date value using the given date/time formats.
+     * <p>This method can handle strings without time-zone information by failing gracefully, in which case
+     * it returns {@code null}.</p>
+     *
+     * @param header the header with an instant value to parse
+     * @param dateFormatters the date/time formats to use
+     *
+     * @return the parsed instant or null if input could not be parsed
+     *
+     * @since 5.7
+     */
+    public static Instant parseDate(final Header header, final DateTimeFormatter... dateFormatters) {
+        Args.notNull(header, "Header");
+        return parserHeaderValue(header, (cs, cursor) -> {
+            Tokenizer.INSTANCE.skipWhiteSpace(cs, cursor);
+            return parseDate(cs.subSequence(cursor.getPos(), cursor.getUpperBound()), dateFormatters);
+        });
+    }
+
+    /**
      * Parses an instant value from a header with the given name.
      *
      * @param headers message headers
@@ -205,7 +263,7 @@ public final class DateUtils {
         if (header == null) {
             return null;
         }
-        return parseStandardDate(header.getValue());
+        return parseDate(header, STANDARD_PATTERNS);
     }
 
     /**

@@ -34,9 +34,13 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BufferedHeader;
 import org.apache.hc.core5.http.message.HeaderGroup;
+import org.apache.hc.core5.util.CharArrayBuffer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -60,6 +64,29 @@ class TestDateUtils {
                 DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 CET", DateUtils.FORMATTER_RFC1123));
         Assertions.assertEquals(instant.minus(2, ChronoUnit.HOURS),
                 DateUtils.parseDate("Fri, 14-Oct-05 00:00:00 CET", DateUtils.FORMATTER_RFC1036));
+        Assertions.assertEquals(instant, DateUtils.parseStandardDate("Fri, 14 Oct 2005 00:00:00 GMT"));
+    }
+
+    static Header createHeader(final String headerValue) throws ParseException {
+        final CharArrayBuffer buf = new CharArrayBuffer(100);
+        buf.append(HttpHeaders.DATE);
+        buf.append(": ");
+        buf.append(headerValue);
+        return new BufferedHeader(buf);
+    }
+
+    @Test
+    void testBasicDateHeaderParse() throws Exception {
+        final Instant instant = createInstant(2005, Month.OCTOBER, 14);
+        Assertions.assertEquals(instant, DateUtils.parseDate(createHeader("Fri, 14 Oct 2005 00:00:00 GMT"), DateUtils.FORMATTER_RFC1123));
+        Assertions.assertEquals(instant, DateUtils.parseDate(createHeader("Friday, 14 Oct 2005 00:00:00 GMT"), DateUtils.FORMATTER_RFC1123));
+        Assertions.assertEquals(instant, DateUtils.parseDate(createHeader("Fri, 14-Oct-2005 00:00:00 GMT"), DateUtils.FORMATTER_RFC1036));
+        Assertions.assertEquals(instant, DateUtils.parseDate(createHeader("Friday, 14-Oct-2005 00:00:00 GMT"), DateUtils.FORMATTER_RFC1036));
+        Assertions.assertEquals(instant, DateUtils.parseDate(createHeader("  Friday, 14-Oct-2005 00:00:00 GMT"), DateUtils.FORMATTER_RFC1036));
+        Assertions.assertEquals(instant.minus(2, ChronoUnit.HOURS),
+                DateUtils.parseDate(createHeader("Fri, 14 Oct 2005 00:00:00 CET"), DateUtils.FORMATTER_RFC1123));
+        Assertions.assertEquals(instant.minus(2, ChronoUnit.HOURS),
+                DateUtils.parseDate(createHeader("Fri, 14-Oct-05 00:00:00 CET"), DateUtils.FORMATTER_RFC1036));
         Assertions.assertEquals(instant, DateUtils.parseStandardDate("Fri, 14 Oct 2005 00:00:00 GMT"));
     }
 
