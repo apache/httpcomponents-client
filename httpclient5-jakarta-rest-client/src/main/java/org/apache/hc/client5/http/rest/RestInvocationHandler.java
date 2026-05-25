@@ -43,6 +43,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,7 +69,6 @@ import org.apache.hc.core5.http.nio.entity.DiscardingEntityConsumer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
-import org.apache.hc.core5.jackson2.http.JsonNodeEntityFallbackConsumer;
 import org.apache.hc.core5.jackson2.http.JsonObjectEntityProducer;
 import org.apache.hc.core5.jackson2.http.JsonResponseConsumers;
 import org.apache.hc.core5.net.URIBuilder;
@@ -183,7 +183,7 @@ final class RestInvocationHandler implements InvocationHandler {
 
         final boolean isAsync = isAsync(rm.getMethod());
         final Class<?> rawType = resolveResponseType(rm.getMethod(), isAsync);
-        final CompletableFuture<Object> future = dispatchAsync(rawType, requestProducer);
+        final Future<?> future = dispatchAsync(rawType, requestProducer);
         if (isAsync) {
             return future;
         }
@@ -215,7 +215,7 @@ final class RestInvocationHandler implements InvocationHandler {
         return Object.class;
     }
 
-    private CompletableFuture<Object> dispatchAsync(final Class<?> rawType,
+    private CompletableFuture<?> dispatchAsync(final Class<?> rawType,
                                                     final BasicRequestProducer requestProducer) {
         if (rawType == void.class || rawType == Void.class) {
             return submit(requestProducer, new BasicResponseConsumer<>(new DiscardingEntityConsumer<>()))
@@ -225,8 +225,26 @@ final class RestInvocationHandler implements InvocationHandler {
                     });
         }
         if (rawType == Response.class) {
-            return submit(requestProducer, new BasicResponseConsumer<>(new JsonNodeEntityFallbackConsumer(objectMapper)))
-                    .thenApply(result -> new RestClientResponse(result.getHead(), result.getBody(), objectMapper));
+            final CompletableFuture<Object> cf = new CompletableFuture<>();
+            httpClient.execute(requestProducer, new RestResponseConsumer(objectMapper), null,
+                    new FutureCallback<>() {
+
+                        @Override
+                        public void completed(final Response result) {
+                            cf.complete(result);
+                        }
+
+                        @Override
+                        public void failed(final Exception ex) {
+                            cf.completeExceptionally(ex);
+                        }
+
+                        @Override
+                        public void cancelled() {
+                            cf.cancel(false);
+                        }
+                    });
+            return cf;
         }
         if (rawType == byte[].class) {
             return submit(requestProducer, new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()))
@@ -277,7 +295,7 @@ final class RestInvocationHandler implements InvocationHandler {
         return cf;
     }
 
-    private static Object awaitSync(final CompletableFuture<Object> future) {
+    private static Object awaitSync(final Future<?> future) {
         try {
             return future.get();
         } catch (final ExecutionException ex) {
