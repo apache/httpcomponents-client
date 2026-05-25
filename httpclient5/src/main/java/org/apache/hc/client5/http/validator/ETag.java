@@ -27,12 +27,16 @@
 
 package org.apache.hc.client5.http.validator;
 
+import java.util.function.BiFunction;
+
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.MessageHeaders;
+import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.hc.core5.util.LangUtils;
@@ -80,7 +84,10 @@ public final class ETag {
         return t1.value.equals(t2.value);
     }
 
-    static ETag parse(final CharSequence buf, final Tokenizer.Cursor cursor) {
+    /**
+     * @since 5.7
+     */
+    public static ETag parse(final CharSequence buf, final ParserCursor cursor) {
         final Tokenizer tokenizer = Tokenizer.INSTANCE;
         tokenizer.skipWhiteSpace(buf, cursor);
 
@@ -126,19 +133,32 @@ public final class ETag {
         if (s == null) {
             return null;
         }
-        final Tokenizer.Cursor cursor = new Tokenizer.Cursor(0, s.length());
+        final ParserCursor cursor = new ParserCursor(0, s.length());
         return parse(s, cursor);
+    }
+
+    /**
+     *  TODO to be replaced by method from core MessageSupport
+     */
+    private static <T> T parserHeaderValue(final Header header, final BiFunction<CharSequence, ParserCursor, T> transformation) {
+        Args.notNull(header, "Header");
+        if (header instanceof FormattedHeader) {
+            final CharArrayBuffer buf = ((FormattedHeader) header).getBuffer();
+            final ParserCursor cursor = new ParserCursor(0, buf.length());
+            cursor.updatePos(((FormattedHeader) header).getValuePos());
+            return transformation.apply(buf, cursor);
+        } else {
+            final String value = header.getValue();
+            final ParserCursor cursor = new ParserCursor(0, value.length());
+            return transformation.apply(value, cursor);
+        }
     }
 
     public static ETag parse(final Header h) {
         if (h == null) {
             return null;
         }
-        final String value = h.getValue();
-        if (value == null) {
-            return null;
-        }
-        return parse(value);
+        return parserHeaderValue(h, ETag::parse);
     }
 
     public static ETag get(final MessageHeaders message) {
