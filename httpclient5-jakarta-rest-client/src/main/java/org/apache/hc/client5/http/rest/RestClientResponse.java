@@ -36,8 +36,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -54,13 +54,16 @@ import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
-
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.client5.http.validator.ETag;
+import org.apache.hc.client5.http.validator.ValidatorType;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.CharArrayBuffer;
 
 /**
  * Minimal {@link Response} implementation backed by a consumed {@link JsonNode}
@@ -83,30 +86,26 @@ final class RestClientResponse extends Response {
 
     private static final byte[] EMPTY = new byte[0];
 
-    private final int status;
-    private final String reasonPhrase;
-    private final JsonNode body;
-    private final MediaType mediaType;
-    private final MultivaluedMap<String, Object> metadata;
-    private final MultivaluedMap<String, String> stringHeaders;
     private final ObjectMapper objectMapper;
+    private final HttpResponse response;
+    private final JsonNode body;
+    private final ContentType contentType;
+    private final long len;
 
     private boolean closed;
     private Object cachedEntity;
 
-    RestClientResponse(final HttpResponse response, final JsonNode body, final ObjectMapper objectMapper) {
-        this.status = response.getCode();
-        this.reasonPhrase = response.getReasonPhrase();
-        this.body = body;
+    RestClientResponse(
+            final ObjectMapper objectMapper,
+            final HttpResponse response,
+            final JsonNode jsonNode,
+            final ContentType contentType,
+            final long len) {
         this.objectMapper = Args.notNull(objectMapper, "Object mapper");
-        this.metadata = new MultivaluedHashMap<>();
-        this.stringHeaders = new MultivaluedHashMap<>();
-        for (final Header h : response.getHeaders()) {
-            this.metadata.add(h.getName(), h.getValue());
-            this.stringHeaders.add(h.getName(), h.getValue());
-        }
-        final Header ct = response.getFirstHeader(HttpHeaders.CONTENT_TYPE);
-        this.mediaType = ct != null ? toMediaType(ContentType.parse(ct.getValue())) : null;
+        this.response = Args.notNull(response, "Response");
+        this.contentType = contentType;
+        this.body = jsonNode;
+        this.len = len;
     }
 
     private static MediaType toMediaType(final ContentType ct) {
@@ -125,20 +124,21 @@ final class RestClientResponse extends Response {
 
     @Override
     public int getStatus() {
-        return status;
+        return response.getCode();
     }
 
     @Override
     public StatusType getStatusInfo() {
-        final Status standard = Status.fromStatusCode(status);
-        final String reason = reasonPhrase != null ? reasonPhrase
+        final int statusCode = response.getCode();
+        final Status standard = Status.fromStatusCode(statusCode);
+        final String reason = response.getReasonPhrase() != null ? response.getReasonPhrase()
                 : standard != null ? standard.getReasonPhrase() : "";
-        final Status.Family family = Status.Family.familyOf(status);
+        final Status.Family family = Status.Family.familyOf(statusCode);
         return new StatusType() {
 
             @Override
             public int getStatusCode() {
-                return status;
+                return statusCode;
             }
 
             @Override
@@ -162,7 +162,7 @@ final class RestClientResponse extends Response {
 
     @Override
     public <T> T readEntity(final Class<T> entityType) {
-        return readEntity(entityType, (Annotation[]) null);
+        return readEntity(entityType, null);
     }
 
     @Override
@@ -245,13 +245,7 @@ final class RestClientResponse extends Response {
     }
 
     private Charset charset() {
-        if (mediaType != null) {
-            final String cs = mediaType.getParameters().get(MediaType.CHARSET_PARAMETER);
-            if (cs != null) {
-                return Charset.forName(cs);
-            }
-        }
-        return StandardCharsets.UTF_8;
+        return ContentType.getCharset(contentType, StandardCharsets.UTF_8);
     }
 
     @Override
@@ -278,43 +272,25 @@ final class RestClientResponse extends Response {
 
     @Override
     public MediaType getMediaType() {
-        return mediaType;
+        return toMediaType(contentType);
     }
 
     @Override
     public Locale getLanguage() {
-        final String lang = getHeaderString(HttpHeaders.CONTENT_LANGUAGE);
-        return lang != null ? Locale.forLanguageTag(lang) : null;
+        final Header h = response.getFirstHeader(HttpHeaders.CONTENT_LANGUAGE);
+        return h != null ? Locale.forLanguageTag(h.getValue()) : null;
     }
 
     @Override
     public int getLength() {
-        final String len = getHeaderString(HttpHeaders.CONTENT_LENGTH);
-        if (len != null) {
-            try {
-                return Integer.parseInt(len);
-            } catch (final NumberFormatException ignore) {
-            }
-        }
-        return hasEntity() ? bodyAsBytes().length : -1;
+        return (int) len;
     }
 
     @Override
     public Set<String> getAllowedMethods() {
-        final List<String> values = headerValues(HttpHeaders.ALLOW);
-        if (values == null || values.isEmpty()) {
-            return Collections.emptySet();
-        }
-        final Set<String> result = new LinkedHashSet<>();
-        for (final String v : values) {
-            for (final String m : v.split(",")) {
-                final String trimmed = m.trim();
-                if (!trimmed.isEmpty()) {
-                    result.add(trimmed.toUpperCase(Locale.ROOT));
-                }
-            }
-        }
-        return result;
+        final LinkedHashSet<String> allowedMethods = new LinkedHashSet<>();
+        MessageSupport.parseTokens(response, HttpHeaders.ALLOW, allowedMethods::add);
+        return allowedMethods;
     }
 
     @Override
@@ -324,51 +300,32 @@ final class RestClientResponse extends Response {
 
     @Override
     public EntityTag getEntityTag() {
-        final String etag = getHeaderString(HttpHeaders.ETAG);
-        if (etag == null) {
-            return null;
-        }
-        String raw = etag.trim();
-        boolean weak = false;
-        if (raw.startsWith("W/")) {
-            weak = true;
-            raw = raw.substring(2).trim();
-        }
-        if (raw.length() >= 2 && raw.charAt(0) == '"' && raw.charAt(raw.length() - 1) == '"') {
-            raw = raw.substring(1, raw.length() - 1);
-        }
-        return new EntityTag(raw, weak);
+        final ETag eTag = ETag.get(response);
+        return eTag != null ? new EntityTag(eTag.getValue(), eTag.getType() == ValidatorType.WEAK) : null;
     }
 
     @Override
     public Date getDate() {
-        return parseHttpDate(getHeaderString(HttpHeaders.DATE));
+        final Instant instant = DateUtils.parseStandardDate(response, HttpHeaders.DATE);
+        return instant != null ? Date.from(instant) : null;
     }
 
     @Override
     public Date getLastModified() {
-        return parseHttpDate(getHeaderString(HttpHeaders.LAST_MODIFIED));
-    }
-
-    private static Date parseHttpDate(final String value) {
-        if (value == null) {
-            return null;
-        }
-        final Instant instant = DateUtils.parseDate(value, DateUtils.STANDARD_PATTERNS);
+        final Instant instant = DateUtils.parseStandardDate(response, HttpHeaders.LAST_MODIFIED);
         return instant != null ? Date.from(instant) : null;
     }
 
     @Override
     public URI getLocation() {
-        final String loc = getHeaderString(HttpHeaders.LOCATION);
-        if (loc == null) {
-            return null;
+        final Header h = response.getFirstHeader(HttpHeaders.LOCATION);
+        if (h != null) {
+            try {
+                return new URI(h.getValue());
+            } catch (final URISyntaxException ignore) {
+            }
         }
-        try {
-            return new URI(loc);
-        } catch (final URISyntaxException ex) {
-            return null;
-        }
+        return null;
     }
 
     @Override
@@ -394,52 +351,46 @@ final class RestClientResponse extends Response {
 
     @Override
     public MultivaluedMap<String, Object> getMetadata() {
-        return metadata;
+        final MultivaluedMap<String, Object> multimap = new MultivaluedHashMap<>();
+        for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
+            final Header h = it.next();
+            multimap.add(h.getName(), h.getValue());
+        }
+        return multimap;
     }
 
     @Override
     public MultivaluedMap<String, String> getStringHeaders() {
-        return stringHeaders;
+        final MultivaluedMap<String, String> multimap = new MultivaluedHashMap<>();
+        for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
+            final Header h = it.next();
+            multimap.add(h.getName(), h.getValue());
+        }
+        return multimap;
     }
 
     @Override
     public String getHeaderString(final String name) {
-        final List<String> values = headerValues(name);
-        if (values == null || values.isEmpty()) {
+        final Header[] headers = response.getHeaders(name);
+        if (headers.length == 0) {
             return null;
-        }
-        if (values.size() == 1) {
-            return values.get(0);
-        }
-        final StringBuilder sb = new StringBuilder();
-        for (final String v : values) {
-            if (sb.length() > 0) {
-                sb.append(',');
+        } else if (headers.length == 1) {
+            return headers[0].getValue();
+        } else {
+            final CharArrayBuffer buf = new CharArrayBuffer(128);
+            buf.append(headers[0].getValue());
+            for (int i = 1; i < headers.length; i++) {
+                buf.append(", ");
+                buf.append(headers[i].getValue());
             }
-            sb.append(v);
-        }
-        return sb.toString();
-    }
 
-    private List<String> headerValues(final String name) {
-        for (final Map.Entry<String, List<String>> entry : stringHeaders.entrySet()) {
-            if (entry.getKey().equalsIgnoreCase(name)) {
-                return entry.getValue();
-            }
+            return buf.toString();
         }
-        return null;
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("RestClientResponse[status=");
-        sb.append(status);
-        if (mediaType != null) {
-            sb.append(", mediaType=").append(mediaType);
-        }
-        sb.append(", length=").append(getLength());
-        sb.append(']');
-        return sb.toString();
+        return response.toString();
     }
 
 }

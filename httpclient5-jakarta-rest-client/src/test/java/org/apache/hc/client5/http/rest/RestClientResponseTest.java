@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.http.rest;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -44,7 +46,6 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Response;
-
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.http.ContentType;
@@ -53,8 +54,6 @@ import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class RestClientResponseTest {
 
@@ -144,7 +143,7 @@ class RestClientResponseTest {
 
         final JsonNode node = OBJECT_MAPPER.createObjectNode().put("id", "abc");
 
-        try (Response response = new RestClientResponse(httpResponse, node, OBJECT_MAPPER)) {
+        try (Response response = new RestClientResponse(OBJECT_MAPPER, httpResponse, node, ContentType.APPLICATION_JSON, -1)) {
             assertThat(response.readEntity(JsonNode.class)).isSameAs(node);
             assertThat(response.readEntity(Echo.class).id).isEqualTo("abc");
             assertThat(response.readEntity(String.class)).isEqualTo("{\"id\":\"abc\"}");
