@@ -27,9 +27,11 @@
 
 package org.apache.hc.client5.http.entity.compress;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
 import org.apache.hc.core5.io.IOFunction;
@@ -48,19 +50,23 @@ public class DecompressingEntity extends HttpEntityWrapper {
         this.decoder = Args.notNull(decoder, "Stream decoder");
     }
 
+    private InputStream getDecompressingStream() throws IOException {
+        return new LazyDecompressingInputStream(super.getContent(), decoder);
+    }
+
     /**
      * Returns the cached <em>decoded</em> stream, creating it once if necessary.
      */
     @Override
     public InputStream getContent() throws IOException {
         if (!isStreaming()) {
-            return decoder.apply(super.getContent());
+            return getDecompressingStream();
         }
 
         InputStream local = cached;
         if (local == null) {
             if (cached == null) {
-                cached = decoder.apply(super.getContent());
+                cached = getDecompressingStream();
             }
             local = cached;
         }
@@ -97,4 +103,61 @@ public class DecompressingEntity extends HttpEntityWrapper {
             }
         }
     }
+
+    private static final class LazyDecompressingInputStream extends FilterInputStream {
+
+        private final IOFunction<InputStream, InputStream> decoder;
+        private InputStream decompressedStream;
+
+        private LazyDecompressingInputStream(
+                final InputStream inputStream,
+                final IOFunction<InputStream, InputStream> decoder) {
+            super(inputStream);
+            this.decoder = decoder;
+        }
+
+        private InputStream getDecompressedStream() throws IOException {
+            if (decompressedStream == null) {
+                decompressedStream = decoder.apply(in);
+            }
+            return decompressedStream;
+        }
+
+        @Override
+        public int read() throws IOException {
+            return getDecompressedStream().read();
+        }
+
+        @Override
+        public int read(final byte[] b) throws IOException {
+            return getDecompressedStream().read(b);
+        }
+
+        @Override
+        public int read(final byte[] b, final int off, final int len) throws IOException {
+            return getDecompressedStream().read(b, off, len);
+        }
+
+        @Override
+        public long skip(final long n) throws IOException {
+            return getDecompressedStream().skip(n);
+        }
+
+        @Override
+        public int available() throws IOException {
+            return getDecompressedStream().available();
+        }
+
+        @Override
+        public void close() throws IOException {
+            final InputStream local = decompressedStream;
+            if (local != null) {
+                local.close();
+            } else {
+                super.close();
+            }
+        }
+
+    }
+
 }
