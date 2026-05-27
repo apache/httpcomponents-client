@@ -29,11 +29,13 @@ package org.apache.hc.client5.http.entity;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 import java.util.zip.Checksum;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
@@ -105,6 +107,28 @@ class TestDecompressingEntity {
             final String s = new String(out.toByteArray(), StandardCharsets.US_ASCII);
             Assertions.assertEquals("1234567890", s);
             Assertions.assertEquals(639479525L, crc32.getValue());
+        }
+    }
+
+    @Test
+    void testMalformedGzipContentCanBeClosedWithoutReading() throws Exception {
+        final ByteArrayInputStream in = new ByteArrayInputStream(new byte[0]);
+        final InputStreamEntity wrapped = new InputStreamEntity(in, -1, ContentType.APPLICATION_OCTET_STREAM);
+        final HttpEntity entity = new org.apache.hc.client5.http.entity.compress.DecompressingEntity(
+                wrapped, GZIPInputStream::new);
+
+        Assertions.assertDoesNotThrow(() -> entity.getContent().close());
+    }
+
+    @Test
+    void testMalformedGzipContentFailsOnRead() throws Exception {
+        final ByteArrayInputStream in = new ByteArrayInputStream(new byte[0]);
+        final InputStreamEntity wrapped = new InputStreamEntity(in, -1, ContentType.APPLICATION_OCTET_STREAM);
+        final HttpEntity entity = new org.apache.hc.client5.http.entity.compress.DecompressingEntity(
+                wrapped, GZIPInputStream::new);
+
+        try (final InputStream content = entity.getContent()) {
+            Assertions.assertThrows(IOException.class, content::read);
         }
     }
 
