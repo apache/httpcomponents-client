@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.rest;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -48,6 +47,8 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.ResponseProcessingException;
 import jakarta.ws.rs.core.Response;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -66,6 +67,7 @@ import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.entity.DiscardingEntityConsumer;
+import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
@@ -80,8 +82,6 @@ import org.apache.hc.core5.util.Args;
  * mapped to its HTTP verb, URI template and parameter bindings at proxy creation time.
  */
 final class RestInvocationHandler implements InvocationHandler {
-
-    private static final int ERROR_STATUS_THRESHOLD = 300;
 
     private final CloseableHttpAsyncClient httpClient;
     private final URI baseUri;
@@ -111,7 +111,7 @@ final class RestInvocationHandler implements InvocationHandler {
     }
 
     private Object executeRequest(final ResourceMethod rm,
-                                  final Object[] args) {
+                                  final Object[] args) throws Exception {
         final ResourceParam[] params = rm.getParams();
         final Map<String, String> pathParams = new HashMap<>(params.length);
         final List<NameValuePair> queryParams = new ArrayList<>(params.length);
@@ -216,29 +216,28 @@ final class RestInvocationHandler implements InvocationHandler {
     }
 
     private CompletableFuture<?> dispatchAsync(final Class<?> rawType,
-                                                    final BasicRequestProducer requestProducer) {
-        if (rawType == void.class || rawType == Void.class) {
-            return submit(requestProducer, new BasicResponseConsumer<>(new DiscardingEntityConsumer<>()))
-                    .thenApply(result -> {
-                        checkStatus(result.getHead(), null);
-                        return null;
-                    });
-        }
+                                               final BasicRequestProducer requestProducer) {
         if (rawType == Response.class) {
             return submit(requestProducer, new BasicResponseConsumer<>(new RestContentConsumer(objectMapper)))
                     .thenApply(result ->
                             new RestClientResponse(result.getHead(), result.getBody()));
         }
-        if (rawType == byte[].class) {
-            return submit(requestProducer, new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()))
+        if (rawType == void.class || rawType == Void.class) {
+            return submit(requestProducer, new RestResponseConsumer<>(objectMapper, DiscardingEntityConsumer::new))
                     .thenApply(result -> {
-                        final byte[] body = result.getBody();
-                        checkStatus(result.getHead(), body);
-                        return body;
+                        throwIfError(result);
+                        return null;
+                    });
+        }
+        if (rawType == byte[].class) {
+            return submit(requestProducer, new RestResponseConsumer<>(objectMapper, BasicAsyncEntityConsumer::new))
+                    .thenApply(result -> {
+                        throwIfError(result);
+                        return result.getBody();
                     });
         }
         if (rawType == String.class) {
-            return submit(requestProducer, new StringResponseConsumer())
+            return submit(requestProducer, new RestResponseConsumer<>(objectMapper, StringAsyncEntityConsumer::new))
                     .thenApply(result -> {
                         throwIfError(result);
                         return result.getBody();
@@ -246,7 +245,7 @@ final class RestInvocationHandler implements InvocationHandler {
         }
         @SuppressWarnings("unchecked") final Class<Object> objectType = (Class<Object>) rawType;
         return submit(requestProducer,
-                JsonResponseConsumers.create(objectMapper, objectType, BasicAsyncEntityConsumer::new))
+                JsonResponseConsumers.create(objectMapper, objectType, () -> new RestContentConsumer(objectMapper)))
                 .thenApply(result -> {
                     throwIfError(result);
                     return result.getBody();
@@ -258,7 +257,7 @@ final class RestInvocationHandler implements InvocationHandler {
             final AsyncResponseConsumer<Message<HttpResponse, T>> responseConsumer) {
         final CompletableFuture<Message<HttpResponse, T>> cf = new CompletableFuture<>();
         httpClient.execute(requestProducer, responseConsumer, null,
-                new FutureCallback<Message<HttpResponse, T>>() {
+                new FutureCallback<>() {
 
                     @Override
                     public void completed(final Message<HttpResponse, T> result) {
@@ -278,30 +277,30 @@ final class RestInvocationHandler implements InvocationHandler {
         return cf;
     }
 
-    private static Object awaitSync(final Future<?> future) {
+    private static Object awaitSync(final Future<?> future) throws Exception {
         try {
             return future.get();
-        } catch (final ExecutionException ex) {
-            throw unwrap(ex.getCause());
-        } catch (final CompletionException ex) {
+        } catch (final ExecutionException | CompletionException ex) {
             throw unwrap(ex.getCause());
         } catch (final InterruptedException ex) {
             Thread.currentThread().interrupt();
-            throw new UncheckedIOException(new IOException("Request interrupted", ex));
+            throw ex;
         }
     }
 
-    private static RuntimeException unwrap(final Throwable cause) {
-        if (cause instanceof RestClientResponseException) {
-            return (RestClientResponseException) cause;
-        }
-        if (cause instanceof RuntimeException) {
+    private static Exception unwrap(final Throwable cause) {
+        if (cause instanceof Error) {
+            // Do not mess with Errors
+            throw (Error) cause;
+        } else if (cause instanceof ResponseProcessingException) {
+            return (ResponseProcessingException) cause;
+        } else if (cause instanceof IOException) {
+            return (IOException) cause;
+        } else if (cause instanceof RuntimeException) {
             return (RuntimeException) cause;
+        } else {
+            throw new ProcessingException(cause);
         }
-        if (cause instanceof IOException) {
-            return new UncheckedIOException((IOException) cause);
-        }
-        return new UncheckedIOException(new IOException("Request execution failed", cause));
     }
 
     private AsyncEntityProducer createEntityProducer(final Object body,
@@ -319,34 +318,20 @@ final class RestInvocationHandler implements InvocationHandler {
         return new JsonObjectEntityProducer<>(body, objectMapper);
     }
 
-    private static void checkStatus(final HttpResponse response,
-                                    final byte[] body) {
-        if (response.getCode() >= ERROR_STATUS_THRESHOLD) {
-            throw new RestClientResponseException(
-                    response.getCode(), response.getReasonPhrase(),
-                    body != null && body.length > 0 ? body : null);
-        }
-    }
-
     /**
-     * Throws {@link RestClientResponseException} if the message carries an error.
-     * Both {@link StringResponseConsumer} and the Jackson2 response consumer are
-     * configured with {@link BasicAsyncEntityConsumer} on the error path, so the
-     * error object is always {@code byte[]}.
+     * Throws {@link ResponseProcessingException} if the message carries an error.
      */
     private static void throwIfError(final Message<HttpResponse, ?> result) {
+        final HttpResponse httpResponse = result.head();
         final Object error = result.error();
         if (error != null) {
-            if (!(error instanceof byte[])) {
-                throw new IllegalStateException(
-                        "Expected byte[] error body, got "
-                                + error.getClass().getName());
+            final RestContent content;
+            if (error instanceof RestContent) {
+                content = (RestContent) error;
+            } else {
+                content = null;
             }
-            final HttpResponse head = result.getHead();
-            final byte[] errorBytes = (byte[]) error;
-            throw new RestClientResponseException(
-                    head.getCode(), head.getReasonPhrase(),
-                    errorBytes.length > 0 ? errorBytes : null);
+            throw new ResponseProcessingException(new RestClientResponse(httpResponse, content), "REST response processing error");
         }
     }
 

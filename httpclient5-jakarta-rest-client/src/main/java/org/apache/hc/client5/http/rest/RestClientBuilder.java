@@ -66,8 +66,8 @@ import org.apache.hc.core5.util.Args;
  * bodies may be {@code String}, {@code byte[]}, or any type serializable by the
  * ObjectMapper.</p>
  *
- * <p>Non-2xx responses throw {@link RestClientResponseException} (or complete the
- * stage exceptionally with one) unless the method returns
+ * <p>Non-2xx responses throw {@link jakarta.ws.rs.client.ResponseProcessingException}
+ * (or complete the stage exceptionally with one) unless the method returns
  * {@link jakarta.ws.rs.core.Response}, in which case the response is delivered to
  * the caller for direct inspection.</p>
  *

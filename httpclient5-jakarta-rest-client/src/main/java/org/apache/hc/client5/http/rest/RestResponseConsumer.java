@@ -30,8 +30,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -41,56 +44,60 @@ import org.apache.hc.core5.http.Message;
 import org.apache.hc.core5.http.nio.AsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
-import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
-import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
- * Response consumer for {@code String} return types that routes success and error
- * responses to different entity consumers. Successful responses are decoded to
- * {@code String} using the response charset via {@link StringAsyncEntityConsumer}.
- * Error responses are consumed as raw bytes via {@link BasicAsyncEntityConsumer}
- * and stored in {@link Message#error()}.
+ * Response consumer that routes success and error responses to different entity consumers.
+ * Message content of successful responses gets routed to the {@link AsyncEntityConsumer}
+ * supplied by the caller. Error responses are consumed as RestContent via
+ * {@link RestContentConsumer} and stored in {@link Message#error()}.
  */
-final class StringResponseConsumer
-        implements AsyncResponseConsumer<Message<HttpResponse, String>> {
+final class RestResponseConsumer<T> implements AsyncResponseConsumer<Message<HttpResponse, T>> {
+
+    private final ObjectMapper objectMapper;
+    private final Supplier<AsyncEntityConsumer<T>> dataConsumerSupplier;
 
     private AsyncEntityConsumer<?> entityConsumer;
+
+    RestResponseConsumer(final ObjectMapper objectMapper,
+                         final Supplier<AsyncEntityConsumer<T>> dataConsumerSupplier) {
+        this.dataConsumerSupplier = dataConsumerSupplier;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public void consumeResponse(final HttpResponse response,
                                 final EntityDetails entityDetails,
                                 final HttpContext context,
-                                final FutureCallback<Message<HttpResponse, String>> resultCallback)
+                                final FutureCallback<Message<HttpResponse, T>> resultCallback)
             throws HttpException, IOException {
         if (entityDetails == null) {
             if (response.getCode() >= HttpStatus.SC_REDIRECTION) {
                 resultCallback.completed(Message.error(response, null));
             } else {
-                resultCallback.completed(Message.of(response, (String) null));
+                resultCallback.completed(Message.of(response, null));
             }
             return;
         }
         if (response.getCode() >= HttpStatus.SC_REDIRECTION) {
-            final BasicAsyncEntityConsumer consumer = new BasicAsyncEntityConsumer();
+            final RestContentConsumer consumer = new RestContentConsumer(objectMapper);
             this.entityConsumer = consumer;
             consumer.streamStart(entityDetails,
-                    new CallbackContribution<byte[]>(resultCallback) {
+                    new CallbackContribution<>(resultCallback) {
 
                         @Override
-                        public void completed(final byte[] bytes) {
-                            resultCallback.completed(Message.error(response, bytes));
+                        public void completed(final RestContent content) {
+                            resultCallback.completed(Message.error(response, content));
                         }
 
                     });
         } else {
-            final StringAsyncEntityConsumer consumer = new StringAsyncEntityConsumer();
+            final AsyncEntityConsumer<T> consumer = dataConsumerSupplier.get();
             this.entityConsumer = consumer;
-            consumer.streamStart(entityDetails,
-                    new CallbackContribution<String>(resultCallback) {
+            consumer.streamStart(entityDetails, new CallbackContribution<T>(resultCallback) {
 
                         @Override
-                        public void completed(final String body) {
+                        public void completed(final T body) {
                             resultCallback.completed(Message.of(response, body));
                         }
 
