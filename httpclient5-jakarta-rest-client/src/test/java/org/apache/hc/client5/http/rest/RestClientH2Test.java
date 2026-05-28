@@ -41,6 +41,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.client.ResponseProcessingException;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
@@ -50,8 +51,8 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.Message;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.impl.bootstrap.HttpAsyncServer;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.nio.AsyncRequestConsumer;
 import org.apache.hc.core5.http.nio.AsyncServerRequestHandler;
 import org.apache.hc.core5.http.nio.entity.DiscardingEntityConsumer;
@@ -197,9 +198,10 @@ class RestClientH2Test {
     @Test
     void testErrorResponseOverH2() {
         final JsonErrorApi api = proxy(JsonErrorApi.class);
-        final RestClientResponseException ex = assertThatExceptionOfType(RestClientResponseException.class).isThrownBy(() -> api.getError(500)).actual();
-        assertThat(ex.getStatusCode()).isEqualTo(500);
-        assertThat(ex.getResponseBody()).isNotNull();
+        final ResponseProcessingException ex = assertThatExceptionOfType(ResponseProcessingException.class)
+                .isThrownBy(() -> api.getError(500)).actual();
+        assertThat(ex.getResponse().getStatus()).isEqualTo(500);
+        assertThat(ex.getResponse().hasEntity()).isTrue();
     }
 
     @Test

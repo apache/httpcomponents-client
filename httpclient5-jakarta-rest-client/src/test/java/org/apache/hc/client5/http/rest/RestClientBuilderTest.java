@@ -42,6 +42,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.client.ResponseProcessingException;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
@@ -554,8 +555,10 @@ class RestClientBuilderTest {
     @Test
     void testErrorThrowsException() {
         final StatusApi api = proxy(StatusApi.class);
-        final RestClientResponseException ex = assertThatExceptionOfType(RestClientResponseException.class).isThrownBy(() -> api.getStatus(404)).actual();
-        assertThat(ex.getStatusCode()).isEqualTo(404);
+        final ResponseProcessingException ex = assertThatExceptionOfType(ResponseProcessingException.class)
+                .isThrownBy(() ->
+                        api.getStatus(404)).actual();
+        assertThat(ex.getResponse().getStatus()).isEqualTo(404);
     }
 
     @Test
@@ -625,9 +628,11 @@ class RestClientBuilderTest {
     @Test
     void testJsonPojoErrorResponse() {
         final JsonErrorApi api = proxy(JsonErrorApi.class);
-        final RestClientResponseException ex = assertThatExceptionOfType(RestClientResponseException.class).isThrownBy(() -> api.getError(500)).actual();
-        assertThat(ex.getStatusCode()).isEqualTo(500);
-        assertThat(ex.getResponseBody()).isNotNull();
+        final ResponseProcessingException ex = assertThatExceptionOfType(ResponseProcessingException.class)
+                .isThrownBy(() ->
+                        api.getError(500)).actual();
+        assertThat(ex.getResponse().getStatus()).isEqualTo(500);
+        assertThat(ex.getResponse().hasEntity()).isTrue();
     }
 
     @Disabled("Custom JSON content types for POJO bodies not supported by current core API")
@@ -640,9 +645,11 @@ class RestClientBuilderTest {
     @Test
     void testNonUtf8ErrorResponsePreservesBytes() {
         final CharStatusApi api = proxy(CharStatusApi.class);
-        final RestClientResponseException ex = assertThatExceptionOfType(RestClientResponseException.class).isThrownBy(() -> api.getStatus(500)).actual();
-        assertThat(ex.getStatusCode()).isEqualTo(500);
-        assertThat(ex.getResponseBody()).containsExactly("caf\u00e9".getBytes(StandardCharsets.ISO_8859_1));
+        final ResponseProcessingException ex = assertThatExceptionOfType(ResponseProcessingException.class)
+                .isThrownBy(() ->
+                        api.getStatus(500)).actual();
+        assertThat(ex.getResponse().getStatus()).isEqualTo(500);
+        assertThat(ex.getResponse().readEntity(String.class)).contains("caf\u00e9");
     }
 
     // --- Validation tests ---
@@ -735,29 +742,10 @@ class RestClientBuilderTest {
     }
 
     @Test
-    void testResponseExceptionDefensiveCopy() {
-        final byte[] original = {1, 2, 3};
-        final RestClientResponseException ex =
-                new RestClientResponseException(500, "error", original);
-        original[0] = 99;
-        final byte[] body = ex.getResponseBody();
-        assertThat((int) body[0]).isEqualTo(1);
-        body[1] = 99;
-        assertThat((int) ex.getResponseBody()[1]).isEqualTo(2);
-    }
-
-    @Test
     void testStringBodyEncodedWithConsumesCharset() {
         final EchoBodyApi api = proxy(EchoBodyApi.class);
         final byte[] result = api.post("caf\u00e9");
         assertThat(result).containsExactly("caf\u00e9".getBytes(StandardCharsets.ISO_8859_1));
-    }
-
-    @Test
-    void testResponseExceptionNullBody() {
-        final RestClientResponseException ex =
-                new RestClientResponseException(204, "No Content", null);
-        assertThat(ex.getResponseBody()).isNull();
     }
 
     @Test
