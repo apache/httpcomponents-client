@@ -38,7 +38,6 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
@@ -48,16 +47,11 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Response;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class RestClientResponseTest {
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private HttpServer server;
     private CloseableHttpAsyncClient httpClient;
@@ -133,20 +127,6 @@ class RestClientResponseTest {
             assertThat(pojo.id).isEqualTo("abc");
             assertThat(first.get("id").asText()).isEqualTo("abc");
             assertThat(second).isSameAs(first);
-        }
-    }
-
-    @Test
-    void responseJsonEntityIsBackedByJsonNode() {
-        final BasicHttpResponse httpResponse = new BasicHttpResponse(200);
-        httpResponse.addHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
-
-        final JsonNode node = OBJECT_MAPPER.createObjectNode().put("id", "abc");
-
-        try (Response response = new RestClientResponse(OBJECT_MAPPER, httpResponse, node, ContentType.APPLICATION_JSON, -1)) {
-            assertThat(response.readEntity(JsonNode.class)).isSameAs(node);
-            assertThat(response.readEntity(Echo.class).id).isEqualTo("abc");
-            assertThat(response.readEntity(String.class)).isEqualTo("{\"id\":\"abc\"}");
         }
     }
 

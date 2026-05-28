@@ -33,50 +33,35 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
-import jakarta.ws.rs.core.Response;
 import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncEntityConsumer;
-import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
+import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.jackson2.http.JsonNodeEntityConsumer;
 import org.apache.hc.core5.util.Args;
 
-final class RestResponseConsumer implements AsyncResponseConsumer<Response> {
+final class RestContentConsumer implements AsyncEntityConsumer<RestContent> {
 
     private final ObjectMapper objectMapper;
     private final AtomicReference<AsyncEntityConsumer<?>> entityConsumerRef;
 
-    public RestResponseConsumer(final ObjectMapper objectMapper) {
+    public RestContentConsumer(final ObjectMapper objectMapper) {
         this.objectMapper = Args.notNull(objectMapper, "Object mapper");
         this.entityConsumerRef = new AtomicReference<>();
     }
 
     @Override
-    public void informationResponse(final HttpResponse response, final HttpContext context) {
-    }
-
-    @Override
-    public void consumeResponse(final HttpResponse httpResponse,
-                                final EntityDetails entityDetails,
-                                final HttpContext context,
-                                final FutureCallback<Response> resultCallback) throws HttpException, IOException {
+    public void streamStart(final EntityDetails entityDetails,
+                            final FutureCallback<RestContent> resultCallback) throws HttpException, IOException {
         if (entityDetails == null) {
-            resultCallback.completed(new RestClientResponse(
-                    objectMapper,
-                    httpResponse,
-                    null,
-                    null,
-                    -1));
+            resultCallback.completed(null);
             return;
         }
         final ContentType contentType = ContentType.parseLenient(entityDetails.getContentType());
@@ -87,28 +72,29 @@ final class RestResponseConsumer implements AsyncResponseConsumer<Response> {
 
                 @Override
                 public void completed(final JsonNode result) {
-                    resultCallback.completed(new RestClientResponse(
-                            objectMapper,
-                            httpResponse,
-                            result,
-                            contentType,
-                            entityDetails.getContentLength()));
+                    resultCallback.completed(RestContent.create(objectMapper, result, contentType));
                 }
 
             });
-        } else {
+        } else if (ContentType.TEXT_PLAIN.isSameMimeType(contentType)) {
             final AsyncEntityConsumer<String> entityConsumer = new StringAsyncEntityConsumer();
             entityConsumerRef.set(entityConsumer);
             entityConsumer.streamStart(entityDetails, new CallbackContribution<>(resultCallback) {
 
                 @Override
                 public void completed(final String result) {
-                    resultCallback.completed(new RestClientResponse(
-                            objectMapper,
-                            httpResponse,
-                            JsonNodeFactory.instance.textNode(result),
-                            contentType,
-                            entityDetails.getContentLength()));
+                    resultCallback.completed(RestContent.create(objectMapper, result, contentType));
+                }
+
+            });
+        } else {
+            final AsyncEntityConsumer<byte[]> entityConsumer = new BasicAsyncEntityConsumer();
+            entityConsumerRef.set(entityConsumer);
+            entityConsumer.streamStart(entityDetails, new CallbackContribution<>(resultCallback) {
+
+                @Override
+                public void completed(final byte[] result) {
+                    resultCallback.completed(RestContent.create(objectMapper, result, contentType));
                 }
 
             });
@@ -155,6 +141,11 @@ final class RestResponseConsumer implements AsyncResponseConsumer<Response> {
         if (entityConsumer != null) {
             entityConsumer.releaseResources();
         }
+    }
+
+    @Override
+    public RestContent getContent() {
+        return null;
     }
 
 }
