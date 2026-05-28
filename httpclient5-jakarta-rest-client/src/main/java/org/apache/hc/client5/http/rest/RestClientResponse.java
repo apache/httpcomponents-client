@@ -32,7 +32,6 @@ import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
@@ -42,9 +41,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.GenericType;
@@ -84,28 +81,15 @@ import org.apache.hc.core5.util.CharArrayBuffer;
  */
 final class RestClientResponse extends Response {
 
-    private static final byte[] EMPTY = new byte[0];
-
-    private final ObjectMapper objectMapper;
     private final HttpResponse response;
-    private final JsonNode body;
-    private final ContentType contentType;
-    private final long len;
+    private final RestContent content;
 
     private boolean closed;
     private Object cachedEntity;
 
-    RestClientResponse(
-            final ObjectMapper objectMapper,
-            final HttpResponse response,
-            final JsonNode jsonNode,
-            final ContentType contentType,
-            final long len) {
-        this.objectMapper = Args.notNull(objectMapper, "Object mapper");
+    RestClientResponse(final HttpResponse response, final RestContent content) {
         this.response = Args.notNull(response, "Response");
-        this.contentType = contentType;
-        this.body = jsonNode;
-        this.len = len;
+        this.content = content;
     }
 
     private static MediaType toMediaType(final ContentType ct) {
@@ -157,7 +141,7 @@ final class RestClientResponse extends Response {
     @Override
     public Object getEntity() {
         ensureOpen();
-        return body;
+        return content != null ? content.getBody() : null;
     }
 
     @Override
@@ -190,67 +174,23 @@ final class RestClientResponse extends Response {
     }
 
     private Object decodeBody(final Class<?> rawType, final java.lang.reflect.Type genericType) {
-        if (rawType == void.class || rawType == Void.class) {
-            return null;
-        }
-        if (rawType == JsonNode.class) {
-            return body;
-        }
-        if (rawType == String.class) {
-            return bodyAsString();
-        }
-        if (rawType == byte[].class) {
-            return bodyAsBytes();
-        }
-        if (body == null || body.isMissingNode()) {
-            return null;
-        }
         try {
-            if (genericType != null) {
-                final JavaType type = objectMapper.getTypeFactory().constructType(genericType);
-                return objectMapper.readerFor(type).readValue(body);
+            if (content == null) {
+                return null;
             }
-            return objectMapper.treeToValue(body, rawType);
-        } catch (final IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
-    }
-
-    private String bodyAsString() {
-        if (body == null || body.isMissingNode()) {
-            return "";
-        }
-        if (body.isTextual()) {
-            return body.asText();
-        }
-        try {
-            return objectMapper.writeValueAsString(body);
-        } catch (final IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
-    }
-
-    private byte[] bodyAsBytes() {
-        if (body == null || body.isMissingNode()) {
-            return EMPTY;
-        }
-        if (body.isTextual()) {
-            return body.asText().getBytes(charset());
-        }
-        try {
-            return objectMapper.writeValueAsBytes(body);
+            return content.decodeBody(rawType, genericType);
         } catch (final IOException ex) {
             throw new UncheckedIOException(ex);
         }
     }
 
     private Charset charset() {
-        return ContentType.getCharset(contentType, StandardCharsets.UTF_8);
+        return content != null ? ContentType.getCharset(content.getType(), null) : null;
     }
 
     @Override
     public boolean hasEntity() {
-        return body != null && !body.isMissingNode();
+        return content != null && content.hasBody();
     }
 
     @Override
@@ -272,7 +212,7 @@ final class RestClientResponse extends Response {
 
     @Override
     public MediaType getMediaType() {
-        return toMediaType(contentType);
+        return content != null ? toMediaType(content.getType()) : null;
     }
 
     @Override
@@ -283,7 +223,7 @@ final class RestClientResponse extends Response {
 
     @Override
     public int getLength() {
-        return (int) len;
+        return -1;
     }
 
     @Override

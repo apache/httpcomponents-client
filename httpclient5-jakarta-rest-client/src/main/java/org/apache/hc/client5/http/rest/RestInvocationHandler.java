@@ -225,26 +225,9 @@ final class RestInvocationHandler implements InvocationHandler {
                     });
         }
         if (rawType == Response.class) {
-            final CompletableFuture<Object> cf = new CompletableFuture<>();
-            httpClient.execute(requestProducer, new RestResponseConsumer(objectMapper), null,
-                    new FutureCallback<>() {
-
-                        @Override
-                        public void completed(final Response result) {
-                            cf.complete(result);
-                        }
-
-                        @Override
-                        public void failed(final Exception ex) {
-                            cf.completeExceptionally(ex);
-                        }
-
-                        @Override
-                        public void cancelled() {
-                            cf.cancel(false);
-                        }
-                    });
-            return cf;
+            return submit(requestProducer, new BasicResponseConsumer<>(new RestContentConsumer(objectMapper)))
+                    .thenApply(result ->
+                            new RestClientResponse(result.getHead(), result.getBody()));
         }
         if (rawType == byte[].class) {
             return submit(requestProducer, new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()))
