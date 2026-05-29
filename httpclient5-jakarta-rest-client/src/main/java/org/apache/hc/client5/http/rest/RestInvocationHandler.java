@@ -33,7 +33,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -173,8 +172,10 @@ final class RestInvocationHandler implements InvocationHandler {
         }
         final AsyncEntityProducer entityProducer;
         if (bodyParam != null) {
-            entityProducer = createEntityProducer(bodyParam,
-                    consumesContentTypes != null && !consumesContentTypes.isEmpty() ? consumesContentTypes.get(0) : null);
+            final List<ContentType> producesContentTypes = rm.getProducesContentTypes();
+            final ContentType contentType = producesContentTypes != null && !producesContentTypes.isEmpty() ?
+                    producesContentTypes.get(0) : null;
+            entityProducer = createEntityProducer(bodyParam, contentType);
         } else {
             entityProducer = null;
         }
@@ -306,13 +307,11 @@ final class RestInvocationHandler implements InvocationHandler {
     private AsyncEntityProducer createEntityProducer(final Object body,
                                                      final ContentType consumeType) {
         if (body instanceof byte[]) {
-            final ContentType ct = consumeType != null
-                    ? consumeType : ContentType.APPLICATION_OCTET_STREAM;
+            final ContentType ct = consumeType != null ? consumeType : ContentType.APPLICATION_OCTET_STREAM;
             return new BasicAsyncEntityProducer((byte[]) body, ct);
         }
         if (body instanceof String) {
-            final ContentType ct = consumeType != null
-                    ? consumeType : ContentType.create("text/plain", StandardCharsets.UTF_8);
+            final ContentType ct = consumeType != null ? consumeType : ContentType.TEXT_PLAIN;
             return new StringAsyncEntityProducer((CharSequence) body, ct);
         }
         return new JsonObjectEntityProducer<>(body, objectMapper);
