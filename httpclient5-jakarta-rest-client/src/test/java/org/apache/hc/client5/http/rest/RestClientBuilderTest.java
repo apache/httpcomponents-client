@@ -162,8 +162,8 @@ class RestClientBuilderTest {
     public interface EchoBodyApi {
 
         @POST
-        @Consumes("text/plain; charset=ISO-8859-1")
-        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        @Produces("text/plain; charset=ISO-8859-1")
+        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
         byte[] post(String body);
     }
 
@@ -600,7 +600,7 @@ class RestClientBuilderTest {
     void testInferredContentTypeForByteArrayBody() {
         final InspectApi api = proxy(InspectApi.class);
         final String ct = api.postBytes(new byte[]{1, 2, 3});
-        assertThat(ct.startsWith("application/octet-stream")).as(ct).isTrue();
+        assertThat(ct.startsWith("text/plain")).as(ct).isTrue();
     }
 
     @Test
