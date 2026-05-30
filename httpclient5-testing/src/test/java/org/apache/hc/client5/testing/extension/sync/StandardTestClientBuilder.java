@@ -169,6 +169,14 @@ final class StandardTestClientBuilder implements TestClientBuilder {
     }
 
     @Override
+    public TestClientBuilder setNamedPipe(final String namedPipe) {
+        this.clientBuilder.setDefaultRequestConfig(RequestConfig.custom()
+                .setNamedPipe(namedPipe)
+                .build());
+        return this;
+    }
+
+    @Override
     public TestClientBuilder setRedirectStrategy(final RedirectStrategy redirectStrategy) {
         this.clientBuilder.setRedirectStrategy(redirectStrategy);
         return this;

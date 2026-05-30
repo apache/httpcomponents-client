@@ -81,6 +81,11 @@ abstract class TestClientRequestExecution extends AbstractIntegrationTestBase {
         super(scheme, ClientProtocolLevel.STANDARD, useUnixDomainSocket);
     }
 
+    public TestClientRequestExecution(final URIScheme scheme, final boolean useUnixDomainSocket,
+                                      final boolean useNamedPipe) {
+        super(scheme, ClientProtocolLevel.STANDARD, useUnixDomainSocket, useNamedPipe);
+    }
+
     private static class SimpleService implements HttpRequestHandler {
 
         public SimpleService() {

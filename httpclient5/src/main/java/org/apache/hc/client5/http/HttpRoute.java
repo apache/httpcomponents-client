@@ -69,6 +69,9 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     /** The path to the UDS to connect to, if any. */
     private final Path unixDomainSocket;
 
+    /** The Windows Named Pipe path to connect to, if any. */
+    private final String namedPipe;
+
     /** Whether the the route is tunnelled through the proxy. */
     private final TunnelType tunnelled;
 
@@ -83,6 +86,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
               final InetAddress local,
               final List<HttpHost> proxies,
               final Path unixDomainSocket,
+              final String namedPipe,
               final boolean secure,
               final TunnelType tunnelled,
               final LayerType layered) {
@@ -92,6 +96,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         this.targetHost = targetHost;
         this.localAddress = local;
         this.unixDomainSocket = unixDomainSocket;
+        this.namedPipe = namedPipe;
         if (proxies != null && !proxies.isEmpty()) {
             this.proxyChain = new ArrayList<>(proxies);
         } else {
@@ -106,6 +111,20 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         if (this.unixDomainSocket != null) {
             validateUdsArguments();
         }
+        if (this.namedPipe != null) {
+            validateNamedPipeArguments();
+        }
+    }
+
+    HttpRoute(final HttpHost targetHost,
+              final NamedEndpoint targetName,
+              final InetAddress local,
+              final List<HttpHost> proxies,
+              final Path unixDomainSocket,
+              final boolean secure,
+              final TunnelType tunnelled,
+              final LayerType layered) {
+        this(targetHost, targetName, local, proxies, unixDomainSocket, null, secure, tunnelled, layered);
     }
 
     private void validateUdsArguments() {
@@ -117,6 +136,20 @@ public final class HttpRoute implements RouteInfo, Cloneable {
             throw new UnsupportedOperationException("Layering is not supported over a UDS connection");
         } else if (this.tunnelled != TunnelType.PLAIN) {
             throw new UnsupportedOperationException("Tunnelling is not supported over a UDS connection");
+        }
+    }
+
+    private void validateNamedPipeArguments() {
+        if (this.unixDomainSocket != null) {
+            throw new UnsupportedOperationException("Cannot specify both a Unix domain socket and a Named Pipe");
+        } else if (this.localAddress != null) {
+            throw new UnsupportedOperationException("A localAddress cannot be specified for a Named Pipe connection");
+        } else if (this.proxyChain != null) {
+            throw new UnsupportedOperationException("Proxies are not supported over a Named Pipe connection");
+        } else if (this.layered != LayerType.PLAIN) {
+            throw new UnsupportedOperationException("Layering is not supported over a Named Pipe connection");
+        } else if (this.tunnelled != TunnelType.PLAIN) {
+            throw new UnsupportedOperationException("Tunnelling is not supported over a Named Pipe connection");
         }
     }
 
@@ -237,7 +270,34 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      * @since 5.6
      */
     public HttpRoute(final HttpHost target, final boolean secure, final Path unixDomainSocket) {
-        this(target, null, null, Collections.emptyList(), unixDomainSocket, secure,
+        this(target, null, null, Collections.emptyList(), unixDomainSocket, null, secure,
+                TunnelType.PLAIN, LayerType.PLAIN);
+    }
+
+    /**
+     * Creates a new direct route that connects over a Windows Named Pipe rather than TCP.
+     *
+     * @param target    the host to which to route
+     * @param namedPipe the Named Pipe path (e.g. {@code \\.\pipe\docker_engine})
+     *
+     * @since 5.7
+     */
+    public HttpRoute(final HttpHost target, final String namedPipe) {
+        this(target, false, namedPipe);
+    }
+
+    /**
+     * Creates a new direct route that connects over a Windows Named Pipe rather than TCP.
+     *
+     * @param target    the host to which to route
+     * @param secure    {@code true} if the route is (to be) secure,
+     *                  {@code false} otherwise
+     * @param namedPipe the Named Pipe path (e.g. {@code \\.\pipe\docker_engine})
+     *
+     * @since 5.7
+     */
+    public HttpRoute(final HttpHost target, final boolean secure, final String namedPipe) {
+        this(target, null, null, Collections.emptyList(), null, namedPipe, secure,
                 TunnelType.PLAIN, LayerType.PLAIN);
     }
 
@@ -354,6 +414,11 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     }
 
     @Override
+    public String getNamedPipe() {
+        return this.namedPipe;
+    }
+
+    @Override
     public TunnelType getTunnelType() {
         return this.tunnelled;
     }
@@ -402,7 +467,8 @@ public final class HttpRoute implements RouteInfo, Cloneable {
                             Objects.equals(this.targetName, that.targetName) &&
                             Objects.equals(this.localAddress, that.localAddress) &&
                             Objects.equals(this.proxyChain, that.proxyChain) &&
-                            Objects.equals(this.unixDomainSocket, that.unixDomainSocket);
+                            Objects.equals(this.unixDomainSocket, that.unixDomainSocket) &&
+                            Objects.equals(this.namedPipe, that.namedPipe);
         }
         return false;
     }
@@ -427,6 +493,9 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         if (this.unixDomainSocket != null) {
             hash = LangUtils.hashCode(hash, unixDomainSocket);
         }
+        if (this.namedPipe != null) {
+            hash = LangUtils.hashCode(hash, namedPipe);
+        }
         hash = LangUtils.hashCode(hash, this.secure);
         hash = LangUtils.hashCode(hash, this.tunnelled);
         hash = LangUtils.hashCode(hash, this.layered);
@@ -446,6 +515,8 @@ public final class HttpRoute implements RouteInfo, Cloneable {
             cab.append("->");
         } else if (unixDomainSocket != null) {
             cab.append(unixDomainSocket).append("->");
+        } else if (namedPipe != null) {
+            cab.append(namedPipe).append("->");
         }
         cab.append('{');
         if (this.tunnelled == TunnelType.TUNNELLED) {

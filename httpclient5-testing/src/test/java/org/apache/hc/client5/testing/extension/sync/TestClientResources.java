@@ -51,6 +51,7 @@ public class TestClientResources implements AfterEachCallback {
     private TestServer server;
     private TestClient client;
     private UnixDomainProxyServer udsProxy;
+    private NamedPipeProxyServer namedPipeProxy;
 
     public TestClientResources(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final Timeout timeout) {
         this.scheme = scheme != null ? scheme : URIScheme.HTTP;
@@ -82,6 +83,12 @@ public class TestClientResources implements AfterEachCallback {
                 throw new AssertionError("The UDS proxy did not receive any requests");
             }
             udsProxy.close();
+        }
+        if (namedPipeProxy != null) {
+            if (namedPipeProxy.getRequestsReceived() == 0) {
+                throw new AssertionError("The Named Pipe proxy did not receive any requests");
+            }
+            namedPipeProxy.close();
         }
         if (server != null) {
             server.shutdown(CloseMode.IMMEDIATE);
@@ -115,6 +122,15 @@ public class TestClientResources implements AfterEachCallback {
             udsProxy = new UnixDomainProxyServer(port);
         }
         return udsProxy;
+    }
+
+    public NamedPipeProxyServer namedPipeProxy() throws Exception {
+        if (namedPipeProxy == null) {
+            final TestServer testServer = server();
+            final int port = testServer.getServerAddress().getPort();
+            namedPipeProxy = new NamedPipeProxyServer(port);
+        }
+        return namedPipeProxy;
     }
 
     public void configureClient(final Consumer<TestClientBuilder> clientCustomizer) {

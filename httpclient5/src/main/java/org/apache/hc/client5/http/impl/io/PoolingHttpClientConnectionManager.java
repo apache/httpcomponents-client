@@ -549,6 +549,7 @@ public class PoolingHttpClientConnectionManager
         }
         final HttpRoute route = poolEntry.getRoute();
         final Path unixDomainSocket = route.getUnixDomainSocket();
+        final String namedPipe = route.getNamedPipe();
         final HttpHost firstHop = route.getProxyHost() != null ? route.getProxyHost() : route.getTargetHost();
         final SocketConfig socketConfig = resolveSocketConfig(route);
         final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
@@ -562,6 +563,7 @@ public class PoolingHttpClientConnectionManager
                 firstHop,
                 route.getTargetName(),
                 unixDomainSocket,
+                namedPipe,
                 route.getLocalSocketAddress(),
                 connectTimeout,
                 socketConfig,

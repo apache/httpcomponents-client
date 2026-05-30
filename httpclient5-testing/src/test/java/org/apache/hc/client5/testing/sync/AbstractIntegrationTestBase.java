@@ -49,15 +49,23 @@ abstract class AbstractIntegrationTestBase {
     @RegisterExtension
     private final TestClientResources testResources;
     private final boolean useUnixDomainSocket;
+    private final boolean useNamedPipe;
 
     protected AbstractIntegrationTestBase(final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel) {
-        this(scheme, clientProtocolLevel, false);
+        this(scheme, clientProtocolLevel, false, false);
     }
 
     protected AbstractIntegrationTestBase(
         final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel, final boolean useUnixDomainSocket) {
+        this(scheme, clientProtocolLevel, useUnixDomainSocket, false);
+    }
+
+    protected AbstractIntegrationTestBase(
+        final URIScheme scheme, final ClientProtocolLevel clientProtocolLevel,
+        final boolean useUnixDomainSocket, final boolean useNamedPipe) {
         this.testResources = new TestClientResources(scheme, clientProtocolLevel, TIMEOUT);
         this.useUnixDomainSocket = useUnixDomainSocket;
+        this.useNamedPipe = useNamedPipe;
     }
 
     public URIScheme scheme() {
@@ -78,6 +86,9 @@ abstract class AbstractIntegrationTestBase {
         if (useUnixDomainSocket) {
             testResources.udsProxy().start();
         }
+        if (useNamedPipe) {
+            testResources.namedPipeProxy().start();
+        }
         return new HttpHost(testResources.scheme().id, "localhost", inetSocketAddress.getPort());
     }
 
@@ -92,12 +103,25 @@ abstract class AbstractIntegrationTestBase {
                 builder.setUnixDomainSocket(socketPath);
             });
         }
+        if (useNamedPipe) {
+            final String pipeName = getNamedPipe();
+            testResources.configureClient(builder -> {
+                builder.setNamedPipe(pipeName);
+            });
+        }
         return testResources.client();
     }
 
     public Path getUnixDomainSocket() throws Exception {
         if (useUnixDomainSocket) {
             return testResources.udsProxy().getSocketPath();
+        }
+        return null;
+    }
+
+    public String getNamedPipe() throws Exception {
+        if (useNamedPipe) {
+            return testResources.namedPipeProxy().getPipeName();
         }
         return null;
     }

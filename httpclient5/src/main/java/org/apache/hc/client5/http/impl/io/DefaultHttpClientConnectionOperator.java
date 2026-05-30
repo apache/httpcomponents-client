@@ -49,6 +49,7 @@ import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.io.DetachedSocketFactory;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
+import org.apache.hc.client5.http.socket.NamedPipeSocketFactory;
 import org.apache.hc.client5.http.socket.UnixDomainSocketFactory;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.annotation.Contract;
@@ -91,6 +92,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
 
     private final DetachedSocketFactory detachedSocketFactory;
     private final UnixDomainSocketFactory unixDomainSocketFactory = UnixDomainSocketFactory.getSocketFactory();
+    private final NamedPipeSocketFactory namedPipeSocketFactory = NamedPipeSocketFactory.getSocketFactory();
     private final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup;
     private final SchemePortResolver schemePortResolver;
     private final DnsResolver dnsResolver;
@@ -166,6 +168,31 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final HttpContext context) throws IOException {
         connect(conn, endpointHost, endpointName, null, localAddress, connectTimeout, socketConfig, attachment,
             context);
+    }
+
+    @Override
+    public void connect(
+            final ManagedHttpClientConnection conn,
+            final HttpHost endpointHost,
+            final NamedEndpoint endpointName,
+            final Path unixDomainSocket,
+            final String namedPipe,
+            final InetSocketAddress localAddress,
+            final Timeout connectTimeout,
+            final SocketConfig socketConfig,
+            final Object attachment,
+            final HttpContext context) throws IOException {
+        if (namedPipe != null) {
+            Args.notNull(conn, "Connection");
+            Args.notNull(endpointHost, "Host");
+            Args.notNull(socketConfig, "Socket config");
+            Args.notNull(context, "Context");
+            connectToNamedPipe(conn, endpointHost, endpointName, attachment, namedPipe, connectTimeout,
+                socketConfig, context);
+            return;
+        }
+        connect(conn, endpointHost, endpointName, unixDomainSocket, localAddress, connectTimeout,
+            socketConfig, attachment, context);
     }
 
     @Override
@@ -304,6 +331,48 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             Closer.closeQuietly(newSocket);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} connection to {} failed ({}); terminating operation", endpointHost, unixDomainSocket,
+                    ex.getClass());
+            }
+            throw ex;
+        }
+    }
+
+    private void connectToNamedPipe(
+            final ManagedHttpClientConnection conn,
+            final HttpHost endpointHost,
+            final NamedEndpoint endpointName,
+            final Object attachment,
+            final String namedPipe,
+            final Timeout connectTimeout,
+            final SocketConfig socketConfig,
+            final HttpContext context) throws IOException {
+        onBeforeSocketConnect(context, endpointHost);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} connecting to named pipe {} ({})", endpointHost, namedPipe, connectTimeout);
+        }
+        final Socket newSocket = namedPipeSocketFactory.connectSocket(namedPipe, connectTimeout);
+        try {
+            conn.bind(newSocket);
+            configureSocket(newSocket, socketConfig, false);
+            conn.bind(newSocket);
+            onAfterSocketConnect(context, endpointHost);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} {} connected to named pipe {}", ConnPoolSupport.getId(conn), endpointHost, namedPipe);
+            }
+
+            final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null
+                    ? tlsSocketStrategyLookup.lookup(endpointHost.getSchemeName()) : null;
+            if (tlsSocketStrategy != null) {
+                upgradeToTls(conn, endpointHost, endpointName, connectTimeout, attachment, context,
+                        tlsSocketStrategy, newSocket);
+            }
+        } catch (final RuntimeException ex) {
+            Closer.closeQuietly(newSocket);
+            throw ex;
+        } catch (final IOException ex) {
+            Closer.closeQuietly(newSocket);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} connection to named pipe {} failed ({}); terminating operation", endpointHost, namedPipe,
                     ex.getClass());
             }
             throw ex;
