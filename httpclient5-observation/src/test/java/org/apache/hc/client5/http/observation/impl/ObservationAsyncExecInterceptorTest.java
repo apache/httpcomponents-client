@@ -33,6 +33,7 @@ import java.util.EnumSet;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
@@ -44,6 +45,7 @@ import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.observation.ObservingOptions;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
@@ -56,6 +58,13 @@ import org.junit.jupiter.api.Test;
 class ObservationAsyncExecInterceptorTest {
 
     private HttpServer server;
+
+    private static final String TRACE_PARENT = "traceparent";
+
+    private static final String TRACE_PARENT_VALUE =
+            "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01";
+
+    private static final String STALE_TRACE_PARENT_VALUE = "stale";
 
     private static final class CountingHandler
             implements io.micrometer.observation.ObservationHandler<Observation.Context> {
@@ -131,5 +140,66 @@ class ObservationAsyncExecInterceptorTest {
 
         assertEquals(1, h.starts.get());
         assertEquals(1, h.stops.get());
+    }
+
+    @Test
+    void propagatesTraceContextAroundAsyncCall() throws Exception {
+        final AtomicReference<String> receivedTraceParent = new AtomicReference<>();
+
+        server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
+                .setListenerPort(0)
+                .register("localhost", "/get", (request, response, context) -> {
+                    final Header traceParent = request.getFirstHeader(TRACE_PARENT);
+                    receivedTraceParent.set(traceParent != null ? traceParent.getValue() : null);
+                    response.setCode(HttpStatus.SC_OK);
+                    response.setEntity(new StringEntity("{\"ok\":true}", ContentType.APPLICATION_JSON));
+                })
+                .create();
+        server.start();
+
+        final ObservationRegistry reg = ObservationRegistry.create();
+        reg.observationConfig().observationHandler(new TracePropagationHandler());
+
+        final ObservingOptions opts = ObservingOptions.builder()
+                .metrics(EnumSet.noneOf(ObservingOptions.MetricSet.class))
+                .build();
+
+        final HttpAsyncClientBuilder b = HttpAsyncClients.custom();
+        b.addExecInterceptorFirst("span", new ObservationAsyncExecInterceptor(reg, opts));
+
+        final HttpHost target = new HttpHost("http", "localhost", server.getLocalPort());
+
+        try (final CloseableHttpAsyncClient c = b.build()) {
+            c.start();
+
+            final SimpleHttpRequest request = SimpleRequestBuilder.get()
+                    .setHttpHost(target)
+                    .setPath("/get")
+                    .build();
+            request.setHeader(TRACE_PARENT, STALE_TRACE_PARENT_VALUE);
+
+            final Future<SimpleHttpResponse> future = c.execute(request, null);
+            final SimpleHttpResponse response = future.get(10, TimeUnit.SECONDS);
+
+            assertEquals(HttpStatus.SC_OK, response.getCode());
+        }
+
+        assertEquals(TRACE_PARENT_VALUE, receivedTraceParent.get());
+    }
+
+    private static final class TracePropagationHandler implements io.micrometer.observation.ObservationHandler<Observation.Context> {
+
+        @Override
+        public boolean supportsContext(final Observation.Context context) {
+            return context instanceof HttpClientObservationContext;
+        }
+
+        @Override
+        public void onStart(final Observation.Context context) {
+            final HttpClientObservationContext senderContext = (HttpClientObservationContext) context;
+            senderContext.getSetter().set(senderContext.getCarrier(), TRACE_PARENT, TRACE_PARENT_VALUE);
+        }
+
     }
 }

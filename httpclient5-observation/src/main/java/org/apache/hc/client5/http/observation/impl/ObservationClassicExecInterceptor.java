@@ -74,8 +74,10 @@ public final class ObservationClassicExecInterceptor implements ExecChainHandler
         final String uriForName = safeUriForName(request);
         final String peer = scope.route.getTargetHost().getHostName();
 
+        final HttpClientObservationContext observationContext = new HttpClientObservationContext(request);
+
         final Observation obs = Observation
-                .createNotStarted("http.client.request", registry)
+                .createNotStarted("http.client.request", () -> observationContext, registry)
                 .contextualName(method + " " + uriForName)
                 .lowCardinalityKeyValue("http.method", method)
                 .lowCardinalityKeyValue("net.peer.name", peer)
@@ -91,6 +93,7 @@ public final class ObservationClassicExecInterceptor implements ExecChainHandler
             throw t;
         } finally {
             if (response != null) {
+                observationContext.setResponse(response);
                 obs.lowCardinalityKeyValue("http.status_code", Integer.toString(response.getCode()));
             }
             if (opts.tagLevel == ObservingOptions.TagLevel.EXTENDED) {
@@ -111,4 +114,5 @@ public final class ObservationClassicExecInterceptor implements ExecChainHandler
             return req.getRequestUri();
         }
     }
+
 }
