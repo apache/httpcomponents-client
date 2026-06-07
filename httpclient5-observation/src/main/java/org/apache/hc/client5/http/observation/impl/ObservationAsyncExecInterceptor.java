@@ -40,6 +40,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Asynchronous execution interceptor that emits Micrometer {@link Observation}s
@@ -58,8 +59,8 @@ public final class ObservationAsyncExecInterceptor implements AsyncExecChainHand
 
     public ObservationAsyncExecInterceptor(final ObservationRegistry registry,
                                            final ObservingOptions opts) {
-        this.registry = registry;
-        this.opts = opts;
+        this.registry = Args.notNull(registry, "observationRegistry");
+        this.opts = opts != null ? opts : ObservingOptions.DEFAULT;
     }
 
     @Override
@@ -74,17 +75,21 @@ public final class ObservationAsyncExecInterceptor implements AsyncExecChainHand
             return;
         }
 
+        final HttpClientObservationContext observationContext = new HttpClientObservationContext(request);
+
         final Observation observation = Observation
-                .createNotStarted("http.client.request", registry)
+                .createNotStarted("http.client.request", () -> observationContext, registry)
                 .contextualName(request.getMethod() + " " + request.getRequestUri())
                 .lowCardinalityKeyValue("http.method", request.getMethod())
                 .lowCardinalityKeyValue("net.peer.name", scope.route.getTargetHost().getHostName())
                 .start();
 
         final AsyncExecCallback wrappedCallback = new AsyncExecCallback() {
+
             @Override
             public AsyncDataConsumer handleResponse(final HttpResponse response,
                                                     final EntityDetails entityDetails) throws HttpException, IOException {
+                observationContext.setResponse(response);
                 observation.lowCardinalityKeyValue("http.status_code", Integer.toString(response.getCode()));
                 return asyncExecCallback.handleResponse(response, entityDetails);
             }
@@ -106,8 +111,16 @@ public final class ObservationAsyncExecInterceptor implements AsyncExecChainHand
                 observation.stop();
                 asyncExecCallback.failed(cause);
             }
+
         };
 
-        chain.proceed(request, entityProducer, scope, wrappedCallback);
+        try {
+            chain.proceed(request, entityProducer, scope, wrappedCallback);
+        } catch (final IOException | HttpException | RuntimeException | Error ex) {
+            observation.error(ex);
+            observation.stop();
+            throw ex;
+        }
     }
+
 }
