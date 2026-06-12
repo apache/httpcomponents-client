@@ -46,7 +46,6 @@ import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
-import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.AuthenticationHandler;
 import org.apache.hc.client5.http.impl.routing.BasicRouteDirector;
@@ -250,6 +249,15 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                     public void completed(final AsyncExecRuntime execRuntime) {
                         final HttpHost proxy = route.getProxyHost();
                         tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
+                        if (route.isTunnelled() && execRuntime.getEstablishedRoute() != null) {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} tunnel to target already established by connection pool", exchangeId);
+                            }
+                            tracker.tunnelTarget(false);
+                            if (route.isLayered()) {
+                                tracker.layerProtocol(route.isSecure());
+                            }
+                        }
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("{} connected to proxy", exchangeId);
                         }
@@ -519,31 +527,8 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             final HttpHost proxy,
             final HttpResponse response,
             final HttpClientContext context) throws AuthenticationException, MalformedChallengeException {
-        final RequestConfig config = context.getRequestConfigOrDefault();
-        if (config.isAuthenticationEnabled()) {
-            final boolean proxyAuthRequested = authenticator.isChallenged(proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
-            final boolean proxyMutualAuthRequired = authenticator.isChallengeExpected(proxyAuthExchange);
-
-            if (authCacheKeeper != null) {
-                if (proxyAuthRequested) {
-                    authCacheKeeper.updateOnChallenge(proxy, null, proxyAuthExchange, context);
-                } else {
-                    authCacheKeeper.updateOnNoChallenge(proxy, null, proxyAuthExchange, context);
-                }
-            }
-
-            if (proxyAuthRequested || proxyMutualAuthRequired) {
-                final boolean updated = authenticator.handleResponse(proxy, ChallengeType.PROXY, response,
-                        proxyAuthStrategy, proxyAuthExchange, context);
-
-                if (authCacheKeeper != null) {
-                    authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);
-                }
-
-                return updated;
-            }
-        }
-        return false;
+        return authenticator.needProxyAuthentication(
+                proxyAuthExchange, proxy, response, proxyAuthStrategy, authCacheKeeper, context);
     }
 
     private void proceedConnected(
