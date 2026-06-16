@@ -108,6 +108,13 @@ class TestHttpRequestBase {
         Assertions.assertEquals(new URI(HOT_URL), httpDelete.getUri());
     }
 
+    @Test
+    void testBasicQueryMethodProperties() throws Exception {
+        final HttpQuery httpQuery = new HttpQuery(HOT_URL);
+        Assertions.assertEquals("QUERY", httpQuery.getMethod());
+        Assertions.assertEquals(new URI(HOT_URL), httpQuery.getUri());
+    }
+
 
     @Test
     void testGetMethodEmptyURI() throws Exception {
@@ -158,6 +165,12 @@ class TestHttpRequestBase {
         Assertions.assertEquals(new URI("/"), httpDelete.getUri());
     }
 
+    @Test
+    void testQueryMethodEmptyURI() throws Exception {
+        final HttpQuery httpQuery = new HttpQuery("");
+        Assertions.assertEquals(new URI("/"), httpQuery.getUri());
+    }
+
 
     @Test
     void testTraceMethodSetEntity() {
@@ -169,15 +182,15 @@ class TestHttpRequestBase {
     @Test
     void testOptionMethodGetAllowedMethods() {
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
-        response.addHeader("Allow", "GET, HEAD");
+        response.addHeader("Allow", "GET, HEAD, QUERY");
         response.addHeader("Allow", "DELETE");
         response.addHeader("Content-Length", "128");
         final HttpOptions httpOptions = new HttpOptions("");
         final Set<String> methods = httpOptions.getAllowedMethods(response);
         assertAll("Must all pass",
                 () -> assertFalse(methods.isEmpty()),
-                () -> assertEquals(3, methods.size()),
-                () -> assertTrue(methods.containsAll(Stream.of("HEAD", "DELETE", "GET")
+                () -> assertEquals(4, methods.size()),
+                () -> assertTrue(methods.containsAll(Stream.of("HEAD", "DELETE", "GET", "QUERY")
                         .collect(Collectors.toCollection(HashSet::new))))
         );
     }

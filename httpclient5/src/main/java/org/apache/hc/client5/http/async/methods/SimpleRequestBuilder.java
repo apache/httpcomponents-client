@@ -170,6 +170,18 @@ public class SimpleRequestBuilder extends AbstractRequestBuilder<SimpleHttpReque
         return new SimpleRequestBuilder(Method.DELETE, uri);
     }
 
+    public static SimpleRequestBuilder query() {
+        return new SimpleRequestBuilder(Method.QUERY);
+    }
+
+    public static SimpleRequestBuilder query(final URI uri) {
+        return new SimpleRequestBuilder(Method.QUERY, uri);
+    }
+
+    public static SimpleRequestBuilder query(final String uri) {
+        return new SimpleRequestBuilder(Method.QUERY, uri);
+    }
+
     public static SimpleRequestBuilder trace() {
         return new SimpleRequestBuilder(Method.TRACE);
     }
@@ -374,7 +386,7 @@ public class SimpleRequestBuilder extends AbstractRequestBuilder<SimpleHttpReque
         final List<NameValuePair> parameters = getParameters();
         if (parameters != null && !parameters.isEmpty()) {
             final Charset charsetCopy = getCharset();
-            if (bodyCopy == null && (Method.POST.isSame(method) || Method.PUT.isSame(method))) {
+            if (bodyCopy == null && (Method.POST.isSame(method) || Method.PUT.isSame(method) || Method.QUERY.isSame(method))) {
                 final String content = WWWFormCodec.format(
                         parameters,
                         charsetCopy != null ? charsetCopy : ContentType.APPLICATION_FORM_URLENCODED.getCharset());
