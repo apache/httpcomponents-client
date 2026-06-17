@@ -51,6 +51,7 @@ class TestRequest {
                 Arguments.of("patch", "PATCH"),
                 Arguments.of("post", "POST"),
                 Arguments.of("put", "PUT"),
+                Arguments.of("query", "QUERY"),
                 Arguments.of("trace", "TRACE")
         );
     }

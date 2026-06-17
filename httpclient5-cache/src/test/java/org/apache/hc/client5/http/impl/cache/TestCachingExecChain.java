@@ -57,8 +57,10 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
@@ -1285,4 +1287,95 @@ class TestCachingExecChain {
         Mockito.verify(mockExecChain, Mockito.times(5)).proceed(Mockito.any(), Mockito.any());
     }
 
+    @Test
+    void testQueryRequestsGoIntoCacheAndMatchBody() throws Exception {
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("QUERY", "/stuff");
+        req1.setEntity(new StringEntity("query-body-1", ContentType.TEXT_PLAIN));
+
+        final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(200, "OK");
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
+        resp1.setHeader("Cache-Control", "max-age=3600");
+        resp1.setHeader("Content-Type", "text/plain");
+        resp1.setEntity(new StringEntity("response-body-1", ContentType.TEXT_PLAIN));
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
+        // First execution (Cache Miss, goes to backend)
+        final ClassicHttpResponse result1 = execute(req1);
+        Assertions.assertEquals(200, result1.getCode());
+        Assertions.assertEquals("response-body-1", EntityUtils.toString(result1.getEntity()));
+
+        // Second execution with identical QUERY request (Cache Hit)
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("QUERY", "/stuff");
+        req2.setEntity(new StringEntity("query-body-1", ContentType.TEXT_PLAIN));
+        final ClassicHttpResponse result2 = execute(req2);
+        Assertions.assertEquals(200, result2.getCode());
+        Assertions.assertEquals("response-body-1", EntityUtils.toString(result2.getEntity()));
+        Assertions.assertEquals(CacheResponseStatus.CACHE_HIT, context.getCacheResponseStatus());
+
+        // Third execution with different QUERY request body (Cache Miss, goes to backend)
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("QUERY", "/stuff");
+        req3.setEntity(new StringEntity("query-body-2", ContentType.TEXT_PLAIN));
+
+        final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(200, "OK");
+        resp3.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
+        resp3.setHeader("Cache-Control", "max-age=3600");
+        resp3.setHeader("Content-Type", "text/plain");
+        resp3.setEntity(new StringEntity("response-body-2", ContentType.TEXT_PLAIN));
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp3);
+
+        final ClassicHttpResponse result3 = execute(req3);
+        Assertions.assertEquals(200, result3.getCode());
+        Assertions.assertEquals("response-body-2", EntityUtils.toString(result3.getEntity()));
+        Assertions.assertEquals(CacheResponseStatus.CACHE_MISS, context.getCacheResponseStatus());
+    }
+
+    @Test
+    void testQueryAndGetRequestsCachedSeparately() throws Exception {
+        // 1. GET request
+        final ClassicHttpRequest getReq = new BasicClassicHttpRequest("GET", "/stuff");
+        final ClassicHttpResponse getResp = new BasicClassicHttpResponse(200, "OK");
+        getResp.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
+        getResp.setHeader("Cache-Control", "max-age=3600");
+        getResp.setHeader("Content-Type", "text/plain");
+        getResp.setEntity(new StringEntity("get-response-content", ContentType.TEXT_PLAIN));
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(getResp);
+
+        // Execute GET (Cache Miss)
+        final ClassicHttpResponse getResult1 = execute(getReq);
+        Assertions.assertEquals("get-response-content", EntityUtils.toString(getResult1.getEntity()));
+        Assertions.assertEquals(CacheResponseStatus.CACHE_MISS, context.getCacheResponseStatus());
+
+        // 2. QUERY request
+        final ClassicHttpRequest queryReq = new BasicClassicHttpRequest("QUERY", "/stuff");
+        queryReq.setEntity(new StringEntity("query-body", ContentType.TEXT_PLAIN));
+
+        final ClassicHttpResponse queryResp = new BasicClassicHttpResponse(200, "OK");
+        queryResp.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
+        queryResp.setHeader("Cache-Control", "max-age=3600");
+        queryResp.setHeader("Content-Type", "text/plain");
+        queryResp.setEntity(new StringEntity("query-response-content", ContentType.TEXT_PLAIN));
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(queryResp);
+
+        // Execute QUERY (Cache Miss)
+        final ClassicHttpResponse queryResult1 = execute(queryReq);
+        Assertions.assertEquals("query-response-content", EntityUtils.toString(queryResult1.getEntity()));
+        Assertions.assertEquals(CacheResponseStatus.CACHE_MISS, context.getCacheResponseStatus());
+
+        // 3. Re-execute GET (should Cache Hit with GET content)
+        final ClassicHttpResponse getResult2 = execute(getReq);
+        Assertions.assertEquals("get-response-content", EntityUtils.toString(getResult2.getEntity()));
+        Assertions.assertEquals(CacheResponseStatus.CACHE_HIT, context.getCacheResponseStatus());
+
+        // 4. Re-execute QUERY (should Cache Hit with QUERY content)
+        final ClassicHttpResponse queryResult2 = execute(queryReq);
+        Assertions.assertEquals("query-response-content", EntityUtils.toString(queryResult2.getEntity()));
+        Assertions.assertEquals(CacheResponseStatus.CACHE_HIT, context.getCacheResponseStatus());
+    }
+
 }
+
+

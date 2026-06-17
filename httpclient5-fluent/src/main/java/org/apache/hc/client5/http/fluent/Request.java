@@ -170,6 +170,20 @@ public class Request {
       return new Request(new BasicClassicHttpRequest(Method.OPTIONS, uri));
     }
 
+    /**
+     * @since 5.7
+     */
+    public static Request query(final URI uri) {
+      return new Request(new BasicClassicHttpRequest(Method.QUERY, uri));
+    }
+
+    /**
+     * @since 5.7
+     */
+    public static Request query(final String uri) {
+      return new Request(new BasicClassicHttpRequest(Method.QUERY, uri));
+    }
+
     Request(final ClassicHttpRequest request) {
         super();
         this.request = request;
