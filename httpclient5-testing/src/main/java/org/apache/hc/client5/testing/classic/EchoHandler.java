@@ -68,7 +68,8 @@ public class EchoHandler implements HttpRequestHandler {
         if (!"GET".equals(method) &&
                 !"HEAD".equals(method) &&
                 !"POST".equals(method) &&
-                !"PUT".equals(method)) {
+                !"PUT".equals(method) &&
+                !"QUERY".equals(method)) {
             throw new MethodNotSupportedException(method + " not supported by " + getClass().getName());
         }
 
