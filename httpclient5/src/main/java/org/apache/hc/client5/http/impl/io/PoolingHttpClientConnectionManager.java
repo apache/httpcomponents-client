@@ -285,8 +285,8 @@ public class PoolingHttpClientConnectionManager
                         DEFAULT_MAX_TOTAL_CONNECTIONS,
                         timeToLive,
                         poolReusePolicy,
-                        new DefaultDisposalCallback<>());
-                // TODO : wire connPoolListener here once `RouteSegmentedConnPool` supports it.
+                        new DefaultDisposalCallback<>(),
+                        connPoolListener);
                 break;
             default:
                 throw new IllegalArgumentException("Unexpected PoolConcurrencyPolicy value: " + poolConcurrencyPolicy);

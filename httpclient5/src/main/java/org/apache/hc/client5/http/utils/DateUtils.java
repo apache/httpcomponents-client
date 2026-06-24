@@ -37,14 +37,11 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
-import java.util.function.BiFunction;
 
-import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.MessageHeaders;
-import org.apache.hc.core5.http.message.ParserCursor;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.hc.core5.util.Tokenizer;
 
 /**
@@ -209,23 +206,6 @@ public final class DateUtils {
     }
 
     /**
-     *  TODO to be replaced by method from core MessageSupport
-     */
-    private static <T> T parserHeaderValue(final Header header, final BiFunction<CharSequence, ParserCursor, T> transformation) {
-        Args.notNull(header, "Header");
-        if (header instanceof FormattedHeader) {
-            final CharArrayBuffer buf = ((FormattedHeader) header).getBuffer();
-            final ParserCursor cursor = new ParserCursor(0, buf.length());
-            cursor.updatePos(((FormattedHeader) header).getValuePos());
-            return transformation.apply(buf, cursor);
-        } else {
-            final String value = header.getValue();
-            final ParserCursor cursor = new ParserCursor(0, value.length());
-            return transformation.apply(value, cursor);
-        }
-    }
-
-    /**
      * Parses the date value using the given date/time formats.
      * <p>This method can handle strings without time-zone information by failing gracefully, in which case
      * it returns {@code null}.</p>
@@ -239,7 +219,7 @@ public final class DateUtils {
      */
     public static Instant parseDate(final Header header, final DateTimeFormatter... dateFormatters) {
         Args.notNull(header, "Header");
-        return parserHeaderValue(header, (cs, cursor) -> {
+        return MessageSupport.parserHeaderValue(header, (cs, cursor) -> {
             Tokenizer.INSTANCE.skipWhiteSpace(cs, cursor);
             return parseDate(cs.subSequence(cursor.getPos(), cursor.getUpperBound()), dateFormatters);
         });

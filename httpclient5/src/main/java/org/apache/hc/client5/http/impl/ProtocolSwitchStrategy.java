@@ -37,6 +37,7 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.ProtocolVersionParser;
+import org.apache.hc.core5.http.message.HeaderElementConsumer;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.ssl.TLS;
@@ -55,21 +56,6 @@ public final class ProtocolSwitchStrategy {
     private static final Tokenizer.Delimiter UPGRADE_TOKEN_DELIMITER = Tokenizer.delimiters(',');
     private static final Tokenizer.Delimiter LAX_PROTO_DELIMITER = Tokenizer.delimiters('/', ',');
 
-    @FunctionalInterface
-    private interface HeaderConsumer {
-
-        void accept(CharSequence buffer, ParserCursor cursor) throws ProtocolException;
-
-    }
-
-    private static class InternalProtocolException extends RuntimeException {
-
-        public InternalProtocolException(final ProtocolException cause) {
-            super(cause);
-        }
-
-    }
-
     public ProtocolVersion switchProtocol(final HttpMessage response) throws ProtocolException {
         if (!containsConnectionUpgrade(response)) {
             throw new ProtocolException("Invalid protocol switch response: missing Connection: Upgrade");
@@ -77,15 +63,17 @@ public final class ProtocolSwitchStrategy {
 
         final AtomicReference<ProtocolVersion> tlsUpgrade = new AtomicReference<>();
 
-        parseHeaders(response, HttpHeaders.UPGRADE, (buffer, cursor) -> {
-            final ProtocolVersion protocolVersion = parseProtocolVersion(buffer, cursor);
-            if (protocolVersion != null) {
-                if ("TLS".equalsIgnoreCase(protocolVersion.getProtocol())) {
-                    tlsUpgrade.set(protocolVersion);
-                } else if (!protocolVersion.equals(HttpVersion.HTTP_1_1)) {
-                    throw new ProtocolException("Unsupported protocol or HTTP version: " + protocolVersion);
+        MessageSupport.parseHeadersStrict(response, HttpHeaders.UPGRADE, (buf1, c1) -> {
+            MessageSupport.parseElementListStrict(buf1, c1, (HeaderElementConsumer) (buf2, c2) -> {
+                final ProtocolVersion protocolVersion = parseProtocolVersion(buf2, c2);
+                if (protocolVersion != null) {
+                    if ("TLS".equalsIgnoreCase(protocolVersion.getProtocol())) {
+                        tlsUpgrade.set(protocolVersion);
+                    } else if (!protocolVersion.equals(HttpVersion.HTTP_1_1)) {
+                        throw new ProtocolException("Unsupported protocol or HTTP version: " + protocolVersion);
+                    }
                 }
-            }
+            });
         });
 
         final ProtocolVersion result = tlsUpgrade.get();
@@ -125,30 +113,6 @@ public final class ProtocolSwitchStrategy {
             return TLS.V_1_2.getVersion();
         } else {
             throw new ProtocolException("Unsupported or invalid protocol: " + proto);
-        }
-    }
-
-    //TODO To be replaced by MessageSupport method that can propagate ProtocolException
-    private void parseHeaders(final HttpMessage message,
-                              final String name,
-                              final HeaderConsumer consumer) throws ProtocolException {
-        try {
-            MessageSupport.parseHeaders(
-                    message,
-                    name,
-                    (cs1, c1) ->
-                            MessageSupport.parseElementList(
-                                    cs1,
-                                    c1,
-                                    (cs2, c2) -> {
-                                        try {
-                                            consumer.accept(cs2, c2);
-                                        } catch (final ProtocolException ex) {
-                                            throw new InternalProtocolException(ex);
-                                        }
-                                    }));
-        } catch (final InternalProtocolException ex) {
-            throw (ProtocolException) ex.getCause();
         }
     }
 

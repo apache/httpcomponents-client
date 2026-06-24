@@ -27,15 +27,13 @@
 
 package org.apache.hc.client5.http.validator;
 
-import java.util.function.BiFunction;
-
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.MessageHeaders;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.CharArrayBuffer;
@@ -137,28 +135,11 @@ public final class ETag {
         return parse(s, cursor);
     }
 
-    /**
-     *  TODO to be replaced by method from core MessageSupport
-     */
-    private static <T> T parserHeaderValue(final Header header, final BiFunction<CharSequence, ParserCursor, T> transformation) {
-        Args.notNull(header, "Header");
-        if (header instanceof FormattedHeader) {
-            final CharArrayBuffer buf = ((FormattedHeader) header).getBuffer();
-            final ParserCursor cursor = new ParserCursor(0, buf.length());
-            cursor.updatePos(((FormattedHeader) header).getValuePos());
-            return transformation.apply(buf, cursor);
-        } else {
-            final String value = header.getValue();
-            final ParserCursor cursor = new ParserCursor(0, value.length());
-            return transformation.apply(value, cursor);
-        }
-    }
-
     public static ETag parse(final Header h) {
         if (h == null) {
             return null;
         }
-        return parserHeaderValue(h, ETag::parse);
+        return MessageSupport.parserHeaderValue(h, ETag::parse);
     }
 
     public static ETag get(final MessageHeaders message) {
