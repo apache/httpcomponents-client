@@ -87,7 +87,7 @@
     <commons-compress.version>1.26.2</commons-compress.version>
     <caffeine.version>2.9.3</caffeine.version>  <!-- java 8. current version 3.2.3 -->
     <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>
-    <jackson.version>2.21.1</jackson.version>
+    <jackson.version>2.22.0</jackson.version>
     <assertj.version>3.27.7</assertj.version>
   </properties>
 
