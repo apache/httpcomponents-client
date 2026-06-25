@@ -1,7 +1,24 @@
+Release 5.6.2
+------------------
+
+This maintenance release upgrades HttpCore to the latest stable version and restores
+lazy content decompression by the classic client transport.
+
+Change Log
+-------------------
+
+* Upgraded HttpCore to version 5.4.3.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2422: Restore lazy content decompression. Defer construction of the
+  decompression stream until the response content is actually read.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+
 Release 5.6.1
 ------------------
 
-This is a maintenance release disables experimental SCRAM auth scheme by default and
+This maintenance release disables experimental SCRAM auth scheme by default and
 fixes SCRAM final response handling. The SCRAM auth scheme can be re-enabled by
 choosing a custom auth scheme preference sequence that explicitly includes SCRAM auth.
 
