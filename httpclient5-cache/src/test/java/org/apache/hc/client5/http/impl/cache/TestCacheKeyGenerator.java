@@ -36,17 +36,13 @@ import java.util.List;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHeaderIterator;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
-import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -406,29 +402,6 @@ class TestCacheKeyGenerator {
                 new BasicHeader("Vary", "User-Agent, Accept-Encoding")
         );
         Assertions.assertEquals("{accept-encoding=text%2Fplain&user-agent=agent1}", extractor.generateVariantKey(request, entry2));
-    }
-
-    @Test
-    void testQueryKeyGenerationWithBody() throws Exception {
-        final HttpHost host = new HttpHost("http", "www.example.com", -1);
-
-        // SimpleHttpRequest with body
-        final SimpleHttpRequest req1 = SimpleHttpRequest.create("QUERY", "/stuff");
-        req1.setBody("my-query-1", ContentType.TEXT_PLAIN);
-        final String key1 = extractor.generateKey(host, req1);
-
-        final SimpleHttpRequest req2 = SimpleHttpRequest.create("QUERY", "/stuff");
-        req2.setBody("my-query-2", ContentType.TEXT_PLAIN);
-        final String key2 = extractor.generateKey(host, req2);
-
-        Assertions.assertNotEquals(key1, key2);
-        Assertions.assertTrue(key1.contains("\u001e"));
-
-        // ClassicHttpRequest with body
-        final BasicClassicHttpRequest req3 = new BasicClassicHttpRequest("QUERY", "/stuff");
-        req3.setEntity(new StringEntity("my-query-1", ContentType.TEXT_PLAIN));
-        final String key3 = extractor.generateKey(host, req3);
-        Assertions.assertEquals(key1, key3);
     }
 
 }

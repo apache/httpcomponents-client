@@ -156,7 +156,7 @@ class CachedHttpResponseGenerator {
     }
 
     private boolean responseShouldContainEntity(final HttpRequest request, final HttpCacheEntry cacheEntry) {
-        return (Method.GET.isSame(request.getMethod()) || Method.QUERY.isSame(request.getMethod())) && cacheEntry.getResource() != null;
+        return Method.GET.isSame(request.getMethod()) && cacheEntry.getResource() != null;
     }
 
 }

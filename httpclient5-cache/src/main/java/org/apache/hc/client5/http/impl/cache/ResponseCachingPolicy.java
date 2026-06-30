@@ -98,9 +98,9 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        // Presently only GET, HEAD and QUERY methods are supported
+        // Presently only GET and HEAD methods are supported
         final String httpMethod = request.getMethod();
-        if (!Method.GET.isSame(httpMethod) && !Method.HEAD.isSame(httpMethod) && !Method.QUERY.isSame(httpMethod)) {
+        if (!Method.GET.isSame(httpMethod) && !Method.HEAD.isSame(httpMethod)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} method response is not cacheable", httpMethod);
             }
