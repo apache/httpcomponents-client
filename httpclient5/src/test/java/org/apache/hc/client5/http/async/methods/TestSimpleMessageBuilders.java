@@ -273,4 +273,25 @@ class TestSimpleMessageBuilders {
         Assertions.assertEquals("p1=v1&p2=v2&p3=v3&p3=v3.1", request.getBody().getBodyText());
     }
 
+    @Test
+    void testQueryParameters() {
+        final SimpleRequestBuilder builder = SimpleRequestBuilder.query(URI.create("https://host:3456/stuff?p0=p0"));
+        builder.addParameter("p1", "v1");
+        builder.addParameters(new BasicNameValuePair("p2", "v2"), new BasicNameValuePair("p3", "v3"));
+        builder.addParameter(new BasicNameValuePair("p3", "v3.1"));
+        Assertions.assertEquals("QUERY", builder.getMethod());
+        Assertions.assertEquals("https", builder.getScheme());
+        Assertions.assertEquals(new URIAuthority("host", 3456), builder.getAuthority());
+        Assertions.assertEquals("/stuff?p0=p0", builder.getPath());
+        NameValuePairsMatcher.assertSame(builder.getParameters(),
+                new BasicNameValuePair("p1", "v1"), new BasicNameValuePair("p2", "v2"),
+                new BasicNameValuePair("p3", "v3"), new BasicNameValuePair("p3", "v3.1"));
+        final SimpleHttpRequest request = builder.build();
+        Assertions.assertEquals("/stuff?p0=p0", request.getPath());
+        Assertions.assertNotNull(request.getBody());
+        ContentTypeMatcher.assertSameMimeType(request.getBody().getContentType(),
+                ContentType.APPLICATION_FORM_URLENCODED);
+        Assertions.assertEquals("p1=v1&p2=v2&p3=v3&p3=v3.1", request.getBody().getBodyText());
+    }
+
 }

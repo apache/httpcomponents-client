@@ -813,4 +813,62 @@ abstract class TestRedirects extends AbstractIntegrationTestBase {
         }
     }
 
+    @Test
+    void testQueryRedirectSeeOther() throws Exception {
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_SEE_OTHER)))
+                .register("/echo/*", new EchoHandler()));
+        final HttpHost target = startServer();
+
+        final TestClient client = client();
+        final HttpClientContext context = HttpClientContext.create();
+
+        final ClassicHttpRequest httpQuery = ClassicRequestBuilder.create("QUERY")
+                .setPath("/oldlocation/stuff")
+                .setEntity(new StringEntity("stuff"))
+                .build();
+
+        client.execute(target, httpQuery, context, response -> {
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            EntityUtils.consume(response.getEntity());
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assertions.assertEquals(new URIBuilder().setHttpHost(target).setPath("/echo/stuff").build(),
+                reqWrapper.getUri());
+        Assertions.assertEquals("GET", reqWrapper.getMethod());
+    }
+
+    @Test
+    void testQueryRedirectTemporary() throws Exception {
+        configureServer(bootstrap -> bootstrap
+                .setExchangeHandlerDecorator(requestHandler -> new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_TEMPORARY_REDIRECT)))
+                .register("/echo/*", new EchoHandler()));
+        final HttpHost target = startServer();
+
+        final TestClient client = client();
+        final HttpClientContext context = HttpClientContext.create();
+
+        final ClassicHttpRequest httpQuery = ClassicRequestBuilder.create("QUERY")
+                .setPath("/oldlocation/stuff")
+                .setEntity(new StringEntity("stuff"))
+                .build();
+
+        client.execute(target, httpQuery, context, response -> {
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertEquals("stuff", EntityUtils.toString(response.getEntity()));
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assertions.assertEquals(new URIBuilder().setHttpHost(target).setPath("/echo/stuff").build(),
+                reqWrapper.getUri());
+        Assertions.assertEquals("QUERY", reqWrapper.getMethod());
+    }
+
 }

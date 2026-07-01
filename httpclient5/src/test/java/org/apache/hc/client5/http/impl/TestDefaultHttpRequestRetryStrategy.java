@@ -35,6 +35,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import javax.net.ssl.SSLException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpQuery;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -184,6 +185,13 @@ class TestDefaultHttpRequestRetryStrategy {
     @Test
     void retryOnNonAbortedRequests() {
         final HttpGet request = new HttpGet("/");
+
+        Assertions.assertTrue(retryStrategy.retryRequest(request, new IOException(), 1, null));
+    }
+
+    @Test
+    void retryOnQueryRequests() {
+        final HttpQuery request = new HttpQuery("/");
 
         Assertions.assertTrue(retryStrategy.retryRequest(request, new IOException(), 1, null));
     }
