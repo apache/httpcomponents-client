@@ -15,7 +15,12 @@
 
 name: Java CI
 
-on: [push, pull_request]
+on:
+  push:
+    - master
+    - '5.*'
+    - '4.*'
+  pull_request:
 
 permissions:
   contents: read
