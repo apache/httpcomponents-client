@@ -36,6 +36,7 @@ import com.github.luben.zstd.ZstdDecompressCtx;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
+import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 
 /**
@@ -73,7 +74,7 @@ public final class InflatingZstdDataConsumer implements AsyncDataConsumer {
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
     public InflatingZstdDataConsumer(final AsyncDataConsumer downstream) {
-        this.downstream = downstream;
+        this.downstream = Args.notNull(downstream, "Downstream data consumer");
         inDirect.limit(0);
         outDirect.limit(0);
     }
