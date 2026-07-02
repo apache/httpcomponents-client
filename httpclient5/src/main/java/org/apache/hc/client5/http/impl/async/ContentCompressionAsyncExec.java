@@ -152,6 +152,9 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
                 ContentCodingSupport.validate(codecs, maxCodecListLen);
                 if (!codecs.isEmpty()) {
                     AsyncDataConsumer downstream = cb.handleResponse(rsp, wrapEntityDetails(details));
+                    if (downstream == null) {
+                        return null;
+                    }
                     for (int i = codecs.size() - 1; i >= 0; i--) {
                         final String codec = codecs.get(i);
                         final UnaryOperator<AsyncDataConsumer> op = decoders.lookup(codec);
