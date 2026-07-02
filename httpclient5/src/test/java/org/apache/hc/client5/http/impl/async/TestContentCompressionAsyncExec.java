@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.async;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -133,7 +134,8 @@ class TestContentCompressionAsyncExec {
         when(details.getContentEncoding()).thenReturn("deflate");
 
         final AsyncDataConsumer downstream = new StringAsyncEntityConsumer();
-        when(originalCb.handleResponse(same(rsp), same(details))).thenReturn(downstream);
+        // the exec passes a wrapped EntityDetails downstream, so match any (not same(details))
+        when(originalCb.handleResponse(same(rsp), any(EntityDetails.class))).thenReturn(downstream);
 
         final AsyncDataConsumer wrapped = cb.handleResponse(rsp, details);
 
@@ -175,6 +177,10 @@ class TestContentCompressionAsyncExec {
         final HttpResponse rsp = new BasicHttpResponse(200, "OK");
         final EntityDetails details = mock(EntityDetails.class);
         when(details.getContentEncoding()).thenReturn("whatever");
+        // a real (non-null) downstream so the exec proceeds to decoder selection and rejects the
+        // unknown coding; a null downstream would legitimately be discarded without decoding
+        when(originalCb.handleResponse(same(rsp), any(EntityDetails.class)))
+                .thenReturn(new StringAsyncEntityConsumer());
 
         assertThrows(HttpException.class, () -> cb.handleResponse(rsp, details));
     }
@@ -200,7 +206,7 @@ class TestContentCompressionAsyncExec {
         when(details1.getContentEncoding()).thenReturn("gzip,gzip,gzip,gzip,gzip");
 
         final AsyncDataConsumer downstream1 = new StringAsyncEntityConsumer();
-        when(originalCb.handleResponse(same(rsp1), same(details1))).thenReturn(downstream1);
+        when(originalCb.handleResponse(same(rsp1), any(EntityDetails.class))).thenReturn(downstream1);
 
         final AsyncDataConsumer wrapped = cb.handleResponse(rsp1, details1);
 
@@ -215,6 +221,22 @@ class TestContentCompressionAsyncExec {
 
         final ProtocolException exception = assertThrows(ProtocolException.class, () -> cb.handleResponse(rsp2, details2));
         assertEquals("Codec list exceeds maximum of 5 elements", exception.getMessage());
+    }
+
+    @Test
+    void propagatesNullDiscardOnEncodedResponse() throws Exception {
+        final HttpRequest request = new BasicHttpRequest(Method.GET, "/");
+        final AsyncExecCallback cb = executeAndCapture(request);
+
+        final HttpResponse rsp = new BasicHttpResponse(302, "Found");
+        final EntityDetails details = mock(EntityDetails.class);
+        when(details.getContentEncoding()).thenReturn("gzip");
+
+        // an upstream exec (e.g. AsyncRedirectExec on a redirect) discards the body by returning null
+        when(originalCb.handleResponse(same(rsp), any(EntityDetails.class))).thenReturn(null);
+
+        // the null-discard signal must be propagated, not wrapped in a decoder (HTTPCLIENT-2426)
+        assertNull(cb.handleResponse(rsp, details));
     }
 
 }

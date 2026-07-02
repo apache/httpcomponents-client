@@ -39,6 +39,7 @@ import java.util.zip.Inflater;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
+import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 
 /**
@@ -65,7 +66,7 @@ public final class InflatingGzipDataConsumer implements AsyncDataConsumer {
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
     public InflatingGzipDataConsumer(final AsyncDataConsumer downstream) {
-        this.downstream = downstream;
+        this.downstream = Args.notNull(downstream, "Downstream data consumer");
     }
 
     @Override

@@ -36,6 +36,7 @@ import java.util.zip.Inflater;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
+import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 
 /**
@@ -65,7 +66,7 @@ public final class InflatingAsyncDataConsumer implements AsyncDataConsumer {
 
     public InflatingAsyncDataConsumer(
             final AsyncDataConsumer downstream, final Boolean nowrapHint) {
-        this.downstream = downstream;
+        this.downstream = Args.notNull(downstream, "Downstream data consumer");
         this.nowrapHint = nowrapHint;
         this.inflater = new Inflater(nowrapHint == null || nowrapHint);
     }

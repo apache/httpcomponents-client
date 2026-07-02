@@ -35,6 +35,7 @@ import com.aayushatharva.brotli4j.decoder.DecoderJNI;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
+import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.util.Asserts;
 
@@ -70,7 +71,7 @@ public final class InflatingBrotliDataConsumer implements AsyncDataConsumer {
 
 
     public InflatingBrotliDataConsumer(final AsyncDataConsumer downstream) {
-        this.downstream = downstream;
+        this.downstream = Args.notNull(downstream, "Downstream data consumer");
         try {
             this.decoder = new DecoderJNI.Wrapper(8 * 1024);
         } catch (final IOException e) {
