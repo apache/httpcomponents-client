@@ -154,7 +154,7 @@ class RestClientBuilderTest {
 
         @POST
         @Path("/bytes")
-        @Produces(MediaType.TEXT_PLAIN)
+        @Consumes(MediaType.TEXT_PLAIN)
         String postBytes(byte[] body);
     }
 
@@ -162,8 +162,8 @@ class RestClientBuilderTest {
     public interface EchoBodyApi {
 
         @POST
-        @Produces("text/plain; charset=ISO-8859-1")
-        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+        @Consumes("text/plain; charset=ISO-8859-1")
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
         byte[] post(String body);
     }
 

@@ -137,6 +137,7 @@ final class ResourceIfaceScanner {
                     final ContentType contentType = ContentType.create(mimeType, elem.getParameters());
                     if (!contentType.isSameMimeType(ContentType.APPLICATION_JSON) &&
                             !contentType.isSameMimeType(ContentType.TEXT_PLAIN) &&
+                            !contentType.isSameMimeType(ContentType.APPLICATION_FORM_URLENCODED) &&
                             !contentType.isSameMimeType(ContentType.APPLICATION_OCTET_STREAM)) {
                         throw new RestResourceException("Unsupported media type: " + contentType);
                     }
