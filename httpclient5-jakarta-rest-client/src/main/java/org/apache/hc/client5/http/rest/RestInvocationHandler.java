@@ -33,7 +33,10 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +76,7 @@ import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.apache.hc.core5.jackson2.http.JsonObjectEntityProducer;
 import org.apache.hc.core5.jackson2.http.JsonResponseConsumers;
 import org.apache.hc.core5.net.URIBuilder;
+import org.apache.hc.core5.net.WWWFormCodec;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -162,19 +166,21 @@ final class RestInvocationHandler implements InvocationHandler {
         for (final Header header : headers) {
             request.addHeader(header);
         }
-        final List<ContentType> consumesContentTypes = rm.getConsumesContentTypes();
-        if (consumesContentTypes != null && !consumesContentTypes.isEmpty()) {
+        // @Produces declares the media type(s) the client accepts back (Accept header).
+        final List<ContentType> acceptTypes = rm.getProducesContentTypes();
+        if (acceptTypes != null && !acceptTypes.isEmpty()) {
             request.setHeader(MessageSupport.headerOfTokens(
                     HttpHeaders.ACCEPT,
-                    consumesContentTypes.stream()
+                    acceptTypes.stream()
                     .map(ContentType::getMimeType)
                     .collect(Collectors.toList())));
         }
+        // @Consumes declares the media type of the request body the client sends.
         final AsyncEntityProducer entityProducer;
         if (bodyParam != null) {
-            final List<ContentType> producesContentTypes = rm.getProducesContentTypes();
-            final ContentType contentType = producesContentTypes != null && !producesContentTypes.isEmpty() ?
-                    producesContentTypes.get(0) : null;
+            final List<ContentType> requestBodyTypes = rm.getConsumesContentTypes();
+            final ContentType contentType = requestBodyTypes != null && !requestBodyTypes.isEmpty() ?
+                    requestBodyTypes.get(0) : null;
             entityProducer = createEntityProducer(bodyParam, contentType);
         } else {
             entityProducer = null;
@@ -184,7 +190,7 @@ final class RestInvocationHandler implements InvocationHandler {
 
         final boolean isAsync = isAsync(rm.getMethod());
         final Class<?> rawType = resolveResponseType(rm.getMethod(), isAsync);
-        final Future<?> future = dispatchAsync(rawType, requestProducer);
+        final Future<?> future = dispatchAsync(rm.getMethod(), isAsync, rawType, requestProducer);
         if (isAsync) {
             return future;
         }
@@ -216,7 +222,8 @@ final class RestInvocationHandler implements InvocationHandler {
         return Object.class;
     }
 
-    private CompletableFuture<?> dispatchAsync(final Class<?> rawType,
+    private CompletableFuture<?> dispatchAsync(final Method method, final boolean async,
+                                               final Class<?> rawType,
                                                final BasicRequestProducer requestProducer) {
         if (rawType == Response.class) {
             return submit(requestProducer, new BasicResponseConsumer<>(new RestContentConsumer(objectMapper)))
@@ -244,6 +251,23 @@ final class RestInvocationHandler implements InvocationHandler {
                         return result.getBody();
                     });
         }
+        if (isNameValuePairCollection(method, async)) {
+            return submit(requestProducer, new RestResponseConsumer<>(objectMapper, StringAsyncEntityConsumer::new))
+                    .thenApply(result -> {
+                        throwIfError(result);
+                        final Header header = result.getHead().getFirstHeader(HttpHeaders.CONTENT_TYPE);
+                        final ContentType contentType = header != null
+                                ? MessageSupport.parserHeaderValue(header, ContentType::parse)
+                                : null;
+                        if (contentType != null && !ContentType.APPLICATION_FORM_URLENCODED.isSameMimeType(contentType)) {
+                            throw new RestResourceException(
+                                    "Expected an application/x-www-form-urlencoded response but received: " + contentType.getMimeType());
+                        }
+                        final Charset charset = ContentType.getCharset(contentType, StandardCharsets.UTF_8);
+                        final String body = result.getBody();
+                        return WWWFormCodec.parse(body != null ? body : "", charset);
+                    });
+        }
         @SuppressWarnings("unchecked") final Class<Object> objectType = (Class<Object>) rawType;
         return submit(requestProducer,
                 JsonResponseConsumers.create(objectMapper, objectType, () -> new RestContentConsumer(objectMapper)))
@@ -251,6 +275,23 @@ final class RestInvocationHandler implements InvocationHandler {
                     throwIfError(result);
                     return result.getBody();
                 });
+    }
+
+    private static boolean isNameValuePairCollection(final Method method, final boolean async) {
+        Type type = method.getGenericReturnType();
+        if (async && type instanceof ParameterizedType) {
+            type = ((ParameterizedType) type).getActualTypeArguments()[0];
+        }
+        if (!(type instanceof ParameterizedType)) {
+            return false;
+        }
+        final ParameterizedType parameterizedType = (ParameterizedType) type;
+        final Type rawType = parameterizedType.getRawType();
+        if (!(rawType instanceof Class) || !Collection.class.isAssignableFrom((Class<?>) rawType)) {
+            return false;
+        }
+        final Type[] typeArguments = parameterizedType.getActualTypeArguments();
+        return typeArguments.length == 1 && typeArguments[0] == NameValuePair.class;
     }
 
     private <T> CompletableFuture<Message<HttpResponse, T>> submit(
@@ -313,6 +354,23 @@ final class RestInvocationHandler implements InvocationHandler {
         if (body instanceof String) {
             final ContentType ct = consumeType != null ? consumeType : ContentType.TEXT_PLAIN;
             return new StringAsyncEntityProducer((CharSequence) body, ct);
+        }
+        if (body instanceof Collection) {
+            final Collection<?> items = (Collection<?>) body;
+            final boolean formByType = consumeType != null
+                    && ContentType.APPLICATION_FORM_URLENCODED.isSameMimeType(consumeType);
+            final boolean formByContent = consumeType == null
+                    && !items.isEmpty()
+                    && items.stream().allMatch(e -> e instanceof NameValuePair);
+            if (formByType || formByContent) {
+                final ContentType ct = formByType ? consumeType : ContentType.APPLICATION_FORM_URLENCODED;
+                final Charset charset = ContentType.getCharset(ct, StandardCharsets.UTF_8);
+                final List<NameValuePair> pairs = new ArrayList<>(items.size());
+                for (final Object e : items) {
+                    pairs.add((NameValuePair) e);
+                }
+                return new StringAsyncEntityProducer(WWWFormCodec.format(pairs, charset), ct);
+            }
         }
         return new JsonObjectEntityProducer<>(body, objectMapper);
     }

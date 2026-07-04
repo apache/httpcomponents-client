@@ -26,12 +26,15 @@
  */
 package org.apache.hc.client5.http.rest;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
@@ -46,11 +49,14 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class RestClientIntegrationTest {
 
@@ -103,6 +109,68 @@ class RestClientIntegrationTest {
         assertThat(fetched.lang).isEqualTo("en");
     }
 
+    @Test
+    void sendsFormUrlEncodedFromNameValuePairs() throws Exception {
+        final BookResource client = RestClientBuilder.newBuilder()
+                .baseUri(baseUri)
+                .httpClient(httpClient)
+                .build(BookResource.class);
+
+        final List<NameValuePair> form = Arrays.asList(
+                new BasicNameValuePair("title", "HttpComponents in Action"),
+                new BasicNameValuePair("lang", "en & fr"));
+
+        final FormEcho echo = client.submitForm("token-1", form);
+
+        assertThat(echo.contentType).startsWith("application/x-www-form-urlencoded");
+        assertThat(echo.body).isEqualTo("title=HttpComponents+in+Action&lang=en+%26+fr");
+    }
+
+    @Test
+    void nameValuePairListStaysJsonWhenConsumesIsJson() throws Exception {
+        final BookResource client = RestClientBuilder.newBuilder()
+                .baseUri(baseUri)
+                .httpClient(httpClient)
+                .build(BookResource.class);
+
+        final List<NameValuePair> form = Arrays.asList(
+                new BasicNameValuePair("title", "HttpComponents in Action"),
+                new BasicNameValuePair("lang", "en"));
+
+        final FormEcho echo = client.submitJsonList("token-1", form);
+
+        assertThat(echo.contentType).startsWith("application/json");
+        assertThat(echo.body).doesNotContain("title=HttpComponents");
+    }
+
+    @Test
+    void readsFormUrlEncodedResponseAsNameValuePairs() throws Exception {
+        final BookResource client = RestClientBuilder.newBuilder()
+                .baseUri(baseUri)
+                .httpClient(httpClient)
+                .build(BookResource.class);
+
+        final List<NameValuePair> pairs = client.readForm("token-1");
+
+        assertThat(pairs).hasSize(2);
+        assertThat(pairs.get(0).getName()).isEqualTo("greeting");
+        assertThat(pairs.get(0).getValue()).isEqualTo("hello world");
+        assertThat(pairs.get(1).getName()).isEqualTo("lang");
+        assertThat(pairs.get(1).getValue()).isEqualTo("en");
+    }
+
+    @Test
+    void rejectsNonFormResponseForNameValuePairReturnType() {
+        final BookResource client = RestClientBuilder.newBuilder()
+                .baseUri(baseUri)
+                .httpClient(httpClient)
+                .build(BookResource.class);
+
+        assertThatThrownBy(() -> client.readNotForm("token-1"))
+                .isInstanceOf(RestResourceException.class)
+                .hasMessageContaining("application/x-www-form-urlencoded");
+    }
+
     private void handleBooks(final HttpExchange exchange) throws IOException {
         try {
             final String method = exchange.getRequestMethod();
@@ -112,6 +180,16 @@ class RestClientIntegrationTest {
 
             if (!"token-1".equals(auth)) {
                 send(exchange, 401, "text/plain", "Unauthorized");
+                return;
+            }
+
+            if ("GET".equals(method) && "/books/not-form".equals(path)) {
+                sendJson(exchange, 200, new Book("x", "not a form"));
+                return;
+            }
+
+            if ("GET".equals(method) && "/books/form-echo".equals(path)) {
+                send(exchange, 200, "application/x-www-form-urlencoded", "greeting=hello+world&lang=en");
                 return;
             }
 
@@ -138,6 +216,14 @@ class RestClientIntegrationTest {
                 return;
             }
 
+            if ("POST".equals(method)) {
+                final FormEcho echo = new FormEcho();
+                echo.contentType = exchange.getRequestHeaders().getFirst("Content-Type");
+                echo.body = readString(exchange.getRequestBody());
+                sendJson(exchange, 200, echo);
+                return;
+            }
+
             send(exchange, 404, "text/plain", "Not found");
         } finally {
             exchange.close();
@@ -146,6 +232,16 @@ class RestClientIntegrationTest {
 
     private <T> T readJson(final InputStream inputStream, final Class<T> type) throws IOException {
         return objectMapper.readValue(inputStream, type);
+    }
+
+    private static String readString(final InputStream inputStream) throws IOException {
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        final byte[] tmp = new byte[1024];
+        int n;
+        while ((n = inputStream.read(tmp)) != -1) {
+            buffer.write(tmp, 0, n);
+        }
+        return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
     }
 
     private void sendJson(final HttpExchange exchange, final int statusCode, final Object payload)
@@ -198,6 +294,30 @@ class RestClientIntegrationTest {
                         @QueryParam("lang") String lang,
                         @HeaderParam("X-Auth") String auth,
                         Book book);
+
+        @POST
+        @Path("/form")
+        @Consumes("application/x-www-form-urlencoded")
+        @Produces("application/json")
+        FormEcho submitForm(@HeaderParam("X-Auth") String auth,
+                            List<NameValuePair> form);
+
+        @POST
+        @Path("/echo")
+        @Produces("application/json")
+        @Consumes("application/json")
+        FormEcho submitJsonList(@HeaderParam("X-Auth") String auth,
+                                List<NameValuePair> form);
+
+        @GET
+        @Path("/form-echo")
+        @Produces("application/x-www-form-urlencoded")
+        List<NameValuePair> readForm(@HeaderParam("X-Auth") String auth);
+
+        @GET
+        @Path("/not-form")
+        @Produces("application/x-www-form-urlencoded")
+        List<NameValuePair> readNotForm(@HeaderParam("X-Auth") String auth);
     }
 
     static final class Book {
@@ -212,6 +332,15 @@ class RestClientIntegrationTest {
         Book(final String id, final String title) {
             this.id = id;
             this.title = title;
+        }
+    }
+
+    static final class FormEcho {
+
+        public String contentType;
+        public String body;
+
+        FormEcho() {
         }
     }
 
