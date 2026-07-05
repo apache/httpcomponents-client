@@ -114,6 +114,21 @@ abstract class AbstractMultipartFormat {
         return buf.toString();
     }
 
+    static CharSequence escapeQuoted(final CharSequence s) {
+        if (s == null) {
+            return null;
+        }
+        final StringBuilder buf = new StringBuilder(s.length());
+        for (int n = 0; n < s.length(); n++) {
+            final char ch = s.charAt(n);
+            if (ch == '"' || ch == '\\') {
+                buf.append('\\');
+            }
+            buf.append(ch);
+        }
+        return buf.toString();
+    }
+
     static void writeField(
             final MimeField field, final OutputStream out) throws IOException {
         writeBytes(stripLineBreaks(field.getName()), out);
