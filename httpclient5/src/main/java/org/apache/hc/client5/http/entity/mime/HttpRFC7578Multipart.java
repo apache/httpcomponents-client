@@ -119,7 +119,7 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
                                 writeBytes(value, StandardCharsets.ISO_8859_1, out);
                             }
                         } else {
-                            writeBytes(value, out);
+                            writeBytes(stripLineBreaks(escapeQuoted(value)), out);
                         }
                     }
                     writeBytes("\"", out);
