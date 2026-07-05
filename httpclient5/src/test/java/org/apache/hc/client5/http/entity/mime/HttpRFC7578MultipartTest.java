@@ -28,11 +28,36 @@
 package org.apache.hc.client5.http.entity.mime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.net.PercentCodec;
 import org.junit.jupiter.api.Test;
 
 class HttpRFC7578MultipartTest {
+
+    @Test
+    void testFieldNameLineBreaksAndQuotesAreNeutralised() throws Exception {
+        final FormBodyPart part = FormBodyPartBuilder.create(
+                "evil\"\r\nX-Injected: yes",
+                new StringBody("value", ContentType.DEFAULT_TEXT),
+                HttpMultipartMode.EXTENDED).build();
+        final HttpRFC7578Multipart multipart = new HttpRFC7578Multipart(
+                StandardCharsets.UTF_8, "BOUNDARY", Collections.singletonList(part),
+                HttpMultipartMode.EXTENDED);
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        multipart.writeTo(out);
+        final String s = out.toString("ISO-8859-1");
+
+        assertFalse(s.contains("\r\nX-Injected: yes"), s);
+        assertTrue(s.contains("name=\"evil\\\"  X-Injected: yes\""), s);
+    }
 
     @Test
     void testPercentDecodingWithValidMessages() {
