@@ -26,22 +26,49 @@
  */
 package org.apache.hc.core5.websocket.server;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.core5.http.EntityDetails;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.nio.AsyncPushProducer;
+import org.apache.hc.core5.http.nio.CapacityChannel;
+import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.ResponseChannel;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.websocket.WebSocketConstants;
+import org.apache.hc.core5.websocket.WebSocketExtension;
+import org.apache.hc.core5.websocket.WebSocketExtensionData;
+import org.apache.hc.core5.websocket.WebSocketExtensionFactory;
 import org.apache.hc.core5.websocket.WebSocketExtensionRegistry;
 import org.apache.hc.core5.websocket.WebSocketHandler;
+import org.apache.hc.core5.websocket.WebSocketSession;
 import org.junit.jupiter.api.Test;
 
 class WebSocketH2ServerExchangeHandlerTest {
@@ -66,6 +93,35 @@ class WebSocketH2ServerExchangeHandlerTest {
 
         HttpResponse getResponse() {
             return response;
+        }
+    }
+
+    private static final class CountingExtensionFactory implements WebSocketExtensionFactory {
+
+        private final AtomicInteger closed;
+
+        CountingExtensionFactory(final AtomicInteger closed) {
+            this.closed = closed;
+        }
+
+        @Override
+        public String getName() {
+            return "x-test";
+        }
+
+        @Override
+        public WebSocketExtension create(final WebSocketExtensionData request, final boolean server) {
+            return new WebSocketExtension() {
+                @Override
+                public String getName() {
+                    return "x-test";
+                }
+
+                @Override
+                public void close() {
+                    closed.incrementAndGet();
+                }
+            };
         }
     }
 
@@ -114,5 +170,361 @@ class WebSocketH2ServerExchangeHandlerTest {
 
         assertNotNull(channel.getResponse());
         assertEquals(HttpStatus.SC_BAD_REQUEST, channel.getResponse().getCode());
+    }
+
+    @Test
+    void releasesExtensionsWhenOnOpenThrows() throws Exception {
+        final AtomicInteger closed = new AtomicInteger();
+        final AtomicReference<Runnable> worker = new AtomicReference<>();
+        final WebSocketExtensionRegistry registry = new WebSocketExtensionRegistry()
+                .register(new CountingExtensionFactory(closed));
+        final WebSocketH2ServerExchangeHandler handler = new WebSocketH2ServerExchangeHandler(
+                new WebSocketHandler() {
+                    @Override
+                    public void onOpen(final WebSocketSession session) {
+                        throw new IllegalStateException("onOpen failed");
+                    }
+                }, null, registry, worker::set);
+
+        final HttpRequest request = new BasicHttpRequest(Method.CONNECT, "/echo");
+        request.addHeader(WebSocketConstants.PSEUDO_PROTOCOL, "websocket");
+        request.addHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS_LOWER, "x-test");
+        handler.handleRequest(request, null, new CapturingResponseChannel(), HttpCoreContext.create());
+
+        worker.get().run();
+
+        assertEquals(1, closed.get(), "onOpen failure must release negotiated extensions exactly once");
+    }
+
+    @Test
+    void releasesExtensionsWhenExecutorRejects() throws Exception {
+        final AtomicInteger closed = new AtomicInteger();
+        final Executor rejecting = command -> {
+            throw new RejectedExecutionException("rejected");
+        };
+        final WebSocketExtensionRegistry registry = new WebSocketExtensionRegistry()
+                .register(new CountingExtensionFactory(closed));
+        final WebSocketH2ServerExchangeHandler handler = new WebSocketH2ServerExchangeHandler(
+                new WebSocketHandler() {
+                }, null, registry, rejecting);
+
+        final HttpRequest request = new BasicHttpRequest(Method.CONNECT, "/echo");
+        request.addHeader(WebSocketConstants.PSEUDO_PROTOCOL, "websocket");
+        request.addHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS_LOWER, "x-test");
+
+        assertThrows(RejectedExecutionException.class, () ->
+                handler.handleRequest(request, null, new CapturingResponseChannel(), HttpCoreContext.create()));
+
+        assertEquals(1, closed.get(), "a rejected executor must release negotiated extensions exactly once");
+    }
+
+    @Test
+    void releasesExtensionsOnNormalCompletion() throws Exception {
+        final AtomicInteger closed = new AtomicInteger();
+        final AtomicReference<Runnable> worker = new AtomicReference<>();
+        final WebSocketExtensionRegistry registry = new WebSocketExtensionRegistry()
+                .register(new CountingExtensionFactory(closed));
+        final WebSocketH2ServerExchangeHandler handler = new WebSocketH2ServerExchangeHandler(
+                new WebSocketHandler() {
+                }, null, registry, worker::set);
+
+        final HttpRequest request = new BasicHttpRequest(Method.CONNECT, "/echo");
+        request.addHeader(WebSocketConstants.PSEUDO_PROTOCOL, "websocket");
+        request.addHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS_LOWER, "x-test");
+        handler.handleRequest(request, null, new CapturingResponseChannel(), HttpCoreContext.create());
+
+        // A clean end-of-stream lets the processor read loop terminate normally.
+        handler.streamEnd(null);
+        worker.get().run();
+
+        assertEquals(1, closed.get(), "normal processor completion must release negotiated extensions exactly once");
+    }
+
+    @Test
+    void executorRejectionIsNotMaskedByExtensionCloseFailure() throws Exception {
+        final RuntimeException closeFailure = new IllegalStateException("close failed");
+        final Executor rejecting = command -> {
+            throw new RejectedExecutionException("rejected");
+        };
+        final WebSocketExtensionRegistry registry = new WebSocketExtensionRegistry()
+                .register(throwingCloseFactory(closeFailure));
+        final WebSocketH2ServerExchangeHandler handler = new WebSocketH2ServerExchangeHandler(
+                new WebSocketHandler() {
+                }, null, registry, rejecting);
+
+        final HttpRequest request = new BasicHttpRequest(Method.CONNECT, "/echo");
+        request.addHeader(WebSocketConstants.PSEUDO_PROTOCOL, "websocket");
+        request.addHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS_LOWER, "x-test");
+
+        final RejectedExecutionException ex = assertThrows(RejectedExecutionException.class, () ->
+                handler.handleRequest(request, null, new CapturingResponseChannel(), HttpCoreContext.create()));
+        assertEquals("rejected", ex.getMessage(), "the original rejection must be preserved");
+        assertEquals(1, ex.getSuppressed().length, "the extension close failure must be suppressed, not masking");
+        assertSame(closeFailure, ex.getSuppressed()[0]);
+    }
+
+    @Test
+    void streamIsTornDownEvenWhenExtensionCloseThrows() throws Exception {
+        final RuntimeException closeFailure = new IllegalStateException("close failed");
+        final AtomicReference<Runnable> worker = new AtomicReference<>();
+        final WebSocketExtensionRegistry registry = new WebSocketExtensionRegistry()
+                .register(throwingCloseFactory(closeFailure));
+        final WebSocketH2ServerExchangeHandler handler = new WebSocketH2ServerExchangeHandler(
+                new WebSocketHandler() {
+                }, null, registry, worker::set);
+
+        final HttpRequest request = new BasicHttpRequest(Method.CONNECT, "/echo");
+        request.addHeader(WebSocketConstants.PSEUDO_PROTOCOL, "websocket");
+        request.addHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS_LOWER, "x-test");
+        handler.handleRequest(request, null, new CapturingResponseChannel(), HttpCoreContext.create());
+
+        handler.streamEnd(null);
+        // The worker's extension close() throws, but the stream teardown must still have run first.
+        assertThrows(RuntimeException.class, () -> worker.get().run());
+
+        final CollectingDataStreamChannel channel = new CollectingDataStreamChannel();
+        while (handler.available() > 0) {
+            handler.produce(channel);
+        }
+        assertTrue(channel.endStreamCalled(),
+                "the HTTP/2 stream must be terminated with END_STREAM despite the extension close failure");
+    }
+
+    @Test
+    void protocolViolationClosesWith1002() throws Exception {
+        final AtomicReference<Runnable> worker = new AtomicReference<>();
+        final WebSocketH2ServerExchangeHandler handler = new WebSocketH2ServerExchangeHandler(
+                new WebSocketHandler() {
+                }, null, WebSocketExtensionRegistry.createDefault(), worker::set);
+
+        final HttpRequest request = new BasicHttpRequest(Method.CONNECT, "/echo");
+        request.addHeader(WebSocketConstants.PSEUDO_PROTOCOL, "websocket");
+        handler.handleRequest(request, null, new CapturingResponseChannel(), HttpCoreContext.create());
+
+        // A fragmented (FIN=0) masked PING violates RFC 6455 section 5.5 and raises a
+        // checked WebSocketException, which must map to close code 1002, not 1011.
+        handler.consume(ByteBuffer.wrap(new byte[]{0x09, (byte) 0x80, 1, 2, 3, 4}));
+        worker.get().run();
+
+        final CollectingDataStreamChannel channel = new CollectingDataStreamChannel();
+        while (handler.available() > 0) {
+            handler.produce(channel);
+        }
+        final byte[] out = channel.bytes();
+        assertEquals((byte) 0x88, out[0], "expected a CLOSE frame");
+        final int code = ((out[2] & 0xFF) << 8) | (out[3] & 0xFF);
+        assertEquals(1002, code, "protocol violation must close with 1002");
+    }
+
+    private static WebSocketExtensionFactory throwingCloseFactory(final RuntimeException closeFailure) {
+        return new WebSocketExtensionFactory() {
+            @Override
+            public String getName() {
+                return "x-test";
+            }
+
+            @Override
+            public WebSocketExtension create(final WebSocketExtensionData request, final boolean server) {
+                return new WebSocketExtension() {
+                    @Override
+                    public String getName() {
+                        return "x-test";
+                    }
+
+                    @Override
+                    public void close() {
+                        throw closeFailure;
+                    }
+                };
+            }
+        };
+    }
+
+    private static final class CollectingDataStreamChannel implements DataStreamChannel {
+        private final ByteArrayOutputStream collected = new ByteArrayOutputStream();
+        private boolean endStreamCalled;
+
+        @Override
+        public void requestOutput() {
+        }
+
+        @Override
+        public int write(final ByteBuffer src) {
+            final int n = src.remaining();
+            final byte[] chunk = new byte[n];
+            src.get(chunk);
+            collected.write(chunk, 0, n);
+            return n;
+        }
+
+        @Override
+        public void endStream() {
+            endStreamCalled = true;
+        }
+
+        @Override
+        public void endStream(final List<? extends Header> trailers) {
+            endStreamCalled = true;
+        }
+
+        byte[] bytes() {
+            return collected.toByteArray();
+        }
+
+        boolean endStreamCalled() {
+            return endStreamCalled;
+        }
+    }
+
+    @Test
+    void writeAfterStreamFailureFailsInsteadOfBlocking() throws Exception {
+        final AtomicReference<Runnable> worker = new AtomicReference<>();
+        final AtomicReference<Exception> error = new AtomicReference<>();
+        final WebSocketH2ServerExchangeHandler handler = new WebSocketH2ServerExchangeHandler(
+                new WebSocketHandler() {
+                    @Override
+                    public void onOpen(final WebSocketSession session) {
+                        try {
+                            session.sendText("hello");
+                        } catch (final Exception ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+
+                    @Override
+                    public void onError(final WebSocketSession session, final Exception cause) {
+                        error.set(cause);
+                    }
+                }, null, WebSocketExtensionRegistry.createDefault(), worker::set);
+
+        final HttpRequest request = new BasicHttpRequest(Method.CONNECT, "/echo");
+        request.addHeader(WebSocketConstants.PSEUDO_PROTOCOL, "websocket");
+        handler.handleRequest(request, null, new CapturingResponseChannel(), HttpCoreContext.create());
+
+        // The stream fails before the worker gets to run; a write must then surface an
+        // error through the session instead of blocking on the dead outbound queue.
+        handler.failed(new IOException("stream reset"));
+        worker.get().run();
+
+        assertNotNull(error.get(), "write after stream failure must fail, not block");
+    }
+
+    @Test
+    void largeOutboundWriteCompletesViaRequestOutputSignals() throws Exception {
+        // A tiny budget (8 bytes, 4-byte chunks) cannot hold the whole 66-byte frame, so the writer
+        // blocks mid-write. Draining is driven ONLY by requestOutput() signals here, never by
+        // spontaneous polling, so the write can only complete if requestOutput() fires per chunk.
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 64; i++) {
+            sb.append((char) ('a' + (i % 26)));
+        }
+        final String text = sb.toString();
+
+        final CountDownLatch writeDone = new CountDownLatch(1);
+        final AtomicReference<Exception> writeError = new AtomicReference<>();
+        final AtomicReference<Runnable> worker = new AtomicReference<>();
+        final WebSocketH2ServerExchangeHandler handler = new WebSocketH2ServerExchangeHandler(
+                new WebSocketHandler() {
+                    @Override
+                    public void onOpen(final WebSocketSession session) {
+                        try {
+                            session.sendText(text);
+                        } catch (final Exception ex) {
+                            writeError.set(ex);
+                        } finally {
+                            writeDone.countDown();
+                        }
+                    }
+                }, null, WebSocketExtensionRegistry.createDefault(), worker::set, 8, 4);
+
+        final HttpRequest request = new BasicHttpRequest(Method.CONNECT, "/echo");
+        request.addHeader(WebSocketConstants.PSEUDO_PROTOCOL, "websocket");
+        handler.handleRequest(request, null, new CapturingResponseChannel(), HttpCoreContext.create());
+
+        final Semaphore outputReady = new Semaphore(0);
+        final AtomicInteger requestOutputCalls = new AtomicInteger();
+        final AtomicBoolean ended = new AtomicBoolean();
+        final ByteArrayOutputStream collected = new ByteArrayOutputStream();
+        final DataStreamChannel channel = new DataStreamChannel() {
+            @Override
+            public void requestOutput() {
+                requestOutputCalls.incrementAndGet();
+                outputReady.release();
+            }
+
+            @Override
+            public int write(final ByteBuffer src) {
+                final int n = src.remaining();
+                final byte[] c = new byte[n];
+                src.get(c);
+                collected.write(c, 0, n);
+                return n;
+            }
+
+            @Override
+            public void endStream() {
+                ended.set(true);
+                outputReady.release();
+            }
+
+            @Override
+            public void endStream(final List<? extends Header> trailers) {
+                endStream();
+            }
+        };
+
+        final Thread reactor = new Thread(() -> {
+            try {
+                handler.produce(channel); // HttpCore drives the first produce() after the response
+                while (!ended.get() && outputReady.tryAcquire(5, TimeUnit.SECONDS)) {
+                    handler.produce(channel);
+                }
+            } catch (final IOException | InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+        }, "ws-reactor");
+        reactor.setDaemon(true);
+        final Thread writerThread = new Thread(worker.get(), "ws-writer");
+        writerThread.setDaemon(true);
+
+        reactor.start();
+        writerThread.start();
+
+        // Without a per-chunk requestOutput() the writer parks and the reactor is never re-signalled,
+        // so this await would time out; with the signal it completes.
+        assertTrue(writeDone.await(10, TimeUnit.SECONDS),
+                "a write larger than the budget must complete via requestOutput() signals, not deadlock");
+        assertNull(writeError.get(), "the write must succeed");
+
+        handler.streamEnd(null); // end the read loop so the worker enqueues END_OUTBOUND
+        writerThread.join(TimeUnit.SECONDS.toMillis(5));
+        reactor.join(TimeUnit.SECONDS.toMillis(5));
+
+        assertTrue(requestOutputCalls.get() > 0, "draining must be driven by requestOutput() signals");
+        final byte[] out = collected.toByteArray();
+        assertEquals(66, out.length, "the 64-byte text frame must be reassembled losslessly from 4-byte chunks");
+        assertEquals((byte) 0x81, out[0], "FIN + text opcode");
+        assertArrayEquals(text.getBytes(StandardCharsets.UTF_8), Arrays.copyOfRange(out, 2, out.length));
+    }
+
+    @Test
+    void advertisesBoundedInboundCapacity() throws Exception {
+        final WebSocketH2ServerExchangeHandler handler = new WebSocketH2ServerExchangeHandler(
+                new WebSocketHandler() {
+                }, null, WebSocketExtensionRegistry.createDefault());
+
+        final AtomicInteger granted = new AtomicInteger();
+        final CapacityChannel channel = new CapacityChannel() {
+            @Override
+            public void update(final int increment) {
+                granted.addAndGet(increment);
+            }
+        };
+
+        handler.updateCapacity(channel);
+        handler.updateCapacity(channel); // a repeated query must not re-grant the initial window
+
+        assertEquals(256 * 1024, granted.get(),
+                "inbound credit must be a bounded window, not Integer.MAX_VALUE");
     }
 }

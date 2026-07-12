@@ -186,7 +186,6 @@ final class WebSocketClientTest {
                 .enablePerMessageDeflate(true)
                 .offerServerNoContextTakeover(true)
                 .offerClientNoContextTakeover(true)
-                .offerClientMaxWindowBits(15)
                 .build();
 
         try (final CloseableWebSocketClient client = WebSocketClients.createDefault()) {

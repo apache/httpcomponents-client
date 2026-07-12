@@ -35,6 +35,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
@@ -55,6 +57,7 @@ import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.websocket.WebSocketCloseStatus;
 import org.apache.hc.core5.websocket.WebSocketConfig;
 import org.apache.hc.core5.websocket.WebSocketConstants;
+import org.apache.hc.core5.websocket.WebSocketException;
 import org.apache.hc.core5.websocket.WebSocketExtensionNegotiation;
 import org.apache.hc.core5.websocket.WebSocketExtensionRegistry;
 import org.apache.hc.core5.websocket.WebSocketExtensions;
@@ -67,6 +70,15 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
 
     private static final byte[] END_INBOUND = new byte[0];
     private static final ByteBuffer END_OUTBOUND = ByteBuffer.allocate(0);
+
+    /** Bounded in-flight inbound byte budget advertised via HTTP/2 flow control. */
+    private static final int INBOUND_WINDOW = 256 * 1024;
+
+    /** Default budget for buffered outbound bytes before the application writer is back-pressured. */
+    private static final int DEFAULT_OUTBOUND_BUFFER_SIZE = 1024 * 1024;
+
+    /** Default maximum size of a single buffered outbound chunk (an implementation detail). */
+    private static final int DEFAULT_OUTBOUND_CHUNK_SIZE = 64 * 1024;
 
     /**
      * Default execution strategy (no explicit thread creation in the handler).
@@ -81,15 +93,26 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
     private final Executor executor;
 
     private final BlockingQueue<byte[]> inbound = new LinkedBlockingQueue<>();
+    // Entry count is unbounded; outbound memory is bounded by a byte budget (see reserveOutboundBudget).
     private final BlockingQueue<ByteBuffer> outbound = new LinkedBlockingQueue<>();
 
     private final ReentrantLock outLock = new ReentrantLock();
     private ByteBuffer currentOutbound;
 
+    // Byte-budget back-pressure for the outbound queue: the application writer blocks once the
+    // in-flight outbound bytes would exceed the budget and resumes as produce() drains chunks.
+    private final ReentrantLock outboundBudgetLock = new ReentrantLock();
+    private final Condition outboundBudgetAvailable = outboundBudgetLock.newCondition();
+    private final int outboundBudgetBytes;
+    private final int outboundChunkSize;
+    private long pendingOutboundBytes;
+
     private volatile boolean responseSent;
     private volatile boolean outboundEnd;
     private volatile boolean shutdown;
     private volatile DataStreamChannel dataChannel;
+    private volatile CapacityChannel capacityChannel;
+    private final AtomicBoolean initialCreditGranted = new AtomicBoolean(false);
 
     WebSocketH2ServerExchangeHandler(
             final WebSocketHandler handler,
@@ -103,10 +126,25 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
             final WebSocketConfig config,
             final WebSocketExtensionRegistry extensionRegistry,
             final Executor executor) {
+        this(handler, config, extensionRegistry, executor,
+                DEFAULT_OUTBOUND_BUFFER_SIZE, DEFAULT_OUTBOUND_CHUNK_SIZE);
+    }
+
+    WebSocketH2ServerExchangeHandler(
+            final WebSocketHandler handler,
+            final WebSocketConfig config,
+            final WebSocketExtensionRegistry extensionRegistry,
+            final Executor executor,
+            final int outboundBufferSize,
+            final int outboundChunkSize) {
         this.handler = Args.notNull(handler, "WebSocket handler");
         this.config = config != null ? config : WebSocketConfig.DEFAULT;
         this.extensionRegistry = extensionRegistry != null ? extensionRegistry : WebSocketExtensionRegistry.createDefault();
         this.executor = executor != null ? executor : DEFAULT_EXECUTOR;
+        this.outboundBudgetBytes = Args.positive(outboundBufferSize, "Outbound buffer size");
+        // A single chunk must never exceed the budget, or a large write could block forever waiting
+        // for capacity that can never be freed; cap the chunk size at the budget.
+        this.outboundChunkSize = Math.min(Args.positive(outboundChunkSize, "Outbound chunk size"), this.outboundBudgetBytes);
         this.responseSent = false;
         this.outboundEnd = false;
         this.shutdown = false;
@@ -133,64 +171,109 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
         }
 
         final WebSocketExtensionNegotiation negotiation = extensionRegistry.negotiate(
-                WebSocketExtensions.parse(request.getFirstHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS_LOWER)),
+                WebSocketExtensions.parse(request.headerIterator(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS_LOWER)),
                 true);
 
-        final BasicHttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
-        final String extensionsHeader = negotiation.formatResponseHeader();
-        if (extensionsHeader != null) {
-            response.addHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS_LOWER, extensionsHeader);
-        }
-
-        final List<String> offeredProtocols = WebSocketHandshake.parseSubprotocols(
-                request.getFirstHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL_LOWER));
-        final String protocolResponse = handler.selectSubprotocol(offeredProtocols);
-        if (protocolResponse != null) {
-            response.addHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL_LOWER, protocolResponse);
-        }
-
-        responseChannel.sendResponse(response, new BasicEntityDetails(-1, null), context);
-        responseSent = true;
-
-        final InputStream inputStream = new QueueInputStream(inbound);
-        final OutputStream outputStream = new QueueOutputStream(outbound);
-        final WebSocketSession session = new WebSocketSession(
-                config, inputStream, outputStream, null, null, negotiation.getExtensions());
-
-        executor.execute(() -> {
-            try {
-                handler.onOpen(session);
-                new WebSocketServerProcessor(session, handler, config.getMaxMessageSize()).process();
-            } catch (final WebSocketProtocolException ex) {
-                handler.onError(session, ex);
-                try {
-                    session.close(ex.closeCode, ex.getMessage());
-                } catch (final IOException ignore) {
-                    // ignore
-                }
-            } catch (final Exception ex) {
-                handler.onError(session, ex);
-                try {
-                    session.close(WebSocketCloseStatus.INTERNAL_ERROR.getCode(), "WebSocket error");
-                } catch (final IOException ignore) {
-                    // ignore
-                }
-            } finally {
-                shutdown = true;
-                outbound.offer(END_OUTBOUND);
-                inbound.offer(END_INBOUND);
-
-                final DataStreamChannel channel = dataChannel;
-                if (channel != null) {
-                    channel.requestOutput();
-                }
+        // The worker thread takes ownership of the negotiated extensions once the task is accepted
+        // and releases them in its finally after the stream has been torn down. If the hand-off
+        // never happens (a failed sendResponse or a rejected executor) this method releases them,
+        // attaching any close failure as a suppressed exception rather than masking the original.
+        try {
+            final BasicHttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
+            final String extensionsHeader = negotiation.formatResponseHeader();
+            if (extensionsHeader != null) {
+                response.addHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS_LOWER, extensionsHeader);
             }
-        });
+
+            final List<String> offeredProtocols = WebSocketHandshake.parseSubprotocols(
+                    request.getFirstHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL_LOWER));
+            final String protocolResponse = handler.selectSubprotocol(offeredProtocols);
+            if (protocolResponse != null) {
+                response.addHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL_LOWER, protocolResponse);
+            }
+
+            responseChannel.sendResponse(response, new BasicEntityDetails(-1, null), context);
+            responseSent = true;
+
+            final InputStream inputStream = new QueueInputStream(inbound);
+            final OutputStream outputStream = new QueueOutputStream();
+            final WebSocketSession session = new WebSocketSession(
+                    config, inputStream, outputStream, null, null, negotiation.getExtensions());
+
+            executor.execute(() -> {
+                try {
+                    handler.onOpen(session);
+                    new WebSocketServerProcessor(session, handler, config.getMaxMessageSize()).process();
+                } catch (final WebSocketProtocolException ex) {
+                    handler.onError(session, ex);
+                    try {
+                        session.close(ex.closeCode, ex.getMessage());
+                    } catch (final IOException ignore) {
+                        // ignore
+                    }
+                } catch (final WebSocketException ex) {
+                    handler.onError(session, ex);
+                    try {
+                        session.close(WebSocketCloseStatus.PROTOCOL_ERROR.getCode(), ex.getMessage());
+                    } catch (final IOException ignore) {
+                        // ignore
+                    }
+                } catch (final Exception ex) {
+                    handler.onError(session, ex);
+                    try {
+                        session.close(WebSocketCloseStatus.INTERNAL_ERROR.getCode(), "WebSocket error");
+                    } catch (final IOException ignore) {
+                        // ignore
+                    }
+                } finally {
+                    // Tear the stream down first so a failing extension close cannot leave the
+                    // HTTP/2 stream without an END_STREAM; release the extensions last, always.
+                    try {
+                        shutdown = true;
+                        abortOutboundBudget();
+                        enqueueSentinel(END_OUTBOUND);
+                        inbound.offer(END_INBOUND);
+
+                        final DataStreamChannel channel = dataChannel;
+                        if (channel != null) {
+                            channel.requestOutput();
+                        }
+                    } finally {
+                        negotiation.close();
+                    }
+                }
+            });
+        } catch (final Exception primary) {
+            // The task was never handed off to the worker (sendResponse failed or the executor
+            // rejected it); release the negotiated extensions here, preserving the original failure.
+            try {
+                negotiation.close();
+            } catch (final RuntimeException closeEx) {
+                primary.addSuppressed(closeEx);
+            }
+            throw primary;
+        }
     }
 
     @Override
     public void updateCapacity(final CapacityChannel capacityChannel) throws IOException {
-        capacityChannel.update(Integer.MAX_VALUE);
+        this.capacityChannel = capacityChannel;
+        // Advertise a bounded window once; further credit is replenished as the worker thread
+        // drains buffered bytes, so inbound memory stays bounded even if the worker stalls.
+        if (initialCreditGranted.compareAndSet(false, true)) {
+            capacityChannel.update(INBOUND_WINDOW);
+        }
+    }
+
+    private void replenishInbound(final int n) {
+        final CapacityChannel channel = capacityChannel;
+        if (channel != null && n > 0) {
+            try {
+                channel.update(n);
+            } catch (final IOException ignore) {
+                // channel already gone; nothing to replenish
+            }
+        }
     }
 
     @Override
@@ -271,6 +354,7 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
                 } finally {
                     outLock.unlock();
                 }
+                releaseOutboundBudget(buf.capacity());
                 continue;
             }
 
@@ -290,12 +374,19 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
             } finally {
                 outLock.unlock();
             }
+            // The chunk has been fully written; release its bytes so a back-pressured writer resumes.
+            releaseOutboundBudget(buf.capacity());
         }
     }
 
     @Override
     public void failed(final Exception cause) {
         shutdown = true;
+        // Release any writer blocked on the outbound byte budget so it observes the shutdown, then
+        // clear the queues and post the sentinels so the worker's blocking reads/writes unwind.
+        abortOutboundBudget();
+        outbound.clear();
+        inbound.clear();
         outbound.offer(END_OUTBOUND);
         inbound.offer(END_INBOUND);
 
@@ -308,8 +399,10 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
     @Override
     public void releaseResources() {
         shutdown = true;
+        abortOutboundBudget();
         outbound.clear();
         inbound.clear();
+        inbound.offer(END_INBOUND);
         outLock.lock();
         try {
             currentOutbound = null;
@@ -318,7 +411,97 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
         }
     }
 
-    private static final class QueueInputStream extends InputStream {
+    private void enqueueOutbound(final byte[] data, final int off, final int len) throws IOException {
+        // Once the exchange has failed or been released nothing drains the queue any more, so a
+        // blocking reservation would wedge the worker thread; fail the write instead.
+        if (shutdown) {
+            throw new IOException("WebSocket stream already terminated");
+        }
+        // Split the write into budget-sized chunks. Each chunk reserves its bytes against the
+        // outbound budget and blocks the worker until the reactor has drained enough previously
+        // queued bytes, so a single large write cannot buffer an unbounded amount of memory.
+        int position = off;
+        int remaining = len;
+        while (remaining > 0) {
+            final int n = Math.min(remaining, outboundChunkSize);
+            reserveOutboundBudget(n);
+            final byte[] chunk = new byte[n];
+            System.arraycopy(data, position, chunk, 0, n);
+            outbound.add(ByteBuffer.wrap(chunk));
+            // Signal after every chunk, before the next reservation can block: a write larger than
+            // the budget must let the reactor drain and free capacity, otherwise the worker would
+            // park with the reactor never told there is output to drain (deadlock).
+            requestOutput();
+            position += n;
+            remaining -= n;
+        }
+    }
+
+    /**
+     * Enqueues a zero-length control sentinel (END_OUTBOUND). Sentinels carry no payload and never
+     * block on the byte budget, so the HTTP/2 stream can always be terminated.
+     */
+    private void enqueueSentinel(final ByteBuffer sentinel) {
+        outbound.add(sentinel);
+        requestOutput();
+    }
+
+    private void requestOutput() {
+        final DataStreamChannel channel = dataChannel;
+        if (responseSent && channel != null) {
+            channel.requestOutput();
+        }
+    }
+
+    private void reserveOutboundBudget(final int n) throws IOException {
+        outboundBudgetLock.lock();
+        try {
+            // Wait until this chunk fits within the budget. A single chunk is always admitted when
+            // the queue is empty (pendingOutboundBytes == 0) so an oversized chunk cannot deadlock.
+            while (!shutdown && pendingOutboundBytes > 0 && pendingOutboundBytes + n > outboundBudgetBytes) {
+                try {
+                    outboundBudgetAvailable.await();
+                } catch (final InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("Interrupted while waiting for outbound capacity", ex);
+                }
+            }
+            if (shutdown) {
+                throw new IOException("WebSocket stream already terminated");
+            }
+            pendingOutboundBytes += n;
+        } finally {
+            outboundBudgetLock.unlock();
+        }
+    }
+
+    private void releaseOutboundBudget(final int n) {
+        if (n <= 0) {
+            return;
+        }
+        outboundBudgetLock.lock();
+        try {
+            pendingOutboundBytes -= n;
+            if (pendingOutboundBytes < 0) {
+                pendingOutboundBytes = 0;
+            }
+            outboundBudgetAvailable.signalAll();
+        } finally {
+            outboundBudgetLock.unlock();
+        }
+    }
+
+    private void abortOutboundBudget() {
+        outboundBudgetLock.lock();
+        try {
+            pendingOutboundBytes = 0;
+            outboundBudgetAvailable.signalAll();
+        } finally {
+            outboundBudgetLock.unlock();
+        }
+    }
+
+    private final class QueueInputStream extends InputStream {
 
         private final BlockingQueue<byte[]> queue;
         private byte[] current;
@@ -331,6 +514,11 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
         @Override
         public int read() throws IOException {
             if (current == null || pos >= current.length) {
+                // The previous chunk is fully consumed: replenish inbound flow-control credit for
+                // its bytes so the peer may send more, keeping buffered memory bounded.
+                if (current != null && current != END_INBOUND && current.length > 0) {
+                    replenishInbound(current.length);
+                }
                 try {
                     current = queue.take();
                 } catch (final InterruptedException ex) {
@@ -348,40 +536,31 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
 
     private final class QueueOutputStream extends OutputStream {
 
-        private final BlockingQueue<ByteBuffer> queue;
-
-        QueueOutputStream(final BlockingQueue<ByteBuffer> queue) {
-            this.queue = queue;
-        }
-
         @Override
         public void write(final int b) throws IOException {
-            queue.offer(ByteBuffer.wrap(new byte[]{(byte) b}));
-            requestOutput();
+            // enqueueOutbound signals the reactor after the chunk is queued.
+            enqueueOutbound(new byte[]{(byte) b}, 0, 1);
         }
 
         @Override
         public void write(final byte[] b, final int off, final int len) throws IOException {
+            // Validate the range before reserving budget: an invalid range must fail cleanly rather
+            // than reserve bytes and then throw in arraycopy, which would leak the reservation and
+            // wedge later writes.
+            if ((off | len) < 0 || len > b.length - off) {
+                throw new IndexOutOfBoundsException();
+            }
             if (len == 0) {
                 return;
             }
-            final byte[] copy = new byte[len];
-            System.arraycopy(b, off, copy, 0, len);
-            queue.offer(ByteBuffer.wrap(copy));
-            requestOutput();
+            enqueueOutbound(b, off, len);
         }
 
         @Override
-        public void close() {
-            queue.offer(END_OUTBOUND);
-            requestOutput();
-        }
-
-        private void requestOutput() {
-            final DataStreamChannel channel = dataChannel;
-            if (responseSent && channel != null) {
-                channel.requestOutput();
-            }
+        public void close() throws IOException {
+            // The END_OUTBOUND sentinel must always terminate the HTTP/2 stream, so it bypasses the
+            // byte budget even after a shutdown has cleared the queue.
+            enqueueSentinel(END_OUTBOUND);
         }
     }
 }

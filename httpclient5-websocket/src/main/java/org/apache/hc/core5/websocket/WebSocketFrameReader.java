@@ -98,7 +98,8 @@ class WebSocketFrameReader {
                 len = (len << 8) | (readByte() & 0xFF);
             }
             if (len < 0) {
-                throw new WebSocketException("Negative frame payload length");
+                // RFC 6455 section 5.2: the most significant bit of a 64-bit length MUST be 0.
+                throw new WebSocketException("64-bit frame length must have the most significant bit set to 0");
             }
         }
         if (len > Integer.MAX_VALUE) {

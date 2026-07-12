@@ -53,6 +53,10 @@ class WebSocketServerProcessor {
     }
 
     void process() throws IOException {
+        readLoop();
+    }
+
+    private void readLoop() throws IOException {
         ByteBuffer continuationBuf = null;
         WebSocketFrameType continuationType = null;
         while (true) {
@@ -85,6 +89,9 @@ class WebSocketServerProcessor {
                     return;
                 case TEXT:
                 case BINARY:
+                    if (continuationBuf != null) {
+                        throw new WebSocketProtocolException(1002, "Data frame during fragmented message");
+                    }
                     if (frame.isFin()) {
                         dispatchMessage(type, frame.getPayload());
                     } else {

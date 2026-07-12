@@ -112,6 +112,30 @@ public final class ExtensionChain {
             }
             return new WebSocketExtensionChain.Encoded(out, setRsv1);
         }
+
+        /**
+         * Releases native resources held by the encoders in this chain. Every encoder is closed even
+         * if a previous one fails; the first failure is rethrown with the rest attached as suppressed.
+         *
+         * @since 5.7
+         */
+        public void close() {
+            RuntimeException failure = null;
+            for (final WebSocketExtensionChain.Encoder e : encs) {
+                try {
+                    e.close();
+                } catch (final RuntimeException ex) {
+                    if (failure == null) {
+                        failure = ex;
+                    } else {
+                        failure.addSuppressed(ex);
+                    }
+                }
+            }
+            if (failure != null) {
+                throw failure;
+            }
+        }
     }
 
     public static final class DecodeChain {
@@ -142,6 +166,30 @@ public final class ExtensionChain {
                 out = decs.get(i).decode(out, maxDecodedSize);
             }
             return out;
+        }
+
+        /**
+         * Releases native resources held by the decoders in this chain. Every decoder is closed even
+         * if a previous one fails; the first failure is rethrown with the rest attached as suppressed.
+         *
+         * @since 5.7
+         */
+        public void close() {
+            RuntimeException failure = null;
+            for (final WebSocketExtensionChain.Decoder d : decs) {
+                try {
+                    d.close();
+                } catch (final RuntimeException ex) {
+                    if (failure == null) {
+                        failure = ex;
+                    } else {
+                        failure.addSuppressed(ex);
+                    }
+                }
+            }
+            if (failure != null) {
+                throw failure;
+            }
         }
     }
 }

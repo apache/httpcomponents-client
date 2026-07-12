@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.websocket.message.CloseCodec;
 
 class WebSocketFrameWriter {
 
@@ -63,13 +64,9 @@ class WebSocketFrameWriter {
     }
 
     void writeClose(final int statusCode, final String reason) throws IOException {
-        final byte[] reasonBytes = reason != null ? reason.getBytes(StandardCharsets.UTF_8) : new byte[0];
-        final int len = 2 + reasonBytes.length;
-        final ByteBuffer buffer = ByteBuffer.allocate(len);
-        buffer.put((byte) ((statusCode >> 8) & 0xFF));
-        buffer.put((byte) (statusCode & 0xFF));
-        buffer.put(reasonBytes);
-        buffer.flip();
+        // CloseCodec truncates the reason to 123 UTF-8 bytes so the payload never
+        // exceeds the 125-byte control frame limit (RFC 6455 section 5.5).
+        final ByteBuffer buffer = ByteBuffer.wrap(CloseCodec.encode(statusCode, reason));
         writeFrame(WebSocketFrameType.CLOSE, buffer, false, false, false);
     }
 
@@ -102,6 +99,9 @@ class WebSocketFrameWriter {
         Args.notNull(type, "Frame type");
         final ByteBuffer buffer = payload != null ? payload.asReadOnlyBuffer() : ByteBuffer.allocate(0);
         final int payloadLen = buffer.remaining();
+        if (type.isControl() && payloadLen > 125) {
+            throw new IllegalArgumentException("Control frame payload > 125 bytes: " + payloadLen);
+        }
         int firstByte = 0x80 | (type.getOpcode() & 0x0F);
         if (rsv1) {
             firstByte |= 0x40;

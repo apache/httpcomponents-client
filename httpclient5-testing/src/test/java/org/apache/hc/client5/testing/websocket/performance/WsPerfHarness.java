@@ -166,7 +166,6 @@ public final class WsPerfHarness {
             b.enablePerMessageDeflate(true)
                     .offerClientNoContextTakeover(false)
                     .offerServerNoContextTakeover(false)
-                    .offerClientMaxWindowBits(null)
                     .offerServerMaxWindowBits(null);
         }
         final WebSocketClientConfig cfg = b.build();

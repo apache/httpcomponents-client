@@ -85,6 +85,47 @@ final class MessageDeflateTest {
     }
 
     @Test
+    void encode_emptyMessage_isSingleZeroOctet() throws Exception {
+        final PerMessageDeflate pmce = new PerMessageDeflate(true, false, false, null, null);
+        final WebSocketExtensionChain.Encoder enc = pmce.newEncoder();
+
+        final WebSocketExtensionChain.Encoded encoded = enc.encode(new byte[0], true, true);
+
+        // RFC 7692 section 7.2.3.6: an empty compressed message is the single octet 0x00.
+        assertArrayEquals(new byte[]{0x00}, encoded.payload);
+        assertTrue(encoded.setRsvOnFirst, "RSV1 on the first (and only) frame");
+        assertArrayEquals(new byte[0], pmce.newDecoder().decode(encoded.payload),
+                "an empty compressed message must round-trip to empty");
+    }
+
+    @Test
+    void encode_emptyMessage_withContextTakeover_roundTrips() throws Exception {
+        // clientNoContextTakeover = false: the deflater keeps its context across messages.
+        final PerMessageDeflate pmce = new PerMessageDeflate(true, false, false, null, null);
+        final WebSocketExtensionChain.Encoder enc = pmce.newEncoder();
+        final WebSocketExtensionChain.Decoder dec = pmce.newDecoder();
+
+        final byte[] hello = "hello".getBytes(StandardCharsets.UTF_8);
+        assertArrayEquals(hello, dec.decode(enc.encode(hello, true, true).payload));
+
+        final byte[] empty = enc.encode(new byte[0], true, true).payload;
+        assertArrayEquals(new byte[]{0x00}, empty, "empty message compresses to 0x00 with context takeover");
+        assertArrayEquals(new byte[0], dec.decode(empty));
+    }
+
+    @Test
+    void encode_emptyMessage_withNoContextTakeover_roundTrips() throws Exception {
+        // clientNoContextTakeover = true: the deflater is reset after each message.
+        final PerMessageDeflate pmce = new PerMessageDeflate(true, false, true, null, null);
+        final WebSocketExtensionChain.Encoder enc = pmce.newEncoder();
+        final WebSocketExtensionChain.Decoder dec = pmce.newDecoder();
+
+        final byte[] empty = enc.encode(new byte[0], true, true).payload;
+        assertArrayEquals(new byte[]{0x00}, empty, "empty message compresses to 0x00 with no-context-takeover");
+        assertArrayEquals(new byte[0], dec.decode(empty));
+    }
+
+    @Test
     void decode_withinLimit_succeeds() throws Exception {
         final PerMessageDeflate pmce = new PerMessageDeflate(true, true, true, null, null);
         final WebSocketExtensionChain.Encoder enc = pmce.newEncoder();
@@ -132,6 +173,28 @@ final class MessageDeflateTest {
 
         final byte[] roundTrip = dec.decode(wire, 0L);
         assertArrayEquals(plain, roundTrip);
+    }
+
+    @Test
+    void encoderCloseReleasesDeflater() {
+        final PerMessageDeflate pmce = new PerMessageDeflate(true, false, false, null, null);
+        final WebSocketExtensionChain.Encoder enc = pmce.newEncoder();
+        enc.encode("hello".getBytes(StandardCharsets.UTF_8), true, true);
+        enc.close();
+        // After close() the Deflater has been ended; reusing the encoder must fail.
+        assertThrows(Exception.class,
+                () -> enc.encode("again".getBytes(StandardCharsets.UTF_8), true, true));
+    }
+
+    @Test
+    void decoderCloseReleasesInflater() throws Exception {
+        final PerMessageDeflate pmce = new PerMessageDeflate(true, false, false, null, null);
+        final WebSocketExtensionChain.Encoder enc = pmce.newEncoder();
+        final WebSocketExtensionChain.Decoder dec = pmce.newDecoder();
+        final byte[] wire = enc.encode("hello".getBytes(StandardCharsets.UTF_8), true, true).payload;
+        dec.decode(wire);
+        dec.close();
+        assertThrows(Exception.class, () -> dec.decode(wire));
     }
 
     private static boolean endsWithTail(final byte[] b) {
