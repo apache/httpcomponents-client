@@ -553,7 +553,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
                 !Method.isSafe(request.getMethod())) {
             final String rootKey = cacheKeyGenerator.generateKey(host, request);
             evict(rootKey);
-            final URI requestUri = CacheKeyGenerator.normalize(CacheKeyGenerator.getRequestUri(host, request));
+            final URI requestUri = CacheSupport.requestUriNormalizedOrNull(host, request);
             if (requestUri != null) {
                 final URI contentLocation = CacheSupport.getLocationURI(requestUri, response, HttpHeaders.CONTENT_LOCATION);
                 if (contentLocation != null && CacheSupport.isSameOrigin(requestUri, contentLocation)) {

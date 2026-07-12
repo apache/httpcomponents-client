@@ -199,7 +199,7 @@ class CachedResponseSuitabilityChecker {
 
     boolean requestUriMatch(final HttpRequest request, final HttpCacheEntry entry) {
         try {
-            final URI requestURI = CacheKeyGenerator.normalize(request.getUri());
+            final URI requestURI = CacheSupport.normalize(request.getUri());
             final URI cacheURI = new URI(entry.getRequestURI());
             if (requestURI.isAbsolute()) {
                 return Objects.equals(requestURI, cacheURI);

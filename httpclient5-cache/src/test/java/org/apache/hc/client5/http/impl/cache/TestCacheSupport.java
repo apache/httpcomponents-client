@@ -27,6 +27,11 @@
 
 package org.apache.hc.client5.http.impl.cache;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -34,6 +39,64 @@ import org.junit.jupiter.api.Test;
  * Unit tests for {@link CacheSupport}.
  */
 class TestCacheSupport {
+
+    @Test
+    void testRequestUriRaw() throws Exception {
+        Assertions.assertEquals("http://foo.example.com/stuff?huh",
+                CacheSupport.requestUriRaw(
+                        new HttpHost("bar.example.com"),
+                        BasicRequestBuilder.get("http://foo.example.com/stuff?huh").build()));
+
+        Assertions.assertEquals("http://bar.example.com/stuff?huh",
+                CacheSupport.requestUriRaw(
+                        new HttpHost("bar.example.com"),
+                        BasicRequestBuilder.get("/stuff?huh").build()));
+
+        Assertions.assertEquals("http://foo.example.com:8888/stuff?huh",
+                CacheSupport.requestUriRaw(
+                        new HttpHost("bar.example.com", 8080),
+                        BasicRequestBuilder.get("http://foo.example.com:8888/stuff?huh").build()));
+
+        Assertions.assertEquals("https://bar.example.com:8443/stuff?huh",
+                CacheSupport.requestUriRaw(
+                        new HttpHost("https", "bar.example.com", 8443),
+                        BasicRequestBuilder.get("/stuff?huh").build()));
+
+        Assertions.assertEquals("http://foo.example.com/",
+                CacheSupport.requestUriRaw(
+                        new HttpHost("bar.example.com"),
+                        BasicRequestBuilder.get("http://foo.example.com").build()));
+
+        Assertions.assertEquals("http://bar.example.com/stuff?huh",
+                CacheSupport.requestUriRaw(
+                        new HttpHost("bar.example.com"),
+                        BasicRequestBuilder.get("stuff?huh").build()));
+
+        Assertions.assertEquals("http://bar.example.com/stuff",
+                CacheSupport.requestUriRaw(
+                        new HttpHost("bar.example.com"),
+                        BasicRequestBuilder.get("stuff#huh").build()));
+
+        Assertions.assertEquals("http://bar.example.com/stuff",
+                CacheSupport.requestUriRaw(
+                        new HttpHost("bar.example.com"),
+                        BasicRequestBuilder.get("stuff").build()));
+    }
+
+    @Test
+    void testNormalizeRequestUri() throws URISyntaxException {
+        Assertions.assertEquals(URI.create("http://bar.example.com:80/stuff?huh"),
+                CacheSupport.normalize(URI.create("//bar.example.com/stuff?huh")));
+
+        Assertions.assertEquals(URI.create("http://bar.example.com:80/stuff?huh"),
+                CacheSupport.normalize(URI.create("http://bar.example.com/stuff?huh")));
+
+        Assertions.assertEquals(URI.create("http://bar.example.com:80/stuff?huh"),
+                CacheSupport.normalize(URI.create("http://bar.example.com/stuff?huh#there")));
+
+        Assertions.assertEquals(URI.create("http://bar.example.com:80/stuff?huh"),
+                CacheSupport.normalize(URI.create("HTTP://BAR.example.com/p1/p2/../../stuff?huh")));
+    }
 
     @Test
     void testParseDeltaSeconds() {

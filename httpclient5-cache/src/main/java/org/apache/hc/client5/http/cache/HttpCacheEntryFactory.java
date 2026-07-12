@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.cache;
 
-import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
@@ -34,7 +33,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
 
-import org.apache.hc.client5.http.impl.cache.CacheKeyGenerator;
+import org.apache.hc.client5.http.impl.cache.CacheSupport;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -158,8 +157,7 @@ public class HttpCacheEntryFactory {
         Args.notNull(host, "Host");
         Args.notNull(request, "Request");
         Args.notNull(response, "Origin response");
-        final String s = CacheKeyGenerator.getRequestUri(host, request);
-        final URI uri = CacheKeyGenerator.normalize(s);
+        final String uri = CacheSupport.requestUriNormalized(host, request);
         final HeaderGroup requestHeaders = filterHopByHopHeaders(request);
         // Strip AUTHORIZATION from request headers
         requestHeaders.removeHeaders(HttpHeaders.AUTHORIZATION);
@@ -169,7 +167,7 @@ public class HttpCacheEntryFactory {
                 requestInstant,
                 responseInstant,
                 request.getMethod(),
-                uri.toASCIIString(),
+                uri,
                 requestHeaders,
                 response.getCode(),
                 responseHeaders,
@@ -204,8 +202,7 @@ public class HttpCacheEntryFactory {
         if (HttpCacheEntry.isNewer(entry, response)) {
             return entry;
         }
-        final String s = CacheKeyGenerator.getRequestUri(host, request);
-        final URI uri = CacheKeyGenerator.normalize(s);
+        final String uri = CacheSupport.requestUriNormalized(host, request);
         final HeaderGroup requestHeaders = filterHopByHopHeaders(request);
         // Strip AUTHORIZATION from request headers
         requestHeaders.removeHeaders(HttpHeaders.AUTHORIZATION);
@@ -214,7 +211,7 @@ public class HttpCacheEntryFactory {
                 requestInstant,
                 responseInstant,
                 request.getMethod(),
-                uri.toASCIIString(),
+                uri,
                 requestHeaders,
                 entry.getStatus(),
                 mergedHeaders,

@@ -43,18 +43,16 @@ import org.apache.hc.core5.http.HttpRequest;
 public final class HttpCacheSupport {
 
     public static String getRequestUri(final HttpRequest request, final HttpHost target) {
-        return CacheKeyGenerator.getRequestUri(target, request);
+        return CacheSupport.requestUriRaw(target, request);
     }
 
     public static URI normalize(final URI requestUri) throws URISyntaxException {
-        return CacheKeyGenerator.normalize(requestUri);
+        return CacheSupport.normalize(requestUri);
     }
 
     /**
      * Lenient URI parser that normalizes valid {@link URI}s and returns {@code null} for malformed URIs.
-     * @deprecated Use {@link #normalizeQuietly(String)}
      */
-    @Deprecated
     public static URI normalizeQuetly(final String requestUri) {
         if (requestUri == null) {
             return null;
@@ -71,7 +69,7 @@ public final class HttpCacheSupport {
      * @since 5.2
      */
     public static URI normalizeQuietly(final String requestUri) {
-        return CacheKeyGenerator.normalize(requestUri);
+        return normalizeQuetly(requestUri);
     }
 
 }
