@@ -109,6 +109,7 @@ public final class WebSocketSessionEngine {
     final AtomicBoolean open = new AtomicBoolean(true);
     final AtomicBoolean closeSent = new AtomicBoolean(false);
     private final AtomicBoolean closeReceived = new AtomicBoolean(false);
+    private final AtomicBoolean released = new AtomicBoolean(false);
     volatile boolean closeAfterFlush;
     private volatile ScheduledFuture<?> closeTimeoutFuture;
 
@@ -332,6 +333,12 @@ public final class WebSocketSessionEngine {
             return;
         }
         if (FrameOpcode.isControl(op)) {
+            if (r1) {
+                // Control frames are never compressed, so an extension never defines RSV1 for them.
+                initiateClose(1002, "RSV1 set on control frame");
+                inbuf.clear();
+                return;
+            }
             if (!fin) {
                 initiateClose(1002, "fragmented control frame");
                 inbuf.clear();
@@ -379,8 +386,7 @@ public final class WebSocketSessionEngine {
                     inbuf.clear();
                     return;
                 }
-                appendToMessage(payload);
-                if (fin) {
+                if (appendToMessage(payload) && fin) {
                     deliverAssembledMessage();
                 }
                 break;
@@ -484,15 +490,16 @@ public final class WebSocketSessionEngine {
         appendToMessage(payload);
     }
 
-    private void appendToMessage(final ByteBuffer payload) {
+    private boolean appendToMessage(final ByteBuffer payload) {
         final int n = payload.remaining();
         assemblingSize += n;
         if (cfg.getMaxMessageSize() > 0 && assemblingSize > cfg.getMaxMessageSize()) {
             initiateClose(1009, "Message too big");
-            return;
+            return false;
         }
         assemblingBuf = WebSocketBufferOps.ensureCapacity(assemblingBuf, n);
         assemblingBuf.put(payload.asReadOnlyBuffer());
+        return true;
     }
 
     private void deliverAssembledMessage() {
@@ -673,6 +680,9 @@ public final class WebSocketSessionEngine {
     }
 
     private void drainAndRelease() {
+        if (!released.compareAndSet(false, true)) {
+            return;
+        }
         if (activeWrite != null) {
             if (activeWrite.dataFrame) {
                 dataQueuedBytes.addAndGet(-activeWrite.size);
@@ -689,6 +699,12 @@ public final class WebSocketSessionEngine {
             if (f.dataFrame) {
                 dataQueuedBytes.addAndGet(-f.size);
             }
+        }
+        if (encChain != null) {
+            encChain.close();
+        }
+        if (decChain != null) {
+            decChain.close();
         }
         cancelCloseTimeout();
     }

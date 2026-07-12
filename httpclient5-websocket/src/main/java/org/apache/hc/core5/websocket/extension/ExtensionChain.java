@@ -112,6 +112,17 @@ public final class ExtensionChain {
             }
             return new WebSocketExtensionChain.Encoded(out, setRsv1);
         }
+
+        /**
+         * Releases native resources held by the encoders in this chain.
+         *
+         * @since 5.7
+         */
+        public void close() {
+            for (final WebSocketExtensionChain.Encoder e : encs) {
+                e.close();
+            }
+        }
     }
 
     public static final class DecodeChain {
@@ -142,6 +153,17 @@ public final class ExtensionChain {
                 out = decs.get(i).decode(out, maxDecodedSize);
             }
             return out;
+        }
+
+        /**
+         * Releases native resources held by the decoders in this chain.
+         *
+         * @since 5.7
+         */
+        public void close() {
+            for (final WebSocketExtensionChain.Decoder d : decs) {
+                d.close();
+            }
         }
     }
 }

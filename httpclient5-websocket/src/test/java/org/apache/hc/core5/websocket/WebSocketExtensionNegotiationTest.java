@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
@@ -50,5 +51,28 @@ class WebSocketExtensionNegotiationTest {
         final WebSocketExtensionNegotiation negotiation = new WebSocketExtensionNegotiation(
                 Collections.emptyList(), Collections.emptyList());
         assertNull(negotiation.formatResponseHeader());
+    }
+
+    @Test
+    void closeIsIdempotentAndClosesEachExtensionOnce() {
+        final AtomicInteger closed = new AtomicInteger();
+        final WebSocketExtension extension = new WebSocketExtension() {
+            @Override
+            public String getName() {
+                return "x-test";
+            }
+
+            @Override
+            public void close() {
+                closed.incrementAndGet();
+            }
+        };
+        final WebSocketExtensionNegotiation negotiation = new WebSocketExtensionNegotiation(
+                Collections.singletonList(extension), Collections.emptyList());
+
+        negotiation.close();
+        negotiation.close();
+
+        assertEquals(1, closed.get(), "each extension must be closed exactly once");
     }
 }

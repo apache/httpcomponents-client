@@ -77,4 +77,13 @@ public interface WebSocketExtension {
     default WebSocketExtensionData getResponseData() {
         return new WebSocketExtensionData(getName(), null);
     }
+
+    /**
+     * Releases any native resources held by this extension (e.g. a {@code Deflater} or
+     * {@code Inflater}). Called once when the owning session terminates.
+     *
+     * @since 5.7
+     */
+    default void close() {
+    }
 }

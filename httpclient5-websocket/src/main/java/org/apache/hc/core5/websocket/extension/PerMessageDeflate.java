@@ -87,44 +87,57 @@ public final class PerMessageDeflate implements WebSocketExtensionChain {
                 return new Encoded(out, first);
             }
 
+            @Override
+            public void close() {
+                def.end();
+            }
+
             private byte[] compressMessage(final byte[] data) {
                 return doDeflate(data, true, true, clientNoContextTakeover);
             }
 
             private byte[] compressFragment(final byte[] data, final boolean fin) {
-                return doDeflate(data, fin, true, fin && clientNoContextTakeover);
+                // Strip the 00 00 FF FF flush trailer only on the final fragment; non-final
+                // fragments must keep it so each intermediate empty stored block stays valid
+                // and the reassembled DEFLATE stream decodes (RFC 7692 section 7.2.1).
+                return doDeflate(data, fin, fin, fin && clientNoContextTakeover);
             }
 
             private byte[] doDeflate(final byte[] data,
                                      final boolean fin,
                                      final boolean stripTail,
                                      final boolean maybeReset) {
-                if (data == null || data.length == 0) {
-                    if (fin && maybeReset) {
-                        def.reset();
-                    }
-                    return new byte[0];
-                }
-                def.setInput(data);
-                final ByteArrayOutputStream out = new ByteArrayOutputStream(Math.max(128, data.length / 2));
-                final byte[] buf = new byte[Math.min(16384, Math.max(1024, data.length))];
-                while (!def.needsInput()) {
-                    final int n = def.deflate(buf, 0, buf.length, Deflater.SYNC_FLUSH);
+                // Empty input is deflated through SYNC_FLUSH as well: an empty message or empty
+                // final fragment must compress to the single octet 0x00 once the 00 00 FF FF flush
+                // trailer is stripped (RFC 7692 section 7.2.3.6), not to an empty payload.
+                final byte[] input = data != null ? data : new byte[0];
+                def.setInput(input);
+                final ByteArrayOutputStream out = new ByteArrayOutputStream(Math.max(128, input.length / 2));
+                final byte[] buf = new byte[Math.min(16384, Math.max(1024, input.length))];
+                // Drain until a SYNC_FLUSH leaves the output buffer partly filled. Testing
+                // needsInput() would stop as soon as the input is consumed, which can drop the
+                // trailing 00 00 FF FF flush bytes when the buffer fills exactly and then have
+                // stripTail cut into real data.
+                int n;
+                do {
+                    n = def.deflate(buf, 0, buf.length, Deflater.SYNC_FLUSH);
                     if (n > 0) {
                         out.write(buf, 0, n);
-                    } else {
-                        break;
                     }
-                }
+                } while (n == buf.length);
                 byte[] all = out.toByteArray();
-                if (stripTail && all.length >= 4) {
-                    final int newLen = all.length - 4; // strip 00 00 FF FF
-                    if (newLen <= 0) {
-                        all = new byte[0];
-                    } else {
-                        final byte[] trimmed = new byte[newLen];
-                        System.arraycopy(all, 0, trimmed, 0, newLen);
+                if (stripTail) {
+                    // Strip the trailing 00 00 FF FF SYNC_FLUSH marker. When nothing remains the
+                    // message (or final fragment) is empty; RFC 7692 section 7.2.3.6 represents an
+                    // empty payload as the single octet 0x00, not as an empty payload. A fresh
+                    // Deflater already yields 0x00 here, but one holding context (context takeover)
+                    // emits only the 4-octet marker, so the 0x00 must be supplied explicitly.
+                    if (all.length > 4) {
+                        final byte[] trimmed = new byte[all.length - 4];
+                        System.arraycopy(all, 0, trimmed, 0, trimmed.length);
                         all = trimmed;
+                    } else {
+                        all = new byte[]{0x00};
                     }
                 }
                 if (fin && maybeReset) {
@@ -181,6 +194,11 @@ public final class PerMessageDeflate implements WebSocketExtensionChain {
                     inf.reset();
                 }
                 return out.toByteArray();
+            }
+
+            @Override
+            public void close() {
+                inf.end();
             }
         };
     }

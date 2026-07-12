@@ -28,6 +28,8 @@ package org.apache.hc.client5.http.websocket.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.hc.core5.util.Timeout;
@@ -53,5 +55,20 @@ final class WebSocketClientConfigTest {
         assertEquals(1024, cfg.getMaxFrameSize());
         assertEquals(2048, cfg.getMaxMessageSize());
         assertEquals(Timeout.ofSeconds(3), cfg.getConnectTimeout());
+    }
+
+    @Test
+    void defaultConfigDoesNotOfferClientMaxWindowBits() {
+        // RFC 7692 section 7.2.1: the JDK Deflater cannot honor a reduced window, so the client
+        // never offers client_max_window_bits.
+        assertNull(WebSocketClientConfig.custom().build().getOfferClientMaxWindowBits());
+    }
+
+    @Test
+    void configuringClientMaxWindowBitsIsRejected() {
+        assertThrows(IllegalArgumentException.class, () ->
+                WebSocketClientConfig.custom().offerClientMaxWindowBits(15).build());
+        assertThrows(IllegalArgumentException.class, () ->
+                WebSocketClientConfig.custom().offerClientMaxWindowBits(10).build());
     }
 }

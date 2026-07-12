@@ -69,6 +69,14 @@ public interface WebSocketExtensionChain {
          * Encode one fragment; return transformed payload and whether to set RSV on FIRST frame.
          */
         Encoded encode(byte[] data, boolean first, boolean fin);
+
+        /**
+         * Releases any native resources held by this encoder (e.g. a {@code Deflater}).
+         *
+         * @since 5.7
+         */
+        default void close() {
+        }
     }
 
     interface Decoder {
@@ -87,6 +95,14 @@ public interface WebSocketExtensionChain {
          */
         default byte[] decode(final byte[] payload, final long maxDecodedSize) throws Exception {
             return decode(payload);
+        }
+
+        /**
+         * Releases any native resources held by this decoder (e.g. an {@code Inflater}).
+         *
+         * @since 5.7
+         */
+        default void close() {
         }
     }
 }

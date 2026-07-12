@@ -81,7 +81,13 @@ class WebSocketServerRequestHandler implements HttpServerRequestHandler {
             return;
         }
         if (!WebSocketHandshake.isWebSocketUpgrade(request)) {
-            trigger.submitResponse(new BasicClassicHttpResponse(HttpStatus.SC_UPGRADE_REQUIRED));
+            final ClassicHttpResponse rejection = new BasicClassicHttpResponse(HttpStatus.SC_UPGRADE_REQUIRED);
+            // RFC 9110 section 15.5.22 requires a 426 response to carry an Upgrade header field, and
+            // section 7.8 the matching Connection: Upgrade option; RFC 6455 section 4.4 adds the version.
+            rejection.addHeader(HttpHeaders.CONNECTION, HeaderElements.UPGRADE);
+            rejection.addHeader(HttpHeaders.UPGRADE, "websocket");
+            rejection.addHeader(WebSocketConstants.SEC_WEBSOCKET_VERSION, "13");
+            trigger.submitResponse(rejection);
             return;
         }
         final WebSocketHandler handler = supplier.get();
@@ -96,42 +102,47 @@ class WebSocketServerRequestHandler implements HttpServerRequestHandler {
         response.addHeader(HttpHeaders.CONNECTION, HeaderElements.UPGRADE);
         response.addHeader(HttpHeaders.UPGRADE, "websocket");
         response.addHeader(WebSocketConstants.SEC_WEBSOCKET_ACCEPT, accept);
-        final WebSocketExtensionNegotiation negotiation = extensionRegistry.negotiate(
+        // Try-with-resources transfers ownership of the negotiated extensions to this scope: they
+        // are released on every exit path (a failed submitResponse, unavailable streams, a throwing
+        // onOpen and normal or exceptional processor termination), and a close failure is attached
+        // as a suppressed exception rather than masking the primary failure.
+        try (final WebSocketExtensionNegotiation negotiation = extensionRegistry.negotiate(
                 WebSocketExtensions.parse(request.getFirstHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS)),
-                true);
-        final String extensionsHeader = negotiation.formatResponseHeader();
-        if (extensionsHeader != null) {
-            response.addHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS, extensionsHeader);
-        }
-        final List<String> offeredProtocols = WebSocketHandshake.parseSubprotocols(
-                request.getFirstHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL));
-        final String protocol = handler.selectSubprotocol(offeredProtocols);
-        if (protocol != null) {
-            response.addHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, protocol);
-        }
-        trigger.submitResponse(response);
-        final InputStream inputStream = connection.getSocketInputStream();
-        final OutputStream outputStream = connection.getSocketOutputStream();
-        if (inputStream == null || outputStream == null) {
-            connection.close();
-            return;
-        }
-        final WebSocketSession session = new WebSocketSession(config, inputStream, outputStream,
-                connection.getRemoteAddress(), connection.getLocalAddress(), negotiation.getExtensions());
-        try {
-            handler.onOpen(session);
-            new WebSocketServerProcessor(session, handler, config.getMaxMessageSize()).process();
-        } catch (final WebSocketProtocolException ex) {
-            handler.onError(session, ex);
-            session.close(ex.closeCode, ex.getMessage());
-        } catch (final WebSocketException ex) {
-            handler.onError(session, ex);
-            session.close(WebSocketCloseStatus.PROTOCOL_ERROR.getCode(), ex.getMessage());
-        } catch (final Exception ex) {
-            handler.onError(session, ex);
-            session.close(WebSocketCloseStatus.INTERNAL_ERROR.getCode(), "WebSocket error");
-        } finally {
-            connection.close();
+                true)) {
+            final String extensionsHeader = negotiation.formatResponseHeader();
+            if (extensionsHeader != null) {
+                response.addHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS, extensionsHeader);
+            }
+            final List<String> offeredProtocols = WebSocketHandshake.parseSubprotocols(
+                    request.getFirstHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL));
+            final String protocol = handler.selectSubprotocol(offeredProtocols);
+            if (protocol != null) {
+                response.addHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL, protocol);
+            }
+            trigger.submitResponse(response);
+            final InputStream inputStream = connection.getSocketInputStream();
+            final OutputStream outputStream = connection.getSocketOutputStream();
+            if (inputStream == null || outputStream == null) {
+                connection.close();
+                return;
+            }
+            final WebSocketSession session = new WebSocketSession(config, inputStream, outputStream,
+                    connection.getRemoteAddress(), connection.getLocalAddress(), negotiation.getExtensions());
+            try {
+                handler.onOpen(session);
+                new WebSocketServerProcessor(session, handler, config.getMaxMessageSize()).process();
+            } catch (final WebSocketProtocolException ex) {
+                handler.onError(session, ex);
+                session.close(ex.closeCode, ex.getMessage());
+            } catch (final WebSocketException ex) {
+                handler.onError(session, ex);
+                session.close(WebSocketCloseStatus.PROTOCOL_ERROR.getCode(), ex.getMessage());
+            } catch (final Exception ex) {
+                handler.onError(session, ex);
+                session.close(WebSocketCloseStatus.INTERNAL_ERROR.getCode(), "WebSocket error");
+            } finally {
+                connection.close();
+            }
         }
     }
 

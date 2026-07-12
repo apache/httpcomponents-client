@@ -27,6 +27,7 @@
 package org.apache.hc.core5.websocket.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -39,6 +40,7 @@ import java.util.List;
 import org.apache.hc.core5.websocket.WebSocketConfig;
 import org.apache.hc.core5.websocket.WebSocketHandler;
 import org.apache.hc.core5.websocket.WebSocketSession;
+import org.apache.hc.core5.websocket.exceptions.WebSocketProtocolException;
 import org.junit.jupiter.api.Test;
 
 class WebSocketServerProcessorTest {
@@ -104,6 +106,37 @@ class WebSocketServerProcessorTest {
         assertEquals(1000, handler.closeCode);
         assertEquals("bye", handler.closeReason);
         assertTrue(out.size() > 0, "server should send close response");
+    }
+
+    @Test
+    void dataFrameDuringFragmentedMessage_isRejected() throws Exception {
+        final ByteArrayOutputStream frames = new ByteArrayOutputStream();
+        // TEXT, not final -> starts a fragmented message
+        frames.write(maskedFrame(0x1, false, "a".getBytes(StandardCharsets.UTF_8)));
+        // a new TEXT frame while the fragmented message is still in progress (RFC 6455 section 5.4)
+        frames.write(maskedFrame(0x1, true, "b".getBytes(StandardCharsets.UTF_8)));
+
+        final WebSocketSession session = new WebSocketSession(
+                WebSocketConfig.DEFAULT,
+                new ByteArrayInputStream(frames.toByteArray()),
+                new ByteArrayOutputStream(),
+                null,
+                null,
+                Collections.emptyList());
+        final WebSocketServerProcessor processor =
+                new WebSocketServerProcessor(session, new TrackingHandler(), 1024);
+
+        final WebSocketProtocolException ex = assertThrows(WebSocketProtocolException.class, processor::process);
+        assertEquals(1002, ex.closeCode);
+        assertTrue(ex.getMessage().contains("Data frame during fragmented message"), ex.getMessage());
+    }
+
+    private static byte[] maskedFrame(final int opcode, final boolean fin, final byte[] payload) {
+        final byte[] framed = maskedFrame(opcode, payload);
+        if (!fin) {
+            framed[0] &= 0x7F; // clear the FIN bit
+        }
+        return framed;
     }
 
     private static final class TrackingHandler implements WebSocketHandler {

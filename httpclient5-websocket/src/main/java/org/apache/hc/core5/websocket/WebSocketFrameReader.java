@@ -101,6 +101,9 @@ class WebSocketFrameReader {
                 throw new WebSocketException("Negative frame payload length");
             }
         }
+        if (len < 0) {
+            throw new WebSocketException("64-bit frame length must have the most significant bit set to 0");
+        }
         if (len > Integer.MAX_VALUE) {
             throw new WebSocketException("Frame payload too large: " + len);
         }
