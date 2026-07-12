@@ -47,7 +47,7 @@ import jakarta.ws.rs.QueryParam;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.ParserCursor;
-import org.apache.hc.core5.net.URLEncodedUtils;
+import org.apache.hc.core5.net.PathSegmentCodec;
 import org.apache.hc.core5.util.Args;
 
 final class ResourceIfaceScanner {
@@ -110,7 +110,7 @@ final class ResourceIfaceScanner {
         if (value == null) {
             return Collections.emptyList();
         }
-        return URLEncodedUtils.parsePathSegments(value).stream()
+        return PathSegmentCodec.parsePathSegments(value).stream()
                 .map(e -> {
                     if (e.startsWith("{") && e.endsWith("}")) {
                         final String param = e.substring(1, e.length() - 1);
