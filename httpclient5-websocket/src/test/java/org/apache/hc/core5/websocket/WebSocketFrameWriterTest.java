@@ -27,6 +27,7 @@
 package org.apache.hc.core5.websocket;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
@@ -87,6 +88,32 @@ class WebSocketFrameWriterTest {
         final byte[] payload = new byte[] {0x01};
         final byte[] out = writeBinary(payload, Collections.singletonList(new Rsv1Extension()));
         assertTrue((out[0] & 0x40) != 0, "RSV1 must be set");
+    }
+
+    @Test
+    void rejectsOversizedControlFrame() {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final WebSocketFrameWriter writer = new WebSocketFrameWriter(baos, Collections.emptyList());
+        assertThrows(IllegalArgumentException.class,
+                () -> writer.writePing(ByteBuffer.wrap(new byte[126])));
+    }
+
+    @Test
+    void closeReasonTruncatedToControlFrameLimit() throws Exception {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final WebSocketFrameWriter writer = new WebSocketFrameWriter(baos, Collections.emptyList());
+
+        final StringBuilder reason = new StringBuilder();
+        for (int i = 0; i < 200; i++) {
+            reason.append('x');
+        }
+        writer.writeClose(1000, reason.toString());
+
+        final byte[] out = baos.toByteArray();
+        assertEquals((byte) 0x88, out[0]); // FIN + CLOSE
+        final int payloadLen = out[1] & 0xFF; // no MASK bit on server frames
+        assertTrue(payloadLen <= 125, "CLOSE payload must fit the 125-byte control frame limit, was " + payloadLen);
+        assertEquals(out.length - 2, payloadLen, "single-byte length header, no extended length");
     }
 
     private static byte[] writeBinary(final byte[] payload, final List<WebSocketExtension> extensions) throws Exception {

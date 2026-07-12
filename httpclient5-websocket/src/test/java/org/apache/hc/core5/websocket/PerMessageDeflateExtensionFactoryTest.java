@@ -32,8 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.jupiter.api.Test;
 
 class PerMessageDeflateExtensionFactoryTest {
@@ -68,5 +70,84 @@ class PerMessageDeflateExtensionFactoryTest {
         final WebSocketExtensionData response = ext.getResponseData();
         assertEquals("15", response.getParameters().get("client_max_window_bits"));
         assertEquals("15", response.getParameters().get("server_max_window_bits"));
+    }
+
+    @Test
+    void rejectsServerMaxWindowBitsWithoutValue() {
+        assertNull(negotiateServer("permessage-deflate; server_max_window_bits"),
+                "server_max_window_bits must carry a value");
+    }
+
+    @Test
+    void rejectsServerMaxWindowBitsNonNumeric() {
+        final Map<String, String> params = new LinkedHashMap<>();
+        params.put("server_max_window_bits", "abc");
+        assertNull(create(params), "a non-numeric server_max_window_bits must be rejected");
+    }
+
+    @Test
+    void rejectsServerMaxWindowBitsBelowRange() {
+        final Map<String, String> params = new LinkedHashMap<>();
+        params.put("server_max_window_bits", "7");
+        assertNull(create(params), "server_max_window_bits below 8 must be rejected");
+    }
+
+    @Test
+    void rejectsClientMaxWindowBitsNonNumeric() {
+        final Map<String, String> params = new LinkedHashMap<>();
+        params.put("client_max_window_bits", "abc");
+        assertNull(create(params), "a present but non-numeric client_max_window_bits must be rejected");
+    }
+
+    @Test
+    void acceptsValuelessClientMaxWindowBits() {
+        assertNotNull(negotiateServer("permessage-deflate; client_max_window_bits"),
+                "a valueless client_max_window_bits merely advertises support and is accepted");
+    }
+
+    @Test
+    void rejectsUnknownParameter() {
+        final Map<String, String> params = new LinkedHashMap<>();
+        params.put("unknown", "1");
+        assertNull(create(params), "an unknown parameter must be rejected");
+    }
+
+    @Test
+    void rejectsValuedNoContextTakeover() {
+        final Map<String, String> params = new LinkedHashMap<>();
+        params.put("server_no_context_takeover", "1");
+        assertNull(create(params), "server_no_context_takeover must not carry a value");
+    }
+
+    @Test
+    void acceptsValuelessNoContextTakeover() {
+        assertNotNull(negotiateServer("permessage-deflate; server_no_context_takeover; client_no_context_takeover"),
+                "valueless no-context-takeover parameters are accepted");
+    }
+
+    @Test
+    void rejectsLeadingZeroWindowBits() {
+        final Map<String, String> params = new LinkedHashMap<>();
+        params.put("server_max_window_bits", "015");
+        assertNull(create(params), "a leading-zero window-bits value must be rejected");
+    }
+
+    @Test
+    void rejectsPlusSignedWindowBits() {
+        final Map<String, String> params = new LinkedHashMap<>();
+        params.put("server_max_window_bits", "+15");
+        assertNull(create(params), "a signed window-bits value must be rejected");
+    }
+
+    private static WebSocketExtension create(final Map<String, String> params) {
+        return new PerMessageDeflateExtensionFactory().create(
+                new WebSocketExtensionData("permessage-deflate", params), true);
+    }
+
+    private static WebSocketExtension negotiateServer(final String headerValue) {
+        final List<WebSocketExtensionData> offers = WebSocketExtensions.parse(
+                new BasicHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS, headerValue));
+        assertEquals(1, offers.size(), "the header must parse to a single offer");
+        return new PerMessageDeflateExtensionFactory().create(offers.get(0), true);
     }
 }

@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.websocket.transport;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.CancelledKeyException;
 
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
@@ -51,14 +52,26 @@ public final class DataStreamChannelTransport implements WebSocketTransport {
         if (ch == null) {
             return 0;
         }
-        return ch.write(src);
+        try {
+            return ch.write(src);
+        } catch (final CancelledKeyException ex) {
+            // A cancelled selection key is a terminal state, not transient back-pressure. Surface it
+            // as an I/O error so the engine takes its close path instead of retaining the frame and
+            // waiting for an output callback that will never arrive.
+            throw new IOException("WebSocket transport channel is closed", ex);
+        }
     }
 
     @Override
     public void requestOutput() {
         final DataStreamChannel ch = channel;
         if (ch != null) {
-            ch.requestOutput();
+            try {
+                ch.requestOutput();
+            } catch (final CancelledKeyException ignore) {
+                // requestOutput is a best-effort nudge; if the channel's selection key was
+                // cancelled by a concurrent shutdown there is nothing left to flush.
+            }
         }
     }
 

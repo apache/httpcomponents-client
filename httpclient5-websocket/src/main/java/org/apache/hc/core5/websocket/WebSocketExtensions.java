@@ -27,6 +27,7 @@
 package org.apache.hc.core5.websocket;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,8 +45,30 @@ public final class WebSocketExtensions {
 
     public static List<WebSocketExtensionData> parse(final Header header) {
         final List<WebSocketExtensionData> extensions = new ArrayList<>();
+        addOffers(header, extensions);
+        return extensions;
+    }
+
+    /**
+     * Parses and combines every {@code Sec-WebSocket-Extensions} header field. RFC 6455 permits the
+     * header to be split across multiple fields and requires them to be treated as a single combined
+     * value, so a client's fallback offers carried in a later field are examined as well.
+     *
+     * @since 5.7
+     */
+    public static List<WebSocketExtensionData> parse(final Iterator<Header> headers) {
+        final List<WebSocketExtensionData> extensions = new ArrayList<>();
+        if (headers != null) {
+            while (headers.hasNext()) {
+                addOffers(headers.next(), extensions);
+            }
+        }
+        return extensions;
+    }
+
+    private static void addOffers(final Header header, final List<WebSocketExtensionData> extensions) {
         if (header == null) {
-            return extensions;
+            return;
         }
         for (final HeaderElement element : MessageSupport.parseElements(header)) {
             final String name = element.getName();
@@ -53,11 +76,22 @@ public final class WebSocketExtensions {
                 continue;
             }
             final Map<String, String> params = new LinkedHashMap<>();
+            boolean duplicateParameter = false;
             for (final NameValuePair param : element.getParameters()) {
+                // RFC 7692 section 7.1: an extension parameter MUST NOT appear more than once in a
+                // negotiation offer. A repeated parameter makes the whole offer invalid, so it is
+                // dropped here and the extension is left un-negotiated rather than silently collapsed
+                // into a single map entry.
+                if (params.containsKey(param.getName())) {
+                    duplicateParameter = true;
+                    break;
+                }
                 params.put(param.getName(), param.getValue());
+            }
+            if (duplicateParameter) {
+                continue;
             }
             extensions.add(new WebSocketExtensionData(name, params));
         }
-        return extensions;
     }
 }

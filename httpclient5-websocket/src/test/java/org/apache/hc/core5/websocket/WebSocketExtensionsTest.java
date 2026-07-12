@@ -27,10 +27,13 @@
 package org.apache.hc.core5.websocket;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.jupiter.api.Test;
 
@@ -48,5 +51,38 @@ class WebSocketExtensionsTest {
         assertEquals("foo", data.get(1).getName());
         final Map<String, String> params = data.get(1).getParameters();
         assertEquals("1", params.get("bar"));
+    }
+
+    @Test
+    void dropsOfferWithDuplicateParameter() {
+        final BasicHeader header = new BasicHeader(
+                WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS,
+                "permessage-deflate; client_no_context_takeover; client_no_context_takeover");
+        assertTrue(WebSocketExtensions.parse(header).isEmpty(),
+                "a repeated parameter makes the offer invalid and it must be dropped, not collapsed");
+    }
+
+    @Test
+    void dropsOnlyTheOfferWithDuplicateParameter() {
+        final BasicHeader header = new BasicHeader(
+                WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS,
+                "permessage-deflate; server_max_window_bits=10; server_max_window_bits=12, foo; bar=1");
+        final List<WebSocketExtensionData> data = WebSocketExtensions.parse(header);
+        assertEquals(1, data.size(), "the malformed permessage-deflate offer is dropped, the valid one kept");
+        assertEquals("foo", data.get(0).getName());
+    }
+
+    @Test
+    void combinesMultipleExtensionHeaders() {
+        // RFC 6455: multiple Sec-WebSocket-Extensions fields are a single combined value, so a
+        // client's fallback offer in a later field must still be examined.
+        final List<WebSocketExtensionData> data = WebSocketExtensions.parse(Arrays.<Header>asList(
+                new BasicHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS,
+                        "permessage-deflate; server_max_window_bits=12"),
+                new BasicHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS,
+                        "permessage-deflate")).iterator());
+        assertEquals(2, data.size(), "offers from every Sec-WebSocket-Extensions field must be combined");
+        assertEquals("12", data.get(0).getParameters().get("server_max_window_bits"));
+        assertTrue(data.get(1).getParameters().isEmpty(), "the fallback offer must be preserved");
     }
 }

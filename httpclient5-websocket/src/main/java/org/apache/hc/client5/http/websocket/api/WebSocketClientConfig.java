@@ -55,7 +55,6 @@ public final class WebSocketClientConfig {
     private final boolean perMessageDeflateEnabled;
     private final boolean offerServerNoContextTakeover;
     private final boolean offerClientNoContextTakeover;
-    private final Integer offerClientMaxWindowBits;
     private final Integer offerServerMaxWindowBits;
 
     // Framing / flow
@@ -82,7 +81,6 @@ public final class WebSocketClientConfig {
             final boolean perMessageDeflateEnabled,
             final boolean offerServerNoContextTakeover,
             final boolean offerClientNoContextTakeover,
-            final Integer offerClientMaxWindowBits,
             final Integer offerServerMaxWindowBits,
             final int maxFrameSize,
             final int outgoingChunkSize,
@@ -102,7 +100,6 @@ public final class WebSocketClientConfig {
         this.perMessageDeflateEnabled = perMessageDeflateEnabled;
         this.offerServerNoContextTakeover = offerServerNoContextTakeover;
         this.offerClientNoContextTakeover = offerClientNoContextTakeover;
-        this.offerClientMaxWindowBits = offerClientMaxWindowBits;
         this.offerServerMaxWindowBits = offerServerMaxWindowBits;
         this.maxFrameSize = maxFrameSize;
         this.outgoingChunkSize = outgoingChunkSize;
@@ -167,19 +164,6 @@ public final class WebSocketClientConfig {
      */
     public boolean isOfferClientNoContextTakeover() {
         return offerClientNoContextTakeover;
-    }
-
-    /**
-     * Optional value for {@code client_max_window_bits} in the PMCE offer.
-     *
-     * <p>Valid values are in range 8..15 when non-null. The client encoder
-     * currently supports only {@code 15} due to JDK Deflater limitations.</p>
-     *
-     * @return offered {@code client_max_window_bits}, or {@code null} if not offered
-     * @since 5.7
-     */
-    public Integer getOfferClientMaxWindowBits() {
-        return offerClientMaxWindowBits;
     }
 
     /**
@@ -332,7 +316,6 @@ public final class WebSocketClientConfig {
         private boolean perMessageDeflateEnabled = true;
         private boolean offerServerNoContextTakeover = true;
         private boolean offerClientNoContextTakeover = true;
-        private Integer offerClientMaxWindowBits = 15;
         private Integer offerServerMaxWindowBits = null;
 
         private int maxFrameSize = 64 * 1024;
@@ -406,21 +389,6 @@ public final class WebSocketClientConfig {
          */
         public Builder offerClientNoContextTakeover(final boolean v) {
             this.offerClientNoContextTakeover = v;
-            return this;
-        }
-
-        /**
-         * Offers {@code client_max_window_bits} in the PMCE offer.
-         *
-         * <p>Valid values are in range 8..15 when non-null. The client encoder
-         * currently supports only {@code 15} due to JDK Deflater limitations.</p>
-         *
-         * @param v window bits, or {@code null} to omit the parameter
-         * @return this builder
-         * @since 5.7
-         */
-        public Builder offerClientMaxWindowBits(final Integer v) {
-            this.offerClientMaxWindowBits = v;
             return this;
         }
 
@@ -570,9 +538,6 @@ public final class WebSocketClientConfig {
          * @since 5.7
          */
         public WebSocketClientConfig build() {
-            if (offerClientMaxWindowBits != null && (offerClientMaxWindowBits < 8 || offerClientMaxWindowBits > 15)) {
-                throw new IllegalArgumentException("offerClientMaxWindowBits must be in range [8..15]");
-            }
             if (offerServerMaxWindowBits != null && (offerServerMaxWindowBits < 8 || offerServerMaxWindowBits > 15)) {
                 throw new IllegalArgumentException("offerServerMaxWindowBits must be in range [8..15]");
             }
@@ -600,7 +565,7 @@ public final class WebSocketClientConfig {
             return new WebSocketClientConfig(
                     connectTimeout, subprotocols,
                     perMessageDeflateEnabled, offerServerNoContextTakeover, offerClientNoContextTakeover,
-                    offerClientMaxWindowBits, offerServerMaxWindowBits,
+                    offerServerMaxWindowBits,
                     maxFrameSize, outgoingChunkSize, maxFramesPerTick,
                     directBuffers,
                     autoPong, closeWaitTimeout, maxMessageSize,

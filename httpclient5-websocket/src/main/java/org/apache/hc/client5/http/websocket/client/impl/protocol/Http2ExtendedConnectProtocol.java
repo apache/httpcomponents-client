@@ -160,9 +160,8 @@ public final class Http2ExtendedConnectProtocol implements WebSocketProtocolStra
             if (cfg.isOfferClientNoContextTakeover()) {
                 ext.append("; client_no_context_takeover");
             }
-            if (cfg.getOfferClientMaxWindowBits() != null && cfg.getOfferClientMaxWindowBits() == 15) {
-                ext.append("; client_max_window_bits=15");
-            }
+            // client_max_window_bits is never offered: the JDK Deflater cannot honor a
+            // server-selected window smaller than 15 (RFC 7692 7.2.1).
             if (cfg.getOfferServerMaxWindowBits() != null) {
                 ext.append("; server_max_window_bits=").append(cfg.getOfferServerMaxWindowBits());
             }
@@ -211,8 +210,9 @@ public final class Http2ExtendedConnectProtocol implements WebSocketProtocolStra
         public void consumeResponse(final HttpResponse response, final EntityDetails entityDetails,
                                     final HttpContext context) throws HttpException, IOException {
 
-            if (response.getCode() != HttpStatus.SC_OK) {
-                failFuture(new IllegalStateException("Unexpected status: " + response.getCode()));
+            final int code = response.getCode();
+            if (code < HttpStatus.SC_OK || code >= HttpStatus.SC_REDIRECTION) {
+                failFuture(new IllegalStateException("Unexpected status: " + code));
                 return;
             }
 
@@ -321,8 +321,7 @@ public final class Http2ExtendedConnectProtocol implements WebSocketProtocolStra
         }
 
         private static String headerValue(final HttpResponse r, final String name) {
-            final Header h = r.getFirstHeader(name);
-            return h != null ? h.getValue() : null;
+            return Http1UpgradeProtocol.headerValue(r, name);
         }
 
         private void failFuture(final Exception ex) {

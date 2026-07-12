@@ -35,7 +35,7 @@ import static org.apache.hc.core5.websocket.frame.FrameHeaderBits.RSV3;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ThreadLocalRandom;
+import java.security.SecureRandom;
 
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.websocket.message.CloseCodec;
@@ -47,6 +47,9 @@ import org.apache.hc.core5.websocket.message.CloseCodec;
  */
 @Internal
 public final class WebSocketFrameWriter {
+
+    // RFC 6455 section 5.3 requires the masking key to be derived from a strong source of entropy.
+    private static final SecureRandom MASK_RNG = new SecureRandom();
 
     // -- Text/Binary -----------------------------------------------------------
 
@@ -164,7 +167,7 @@ public final class WebSocketFrameWriter {
 
         int maskInt = 0;
         if (mask) {
-            maskInt = ThreadLocalRandom.current().nextInt();
+            maskInt = MASK_RNG.nextInt();
             out.put((byte) (maskInt >>> 24)).put((byte) (maskInt >>> 16))
                .put((byte) (maskInt >>> 8)).put((byte) maskInt);
         }

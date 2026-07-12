@@ -27,9 +27,11 @@
 package org.apache.hc.core5.websocket;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.hc.core5.util.Args;
 
@@ -52,17 +54,39 @@ public final class WebSocketExtensionRegistry {
             final boolean server) throws WebSocketException {
         final List<WebSocketExtension> extensions = new ArrayList<>();
         final List<WebSocketExtensionData> responseData = new ArrayList<>();
-        if (requested != null) {
-            for (final WebSocketExtensionData request : requested) {
-                final WebSocketExtensionFactory factory = factories.get(request.getName());
-                if (factory != null) {
-                    final WebSocketExtension extension = factory.create(request, server);
-                    if (extension != null) {
-                        extensions.add(extension);
-                        responseData.add(extension.getResponseData());
+        final Set<String> accepted = new HashSet<>();
+        try {
+            if (requested != null) {
+                for (final WebSocketExtensionData request : requested) {
+                    // At most one offer per extension name is accepted; a second accepted offer of the
+                    // same extension would claim the same RSV bit and break both the response header and
+                    // the RSV bookkeeping in the frame reader.
+                    if (accepted.contains(request.getName())) {
+                        continue;
+                    }
+                    final WebSocketExtensionFactory factory = factories.get(request.getName());
+                    if (factory != null) {
+                        final WebSocketExtension extension = factory.create(request, server);
+                        if (extension != null) {
+                            extensions.add(extension);
+                            responseData.add(extension.getResponseData());
+                            accepted.add(request.getName());
+                        }
                     }
                 }
             }
+        } catch (final WebSocketException | RuntimeException ex) {
+            // A later factory failed after earlier extensions were already created; close them so
+            // their native resources are not leaked, preserving the original failure and recording
+            // any close failure as a suppressed exception.
+            for (final WebSocketExtension extension : extensions) {
+                try {
+                    extension.close();
+                } catch (final RuntimeException closeEx) {
+                    ex.addSuppressed(closeEx);
+                }
+            }
+            throw ex;
         }
         return new WebSocketExtensionNegotiation(extensions, responseData);
     }
