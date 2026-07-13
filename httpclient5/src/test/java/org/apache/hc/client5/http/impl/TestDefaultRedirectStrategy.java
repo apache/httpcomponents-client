@@ -321,6 +321,48 @@ class TestDefaultRedirectStrategy {
 
 
     @Test
+    void testRedirectAllowedCrossSchemeSamePort() {
+        final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+
+        // https -> http on the same host and same explicit port is a different origin,
+        // so a redirect carrying credential-bearing headers is not followed
+        final HttpHost secure = new HttpHost("https", "example.com", 8443);
+        final HttpHost insecure = new HttpHost("http", "example.com", 8443);
+
+        Assertions.assertFalse(redirectStrategy.isRedirectAllowed(
+                secure,
+                insecure,
+                BasicRequestBuilder.get("/")
+                        .addHeader(HttpHeaders.AUTHORIZATION, "let me pass")
+                        .build(),
+                null));
+
+        Assertions.assertFalse(redirectStrategy.isRedirectAllowed(
+                secure,
+                insecure,
+                BasicRequestBuilder.get("/")
+                        .addHeader(HttpHeaders.COOKIE, "stuff=blah")
+                        .build(),
+                null));
+
+        // no sensitive headers -> the redirect itself is still permitted
+        Assertions.assertTrue(redirectStrategy.isRedirectAllowed(
+                secure,
+                insecure,
+                BasicRequestBuilder.get("/").build(),
+                null));
+
+        // same scheme, host and port stays same origin
+        Assertions.assertTrue(redirectStrategy.isRedirectAllowed(
+                secure,
+                new HttpHost("https", "example.com", 8443),
+                BasicRequestBuilder.get("/")
+                        .addHeader(HttpHeaders.AUTHORIZATION, "let me pass")
+                        .build(),
+                null));
+    }
+
+    @Test
     void testRedirectAllowedDefaultPortNormalization() {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
