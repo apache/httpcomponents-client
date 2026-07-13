@@ -93,7 +93,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             final HttpRequest redirect,
             final HttpContext context) {
 
-        // If authority (host + effective port) differs, disallow automatic redirect
+        // If the origin (scheme, host and effective port) differs, disallow automatic redirect
         if (!isSameAuthority(currentTarget, newTarget)) {
             for (final Iterator<Header> it = redirect.headerIterator(); it.hasNext(); ) {
                 final Header header = it.next();
@@ -109,6 +109,9 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
 
     private boolean isSameAuthority(final HttpHost h1, final HttpHost h2) {
         if (h1 == null || h2 == null) {
+            return false;
+        }
+        if (!h1.getSchemeName().equalsIgnoreCase(h2.getSchemeName())) {
             return false;
         }
         final String host1 = h1.getHostName();
