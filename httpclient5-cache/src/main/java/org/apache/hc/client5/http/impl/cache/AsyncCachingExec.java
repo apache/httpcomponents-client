@@ -444,6 +444,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
     }
 
     void callBackend(
+            final RequestCacheControl requestCacheControl,
             final HttpHost target,
             final SimpleHttpRequest request,
             final AsyncExecChain.Scope scope,
@@ -463,7 +464,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     final HttpResponse backendResponse,
                     final EntityDetails entityDetails) throws HttpException, IOException {
                 final Instant responseDate = getCurrentDate();
-                final AsyncExecCallback callback = new BackendResponseHandler(target, request, requestDate, responseDate, scope, asyncExecCallback);
+                final AsyncExecCallback callback = new BackendResponseHandler(requestCacheControl, target, request, requestDate, responseDate, scope, asyncExecCallback);
                 callbackRef.set(callback);
                 return callback.handleResponse(backendResponse, entityDetails);
             }
@@ -592,6 +593,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
     class BackendResponseHandler implements AsyncExecCallback {
 
+        private final RequestCacheControl requestCacheControl;
         private final HttpHost target;
         private final SimpleHttpRequest request;
         private final Instant requestDate;
@@ -601,12 +603,14 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         private final AtomicReference<CachingAsyncDataConsumer> cachingConsumerRef;
 
         BackendResponseHandler(
+                final RequestCacheControl requestCacheControl,
                 final HttpHost target,
                 final SimpleHttpRequest request,
                 final Instant requestDate,
                 final Instant responseDate,
                 final AsyncExecChain.Scope scope,
                 final AsyncExecCallback asyncExecCallback) {
+            this.requestCacheControl = requestCacheControl;
             this.target = target;
             this.request = request;
             this.requestDate = requestDate;
@@ -649,7 +653,8 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
             final ResponseCacheControl responseCacheControl = CacheControlHeaderParser.INSTANCE.parse(backendResponse);
             context.setResponseCacheControl(responseCacheControl);
-            final boolean cacheable = responseCachingPolicy.isResponseCacheable(responseCacheControl, request, backendResponse);
+            final boolean cacheable = responseCachingPolicy.isResponseCacheable(
+                    requestCacheControl, responseCacheControl, request, backendResponse);
             if (cacheable) {
                 storeRequestIfModifiedSinceFor304Response(request, backendResponse);
                 if (LOG.isDebugEnabled()) {
@@ -894,17 +899,17 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} cache entry does not match the request; calling backend", exchangeId);
                 }
-                callBackend(target, request, scope, chain, asyncExecCallback);
+                callBackend(requestCacheControl, target, request, scope, chain, asyncExecCallback);
             } else if (hit.entry.getStatus() == HttpStatus.SC_NOT_MODIFIED && !suitabilityChecker.isConditional(request)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} non-modified cache entry does not match the non-conditional request; calling backend", exchangeId);
                 }
-                callBackend(target, request, scope, chain, asyncExecCallback);
+                callBackend(requestCacheControl, target, request, scope, chain, asyncExecCallback);
             } else if (cacheSuitability == CacheSuitability.REVALIDATION_REQUIRED) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} revalidation required; revalidating cache entry", exchangeId);
                 }
-                revalidateCacheEntryWithoutFallback(responseCacheControl, hit, target, request, scope, chain, asyncExecCallback);
+                revalidateCacheEntryWithoutFallback(requestCacheControl, responseCacheControl, hit, target, request, scope, chain, asyncExecCallback);
             } else if (cacheSuitability == CacheSuitability.STALE_WHILE_REVALIDATED) {
                 if (cacheRevalidator != null) {
                     if (LOG.isDebugEnabled()) {
@@ -928,7 +933,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                         cacheRevalidator.revalidateCacheEntry(
                                 hit.getEntryKey(),
                                 asyncExecCallback,
-                                c -> revalidateCacheEntry(responseCacheControl, hit, target, request, fork, chain, c));
+                                c -> revalidateCacheEntry(requestCacheControl, responseCacheControl, hit, target, request, fork, chain, c));
                         context.setCacheResponseStatus(CacheResponseStatus.CACHE_MODULE_RESPONSE);
                         final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, hit.entry);
                         context.setCacheEntry(hit.entry);
@@ -951,12 +956,13 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} cache entry not usable; calling backend", exchangeId);
                 }
-                callBackend(target, request, scope, chain, asyncExecCallback);
+                callBackend(requestCacheControl, target, request, scope, chain, asyncExecCallback);
             }
         }
     }
 
     void revalidateCacheEntry(
+            final RequestCacheControl requestCacheControl,
             final ResponseCacheControl responseCacheControl,
             final CacheHit hit,
             final HttpHost target,
@@ -1018,7 +1024,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
                     return new AsyncExecCallbackWrapper(() -> triggerUpdatedCacheEntryResponse(backendResponse, responseDate), asyncExecCallback::failed);
                 }
-                return new BackendResponseHandler(target, conditional, requestDate, responseDate, scope, asyncExecCallback);
+                return new BackendResponseHandler(requestCacheControl, target, conditional, requestDate, responseDate, scope, asyncExecCallback);
             }
 
             @Override
@@ -1117,6 +1123,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
     }
 
     void revalidateCacheEntryWithoutFallback(
+            final RequestCacheControl requestCacheControl,
             final ResponseCacheControl responseCacheControl,
             final CacheHit hit,
             final HttpHost target,
@@ -1126,7 +1133,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final AsyncExecCallback asyncExecCallback) {
         final String exchangeId = scope.exchangeId;
         final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
-        revalidateCacheEntry(responseCacheControl, hit, target, request, scope, chain, new AsyncExecCallback() {
+        revalidateCacheEntry(requestCacheControl, responseCacheControl, hit, target, request, scope, chain, new AsyncExecCallback() {
 
             private final AtomicBoolean committed = new AtomicBoolean();
 
@@ -1175,7 +1182,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final AsyncExecCallback asyncExecCallback) {
         final String exchangeId = scope.exchangeId;
         final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
-        revalidateCacheEntry(responseCacheControl, hit, target, request, scope, chain, new AsyncExecCallback() {
+        revalidateCacheEntry(requestCacheControl, responseCacheControl, hit, target, request, scope, chain, new AsyncExecCallback() {
 
             private final AtomicReference<HttpResponse> committed = new AtomicReference<>();
 
@@ -1281,9 +1288,9 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                         @Override
                         public void completed(final Collection<CacheHit> variants) {
                             if (variants != null && !variants.isEmpty()) {
-                                negotiateResponseFromVariants(target, request, scope, chain, asyncExecCallback, variants);
+                                negotiateResponseFromVariants(requestCacheControl, target, request, scope, chain, asyncExecCallback, variants);
                             } else {
-                                callBackend(target, request, scope, chain, asyncExecCallback);
+                                callBackend(requestCacheControl, target, request, scope, chain, asyncExecCallback);
                             }
                         }
 
@@ -1299,11 +1306,12 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
                     }));
         } else {
-            callBackend(target, request, scope, chain, asyncExecCallback);
+            callBackend(requestCacheControl, target, request, scope, chain, asyncExecCallback);
         }
     }
 
     void negotiateResponseFromVariants(
+            final RequestCacheControl requestCacheControl,
             final HttpHost target,
             final SimpleHttpRequest request,
             final AsyncExecChain.Scope scope,
@@ -1374,25 +1382,25 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 final Instant responseDate = getCurrentDate();
                 final AsyncExecCallback callback;
                 if (backendResponse.getCode() != HttpStatus.SC_NOT_MODIFIED) {
-                    callback = new BackendResponseHandler(target, request, requestDate, responseDate, scope, asyncExecCallback);
+                    callback = new BackendResponseHandler(requestCacheControl, target, request, requestDate, responseDate, scope, asyncExecCallback);
                 } else {
                     final ETag resultEtag = ETag.get(backendResponse);
                     if (resultEtag == null) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("{} 304 response did not contain ETag", exchangeId);
                         }
-                        callback = new AsyncExecCallbackWrapper(() -> callBackend(target, request, scope, chain, asyncExecCallback), asyncExecCallback::failed);
+                        callback = new AsyncExecCallbackWrapper(() -> callBackend(requestCacheControl, target, request, scope, chain, asyncExecCallback), asyncExecCallback::failed);
                     } else {
                         final CacheHit match = variantMap.get(resultEtag);
                         if (match == null) {
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("{} 304 response did not contain ETag matching one sent in If-None-Match", exchangeId);
                             }
-                            callback = new AsyncExecCallbackWrapper(() -> callBackend(target, request, scope, chain, asyncExecCallback), asyncExecCallback::failed);
+                            callback = new AsyncExecCallbackWrapper(() -> callBackend(requestCacheControl, target, request, scope, chain, asyncExecCallback), asyncExecCallback::failed);
                         } else {
                             if (HttpCacheEntry.isNewer(match.entry, backendResponse)) {
                                 final SimpleHttpRequest unconditional = conditionalRequestBuilder.makeUnconditional(request);
-                                callback = new AsyncExecCallbackWrapper(() -> callBackend(target, unconditional, scope, chain, asyncExecCallback), asyncExecCallback::failed);
+                                callback = new AsyncExecCallbackWrapper(() -> callBackend(requestCacheControl, target, unconditional, scope, chain, asyncExecCallback), asyncExecCallback::failed);
                             } else {
                                 callback = new AsyncExecCallbackWrapper(() -> updateVariantCacheEntry(backendResponse, responseDate, match), asyncExecCallback::failed);
                             }

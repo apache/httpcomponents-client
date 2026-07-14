@@ -30,6 +30,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
 
+import org.apache.hc.client5.http.cache.RequestCacheControl;
 import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -87,9 +88,16 @@ class ResponseCachingPolicy {
      * Determine if the {@link HttpResponse} gotten from the origin is a
      * cacheable response.
      *
+     * @param requestCacheControl the cache control directives of the request
      * @return {@code true} if response is cacheable
      */
-    public boolean isResponseCacheable(final ResponseCacheControl cacheControl, final HttpRequest request, final HttpResponse response) {
+    public boolean isResponseCacheable(final RequestCacheControl requestCacheControl, final ResponseCacheControl cacheControl, final HttpRequest request, final HttpResponse response) {
+        if (requestCacheControl.isNoStore()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Response is not cacheable as the request enforced no-store");
+            }
+            return false;
+        }
         final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
         if (version.compareToVersion(HttpVersion.HTTP_1_1) > 0) {
             if (LOG.isDebugEnabled()) {
