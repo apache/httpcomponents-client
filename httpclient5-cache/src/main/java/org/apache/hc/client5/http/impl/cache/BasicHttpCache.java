@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
@@ -46,7 +47,6 @@ import org.apache.hc.client5.http.validator.ETag;
 import org.apache.hc.client5.http.validator.ValidatorType;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
@@ -139,7 +139,7 @@ class BasicHttpCache implements HttpCache {
     }
 
     @Override
-    public CacheMatch match(final HttpHost host, final HttpRequest request) {
+    public CacheMatch match(final HttpHost host, final SimpleHttpRequest request) {
         final String rootKey = cacheKeyGenerator.generateKey(host, request);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Get cache root entry: {}", rootKey);
@@ -218,7 +218,7 @@ class BasicHttpCache implements HttpCache {
     @Override
     public CacheHit store(
             final HttpHost host,
-            final HttpRequest request,
+            final SimpleHttpRequest request,
             final HttpResponse originResponse,
             final ByteArrayBuffer content,
             final Instant requestSent,
@@ -256,7 +256,7 @@ class BasicHttpCache implements HttpCache {
     public CacheHit update(
             final CacheHit stale,
             final HttpHost host,
-            final HttpRequest request,
+            final SimpleHttpRequest request,
             final HttpResponse originResponse,
             final Instant requestSent,
             final Instant responseReceived) {
@@ -278,7 +278,7 @@ class BasicHttpCache implements HttpCache {
     public CacheHit storeFromNegotiated(
             final CacheHit negotiated,
             final HttpHost host,
-            final HttpRequest request,
+            final SimpleHttpRequest request,
             final HttpResponse originResponse,
             final Instant requestSent,
             final Instant responseReceived) {
@@ -339,7 +339,7 @@ class BasicHttpCache implements HttpCache {
     }
 
     @Override
-    public void evictInvalidatedEntries(final HttpHost host, final HttpRequest request, final HttpResponse response) {
+    public void evictInvalidatedEntries(final HttpHost host, final SimpleHttpRequest request, final HttpResponse response) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Evict cache entries invalidated by exchange: {}; {} {} -> {}",
                     host, request.getMethod(), request.getRequestUri(), response.getCode());

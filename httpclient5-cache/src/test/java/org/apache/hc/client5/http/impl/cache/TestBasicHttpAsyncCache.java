@@ -45,6 +45,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.HeadersMatcher;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -54,7 +55,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.ByteArrayBuffer;
@@ -83,7 +83,7 @@ class TestBasicHttpAsyncCache {
     @Test
     void testGetCacheEntryReturnsNullOnCacheMiss() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final SimpleHttpRequest request = new SimpleHttpRequest("GET", "http://foo.example.com/bar");
 
         final CountDownLatch latch1 = new CountDownLatch(1);
         final AtomicReference<CacheMatch> resultRef = new AtomicReference<>();
@@ -100,7 +100,7 @@ class TestBasicHttpAsyncCache {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         assertFalse(entry.hasVariants());
         final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final SimpleHttpRequest request = new SimpleHttpRequest("GET", "http://foo.example.com/bar");
 
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, request);
 
@@ -121,7 +121,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testGetCacheEntryReturnsNullIfNoVariantInCache() throws Exception {
-        final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
+        final SimpleHttpRequest origRequest = new SimpleHttpRequest("GET", "http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding","gzip");
 
         final ByteArrayBuffer buf = HttpTestUtils.makeRandomBuffer(128);
@@ -138,7 +138,7 @@ class TestBasicHttpAsyncCache {
 
         latch1.await();
 
-        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final SimpleHttpRequest request = new SimpleHttpRequest("GET", "http://foo.example.com/bar");
 
         final CountDownLatch latch2 = new CountDownLatch(1);
         final AtomicReference<CacheMatch> resultRef = new AtomicReference<>();
@@ -153,7 +153,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testGetCacheEntryReturnsVariantIfPresentInCache() throws Exception {
-        final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
+        final SimpleHttpRequest origRequest = new SimpleHttpRequest("GET", "http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding","gzip");
 
         final ByteArrayBuffer buf = HttpTestUtils.makeRandomBuffer(128);
@@ -170,7 +170,7 @@ class TestBasicHttpAsyncCache {
 
         latch1.await();
 
-        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final SimpleHttpRequest request = new SimpleHttpRequest("GET", "http://foo.example.com/bar");
         request.setHeader("Accept-Encoding","gzip");
 
         final CountDownLatch latch2 = new CountDownLatch(1);
@@ -186,7 +186,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testGetCacheEntryReturnsVariantWithMostRecentDateHeader() throws Exception {
-        final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
+        final SimpleHttpRequest origRequest = new SimpleHttpRequest("GET", "http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding", "gzip");
 
         final ByteArrayBuffer buf = HttpTestUtils.makeRandomBuffer(128);
@@ -212,7 +212,7 @@ class TestBasicHttpAsyncCache {
 
         latch1.await();
 
-        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final SimpleHttpRequest request = new SimpleHttpRequest("GET", "http://foo.example.com/bar");
         request.setHeader("Accept-Encoding", "gzip");
 
         final CountDownLatch latch2 = new CountDownLatch(1);
@@ -272,7 +272,7 @@ class TestBasicHttpAsyncCache {
     void testGetVariantCacheEntriesReturnsAllVariants() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final URI uri = new URI("http://foo.example.com/bar");
-        final HttpRequest req1 = new HttpGet(uri);
+        final SimpleHttpRequest req1 = new SimpleHttpRequest("GET", uri);
         req1.setHeader("Accept-Encoding", "gzip");
 
         final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(uri);
@@ -284,7 +284,7 @@ class TestBasicHttpAsyncCache {
         resp1.setHeader("Vary", "Accept-Encoding");
         resp1.setHeader("Content-Encoding","gzip");
 
-        final HttpRequest req2 = new HttpGet(uri);
+        final SimpleHttpRequest req2 = new SimpleHttpRequest("GET", uri);
         req2.setHeader("Accept-Encoding", "identity");
 
         final HttpResponse resp2 = HttpTestUtils.make200Response();
@@ -332,7 +332,7 @@ class TestBasicHttpAsyncCache {
     void testUpdateCacheEntry() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final URI uri = new URI("http://foo.example.com/bar");
-        final HttpRequest req1 = new HttpGet(uri);
+        final SimpleHttpRequest req1 = new SimpleHttpRequest("GET", uri);
 
         final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
@@ -384,7 +384,7 @@ class TestBasicHttpAsyncCache {
     void testUpdateVariantCacheEntry() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final URI uri = new URI("http://foo.example.com/bar");
-        final HttpRequest req1 = new HttpGet(uri);
+        final SimpleHttpRequest req1 = new SimpleHttpRequest("GET", uri);
         req1.setHeader("User-Agent", "agent1");
 
         final HttpResponse resp1 = HttpTestUtils.make200Response();
@@ -439,7 +439,7 @@ class TestBasicHttpAsyncCache {
     void testUpdateCacheEntryTurnsVariant() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final URI uri = new URI("http://foo.example.com/bar");
-        final HttpRequest req1 = new HttpGet(uri);
+        final SimpleHttpRequest req1 = new SimpleHttpRequest("GET", uri);
         req1.setHeader("User-Agent", "agent1");
 
         final HttpResponse resp1 = HttpTestUtils.make200Response();
@@ -493,7 +493,7 @@ class TestBasicHttpAsyncCache {
     void testStoreFromNegotiatedVariant() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final URI uri = new URI("http://foo.example.com/bar");
-        final HttpRequest req1 = new HttpGet(uri);
+        final SimpleHttpRequest req1 = new SimpleHttpRequest("GET", uri);
         req1.setHeader("User-Agent", "agent1");
 
         final HttpResponse resp1 = HttpTestUtils.make200Response();
@@ -515,7 +515,7 @@ class TestBasicHttpAsyncCache {
         Assertions.assertEquals(2, backing.map.size());
         Assertions.assertSame(hit1.entry, backing.map.get(hit1.getEntryKey()));
 
-        final HttpRequest req2 = new HttpGet(uri);
+        final SimpleHttpRequest req2 = new SimpleHttpRequest("GET", uri);
         req2.setHeader("User-Agent", "agent2");
 
         final HttpResponse resp2 = HttpTestUtils.make304Response();
@@ -544,7 +544,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testInvalidatesUnsafeRequests() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("POST", "/path");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "POST", "/path");
         final HttpResponse response = HttpTestUtils.make200Response();
 
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, request);
@@ -563,7 +563,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testDoesNotInvalidateSafeRequests() throws Exception {
-        final HttpRequest request1 = new BasicHttpRequest("GET", "/");
+        final SimpleHttpRequest request1 = new SimpleHttpRequest("GET", "/");
         final HttpResponse response1 = HttpTestUtils.make200Response();
         final CountDownLatch latch1 = new CountDownLatch(1);
 
@@ -573,7 +573,7 @@ class TestBasicHttpAsyncCache {
 
         verifyNoMoreInteractions(backing);
 
-        final HttpRequest request2 = new BasicHttpRequest("HEAD", "/");
+        final SimpleHttpRequest request2 = new SimpleHttpRequest("HEAD", "/");
         final HttpResponse response2 = HttpTestUtils.make200Response();
         final CountDownLatch latch2 = new CountDownLatch(1);
 
@@ -586,7 +586,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testInvalidatesUnsafeRequestsWithVariants() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("POST", "/path");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "POST", "/path");
         final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
         final Set<String> variants = new HashSet<>();
         variants.add("{var1}");
@@ -617,7 +617,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testInvalidateUriSpecifiedByContentLocationAndFresher() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
         final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
@@ -649,7 +649,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testInvalidateUriSpecifiedByLocationAndFresher() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
         final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
@@ -681,7 +681,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testDoesNotInvalidateForUnsuccessfulResponse() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
@@ -701,7 +701,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testInvalidateUriSpecifiedByContentLocationNonCanonical() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
         final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
@@ -736,7 +736,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testInvalidateUriSpecifiedByContentLocationRelative() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
         final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
@@ -771,7 +771,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testDoesNotInvalidateUriSpecifiedByContentLocationOtherOrigin() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("PUT", "/");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/");
         final URI contentUri = new URIBuilder()
                 .setHost("bar.example.com")
                 .setPath("/")
@@ -796,7 +796,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testDoesNotInvalidateUriSpecifiedByContentLocationIfEtagsMatch() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
@@ -823,7 +823,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testDoesNotInvalidateUriSpecifiedByContentLocationIfOlder() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
@@ -850,7 +850,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testDoesNotInvalidateUriSpecifiedByContentLocationIfResponseHasNoEtag() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
@@ -877,7 +877,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testDoesNotInvalidateUriSpecifiedByContentLocationIfEntryHasNoEtag() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
@@ -903,7 +903,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testInvalidatesUriSpecifiedByContentLocationIfResponseHasNoDate() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
@@ -930,7 +930,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testInvalidatesUriSpecifiedByContentLocationIfEntryHasNoDate() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
@@ -956,7 +956,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testInvalidatesUriSpecifiedByContentLocationIfResponseHasMalformedDate() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
@@ -983,7 +983,7 @@ class TestBasicHttpAsyncCache {
 
     @Test
     void testInvalidatesUriSpecifiedByContentLocationIfEntryHasMalformedDate() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")

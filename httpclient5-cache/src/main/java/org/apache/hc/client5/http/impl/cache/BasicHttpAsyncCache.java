@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -53,7 +54,6 @@ import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
@@ -93,7 +93,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     }
 
     @Override
-    public Cancellable match(final HttpHost host, final HttpRequest request, final FutureCallback<CacheMatch> callback) {
+    public Cancellable match(final HttpHost host, final SimpleHttpRequest request, final FutureCallback<CacheMatch> callback) {
         final String rootKey = cacheKeyGenerator.generateKey(host, request);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Get cache entry: {}", rootKey);
@@ -384,7 +384,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     @Override
     public Cancellable store(
             final HttpHost host,
-            final HttpRequest request,
+            final SimpleHttpRequest request,
             final HttpResponse originResponse,
             final ByteArrayBuffer content,
             final Instant requestSent,
@@ -424,7 +424,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     public Cancellable update(
             final CacheHit stale,
             final HttpHost host,
-            final HttpRequest request,
+            final SimpleHttpRequest request,
             final HttpResponse originResponse,
             final Instant requestSent,
             final Instant responseReceived,
@@ -447,7 +447,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     public Cancellable storeFromNegotiated(
             final CacheHit negotiated,
             final HttpHost host,
-            final HttpRequest request,
+            final SimpleHttpRequest request,
             final HttpResponse originResponse,
             final Instant requestSent,
             final Instant responseReceived,
@@ -543,7 +543,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
 
     @Override
     public Cancellable evictInvalidatedEntries(
-            final HttpHost host, final HttpRequest request, final HttpResponse response, final FutureCallback<Boolean> callback) {
+            final HttpHost host, final SimpleHttpRequest request, final HttpResponse response, final FutureCallback<Boolean> callback) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Flush cache entries invalidated by exchange: {}; {} {} -> {}",
                     host, request.getMethod(), request.getRequestUri(), response.getCode());

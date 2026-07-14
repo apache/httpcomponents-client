@@ -39,7 +39,9 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
@@ -117,6 +119,7 @@ class TestCachingExecChain {
     @Test
     void testCacheableResponsesGoIntoCache() throws Exception {
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        final SimpleHttpRequest cacheRequest1 = SimpleRequestBuilder.copy(req1).build();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control", "max-age=3600");
 
@@ -128,7 +131,7 @@ class TestCachingExecChain {
         execute(req2);
 
         Mockito.verify(mockExecChain).proceed(Mockito.any(), Mockito.any());
-        Mockito.verify(cache).store(Mockito.eq(host), RequestEquivalent.eq(req1),
+        Mockito.verify(cache).store(Mockito.eq(host), RequestEquivalent.eq(cacheRequest1),
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
     }
 
@@ -889,6 +892,7 @@ class TestCachingExecChain {
     void testTooLargeResponsesAreNotCached() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final ClassicHttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final SimpleHttpRequest cacheRequest = SimpleRequestBuilder.copy(request).build();
 
         final Instant now = Instant.now();
         final Instant requestSent = now.plusSeconds(3);
@@ -901,7 +905,7 @@ class TestCachingExecChain {
         originResponse.setHeader("Date", DateUtils.formatStandardDate(responseGenerated));
         originResponse.setHeader("ETag", "\"etag\"");
 
-        impl.cacheAndReturnResponse(host, request, scope, originResponse, requestSent, responseReceived);
+        impl.cacheAndReturnResponse(host, cacheRequest, scope, originResponse, requestSent, responseReceived);
 
         Mockito.verify(cache, Mockito.never()).store(
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
@@ -914,6 +918,7 @@ class TestCachingExecChain {
 
         final HttpHost host = new HttpHost("foo.example.com");
         final ClassicHttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final SimpleHttpRequest cacheRequest = SimpleRequestBuilder.copy(request).build();
 
         final Instant now = Instant.now();
         final Instant requestSent = now.plusSeconds(3);
@@ -931,13 +936,13 @@ class TestCachingExecChain {
 
         Mockito.when(mockCache.store(
                 Mockito.eq(host),
-                RequestEquivalent.eq(request),
+                RequestEquivalent.eq(cacheRequest),
                 ResponseEquivalent.eq(response),
                 Mockito.any(),
                 Mockito.eq(requestSent),
                 Mockito.eq(responseReceived))).thenReturn(new CacheHit("key", httpCacheEntry));
 
-        impl.cacheAndReturnResponse(host, request, scope, originResponse, requestSent, responseReceived);
+        impl.cacheAndReturnResponse(host, cacheRequest, scope, originResponse, requestSent, responseReceived);
 
         Mockito.verify(mockCache).store(
                 Mockito.any(),
@@ -1202,10 +1207,11 @@ class TestCachingExecChain {
         // Prepare request and host
         final HttpHost host = new HttpHost("foo.example.com");
         final ClassicHttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final SimpleHttpRequest cacheRequest = SimpleRequestBuilder.copy(request).build();
 
         // Prepare original cache entry
         final HttpCacheEntry originalEntry = HttpTestUtils.makeCacheEntry();
-        Mockito.when(mockCache.match(host, request)).thenReturn(
+        Mockito.when(mockCache.match(host, cacheRequest)).thenReturn(
                 new CacheMatch(new CacheHit("key", originalEntry), null));
 
         // Prepare 304 Not Modified response
@@ -1234,13 +1240,13 @@ class TestCachingExecChain {
                 .thenReturn(new CacheHit("key", cacheEntry));
 
         // Call cacheAndReturnResponse with 304 Not Modified response
-        final ClassicHttpResponse cachedResponse = impl.cacheAndReturnResponse(host, request, scope, backendResponse, requestSent, responseReceived);
+        final ClassicHttpResponse cachedResponse = impl.cacheAndReturnResponse(host, cacheRequest, scope, backendResponse, requestSent, responseReceived);
 
         // Verify cache entry is updated
         Mockito.verify(mockCache).update(
                 Mockito.any(),
                 Mockito.same(host),
-                Mockito.same(request),
+                Mockito.same(cacheRequest),
                 Mockito.same(backendResponse),
                 Mockito.eq(requestSent),
                 Mockito.eq(responseReceived)

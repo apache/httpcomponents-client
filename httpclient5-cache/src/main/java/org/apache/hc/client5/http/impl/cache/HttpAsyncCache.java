@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 import java.time.Instant;
 import java.util.Collection;
 
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -43,7 +44,7 @@ interface HttpAsyncCache {
      * Returns a result with either a fully matching {@link HttpCacheEntry}
      * a partial match with a list of known variants or null if no match could be found.
      */
-    Cancellable match(HttpHost host, HttpRequest request, FutureCallback<CacheMatch> callback);
+    Cancellable match(HttpHost host, SimpleHttpRequest request, FutureCallback<CacheMatch> callback);
 
     /**
      * Retrieves variant {@link HttpCacheEntry}s for the given hit.
@@ -56,7 +57,7 @@ interface HttpAsyncCache {
      */
     Cancellable store(
             HttpHost host,
-            HttpRequest request,
+            SimpleHttpRequest request,
             HttpResponse originResponse,
             ByteArrayBuffer content,
             Instant requestSent,
@@ -70,7 +71,7 @@ interface HttpAsyncCache {
     Cancellable update(
             CacheHit stale,
             HttpHost host,
-            HttpRequest request,
+            SimpleHttpRequest request,
             HttpResponse originResponse,
             Instant requestSent,
             Instant responseReceived,
@@ -83,7 +84,7 @@ interface HttpAsyncCache {
     Cancellable storeFromNegotiated(
             CacheHit negotiated,
             HttpHost host,
-            HttpRequest request,
+            SimpleHttpRequest request,
             HttpResponse originResponse,
             Instant requestSent,
             Instant responseReceived,
@@ -93,6 +94,6 @@ interface HttpAsyncCache {
      * Evicts {@link HttpCacheEntry}s invalidated by the given message exchange.
      */
     Cancellable evictInvalidatedEntries(
-            HttpHost host, HttpRequest request, HttpResponse response, FutureCallback<Boolean> callback);
+            HttpHost host, SimpleHttpRequest request, HttpResponse response, FutureCallback<Boolean> callback);
 
 }

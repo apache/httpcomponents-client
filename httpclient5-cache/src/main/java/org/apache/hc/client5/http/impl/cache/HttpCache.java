@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 import java.time.Instant;
 import java.util.List;
 
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -41,7 +42,7 @@ interface HttpCache {
      * Returns a result with either a fully matching {@link HttpCacheEntry}
      * a partial match with a list of known variants or null if no match could be found.
      */
-    CacheMatch match(HttpHost host, HttpRequest request);
+    CacheMatch match(HttpHost host, SimpleHttpRequest request);
 
     /**
      * Retrieves variant {@link HttpCacheEntry}s for the given hit.
@@ -53,7 +54,7 @@ interface HttpCache {
      */
     CacheHit store(
             HttpHost host,
-            HttpRequest request,
+            SimpleHttpRequest request,
             HttpResponse originResponse,
             ByteArrayBuffer content,
             Instant requestSent,
@@ -66,7 +67,7 @@ interface HttpCache {
     CacheHit update(
             CacheHit stale,
             HttpHost host,
-            HttpRequest request,
+            SimpleHttpRequest request,
             HttpResponse originResponse,
             Instant requestSent,
             Instant responseReceived);
@@ -78,7 +79,7 @@ interface HttpCache {
     CacheHit storeFromNegotiated(
             CacheHit negotiated,
             HttpHost host,
-            HttpRequest request,
+            SimpleHttpRequest request,
             HttpResponse originResponse,
             Instant requestSent,
             Instant responseReceived);
@@ -86,6 +87,6 @@ interface HttpCache {
     /**
      * Evicts {@link HttpCacheEntry}s invalidated by the given message exchange.
      */
-    void evictInvalidatedEntries(HttpHost host, HttpRequest request, HttpResponse response);
+    void evictInvalidatedEntries(HttpHost host, SimpleHttpRequest request, HttpResponse response);
 
 }

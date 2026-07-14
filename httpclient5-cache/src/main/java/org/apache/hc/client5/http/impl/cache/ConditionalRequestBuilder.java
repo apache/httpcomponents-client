@@ -28,24 +28,18 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.util.Collection;
 
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.client5.http.validator.ETag;
-import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BufferedHeader;
 import org.apache.hc.core5.util.CharArrayBuffer;
 
-class ConditionalRequestBuilder<T extends HttpRequest> {
-
-    private final Factory<T, T> messageCopier;
-
-    ConditionalRequestBuilder(final Factory<T, T> messageCopier) {
-        this.messageCopier = messageCopier;
-    }
+class ConditionalRequestBuilder {
 
     /**
      * When a {@link HttpCacheEntry} is stale but 'might' be used as a response
@@ -58,8 +52,10 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      * @param cacheEntry the entry that needs to be re-validated
      * @return the wrapped request
      */
-    public T buildConditionalRequest(final ResponseCacheControl cacheControl, final T request, final HttpCacheEntry cacheEntry) {
-        final T newRequest = messageCopier.create(request);
+    public SimpleHttpRequest makeConditional(final ResponseCacheControl cacheControl,
+                                             final SimpleHttpRequest request,
+                                             final HttpCacheEntry cacheEntry) {
+        final SimpleHttpRequest newRequest = SimpleRequestBuilder.copy(request).build();
 
         final ETag eTag = cacheEntry.getETag();
         if (eTag != null) {
@@ -87,8 +83,9 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      * @param variants
      * @return the wrapped request
      */
-    public T buildConditionalRequestFromVariants(final T request, final Collection<ETag> variants) {
-        final T newRequest = messageCopier.create(request);
+    public SimpleHttpRequest makeConditionalRequestVariants(final SimpleHttpRequest request,
+                                                            final Collection<ETag> variants) {
+        final SimpleHttpRequest newRequest = SimpleRequestBuilder.copy(request).build();
         final CharArrayBuffer buffer = new CharArrayBuffer(256);
         buffer.append(HttpHeaders.IF_NONE_MATCH);
         buffer.append(": ");
@@ -114,8 +111,8 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      * @param request client request we are trying to satisfy
      * @return an unconditional validation request
      */
-    public T buildUnconditionalRequest(final T request) {
-        final T newRequest = messageCopier.create(request);
+    public SimpleHttpRequest makeUnconditional(final SimpleHttpRequest request) {
+        final SimpleHttpRequest newRequest = SimpleRequestBuilder.copy(request).build();
         newRequest.addHeader(HttpHeaders.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);
         newRequest.removeHeaders(HttpHeaders.IF_RANGE);
         newRequest.removeHeaders(HttpHeaders.IF_MATCH);

@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -551,6 +553,7 @@ class TestProtocolRequirements {
         impl = new CachingExec(mockCache, null, config);
 
         request = new BasicClassicHttpRequest("GET", "/thing");
+        final SimpleHttpRequest cacheRequest = SimpleRequestBuilder.copy(request).build();
 
         final ClassicHttpRequest validate = new BasicClassicHttpRequest("GET", "/thing");
         validate.setHeader("If-None-Match", "\"etag\"");
@@ -559,7 +562,7 @@ class TestProtocolRequirements {
         notModified.setHeader("Date", DateUtils.formatStandardDate(now));
         notModified.setHeader("ETag", "\"etag\"");
 
-        Mockito.when(mockCache.match(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(
+        Mockito.when(mockCache.match(Mockito.eq(host), RequestEquivalent.eq(cacheRequest))).thenReturn(
                 new CacheMatch(new CacheHit("key", entry), null));
         Mockito.when(mockExecChain.proceed(RequestEquivalent.eq(validate), Mockito.any())).thenReturn(notModified);
         final HttpCacheEntry updated = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo,
@@ -582,7 +585,7 @@ class TestProtocolRequirements {
         Mockito.verify(mockCache).update(
                 Mockito.any(),
                 Mockito.eq(host),
-                RequestEquivalent.eq(request),
+                RequestEquivalent.eq(cacheRequest),
                 ResponseEquivalent.eq(notModified),
                 Mockito.any(),
                 Mockito.any());
@@ -609,8 +612,9 @@ class TestProtocolRequirements {
 
         impl = new CachingExec(mockCache, null, config);
         request = new BasicClassicHttpRequest("GET", "/thing");
+        final SimpleHttpRequest cacheRequest = SimpleRequestBuilder.copy(request).build();
 
-        Mockito.when(mockCache.match(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(
+        Mockito.when(mockCache.match(Mockito.eq(host), RequestEquivalent.eq(cacheRequest))).thenReturn(
                 new CacheMatch(new CacheHit("key", entry), null));
 
         final ClassicHttpResponse result = execute(request);
@@ -639,8 +643,9 @@ class TestProtocolRequirements {
 
         impl = new CachingExec(mockCache, null, config);
         request = new BasicClassicHttpRequest("GET", "/");
+        final SimpleHttpRequest cacheRequest = SimpleRequestBuilder.copy(request).build();
 
-        Mockito.when(mockCache.match(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(
+        Mockito.when(mockCache.match(Mockito.eq(host), RequestEquivalent.eq(cacheRequest))).thenReturn(
                 new CacheMatch(new CacheHit("key", entry), null));
 
         final ClassicHttpResponse result = execute(request);
