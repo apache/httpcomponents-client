@@ -136,6 +136,22 @@ class TestCachingExecChain {
     }
 
     @Test
+    void testResponseToRequestWithNoStoreIsNotCached() throws Exception {
+        final ClassicHttpRequest req = HttpTestUtils.makeDefaultRequest();
+        req.setHeader("Cache-Control", "no-store");
+        final ClassicHttpResponse resp = HttpTestUtils.make200Response();
+        resp.setHeader("Cache-Control", "max-age=3600");
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp);
+
+        execute(req);
+
+        // A no-store request must not have its response stored.
+        Mockito.verify(cache, Mockito.never()).store(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+    }
+
+    @Test
     void testOlderCacheableResponsesDoNotGoIntoCache() throws Exception {
         final Instant now = Instant.now();
         final Instant fiveSecondsAgo = now.minusSeconds(5);
