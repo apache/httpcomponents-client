@@ -69,6 +69,7 @@ class TestBasicHttpAsyncCache {
     private Instant now;
     private Instant tenSecondsAgo;
     private SimpleHttpAsyncCacheStorage backing;
+    private CacheKeyGenerator keyGenerator;
     private BasicHttpAsyncCache impl;
 
     @BeforeEach
@@ -77,6 +78,7 @@ class TestBasicHttpAsyncCache {
         now = Instant.now();
         tenSecondsAgo = now.minusSeconds(10);
         backing = Mockito.spy(new SimpleHttpAsyncCacheStorage());
+        keyGenerator = CacheKeyGenerator.INSTANCE;
         impl = new BasicHttpAsyncCache(HeapResourceFactory.INSTANCE, backing);
     }
 
@@ -102,7 +104,7 @@ class TestBasicHttpAsyncCache {
         final HttpHost host = new HttpHost("foo.example.com");
         final SimpleHttpRequest request = new SimpleHttpRequest("GET", "http://foo.example.com/bar");
 
-        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String key = keyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
 
         backing.map.put(key,entry);
 
@@ -275,7 +277,7 @@ class TestBasicHttpAsyncCache {
         final SimpleHttpRequest req1 = new SimpleHttpRequest("GET", uri);
         req1.setHeader("Accept-Encoding", "gzip");
 
-        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(uri);
+        final String rootKey = keyGenerator.generateKey(uri);
 
         final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatStandardDate(now));
@@ -547,7 +549,7 @@ class TestBasicHttpAsyncCache {
         final SimpleHttpRequest request = new SimpleHttpRequest( "POST", "/path");
         final HttpResponse response = HttpTestUtils.make200Response();
 
-        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String key = keyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
 
         backing.putEntry(key, HttpTestUtils.makeCacheEntry());
 
@@ -587,7 +589,7 @@ class TestBasicHttpAsyncCache {
     @Test
     void testInvalidatesUnsafeRequestsWithVariants() throws Exception {
         final SimpleHttpRequest request = new SimpleHttpRequest( "POST", "/path");
-        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String rootKey = keyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         final Set<String> variants = new HashSet<>();
         variants.add("{var1}");
         variants.add("{var2}");
@@ -618,12 +620,12 @@ class TestBasicHttpAsyncCache {
     @Test
     void testInvalidateUriSpecifiedByContentLocationAndFresher() throws Exception {
         final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
-        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String rootKey = keyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
                 .build();
-        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+        final String contentKey = keyGenerator.generateKey(contentUri);
 
         final HttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("ETag","\"new-etag\"");
@@ -650,12 +652,12 @@ class TestBasicHttpAsyncCache {
     @Test
     void testInvalidateUriSpecifiedByLocationAndFresher() throws Exception {
         final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
-        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String rootKey = keyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
                 .build();
-        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+        final String contentKey = keyGenerator.generateKey(contentUri);
 
         final HttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("ETag","\"new-etag\"");
@@ -702,12 +704,12 @@ class TestBasicHttpAsyncCache {
     @Test
     void testInvalidateUriSpecifiedByContentLocationNonCanonical() throws Exception {
         final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
-        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String rootKey = keyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
                 .build();
-        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+        final String contentKey = keyGenerator.generateKey(contentUri);
 
         final HttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("ETag","\"new-etag\"");
@@ -737,12 +739,12 @@ class TestBasicHttpAsyncCache {
     @Test
     void testInvalidateUriSpecifiedByContentLocationRelative() throws Exception {
         final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
-        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String rootKey = keyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
                 .build();
-        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+        final String contentKey = keyGenerator.generateKey(contentUri);
 
         final HttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("ETag","\"new-etag\"");
@@ -776,7 +778,7 @@ class TestBasicHttpAsyncCache {
                 .setHost("bar.example.com")
                 .setPath("/")
                 .build();
-        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+        final String contentKey = keyGenerator.generateKey(contentUri);
 
         final HttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("ETag","\"new-etag\"");
@@ -801,7 +803,7 @@ class TestBasicHttpAsyncCache {
                 .setHttpHost(host)
                 .setPath("/bar")
                 .build();
-        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+        final String contentKey = keyGenerator.generateKey(contentUri);
 
         final HttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("ETag","\"same-etag\"");
@@ -828,7 +830,7 @@ class TestBasicHttpAsyncCache {
                 .setHttpHost(host)
                 .setPath("/bar")
                 .build();
-        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+        final String contentKey = keyGenerator.generateKey(contentUri);
 
         final HttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("ETag","\"new-etag\"");
@@ -855,7 +857,7 @@ class TestBasicHttpAsyncCache {
                 .setHttpHost(host)
                 .setPath("/bar")
                 .build();
-        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+        final String contentKey = keyGenerator.generateKey(contentUri);
 
         final HttpResponse response = HttpTestUtils.make200Response();
         response.removeHeaders("ETag");
@@ -882,7 +884,7 @@ class TestBasicHttpAsyncCache {
                 .setHttpHost(host)
                 .setPath("/bar")
                 .build();
-        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+        final String contentKey = keyGenerator.generateKey(contentUri);
 
         final HttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("ETag", "\"some-etag\"");
@@ -908,7 +910,7 @@ class TestBasicHttpAsyncCache {
                 .setHttpHost(host)
                 .setPath("/bar")
                 .build();
-        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+        final String contentKey = keyGenerator.generateKey(contentUri);
 
         final HttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("ETag", "\"new-etag\"");
@@ -935,7 +937,7 @@ class TestBasicHttpAsyncCache {
                 .setHttpHost(host)
                 .setPath("/bar")
                 .build();
-        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+        final String contentKey = keyGenerator.generateKey(contentUri);
 
         final HttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("ETag","\"new-etag\"");
@@ -961,7 +963,7 @@ class TestBasicHttpAsyncCache {
                 .setHttpHost(host)
                 .setPath("/bar")
                 .build();
-        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+        final String contentKey = keyGenerator.generateKey(contentUri);
 
         final HttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("ETag","\"new-etag\"");
@@ -988,7 +990,7 @@ class TestBasicHttpAsyncCache {
                 .setHttpHost(host)
                 .setPath("/bar")
                 .build();
-        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+        final String contentKey = keyGenerator.generateKey(contentUri);
 
         final HttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("ETag","\"new-etag\"");

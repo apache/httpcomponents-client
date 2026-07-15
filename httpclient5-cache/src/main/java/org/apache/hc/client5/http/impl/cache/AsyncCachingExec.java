@@ -298,7 +298,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 final CacheHit root = result != null ? result.root : null;
                 if (hit == null) {
                     if (requestCollapsingEnabled && root == null && !requestCacheControl.isOnlyIfCached()) {
-                        final String cacheKey = CacheKeyGenerator.INSTANCE.generateKey(target, cacheRequest);
+                        final String cacheKey = CacheKeyGenerator.INSTANCE.generateKey(target, cacheRequest, SimpleHttpRequest::getBodyBytes);
                         final CacheRequestCollapser.Token token = collapser.enter(cacheKey);
                         if (token.isLeader()) {
                             handleCacheMiss(requestCacheControl, null, target, cacheRequest, scope, chain, new AsyncExecCallback() {

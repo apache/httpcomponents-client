@@ -38,6 +38,7 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -72,6 +73,10 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
      */
     public static final CacheKeyGenerator INSTANCE = new CacheKeyGenerator();
 
+    /**
+     * @deprecated Do not use.
+     */
+    @Deprecated
     @Override
     public String resolve(final URI uri) {
         return generateKey(uri);
@@ -135,9 +140,33 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
      * @param host The host for this request
      * @param request the {@link HttpRequest}
      * @return cache key
+     *
+     * @deprecated Use {@link #generateKey(HttpHost, HttpRequest, Function)}
      */
+    @Deprecated
     public String generateKey(final HttpHost host, final HttpRequest request) {
+        return generateKey(host, request, r -> null);
+    }
+
+    /**
+     * Computes a root key for the given {@link HttpHost}, {@link HttpRequest} and
+     * request body that can be used as a unique identifier for cached resources.
+     *
+     * @param host The host for this request
+     * @param request the {@link HttpRequest}
+     * @param bodyExtractor function to extract request body. May be {@code null}
+     * @return cache key
+     *
+     * @since 5.7
+     */
+    public <T extends HttpRequest> String generateKey(final HttpHost host,
+                                                      final T request,
+                                                      final Function<T, byte[]> bodyExtractor) {
         final String s = CacheSupport.requestUriRaw(host, request);
+        final byte[] body = bodyExtractor != null ? bodyExtractor.apply(request) : null;
+        if (body != null) {
+            throw new UnsupportedOperationException();
+        }
         try {
             return generateKey(new URI(s));
         } catch (final URISyntaxException ex) {
