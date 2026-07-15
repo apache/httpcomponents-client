@@ -58,6 +58,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
     private SchedulingStrategy schedulingStrategy;
     private CacheConfig cacheConfig;
     private boolean deleteCache;
+    private CacheKeyGenerator cacheKeyGenerator;
 
     public static CachingHttpClientBuilder create() {
         return new CachingHttpClientBuilder();
@@ -110,6 +111,11 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
         return this;
     }
 
+    public final CachingHttpClientBuilder setCacheKeyGenerator(final CacheKeyGenerator cacheKeyGenerator) {
+        this.cacheKeyGenerator = cacheKeyGenerator;
+        return this;
+    }
+
     @Override
     protected void customizeExecChain(final NamedElementChain<ExecChainHandler> execChainDefinition) {
         final CacheConfig config = this.cacheConfig != null ? this.cacheConfig : CacheConfig.DEFAULT;
@@ -140,7 +146,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
                 resourceFactoryCopy,
                 HttpCacheEntryFactory.INSTANCE,
                 storageCopy,
-                CacheKeyGenerator.INSTANCE);
+                this.cacheKeyGenerator != null ? this.cacheKeyGenerator : CacheKeyGenerator.INSTANCE);
 
         DefaultCacheRevalidator cacheRevalidator = null;
         if (config.getAsynchronousWorkers() > 0) {

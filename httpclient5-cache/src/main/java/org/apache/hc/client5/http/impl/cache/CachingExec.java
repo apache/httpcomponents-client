@@ -61,6 +61,7 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -159,9 +160,8 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         }
 
         // Do not attempt to cache requests with an enclosed content body
-        // To be revised when implementing QUERY support
         final HttpEntity requestEntity = request.getEntity();
-        if (requestEntity != null) {
+        if (requestEntity != null && !Method.QUERY.isSame(request.getMethod())) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} entity enclosing request cannot be served from cache", exchangeId);
             }
@@ -227,11 +227,22 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
     }
 
     SimpleHttpRequest prepareRequest(final ClassicHttpRequest request) throws ProtocolException {
-        // To be revised when implementing QUERY support
-        if (request.getEntity() != null) {
+        if (request.getEntity() != null && !Method.QUERY.isSame(request.getMethod())) {
             throw new ProtocolException("Caching of entity enclosing requests is not supported");
         }
-        return SimpleRequestBuilder.copy(request).build();
+        final SimpleRequestBuilder builder = SimpleRequestBuilder.copy(request);
+        final HttpEntity entity = request.getEntity();
+        if (entity != null) {
+            try {
+                if (entity.isRepeatable()) {
+                    final byte[] bytes = EntityUtils.toByteArray(entity);
+                    request.setEntity(new ByteArrayEntity(bytes, ContentType.parse(entity.getContentType())));
+                    builder.setBody(bytes, ContentType.parse(entity.getContentType()));
+                }
+            } catch (final Exception ignore) {
+            }
+        }
+        return builder.build();
     }
 
     ClassicHttpResponse callBackend(

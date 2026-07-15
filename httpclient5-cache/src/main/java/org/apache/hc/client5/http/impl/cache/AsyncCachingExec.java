@@ -72,6 +72,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.impl.BasicEntityDetails;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
@@ -262,8 +263,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         }
 
         // Do not attempt to cache requests with an enclosed content body
-        // To be revised when implementing QUERY support
-        if (entityProducer != null) {
+        if (entityProducer != null && !Method.QUERY.isSame(request.getMethod())) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} entity enclosing request cannot be served from cache", exchangeId);
             }
@@ -417,11 +417,21 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
     SimpleHttpRequest prepareRequest(final HttpRequest request,
                                      final AsyncEntityProducer entityProducer) throws ProtocolException {
-        // To be revised when implementing QUERY support
-        if (entityProducer != null) {
+        if (entityProducer != null && !Method.QUERY.isSame(request.getMethod())) {
             throw new ProtocolException("Caching of entity enclosing requests is not supported");
         }
-        return SimpleRequestBuilder.copy(request).build();
+        final SimpleRequestBuilder builder = SimpleRequestBuilder.copy(request);
+        if (request instanceof SimpleHttpRequest) {
+            final SimpleBody body = ((SimpleHttpRequest) request).getBody();
+            if (body != null) {
+                if (body.isText()) {
+                    builder.setBody(body.getBodyText(), body.getContentType());
+                } else {
+                    builder.setBody(body.getBodyBytes(), body.getContentType());
+                }
+            }
+        }
+        return builder.build();
     }
 
     void callChain(

@@ -56,6 +56,7 @@ public class CachingH2AsyncClientBuilder extends H2AsyncClientBuilder {
     private SchedulingStrategy schedulingStrategy;
     private CacheConfig cacheConfig;
     private boolean deleteCache;
+    private CacheKeyGenerator cacheKeyGenerator;
 
     public static CachingH2AsyncClientBuilder create() {
         return new CachingH2AsyncClientBuilder();
@@ -112,6 +113,11 @@ public class CachingH2AsyncClientBuilder extends H2AsyncClientBuilder {
         return this;
     }
 
+    public final CachingH2AsyncClientBuilder setCacheKeyGenerator(final CacheKeyGenerator cacheKeyGenerator) {
+        this.cacheKeyGenerator = cacheKeyGenerator;
+        return this;
+    }
+
     @Override
     protected void customizeExecChain(final NamedElementChain<AsyncExecChainHandler> execChainDefinition) {
         final CacheConfig config = this.cacheConfig != null ? this.cacheConfig : CacheConfig.DEFAULT;
@@ -142,7 +148,7 @@ public class CachingH2AsyncClientBuilder extends H2AsyncClientBuilder {
                 resourceFactoryCopy,
                 HttpCacheEntryFactory.INSTANCE,
                 storageCopy,
-                CacheKeyGenerator.INSTANCE);
+                this.cacheKeyGenerator != null ? this.cacheKeyGenerator : CacheKeyGenerator.INSTANCE);
 
         DefaultAsyncCacheRevalidator cacheRevalidator = null;
         if (config.getAsynchronousWorkers() > 0) {

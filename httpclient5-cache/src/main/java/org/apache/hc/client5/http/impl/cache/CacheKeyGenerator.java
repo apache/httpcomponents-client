@@ -40,6 +40,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.function.Function;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -71,6 +81,16 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
      * Default instance of {@link CacheKeyGenerator}.
      */
     public static final CacheKeyGenerator INSTANCE = new CacheKeyGenerator();
+
+    private final Function<HttpRequest, byte[]> bodyBytesExtractor;
+
+    public CacheKeyGenerator() {
+        this(null);
+    }
+
+    public CacheKeyGenerator(final Function<HttpRequest, byte[]> bodyBytesExtractor) {
+        this.bodyBytesExtractor = bodyBytesExtractor;
+    }
 
     @Override
     public String resolve(final URI uri) {
@@ -120,9 +140,24 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
      * @return cache key
      */
     public String generateKey(final URI requestUri) {
+        return generateKey(requestUri, null);
+    }
+
+    /**
+     * Computes a key for the given request {@link URI} and body hash that can
+     * be used as a unique identifier for cached resources. The URI is
+     * expected to be in an absolute form.
+     *
+     * @param requestUri request URI
+     * @param bodyHash hash of the request body
+     * @return cache key
+     */
+    public String generateKey(final URI requestUri, final String bodyHash) {
         try {
             final URI normalizeRequestUri = CacheSupport.normalize(requestUri);
-            return normalizeRequestUri.toASCIIString();
+            final String uriString = normalizeRequestUri.toASCIIString();
+            // Using a Record Separator to make it easy to spot
+            return bodyHash == null ? uriString : uriString + '\u001e' + bodyHash;
         } catch (final URISyntaxException ex) {
             return requestUri.toASCIIString();
         }
@@ -138,10 +173,59 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
      */
     public String generateKey(final HttpHost host, final HttpRequest request) {
         final String s = CacheSupport.requestUriRaw(host, request);
+        final String hash = Method.QUERY.isSame(request.getMethod()) ? getBodyHash(request) : null;
         try {
-            return generateKey(new URI(s));
+            return generateKey(new URI(s), hash);
         } catch (final URISyntaxException ex) {
             return s;
+        }
+    }
+
+    protected byte[] getRequestBodyBytes(final HttpRequest request) {
+        if (bodyBytesExtractor != null) {
+            final byte[] bytes = bodyBytesExtractor.apply(request);
+            if (bytes != null) {
+                return bytes;
+            }
+        }
+        if (request instanceof SimpleHttpRequest) {
+            return ((SimpleHttpRequest) request).getBodyBytes();
+        }
+        if (request instanceof ClassicHttpRequest) {
+            final HttpEntity entity = ((ClassicHttpRequest) request).getEntity();
+            if (entity != null) {
+                try {
+                    if (entity.isRepeatable()) {
+                        final byte[] bytes = EntityUtils.toByteArray(entity);
+                        ((ClassicHttpRequest) request).setEntity(new ByteArrayEntity(bytes, ContentType.parse(entity.getContentType())));
+                        return bytes;
+                    }
+                } catch (final Exception ignore) {
+                }
+            }
+        }
+        return null;
+    }
+
+    protected String getBodyHash(final HttpRequest request) {
+        final byte[] bodyBytes = getRequestBodyBytes(request);
+        if (bodyBytes == null || bodyBytes.length == 0) {
+            return "";
+        }
+        try {
+            final MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            final byte[] hashBytes = digest.digest(bodyBytes);
+            final StringBuilder hexString = new StringBuilder();
+            for (final byte b : hashBytes) {
+                final String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (final NoSuchAlgorithmException e) {
+            return "";
         }
     }
 
