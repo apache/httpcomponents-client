@@ -61,7 +61,6 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
@@ -158,12 +157,10 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             return new BasicClassicHttpResponse(HttpStatus.SC_NOT_IMPLEMENTED);
         }
 
-        // Do not attempt to cache requests with an enclosed content body
-        // To be revised when implementing QUERY support
-        final HttpEntity requestEntity = request.getEntity();
-        if (requestEntity != null) {
+        final SimpleHttpRequest cacheRequest = prepareRequest(request);
+        if (cacheRequest == null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{} entity enclosing request cannot be served from cache", exchangeId);
+                LOG.debug("{} request cannot be correctly executed and cached", exchangeId);
             }
             return chain.proceed(request, scope);
         }
@@ -175,8 +172,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             requestCacheControl = context.getRequestCacheControlOrDefault();
             CacheControlHeaderGenerator.INSTANCE.generate(requestCacheControl, request);
         }
-
-        final SimpleHttpRequest cacheRequest = prepareRequest(request);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Request cache control: {}", requestCacheControl);
@@ -226,10 +221,10 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         return response;
     }
 
-    SimpleHttpRequest prepareRequest(final ClassicHttpRequest request) throws ProtocolException {
+    SimpleHttpRequest prepareRequest(final ClassicHttpRequest request) {
         // To be revised when implementing QUERY support
         if (request.getEntity() != null) {
-            throw new ProtocolException("Caching of entity enclosing requests is not supported");
+            return null;
         }
         return SimpleRequestBuilder.copy(request).build();
     }

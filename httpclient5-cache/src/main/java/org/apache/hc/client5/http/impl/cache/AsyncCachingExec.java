@@ -72,7 +72,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.impl.BasicEntityDetails;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
@@ -261,11 +260,10 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             return;
         }
 
-        // Do not attempt to cache requests with an enclosed content body
-        // To be revised when implementing QUERY support
-        if (entityProducer != null) {
+        final SimpleHttpRequest cacheRequest = prepareRequest(request, entityProducer);
+        if (cacheRequest == null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{} entity enclosing request cannot be served from cache", exchangeId);
+                LOG.debug("{} request cannot be correctly executed and cached", exchangeId);
             }
             chain.proceed(request, entityProducer, scope, asyncExecCallback);
             return;
@@ -283,8 +281,6 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} request cache control: {}", exchangeId, requestCacheControl);
         }
-
-        final SimpleHttpRequest cacheRequest = prepareRequest(request, entityProducer);
 
         if (!cacheableRequestPolicy.canBeServedFromCache(requestCacheControl, cacheRequest)) {
             if (LOG.isDebugEnabled()) {
@@ -416,10 +412,10 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
     }
 
     SimpleHttpRequest prepareRequest(final HttpRequest request,
-                                     final AsyncEntityProducer entityProducer) throws ProtocolException {
+                                     final AsyncEntityProducer entityProducer) {
         // To be revised when implementing QUERY support
         if (entityProducer != null) {
-            throw new ProtocolException("Caching of entity enclosing requests is not supported");
+            return null;
         }
         return SimpleRequestBuilder.copy(request).build();
     }
