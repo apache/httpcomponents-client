@@ -68,6 +68,7 @@ class TestBasicHttpCache {
     private Instant now;
     private Instant tenSecondsAgo;
     private SimpleHttpCacheStorage backing;
+    private CacheKeyGenerator keyGenerator;
     private BasicHttpCache impl;
 
     @BeforeEach
@@ -76,6 +77,7 @@ class TestBasicHttpCache {
         now = Instant.now();
         tenSecondsAgo = now.minusSeconds(10);
         backing = Mockito.spy(new SimpleHttpCacheStorage());
+        keyGenerator = CacheKeyGenerator.INSTANCE;
         impl = new BasicHttpCache(new HeapResourceFactory(), backing);
     }
 
@@ -94,7 +96,7 @@ class TestBasicHttpCache {
         final HttpHost host = new HttpHost("foo.example.com");
         final SimpleHttpRequest request = new SimpleHttpRequest("GET", "http://foo.example.com/bar");
 
-        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String key = keyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
 
         backing.map.put(key,entry);
 
@@ -417,7 +419,7 @@ class TestBasicHttpCache {
     @Test
     void testInvalidatesUnsafeRequests() throws Exception {
         final SimpleHttpRequest request = new SimpleHttpRequest( "POST","/path");
-        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String key = keyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
 
         final HttpResponse response = HttpTestUtils.make200Response();
 
@@ -450,7 +452,7 @@ class TestBasicHttpCache {
     @Test
     void testInvalidatesUnsafeRequestsWithVariants() throws Exception {
         final SimpleHttpRequest request = new SimpleHttpRequest( "POST","/path");
-        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String rootKey = keyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         final Set<String> variants = new HashSet<>();
         variants.add("{var1}");
         variants.add("{var2}");
@@ -478,7 +480,7 @@ class TestBasicHttpCache {
     @Test
     void testInvalidateUriSpecifiedByContentLocationAndFresher() throws Exception {
         final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
-        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String rootKey = keyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
@@ -507,7 +509,7 @@ class TestBasicHttpCache {
     @Test
     void testInvalidateUriSpecifiedByLocationAndFresher() throws Exception {
         final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
-        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String rootKey = keyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
@@ -553,7 +555,7 @@ class TestBasicHttpCache {
     @Test
     void testInvalidateUriSpecifiedByContentLocationNonCanonical() throws Exception {
         final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
-        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String rootKey = keyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")
@@ -585,7 +587,7 @@ class TestBasicHttpCache {
     @Test
     void testInvalidateUriSpecifiedByContentLocationRelative() throws Exception {
         final SimpleHttpRequest request = new SimpleHttpRequest( "PUT", "/foo");
-        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String rootKey = keyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         final URI contentUri = new URIBuilder()
                 .setHttpHost(host)
                 .setPath("/bar")

@@ -140,7 +140,7 @@ class BasicHttpCache implements HttpCache {
 
     @Override
     public CacheMatch match(final HttpHost host, final SimpleHttpRequest request) {
-        final String rootKey = cacheKeyGenerator.generateKey(host, request);
+        final String rootKey = cacheKeyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Get cache root entry: {}", rootKey);
         }
@@ -223,7 +223,7 @@ class BasicHttpCache implements HttpCache {
             final ByteArrayBuffer content,
             final Instant requestSent,
             final Instant responseReceived) {
-        final String rootKey = cacheKeyGenerator.generateKey(host, request);
+        final String rootKey = cacheKeyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Create cache entry: {}", rootKey);
         }
@@ -294,7 +294,7 @@ class BasicHttpCache implements HttpCache {
                negotiated.entry);
         storeInternal(negotiated.getEntryKey(), updatedEntry);
 
-        final String rootKey = cacheKeyGenerator.generateKey(host, request);
+        final String rootKey = cacheKeyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         final HttpCacheEntry copy = cacheEntryFactory.copy(updatedEntry);
         final String variantKey = cacheKeyGenerator.generateVariantKey(request, copy);
         return store(rootKey, variantKey, copy);
@@ -347,7 +347,7 @@ class BasicHttpCache implements HttpCache {
         final int status = response.getCode();
         if (status >= HttpStatus.SC_SUCCESS && status < HttpStatus.SC_CLIENT_ERROR &&
                 !Method.isSafe(request.getMethod())) {
-            final String rootKey = cacheKeyGenerator.generateKey(host, request);
+            final String rootKey = cacheKeyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
             evict(rootKey);
             final URI requestUri = CacheSupport.requestUriNormalizedOrNull(host, request);
             if (requestUri != null) {

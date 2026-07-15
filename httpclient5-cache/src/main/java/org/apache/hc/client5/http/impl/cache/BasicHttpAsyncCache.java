@@ -94,7 +94,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
 
     @Override
     public Cancellable match(final HttpHost host, final SimpleHttpRequest request, final FutureCallback<CacheMatch> callback) {
-        final String rootKey = cacheKeyGenerator.generateKey(host, request);
+        final String rootKey = cacheKeyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Get cache entry: {}", rootKey);
         }
@@ -390,7 +390,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             final Instant requestSent,
             final Instant responseReceived,
             final FutureCallback<CacheHit> callback) {
-        final String rootKey = cacheKeyGenerator.generateKey(host, request);
+        final String rootKey = cacheKeyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Create cache entry: {}", rootKey);
         }
@@ -465,7 +465,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
 
         storeInternal(negotiated.getEntryKey(), updatedEntry, null);
 
-        final String rootKey = cacheKeyGenerator.generateKey(host, request);
+        final String rootKey = cacheKeyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
         final HttpCacheEntry copy = cacheEntryFactory.copy(updatedEntry);
         final String variantKey = cacheKeyGenerator.generateVariantKey(request, copy);
         return store(rootKey, variantKey, copy, callback);
@@ -551,7 +551,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         final int status = response.getCode();
         if (status >= HttpStatus.SC_SUCCESS && status < HttpStatus.SC_CLIENT_ERROR &&
                 !Method.isSafe(request.getMethod())) {
-            final String rootKey = cacheKeyGenerator.generateKey(host, request);
+            final String rootKey = cacheKeyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
             evict(rootKey);
             final URI requestUri = CacheSupport.requestUriNormalizedOrNull(host, request);
             if (requestUri != null) {

@@ -51,6 +51,10 @@ class TestCacheKeyGenerator {
 
     private CacheKeyGenerator extractor;
 
+    private String generateKey(final HttpHost host, final HttpRequest req) {
+        return extractor.generateKey(host, req, r -> null);
+    }
+
     @BeforeEach
     void setUp() {
         extractor = CacheKeyGenerator.INSTANCE;
@@ -60,49 +64,49 @@ class TestCacheKeyGenerator {
     void testExtractsUriFromAbsoluteUriInRequest() {
         final HttpHost host = new HttpHost("bar.example.com");
         final HttpRequest req = new HttpGet("http://foo.example.com/");
-        Assertions.assertEquals("http://foo.example.com:80/", extractor.generateKey(host, req));
+        Assertions.assertEquals("http://foo.example.com:80/", generateKey(host, req));
     }
 
     @Test
     void testGetURIWithDefaultPortAndScheme() {
-        Assertions.assertEquals("http://www.comcast.net:80/", extractor.generateKey(
+        Assertions.assertEquals("http://www.comcast.net:80/", generateKey(
                 new HttpHost("www.comcast.net"),
                 new BasicHttpRequest("GET", "/")));
 
-        Assertions.assertEquals("http://www.fancast.com:80/full_episodes", extractor.generateKey(
+        Assertions.assertEquals("http://www.fancast.com:80/full_episodes", generateKey(
                 new HttpHost("www.fancast.com"),
                 new BasicHttpRequest("GET", "/full_episodes")));
     }
 
     @Test
     void testGetURIWithDifferentScheme() {
-        Assertions.assertEquals("https://www.comcast.net:443/", extractor.generateKey(
+        Assertions.assertEquals("https://www.comcast.net:443/", generateKey(
                 new HttpHost("https", "www.comcast.net", -1),
                 new BasicHttpRequest("GET", "/")));
 
-        Assertions.assertEquals("myhttp://www.fancast.com/full_episodes", extractor.generateKey(
+        Assertions.assertEquals("myhttp://www.fancast.com/full_episodes", generateKey(
                 new HttpHost("myhttp", "www.fancast.com", -1),
                 new BasicHttpRequest("GET", "/full_episodes")));
     }
 
     @Test
     void testGetURIWithDifferentPort() {
-        Assertions.assertEquals("http://www.comcast.net:8080/", extractor.generateKey(
+        Assertions.assertEquals("http://www.comcast.net:8080/", generateKey(
                 new HttpHost("www.comcast.net", 8080),
                 new BasicHttpRequest("GET", "/")));
 
-        Assertions.assertEquals("http://www.fancast.com:9999/full_episodes", extractor.generateKey(
+        Assertions.assertEquals("http://www.fancast.com:9999/full_episodes", generateKey(
                 new HttpHost("www.fancast.com", 9999),
                 new BasicHttpRequest("GET", "/full_episodes")));
     }
 
     @Test
     void testGetURIWithDifferentPortAndScheme() {
-        Assertions.assertEquals("https://www.comcast.net:8080/", extractor.generateKey(
+        Assertions.assertEquals("https://www.comcast.net:8080/", generateKey(
                 new HttpHost("https", "www.comcast.net", 8080),
                 new BasicHttpRequest("GET", "/")));
 
-        Assertions.assertEquals("myhttp://www.fancast.com:9999/full_episodes", extractor.generateKey(
+        Assertions.assertEquals("myhttp://www.fancast.com:9999/full_episodes", generateKey(
                 new HttpHost("myhttp", "www.fancast.com", 9999),
                 new BasicHttpRequest("GET", "/full_episodes")));
     }
@@ -112,7 +116,7 @@ class TestCacheKeyGenerator {
         final HttpHost host1 = new HttpHost("foo.example.com:");
         final HttpHost host2 = new HttpHost("foo.example.com:80");
         final HttpRequest req = new BasicHttpRequest("GET", "/");
-        Assertions.assertEquals(extractor.generateKey(host1, req), extractor.generateKey(host2, req));
+        Assertions.assertEquals(generateKey(host1, req), generateKey(host2, req));
     }
 
     @Test
@@ -120,8 +124,8 @@ class TestCacheKeyGenerator {
         final HttpHost host1 = new HttpHost("https", "foo.example.com", -1);
         final HttpHost host2 = new HttpHost("https", "foo.example.com", 443);
         final HttpRequest req = new BasicHttpRequest("GET", "/");
-        final String uri1 = extractor.generateKey(host1, req);
-        final String uri2 = extractor.generateKey(host2, req);
+        final String uri1 = generateKey(host1, req);
+        final String uri2 = generateKey(host2, req);
         Assertions.assertEquals(uri1, uri2);
     }
 
@@ -130,8 +134,8 @@ class TestCacheKeyGenerator {
         final HttpHost host = new HttpHost("https", "foo.example.com", -1);
         final HttpGet get1 = new HttpGet("https://bar.example.com:/");
         final HttpGet get2 = new HttpGet("https://bar.example.com:443/");
-        final String uri1 = extractor.generateKey(host, get1);
-        final String uri2 = extractor.generateKey(host, get2);
+        final String uri1 = generateKey(host, get1);
+        final String uri2 = generateKey(host, get2);
         Assertions.assertEquals(uri1, uri2);
     }
 
@@ -140,8 +144,8 @@ class TestCacheKeyGenerator {
         final HttpHost host = new HttpHost("https", "foo.example.com", -1);
         final HttpGet get1 = new HttpGet("https://bar.example.com/");
         final HttpGet get2 = new HttpGet("https://bar.example.com:443/");
-        final String uri1 = extractor.generateKey(host, get1);
-        final String uri2 = extractor.generateKey(host, get2);
+        final String uri1 = generateKey(host, get1);
+        final String uri2 = generateKey(host, get2);
         Assertions.assertEquals(uri1, uri2);
     }
 
@@ -150,7 +154,7 @@ class TestCacheKeyGenerator {
         final HttpHost host1 = new HttpHost("foo.example.com");
         final HttpHost host2 = new HttpHost("foo.example.com:80");
         final HttpRequest req = new BasicHttpRequest("GET", "/");
-        Assertions.assertEquals(extractor.generateKey(host1, req), extractor.generateKey(host2, req));
+        Assertions.assertEquals(generateKey(host1, req), generateKey(host2, req));
     }
 
     @Test
@@ -158,7 +162,7 @@ class TestCacheKeyGenerator {
         final HttpHost host1 = new HttpHost("foo.example.com");
         final HttpHost host2 = new HttpHost("FOO.EXAMPLE.COM");
         final HttpRequest req = new BasicHttpRequest("GET", "/");
-        Assertions.assertEquals(extractor.generateKey(host1, req), extractor.generateKey(host2, req));
+        Assertions.assertEquals(generateKey(host1, req), generateKey(host2, req));
     }
 
     @Test
@@ -166,7 +170,7 @@ class TestCacheKeyGenerator {
         final HttpHost host1 = new HttpHost("http", "foo.example.com", -1);
         final HttpHost host2 = new HttpHost("HTTP", "foo.example.com", -1);
         final HttpRequest req = new BasicHttpRequest("GET", "/");
-        Assertions.assertEquals(extractor.generateKey(host1, req), extractor.generateKey(host2, req));
+        Assertions.assertEquals(generateKey(host1, req), generateKey(host2, req));
     }
 
     @Test
@@ -174,7 +178,7 @@ class TestCacheKeyGenerator {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/");
         final HttpRequest req2 = new HttpGet("http://foo.example.com");
-        Assertions.assertEquals(extractor.generateKey(host, req1), extractor.generateKey(host, req2));
+        Assertions.assertEquals(generateKey(host, req1), generateKey(host, req2));
     }
 
     @Test
@@ -182,7 +186,7 @@ class TestCacheKeyGenerator {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/");
         final HttpRequest req2 = new HttpGet("http://foo.example.com/./");
-        Assertions.assertEquals(extractor.generateKey(host, req1), extractor.generateKey(host, req2));
+        Assertions.assertEquals(generateKey(host, req1), generateKey(host, req2));
     }
 
     @Test
@@ -190,7 +194,7 @@ class TestCacheKeyGenerator {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/");
         final HttpRequest req2 = new HttpGet("http://foo.example.com/.././../");
-        Assertions.assertEquals(extractor.generateKey(host, req1), extractor.generateKey(host, req2));
+        Assertions.assertEquals(generateKey(host, req1), generateKey(host, req2));
     }
 
     @Test
@@ -198,7 +202,7 @@ class TestCacheKeyGenerator {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/home.html");
         final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/../home.html");
-        Assertions.assertEquals(extractor.generateKey(host, req1), extractor.generateKey(host, req2));
+        Assertions.assertEquals(generateKey(host, req1), generateKey(host, req2));
     }
 
     @Test
@@ -206,7 +210,7 @@ class TestCacheKeyGenerator {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/home.html");
         final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/../home.html");
-        Assertions.assertEquals(extractor.generateKey(host, req1), extractor.generateKey(host, req2));
+        Assertions.assertEquals(generateKey(host, req1), generateKey(host, req2));
     }
 
     @Test
@@ -214,7 +218,7 @@ class TestCacheKeyGenerator {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home.html");
         final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/./home.html");
-        Assertions.assertEquals(extractor.generateKey(host, req1), extractor.generateKey(host, req2));
+        Assertions.assertEquals(generateKey(host, req1), generateKey(host, req2));
     }
 
     @Test
@@ -222,7 +226,7 @@ class TestCacheKeyGenerator {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home.html");
         final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/home.html");
-        Assertions.assertEquals(extractor.generateKey(host, req1), extractor.generateKey(host, req2));
+        Assertions.assertEquals(generateKey(host, req1), generateKey(host, req2));
     }
 
     @Test
@@ -230,7 +234,7 @@ class TestCacheKeyGenerator {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home.html");
         final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/home.html");
-        Assertions.assertEquals(extractor.generateKey(host, req1), extractor.generateKey(host, req2));
+        Assertions.assertEquals(generateKey(host, req1), generateKey(host, req2));
     }
 
     @Test
@@ -238,14 +242,14 @@ class TestCacheKeyGenerator {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home%20folder.html");
         final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/home%20folder.html");
-        Assertions.assertEquals(extractor.generateKey(host, req1), extractor.generateKey(host, req2));
+        Assertions.assertEquals(generateKey(host, req1), generateKey(host, req2));
     }
 
     @Test
     void testGetURIWithQueryParameters() {
-        Assertions.assertEquals("http://www.comcast.net:80/?foo=bar", extractor.generateKey(
+        Assertions.assertEquals("http://www.comcast.net:80/?foo=bar", generateKey(
                 new HttpHost("http", "www.comcast.net", -1), new BasicHttpRequest("GET", "/?foo=bar")));
-        Assertions.assertEquals("http://www.fancast.com:80/full_episodes?foo=bar", extractor.generateKey(
+        Assertions.assertEquals("http://www.fancast.com:80/full_episodes?foo=bar", generateKey(
                 new HttpHost("http", "www.fancast.com", -1), new BasicHttpRequest("GET",
                         "/full_episodes?foo=bar")));
     }
