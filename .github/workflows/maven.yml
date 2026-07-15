@@ -17,9 +17,11 @@ name: Java CI
 
 on:
   push:
-    - master
-    - '5.*'
-    - '4.*'
+    branches:
+      - master
+      - '5.*'
+      - '4.*'
+      - 'feature/*'
   pull_request:
 
 permissions:
