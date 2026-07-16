@@ -1162,6 +1162,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             context.setCacheResponseStatus(CacheResponseStatus.CACHE_MODULE_RESPONSE);
             final SimpleHttpResponse cacheResponse = generateGatewayTimeout();
             triggerResponse(cacheResponse, scope, asyncExecCallback);
+            return;
         }
 
         if (partialMatch != null && partialMatch.entry.hasVariants() && entityProducer == null) {
