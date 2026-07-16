@@ -93,7 +93,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             final HttpRequest redirect,
             final HttpContext context) {
 
-        // If authority (host + effective port) differs, strip sensitive headers
+        // If authority (host + effective port) differs, disallow automatic redirect
         if (!isSameAuthority(currentTarget, newTarget)) {
             for (final Iterator<Header> it = redirect.headerIterator(); it.hasNext(); ) {
                 final Header header = it.next();
