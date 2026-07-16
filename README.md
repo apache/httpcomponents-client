@@ -64,6 +64,7 @@ Protocol conformance
 - [RFC 2817](https://datatracker.ietf.org/doc/html/rfc2817) - Upgrading to TLS Within HTTP/1.1
 - [RFC 9218](https://datatracker.ietf.org/doc/html/rfc9218) - Extensible Prioritization Scheme for HTTP
 - [RFC 7804](https://datatracker.ietf.org/doc/html/rfc7804) - Salted Challenge Response HTTP Authentication Mechanism
+- [RFC 10008](https://datatracker.ietf.org/doc/html/rfc10008) - The HTTP QUERY Method
 
 Licensing
 ---------

@@ -61,6 +61,7 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
@@ -221,12 +222,24 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         return response;
     }
 
-    SimpleHttpRequest prepareRequest(final ClassicHttpRequest request) {
-        // To be revised when implementing QUERY support
-        if (request.getEntity() != null) {
-            return null;
+    SimpleHttpRequest prepareRequest(final ClassicHttpRequest request) throws IOException {
+        final HttpEntity entity = request.getEntity();
+        if (entity == null) {
+            return SimpleRequestBuilder.copy(request).build();
         }
-        return SimpleRequestBuilder.copy(request).build();
+        // QUERY content must be read in full in order to determine the cache key
+        if (Method.QUERY.isSame(request.getMethod()) && entity.getContentEncoding() == null) {
+            final byte[] content = EntityUtils.toByteArray(entity);
+            final SimpleRequestBuilder builder = SimpleRequestBuilder.copy(request);
+            if (content != null) {
+                builder.setBody(content, ContentType.parseLenient(entity.getContentType()));
+                if (entity.getContentType() != null) {
+                    builder.setHeader(HttpHeaders.CONTENT_TYPE, entity.getContentType());
+                }
+            }
+            return builder.build();
+        }
+        return null;
     }
 
     ClassicHttpResponse callBackend(

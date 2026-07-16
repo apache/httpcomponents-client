@@ -32,8 +32,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -356,6 +359,72 @@ class TestCacheKeyGenerator {
                 new BasicHeader("Vary", "User-Agent, Accept-Encoding")
         );
         Assertions.assertEquals("{accept-encoding=text%2Fplain&user-agent=agent1}", extractor.generateVariantKey(request, entry2));
+    }
+
+    @Test
+    void testQueryKeyIncorporatesRequestContent() {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final SimpleHttpRequest query1 = SimpleRequestBuilder.query("http://foo.example.com/stuff")
+                .setBody("select a", ContentType.TEXT_PLAIN)
+                .setHeader(HttpHeaders.CONTENT_TYPE, ContentType.TEXT_PLAIN.toString())
+                .build();
+        final SimpleHttpRequest query2 = SimpleRequestBuilder.query("http://foo.example.com/stuff")
+                .setBody("select b", ContentType.TEXT_PLAIN)
+                .setHeader(HttpHeaders.CONTENT_TYPE, ContentType.TEXT_PLAIN.toString())
+                .build();
+        final SimpleHttpRequest query3 = SimpleRequestBuilder.query("http://foo.example.com/stuff")
+                .setBody("select a", ContentType.TEXT_PLAIN)
+                .setHeader(HttpHeaders.CONTENT_TYPE, ContentType.TEXT_PLAIN.toString())
+                .build();
+
+        Assertions.assertNotEquals(
+                extractor.generateKey(host, query1, SimpleHttpRequest::getBodyBytes),
+                extractor.generateKey(host, query2, SimpleHttpRequest::getBodyBytes));
+        Assertions.assertEquals(
+                extractor.generateKey(host, query1, SimpleHttpRequest::getBodyBytes),
+                extractor.generateKey(host, query3, SimpleHttpRequest::getBodyBytes));
+    }
+
+    @Test
+    void testQueryKeyIncorporatesContentType() {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final SimpleHttpRequest query1 = SimpleRequestBuilder.query("http://foo.example.com/stuff")
+                .setBody("select a", ContentType.TEXT_PLAIN)
+                .setHeader(HttpHeaders.CONTENT_TYPE, ContentType.TEXT_PLAIN.toString())
+                .build();
+        final SimpleHttpRequest query2 = SimpleRequestBuilder.query("http://foo.example.com/stuff")
+                .setBody("select a", ContentType.APPLICATION_JSON)
+                .setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                .build();
+
+        Assertions.assertNotEquals(
+                extractor.generateKey(host, query1, SimpleHttpRequest::getBodyBytes),
+                extractor.generateKey(host, query2, SimpleHttpRequest::getBodyBytes));
+    }
+
+    @Test
+    void testQueryKeyDiffersFromUriKey() {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final SimpleHttpRequest get = SimpleRequestBuilder.get("http://foo.example.com/stuff").build();
+        final SimpleHttpRequest query = SimpleRequestBuilder.query("http://foo.example.com/stuff")
+                .setBody("select a", ContentType.TEXT_PLAIN)
+                .setHeader(HttpHeaders.CONTENT_TYPE, ContentType.TEXT_PLAIN.toString())
+                .build();
+
+        Assertions.assertNotEquals(
+                extractor.generateKey(host, get, SimpleHttpRequest::getBodyBytes),
+                extractor.generateKey(host, query, SimpleHttpRequest::getBodyBytes));
+    }
+
+    @Test
+    void testQueryKeyWithoutContentMatchesUriKey() {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final SimpleHttpRequest get = SimpleRequestBuilder.get("http://foo.example.com/stuff").build();
+        final SimpleHttpRequest query = SimpleRequestBuilder.query("http://foo.example.com/stuff").build();
+
+        Assertions.assertEquals(
+                extractor.generateKey(host, get, SimpleHttpRequest::getBodyBytes),
+                extractor.generateKey(host, query, SimpleHttpRequest::getBodyBytes));
     }
 
 }

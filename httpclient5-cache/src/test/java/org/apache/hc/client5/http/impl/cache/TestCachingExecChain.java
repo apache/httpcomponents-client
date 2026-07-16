@@ -55,12 +55,16 @@ import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.client5.http.validator.ETag;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
@@ -1289,6 +1293,82 @@ class TestCachingExecChain {
 
         // Verify that the backend was called to revalidate the response, as per the new logic
         Mockito.verify(mockExecChain, Mockito.times(5)).proceed(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    void testPrepareRequestBuffersQueryContent() throws Exception {
+        final ClassicHttpRequest query = new BasicClassicHttpRequest("QUERY", "/stuff");
+        query.setEntity(new StringEntity("select a", ContentType.TEXT_PLAIN));
+
+        final SimpleHttpRequest converted = impl.prepareRequest(query);
+
+        Assertions.assertNotNull(converted);
+        Assertions.assertNotNull(converted.getBody());
+        Assertions.assertEquals("select a", converted.getBody().getBodyText());
+        Assertions.assertEquals(ContentType.TEXT_PLAIN.getMimeType(),
+                converted.getBody().getContentType().getMimeType());
+    }
+
+    @Test
+    void testPrepareRequestBypassesNonQueryRequestsWithContent() throws Exception {
+        final ClassicHttpRequest post = new BasicClassicHttpRequest("POST", "/stuff");
+        post.setEntity(new StringEntity("stuff", ContentType.TEXT_PLAIN));
+
+        Assertions.assertNull(impl.prepareRequest(post));
+    }
+
+    @Test
+    void testPrepareRequestHandlesQueryEntityWithoutContent() throws Exception {
+        final HttpEntity entity = mock(HttpEntity.class);
+        final ClassicHttpRequest query = new BasicClassicHttpRequest("QUERY", "/stuff");
+        query.setEntity(entity);
+
+        final SimpleHttpRequest converted = impl.prepareRequest(query);
+
+        Assertions.assertNotNull(converted);
+        Assertions.assertNull(converted.getBody());
+    }
+
+    private static ClassicHttpRequest makeQueryRequest(final String queryContent) {
+        final ClassicHttpRequest query = new BasicClassicHttpRequest("QUERY", "/stuff");
+        query.setEntity(new StringEntity(queryContent, ContentType.TEXT_PLAIN));
+        return query;
+    }
+
+    @Test
+    void testQueryResponseServedFromCache() throws Exception {
+        // The cache relies on QUERY being safe for entry invalidation purposes
+        Assertions.assertTrue(Method.QUERY.isSafe());
+
+        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control", "max-age=3600");
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
+        final ClassicHttpResponse result1 = execute(makeQueryRequest("select a"));
+        EntityUtils.consume(result1.getEntity());
+        final ClassicHttpResponse result2 = execute(makeQueryRequest("select a"));
+
+        Assertions.assertEquals(HttpStatus.SC_OK, result2.getCode());
+        Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
+        Assertions.assertEquals(CacheResponseStatus.CACHE_HIT, context.getCacheResponseStatus());
+    }
+
+    @Test
+    void testQueryWithDifferentContentNotServedFromCache() throws Exception {
+        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control", "max-age=3600");
+        final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("Cache-Control", "max-age=3600");
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1, resp2);
+
+        final ClassicHttpResponse result1 = execute(makeQueryRequest("select a"));
+        EntityUtils.consume(result1.getEntity());
+        final ClassicHttpResponse result2 = execute(makeQueryRequest("select b"));
+        EntityUtils.consume(result2.getEntity());
+
+        Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
     }
 
 }

@@ -29,6 +29,8 @@ package org.apache.hc.client5.http.impl.cache;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -42,6 +44,7 @@ import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
+import org.apache.hc.client5.http.utils.Hex;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -151,6 +154,11 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
     /**
      * Computes a root key for the given {@link HttpHost}, {@link HttpRequest} and
      * request body that can be used as a unique identifier for cached resources.
+     * <p>
+     * For requests with an enclosed body, such as {@literal QUERY}, the key also
+     * incorporates a digest of the request content and the value of the request
+     * {@literal Content-Type} header, as required by the HTTP QUERY method
+     * specification (RFC 10008).
      *
      * @param host The host for this request
      * @param request the {@link HttpRequest}
@@ -163,15 +171,37 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
                                                       final T request,
                                                       final Function<T, byte[]> bodyExtractor) {
         final String s = CacheSupport.requestUriRaw(host, request);
+        String rootKey;
+        try {
+            rootKey = generateKey(new URI(s));
+        } catch (final URISyntaxException ex) {
+            rootKey = s;
+        }
         final byte[] body = bodyExtractor != null ? bodyExtractor.apply(request) : null;
         if (body != null) {
-            throw new UnsupportedOperationException();
+            final Header contentType = request.getFirstHeader(HttpHeaders.CONTENT_TYPE);
+            return "{" + request.getMethod() + ":" + generateContentDigest(contentType, body) + "}" + rootKey;
         }
+        return rootKey;
+    }
+
+    /**
+     * Computes a digest of request content and its content type suitable
+     * for cache key generation.
+     */
+    static String generateContentDigest(final Header contentType, final byte[] content) {
+        final MessageDigest digester;
         try {
-            return generateKey(new URI(s));
-        } catch (final URISyntaxException ex) {
-            return s;
+            digester = MessageDigest.getInstance("SHA-256");
+        } catch (final NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("SHA-256 message digest is not supported", ex);
         }
+        if (contentType != null && contentType.getValue() != null) {
+            digester.update(contentType.getValue().getBytes(StandardCharsets.UTF_8));
+        }
+        digester.update((byte) 0);
+        digester.update(content);
+        return Hex.encodeHexString(digester.digest());
     }
 
     /**
