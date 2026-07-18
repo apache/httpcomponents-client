@@ -160,4 +160,16 @@ class WebSocketFrameReaderTest {
         final ByteBuffer f = maskedFrame(0x82, new byte[len]);
         assertThrows(WebSocketException.class, () -> readFrame(f, 1024));
     }
+
+    @Test
+    void negative_extended_length_is_rejected() {
+        final ByteBuffer f = ByteBuffer.allocate(2 + 8 + 4 + 5);
+        f.put((byte) 0x81);              // FIN|TEXT
+        f.put((byte) (0x80 | 127));      // MASK, 64-bit length
+        f.putLong(0xFFFFFFFF00000000L);  // MSB set: not a valid payload length
+        f.put(MASK_KEY);
+        f.put(new byte[5]);
+        f.flip();
+        assertThrows(WebSocketException.class, () -> readFrame(f, 8192));
+    }
 }

@@ -97,6 +97,9 @@ class WebSocketFrameReader {
             for (int i = 0; i < 8; i++) {
                 len = (len << 8) | (readByte() & 0xFF);
             }
+            if (len < 0) {
+                throw new WebSocketException("Negative frame payload length");
+            }
         }
         if (len > Integer.MAX_VALUE) {
             throw new WebSocketException("Frame payload too large: " + len);
