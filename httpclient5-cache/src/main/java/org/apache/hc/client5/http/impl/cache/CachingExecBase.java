@@ -42,6 +42,13 @@ import org.apache.hc.core5.http.Method;
 
 public class CachingExecBase {
 
+    /**
+     * Maximum size of a request content body that can be buffered in memory
+     * in order to compute a cache key. Requests with a larger content body
+     * are considered non-cacheable.
+     */
+    static final int MAX_BUFFERED_CONTENT_LENGTH = 25 * 1024;
+
     final AtomicLong cacheHits = new AtomicLong();
     final AtomicLong cacheMisses = new AtomicLong();
     final AtomicLong cacheUpdates = new AtomicLong();

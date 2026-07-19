@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import static org.mockito.Mockito.mock;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketException;
@@ -62,7 +63,9 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
@@ -1320,6 +1323,7 @@ class TestCachingExecChain {
     @Test
     void testPrepareRequestHandlesQueryEntityWithoutContent() throws Exception {
         final HttpEntity entity = mock(HttpEntity.class);
+        Mockito.when(entity.isRepeatable()).thenReturn(true);
         final ClassicHttpRequest query = new BasicClassicHttpRequest("QUERY", "/stuff");
         query.setEntity(entity);
 
@@ -1327,6 +1331,40 @@ class TestCachingExecChain {
 
         Assertions.assertNotNull(converted);
         Assertions.assertNull(converted.getBody());
+    }
+
+    @Test
+    void testPrepareRequestBypassesNonRepeatableQueryContent() throws Exception {
+        final ClassicHttpRequest query = new BasicClassicHttpRequest("QUERY", "/stuff");
+        query.setEntity(new InputStreamEntity(
+                new ByteArrayInputStream(new byte[16]), ContentType.TEXT_PLAIN));
+
+        Assertions.assertNull(impl.prepareRequest(query));
+    }
+
+    @Test
+    void testPrepareRequestBypassesOversizedQueryContent() throws Exception {
+        final ClassicHttpRequest query = new BasicClassicHttpRequest("QUERY", "/stuff");
+        query.setEntity(new ByteArrayEntity(
+                new byte[CachingExecBase.MAX_BUFFERED_CONTENT_LENGTH + 1], ContentType.TEXT_PLAIN));
+
+        Assertions.assertNull(impl.prepareRequest(query));
+    }
+
+    @Test
+    void testPrepareRequestBypassesOversizedQueryContentOfUnknownLength() throws Exception {
+        final ClassicHttpRequest query = new BasicClassicHttpRequest("QUERY", "/stuff");
+        query.setEntity(new HttpEntityWrapper(new ByteArrayEntity(
+                new byte[CachingExecBase.MAX_BUFFERED_CONTENT_LENGTH + 1], ContentType.TEXT_PLAIN)) {
+
+            @Override
+            public long getContentLength() {
+                return -1;
+            }
+
+        });
+
+        Assertions.assertNull(impl.prepareRequest(query));
     }
 
     private static ClassicHttpRequest makeQueryRequest(final String queryContent) {

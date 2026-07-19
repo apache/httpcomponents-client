@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
@@ -92,6 +93,33 @@ class TestAsyncCachingExecQuery {
                 "a partially drained producer must be reset so that it can still be used");
     }
 
+    @Test
+    void testPrepareRequestBypassesOversizedQueryContent() throws Exception {
+        final AsyncEntityProducer producer = new BasicAsyncEntityProducer(
+                new byte[CachingExecBase.MAX_BUFFERED_CONTENT_LENGTH + 1], ContentType.TEXT_PLAIN);
+
+        Assertions.assertNull(impl.prepareRequest(new BasicHttpRequest(Method.QUERY, "/stuff"), producer));
+    }
+
+    @Test
+    void testPrepareRequestBypassesAndResetsOversizedQueryContentOfUnknownLength() throws Exception {
+        final UnboundedEntityProducer producer = new UnboundedEntityProducer();
+
+        Assertions.assertNull(impl.prepareRequest(new BasicHttpRequest(Method.QUERY, "/stuff"), producer));
+        Assertions.assertTrue(producer.released,
+                "a partially drained producer must be reset so that it can still be used");
+    }
+
+    @Test
+    void testPrepareRequestBypassesOversizedQueryContentWrittenInSingleProduceCall() throws Exception {
+        final SingleWriteEntityProducer producer = new SingleWriteEntityProducer(
+                CachingExecBase.MAX_BUFFERED_CONTENT_LENGTH * 4);
+
+        Assertions.assertNull(impl.prepareRequest(new BasicHttpRequest(Method.QUERY, "/stuff"), producer));
+        Assertions.assertTrue(producer.released,
+                "a partially drained producer must be reset so that it can still be used");
+    }
+
     static class StallingEntityProducer implements AsyncEntityProducer {
 
         private final boolean repeatable;
@@ -148,6 +176,36 @@ class TestAsyncCachingExecQuery {
         @Override
         public void releaseResources() {
             released = true;
+        }
+
+    }
+
+    static class UnboundedEntityProducer extends StallingEntityProducer {
+
+        UnboundedEntityProducer() {
+            super(true);
+        }
+
+        @Override
+        public void produce(final DataStreamChannel channel) throws IOException {
+            channel.write(ByteBuffer.wrap(new byte[8 * 1024]));
+        }
+
+    }
+
+    static class SingleWriteEntityProducer extends StallingEntityProducer {
+
+        private final int contentLength;
+
+        SingleWriteEntityProducer(final int contentLength) {
+            super(true);
+            this.contentLength = contentLength;
+        }
+
+        @Override
+        public void produce(final DataStreamChannel channel) throws IOException {
+            channel.write(ByteBuffer.wrap(new byte[contentLength]));
+            channel.endStream();
         }
 
     }

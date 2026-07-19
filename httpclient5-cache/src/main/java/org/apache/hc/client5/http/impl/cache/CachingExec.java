@@ -228,8 +228,15 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             return SimpleRequestBuilder.copy(request).build();
         }
         // QUERY content must be read in full in order to determine the cache key
-        if (Method.QUERY.isSame(request.getMethod()) && entity.getContentEncoding() == null) {
-            final byte[] content = EntityUtils.toByteArray(entity);
+        if (Method.QUERY.isSame(request.getMethod())
+                && entity.isRepeatable()
+                && entity.getContentEncoding() == null
+                && entity.getContentLength() <= MAX_BUFFERED_CONTENT_LENGTH) {
+            // Read one byte past the limit in order to distinguish an at-limit body from an oversized one
+            final byte[] content = EntityUtils.toByteArray(entity, MAX_BUFFERED_CONTENT_LENGTH + 1);
+            if (content != null && content.length > MAX_BUFFERED_CONTENT_LENGTH) {
+                return null;
+            }
             final SimpleRequestBuilder builder = SimpleRequestBuilder.copy(request);
             if (content != null) {
                 builder.setBody(content, ContentType.parseLenient(entity.getContentType()));

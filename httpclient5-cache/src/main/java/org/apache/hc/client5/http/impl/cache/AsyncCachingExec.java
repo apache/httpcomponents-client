@@ -421,7 +421,8 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         // QUERY content must be read in full in order to determine the cache key
         if (Method.QUERY.isSame(request.getMethod())
                 && entityProducer.isRepeatable()
-                && entityProducer.getContentEncoding() == null) {
+                && entityProducer.getContentEncoding() == null
+                && entityProducer.getContentLength() <= MAX_BUFFERED_CONTENT_LENGTH) {
             final byte[] content = drainEntityProducer(entityProducer);
             if (content != null) {
                 final SimpleRequestBuilder builder = SimpleRequestBuilder.copy(request)
@@ -437,9 +438,10 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
     /**
      * Drains the given repeatable entity producer into a byte array without an I/O reactor.
-     * Returns {@code null} if the producer fails to make progress, in which case it is reset
-     * by {@link AsyncEntityProducer#releaseResources()} and can still be used to execute
-     * the request directly.
+     * Returns {@code null} if the producer fails to make progress or produces more than
+     * {@link CachingExecBase#MAX_BUFFERED_CONTENT_LENGTH} bytes of content, in which case
+     * it is reset by {@link AsyncEntityProducer#releaseResources()} and can still be used
+     * to execute the request directly.
      */
     private static byte[] drainEntityProducer(final AsyncEntityProducer entityProducer) throws IOException {
         final ByteArrayBuffer buf = new ByteArrayBuffer(1024);
@@ -453,14 +455,18 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             @Override
             public int write(final ByteBuffer src) {
                 final int len = src.remaining();
-                if (src.hasArray()) {
-                    buf.append(src.array(), src.arrayOffset() + src.position(), len);
-                    src.position(src.limit());
-                } else {
-                    final byte[] tmp = new byte[len];
-                    src.get(tmp);
-                    buf.append(tmp, 0, len);
+                // Buffer at most one byte over the limit; the drain loop treats that as oversize
+                final int chunk = Math.min(len, MAX_BUFFERED_CONTENT_LENGTH + 1 - buf.length());
+                if (chunk > 0) {
+                    if (src.hasArray()) {
+                        buf.append(src.array(), src.arrayOffset() + src.position(), chunk);
+                    } else {
+                        final byte[] tmp = new byte[chunk];
+                        src.get(tmp);
+                        buf.append(tmp, 0, chunk);
+                    }
                 }
+                src.position(src.limit());
                 return len;
             }
 
@@ -479,6 +485,9 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             while (!endStream.get()) {
                 final int before = buf.length();
                 entityProducer.produce(channel);
+                if (buf.length() > MAX_BUFFERED_CONTENT_LENGTH) {
+                    return null;
+                }
                 if (!endStream.get() && buf.length() == before) {
                     // The producer is not self-contained and cannot be drained
                     // without an I/O reactor
