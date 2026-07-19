@@ -87,7 +87,6 @@
     <commons-compress.version>1.26.2</commons-compress.version>
     <caffeine.version>2.9.3</caffeine.version>  <!-- java 8. current version 3.2.3 -->
     <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>
-    <jackson.version>2.21.1</jackson.version>
     <assertj.version>3.27.7</assertj.version>
   </properties>
 
@@ -283,11 +282,6 @@
         <groupId>jakarta.ws.rs</groupId>
         <artifactId>jakarta.ws.rs-api</artifactId>
         <version>${jakarta.ws.rs.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>${jackson.version}</version>
       </dependency>
       <dependency>
         <groupId>org.assertj</groupId>
