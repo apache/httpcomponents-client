@@ -37,8 +37,8 @@
 
   <properties>
     <Automatic-Module-Name>org.apache.hc.client5.http.rest</Automatic-Module-Name>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
   </properties>
 
   <dependencies>

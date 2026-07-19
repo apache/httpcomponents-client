@@ -59,10 +59,10 @@ jobs:
             echo 'HC_BUILD_TOOLCHAIN_VERSION=${{ matrix.java }}' >> "$GITHUB_ENV"
             ;;
         esac
-        # The httpclient5-jakarta-rest-client module is compiled for Java 11, so it must be
-        # excluded from the reactor whenever the selected toolchain is older than 11.
+        # The httpclient5-jakarta-rest-client module is compiled for Java 17, so it must be
+        # excluded from the reactor whenever the selected toolchain is older than 17.
         case '${{ matrix.java }}' in
-          8)
+          8|11)
             echo 'HC_PROFILE_ARGS=-Dhc.jakarta-rest-client.skip=true' >> "$GITHUB_ENV"
             ;;
           *)
