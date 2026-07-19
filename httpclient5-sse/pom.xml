@@ -101,7 +101,6 @@
       <plugin>
         <groupId>com.github.siom79.japicmp</groupId>
         <artifactId>japicmp-maven-plugin</artifactId>
-        <version>0.25.4</version>
         <configuration>
           <skip>true</skip>
         </configuration>
