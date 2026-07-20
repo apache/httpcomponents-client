@@ -70,6 +70,7 @@ import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.ScramSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
@@ -936,6 +937,7 @@ public class HttpAsyncClientBuilder {
         return this;
     }
 
+
     /**
      * Registers a global {@link org.apache.hc.client5.http.EarlyHintsListener}
      * that will be notified when the client receives {@code 103 Early Hints}
@@ -1086,7 +1088,10 @@ public class HttpAsyncClientBuilder {
                         new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
                         proxyAuthStrategyCopy,
                         schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,
-                        authCachingDisabled),
+                        authCachingDisabled,
+                        connManagerCopy instanceof PoolingAsyncClientConnectionManager
+                                ? ((PoolingAsyncClientConnectionManager) connManagerCopy).getTlsConfigResolver()
+                                : null),
                 ChainElement.CONNECT.name());
 
         if (earlyHintsListener != null) {
