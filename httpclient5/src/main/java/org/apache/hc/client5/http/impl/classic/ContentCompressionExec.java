@@ -136,25 +136,29 @@ public final class ContentCompressionExec implements ExecChainHandler {
         }
 
         final ClassicHttpResponse response = chain.proceed(request, scope);
-
-        final HttpEntity entity = response.getEntity();
-        // entity can be null in case of 304 Not Modified, 204 No Content or similar
-        // check for zero length entity.
-        if (requestConfig.isContentCompressionEnabled() && entity != null && entity.getContentLength() != 0) {
-            final List<String> codecs = ContentCodingSupport.parseContentCodecs(entity);
-            ContentCodingSupport.validate(codecs, maxCodecListLen);
-            if (!codecs.isEmpty()) {
-                for (int i = codecs.size() - 1; i >= 0; i--) {
-                    final String codec = codecs.get(i);
-                    final UnaryOperator<HttpEntity> decoder = decoderRegistry.lookup(codec);
-                    if (decoder != null) {
-                        response.setEntity(decoder.apply(response.getEntity()));
-                    } else {
-                        throw new HttpException("Unsupported Content-Encoding: " + codec);
+        try {
+            final HttpEntity entity = response.getEntity();
+            // entity can be null in case of 304 Not Modified, 204 No Content or similar
+            // check for zero length entity.
+            if (requestConfig.isContentCompressionEnabled() && entity != null && entity.getContentLength() != 0) {
+                final List<String> codecs = ContentCodingSupport.parseContentCodecs(entity);
+                ContentCodingSupport.validate(codecs, maxCodecListLen);
+                if (!codecs.isEmpty()) {
+                    for (int i = codecs.size() - 1; i >= 0; i--) {
+                        final String codec = codecs.get(i);
+                        final UnaryOperator<HttpEntity> decoder = decoderRegistry.lookup(codec);
+                        if (decoder != null) {
+                            response.setEntity(decoder.apply(response.getEntity()));
+                        } else {
+                            throw new HttpException("Unsupported Content-Encoding: " + codec);
+                        }
                     }
                 }
             }
+            return response;
+        } catch (final RuntimeException | HttpException ex) {
+            response.close();
+            throw ex;
         }
-        return response;
     }
 }

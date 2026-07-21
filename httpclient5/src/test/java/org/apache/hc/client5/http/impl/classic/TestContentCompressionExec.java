@@ -203,7 +203,7 @@ class TestContentCompressionExec {
     @Test
     void testUnknownContentEncoding() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
-        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
+        final ClassicHttpResponse response = Mockito.spy(new BasicClassicHttpResponse(200, "OK"));
         final HttpEntity original = EntityBuilder.create().setText("encoded stuff").setContentEncoding("whatever").build();
         response.setEntity(original);
 
@@ -213,6 +213,7 @@ class TestContentCompressionExec {
 
         Assertions.assertThrows(HttpException.class, () ->
                 impl.execute(request, scope, execChain));
+        Mockito.verify(response).close();
     }
 
     @Test
@@ -254,7 +255,7 @@ class TestContentCompressionExec {
         final HttpEntity entity = response1.getEntity();
         Assertions.assertNotNull(entity);
 
-        final ClassicHttpResponse response2 = new BasicClassicHttpResponse(200, "OK");
+        final ClassicHttpResponse response2 = Mockito.spy(new BasicClassicHttpResponse(200, "OK"));
         final HttpEntity original2 = EntityBuilder.create()
                 .setText("encoded stuff")
                 .setContentEncoding("gzip,gzip,gzip,gzip,gzip,gzip")
@@ -263,8 +264,10 @@ class TestContentCompressionExec {
 
         Mockito.when(execChain.proceed(request, scope)).thenReturn(response2);
 
-        final ProtocolException exception = Assertions.assertThrows(ProtocolException.class, () -> impl.execute(request, scope, execChain));
+        final ProtocolException exception = Assertions.assertThrows(ProtocolException.class, () ->
+                impl.execute(request, scope, execChain));
         Assertions.assertEquals("Codec list exceeds maximum of 5 elements", exception.getMessage());
+        Mockito.verify(response2).close();
     }
 
 }
