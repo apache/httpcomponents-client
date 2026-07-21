@@ -113,4 +113,22 @@ class TestCacheableRequestPolicy {
 
     }
 
+    @Test
+    void testIsQueryServableFromCache() {
+        final BasicHttpRequest request = new BasicHttpRequest("QUERY", "someUri");
+        final RequestCacheControl cacheControl = RequestCacheControl.builder().build();
+
+        Assertions.assertTrue(policy.canBeServedFromCache(cacheControl, request));
+    }
+
+    @Test
+    void testIsQueryWithCacheControlServableFromCache() {
+        final BasicHttpRequest request = new BasicHttpRequest("QUERY", "someUri");
+        final RequestCacheControl cacheControl = RequestCacheControl.builder()
+                .setNoCache(true)
+                .build();
+
+        Assertions.assertFalse(policy.canBeServedFromCache(cacheControl, request));
+    }
+
 }

@@ -57,7 +57,7 @@ class CacheableRequestPolicy {
             return false;
         }
 
-        if (!Method.GET.isSame(method) && !Method.HEAD.isSame(method)) {
+        if (!Method.GET.isSame(method) && !Method.HEAD.isSame(method) && !Method.QUERY.isSame(method)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} request cannot be served from cache", method);
             }

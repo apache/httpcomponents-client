@@ -94,6 +94,13 @@ class TestResponseCachingPolicy {
     }
 
     @Test
+    void testQueryCacheable() {
+        policy = new ResponseCachingPolicy(true, false, false);
+        request = new BasicHttpRequest(Method.QUERY, "/");
+        Assertions.assertTrue(policy.isResponseCacheable(requestCacheControl, responseCacheControl, request, response));
+    }
+
+    @Test
     void testArbitraryMethodNotCacheable() {
         request = new BasicHttpRequest("PUT", "/");
         Assertions.assertFalse(policy.isResponseCacheable(requestCacheControl, responseCacheControl, request, response));

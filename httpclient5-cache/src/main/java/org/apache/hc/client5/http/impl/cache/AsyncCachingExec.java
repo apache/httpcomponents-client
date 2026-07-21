@@ -72,10 +72,12 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.impl.BasicEntityDetails;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
+import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
 import org.apache.hc.core5.net.URIAuthority;
@@ -412,12 +414,90 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
     }
 
     SimpleHttpRequest prepareRequest(final HttpRequest request,
-                                     final AsyncEntityProducer entityProducer) {
-        // To be revised when implementing QUERY support
-        if (entityProducer != null) {
-            return null;
+                                     final AsyncEntityProducer entityProducer) throws IOException {
+        if (entityProducer == null) {
+            return SimpleRequestBuilder.copy(request).build();
         }
-        return SimpleRequestBuilder.copy(request).build();
+        // QUERY content must be read in full in order to determine the cache key
+        if (Method.QUERY.isSame(request.getMethod())
+                && entityProducer.isRepeatable()
+                && entityProducer.getContentEncoding() == null
+                && entityProducer.getContentLength() <= MAX_BUFFERED_CONTENT_LENGTH) {
+            final byte[] content = drainEntityProducer(entityProducer);
+            if (content != null) {
+                final SimpleRequestBuilder builder = SimpleRequestBuilder.copy(request)
+                        .setBody(content, ContentType.parseLenient(entityProducer.getContentType()));
+                if (entityProducer.getContentType() != null) {
+                    builder.setHeader(HttpHeaders.CONTENT_TYPE, entityProducer.getContentType());
+                }
+                return builder.build();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Drains the given repeatable entity producer into a byte array without an I/O reactor.
+     * Returns {@code null} if the producer fails to make progress or produces more than
+     * {@link CachingExecBase#MAX_BUFFERED_CONTENT_LENGTH} bytes of content, in which case
+     * it is reset by {@link AsyncEntityProducer#releaseResources()} and can still be used
+     * to execute the request directly.
+     */
+    private static byte[] drainEntityProducer(final AsyncEntityProducer entityProducer) throws IOException {
+        final ByteArrayBuffer buf = new ByteArrayBuffer(1024);
+        final AtomicBoolean endStream = new AtomicBoolean();
+        final DataStreamChannel channel = new DataStreamChannel() {
+
+            @Override
+            public void requestOutput() {
+            }
+
+            @Override
+            public int write(final ByteBuffer src) {
+                final int len = src.remaining();
+                // Buffer at most one byte over the limit; the drain loop treats that as oversize
+                final int chunk = Math.min(len, MAX_BUFFERED_CONTENT_LENGTH + 1 - buf.length());
+                if (chunk > 0) {
+                    if (src.hasArray()) {
+                        buf.append(src.array(), src.arrayOffset() + src.position(), chunk);
+                    } else {
+                        final byte[] tmp = new byte[chunk];
+                        src.get(tmp);
+                        buf.append(tmp, 0, chunk);
+                    }
+                }
+                src.position(src.limit());
+                return len;
+            }
+
+            @Override
+            public void endStream() {
+                endStream.set(true);
+            }
+
+            @Override
+            public void endStream(final List<? extends Header> trailers) {
+                endStream.set(true);
+            }
+
+        };
+        try {
+            while (!endStream.get()) {
+                final int before = buf.length();
+                entityProducer.produce(channel);
+                if (buf.length() > MAX_BUFFERED_CONTENT_LENGTH) {
+                    return null;
+                }
+                if (!endStream.get() && buf.length() == before) {
+                    // The producer is not self-contained and cannot be drained
+                    // without an I/O reactor
+                    return null;
+                }
+            }
+        } finally {
+            entityProducer.releaseResources();
+        }
+        return buf.toByteArray();
     }
 
     void callChain(
