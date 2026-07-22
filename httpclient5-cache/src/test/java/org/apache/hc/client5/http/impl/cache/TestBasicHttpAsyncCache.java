@@ -49,6 +49,7 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -119,6 +120,26 @@ class TestBasicHttpAsyncCache {
         assertNotNull(result);
         assertNotNull(result.hit);
         assertSame(entry, result.hit.entry);
+    }
+
+    @Test
+    void testStoreRetainsRequestContent() throws Exception {
+        final SimpleHttpRequest request = new SimpleHttpRequest("QUERY", "http://foo.example.com/bar");
+        request.setBody("{\"criteria\":\"value\"}", ContentType.APPLICATION_JSON);
+
+        final HttpResponse origResponse = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
+        origResponse.setHeader("Date", DateUtils.formatStandardDate(now));
+        origResponse.setHeader("Cache-Control", "max-age=3600, public");
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        final AtomicReference<CacheHit> hitRef = new AtomicReference<>();
+        impl.store(host, request, origResponse, HttpTestUtils.makeRandomBuffer(128), now, now,
+                HttpTestUtils.countDown(latch, hitRef::set));
+
+        latch.await();
+        final CacheHit hit = hitRef.get();
+        assertNotNull(hit);
+        Assertions.assertArrayEquals(request.getBodyBytes(), hit.entry.getRequestContent());
     }
 
     @Test

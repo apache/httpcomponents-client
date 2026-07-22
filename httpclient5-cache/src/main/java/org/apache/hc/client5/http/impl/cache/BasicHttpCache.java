@@ -223,7 +223,8 @@ class BasicHttpCache implements HttpCache {
             final ByteArrayBuffer content,
             final Instant requestSent,
             final Instant responseReceived) {
-        final String rootKey = cacheKeyGenerator.generateKey(host, request, SimpleHttpRequest::getBodyBytes);
+        final byte[] requestContent = request.getBodyBytes();
+        final String rootKey = cacheKeyGenerator.generateKey(host, request, r -> requestContent);
         if (LOG.isDebugEnabled()) {
             LOG.debug("Create cache entry: {}", rootKey);
         }
@@ -243,11 +244,12 @@ class BasicHttpCache implements HttpCache {
                     responseReceived,
                     host,
                     request,
+                    requestContent,
                     originResponse,
                     content != null ? HeapResourceFactory.INSTANCE.generate(null, content.array(), 0, content.length()) : null);
             return new CacheHit(rootKey, backup);
         }
-        final HttpCacheEntry entry = cacheEntryFactory.create(requestSent, responseReceived, host, request, originResponse, resource);
+        final HttpCacheEntry entry = cacheEntryFactory.create(requestSent, responseReceived, host, request, requestContent, originResponse, resource);
         final String variantKey = cacheKeyGenerator.generateVariantKey(request, entry);
         return store(rootKey,variantKey, entry);
     }

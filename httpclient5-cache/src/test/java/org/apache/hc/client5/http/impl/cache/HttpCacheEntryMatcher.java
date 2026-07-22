@@ -69,6 +69,9 @@ public class HttpCacheEntryMatcher {
         if (!headersEqual(expectedValue.requestHeaderIterator(), otherValue.requestHeaderIterator())) {
             return false;
         }
+        if (!Arrays.equals(expectedValue.getRequestContent(), otherValue.getRequestContent())) {
+            return false;
+        }
         if (!instantEqual(expectedValue.getRequestInstant(), otherValue.getRequestInstant())) {
             return false;
         }
