@@ -1,0 +1,195 @@
+/*
+ * ====================================================================
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ * ====================================================================
+ *
+ * This software consists of voluntary contributions made by many
+ * individuals on behalf of the Apache Software Foundation.  For more
+ * information on the Apache Software Foundation, please see
+ * <http://www.apache.org/>.
+ *
+ */
+package org.apache.hc.client5.testing.compatibility.async;
+
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+
+import org.apache.hc.client5.http.ContextBuilder;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.testing.Result;
+import org.apache.hc.client5.testing.extension.async.H2AsyncClientResource;
+import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.RequestNotExecutedException;
+import org.apache.hc.core5.util.Timeout;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
+public abstract class H2OverH2TunnelCompatibilityTest {
+
+    static final Timeout TIMEOUT = Timeout.ofSeconds(30);
+    static final Timeout LONG_TIMEOUT = Timeout.ofSeconds(60);
+
+    private final HttpHost target;
+    @RegisterExtension
+    private final H2AsyncClientResource clientResource;
+    private final BasicCredentialsProvider credentialsProvider;
+
+    public H2OverH2TunnelCompatibilityTest(
+            final HttpHost target,
+            final HttpHost proxy,
+            final Credentials proxyCreds) throws Exception {
+        this.target = target;
+        this.clientResource = new H2AsyncClientResource(proxy);
+        this.credentialsProvider = new BasicCredentialsProvider();
+        if (proxy != null && proxyCreds != null) {
+            this.credentialsProvider.setCredentials(new AuthScope(proxy), proxyCreds);
+        }
+        this.clientResource.configure(builder -> builder.setDefaultCredentialsProvider(credentialsProvider));
+    }
+
+    CloseableHttpAsyncClient client() {
+        return clientResource.client();
+    }
+
+    HttpClientContext context() {
+        return ContextBuilder.create()
+                .useCredentialsProvider(credentialsProvider)
+                .build();
+    }
+
+    void addCredentials(final AuthScope authScope, final Credentials credentials) {
+        credentialsProvider.setCredentials(authScope, credentials);
+    }
+
+    @Test
+    void test_sequential_gets() throws Exception {
+        final CloseableHttpAsyncClient client = client();
+        final HttpClientContext context = context();
+
+        final String[] requestUris = new String[] {"/111", "/222", "/333"};
+        for (final String requestUri : requestUris) {
+            final SimpleHttpRequest httpGet = SimpleRequestBuilder.get()
+                    .setHttpHost(target)
+                    .setPath(requestUri)
+                    .build();
+            final Future<SimpleHttpResponse> future = client.execute(httpGet, context, null);
+            final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertEquals(HttpVersion.HTTP_2, context.getProtocolVersion());
+        }
+    }
+
+    @Test
+    void test_concurrent_gets() throws Exception {
+        final CloseableHttpAsyncClient client = client();
+
+        final String[] requestUris = new String[] {"/111", "/222", "/333"};
+        final int n = 10;
+        final Queue<Result<Void>> queue = new ConcurrentLinkedQueue<>();
+        final CountDownLatch latch = new CountDownLatch(requestUris.length * n);
+
+        for (int i = 0; i < n; i++) {
+            for (final String requestUri : requestUris) {
+                final SimpleHttpRequest request = SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath(requestUri)
+                        .build();
+                final HttpClientContext context = context();
+                client.execute(request, context, new FutureCallback<SimpleHttpResponse>() {
+
+                    @Override
+                    public void completed(final SimpleHttpResponse response) {
+                        queue.add(new Result<>(request, response, null));
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void failed(final Exception ex) {
+                        queue.add(new Result<>(request, ex));
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void cancelled() {
+                        queue.add(new Result<>(request, new RequestNotExecutedException()));
+                        latch.countDown();
+                    }
+
+                });
+            }
+        }
+        Assertions.assertTrue(latch.await(LONG_TIMEOUT.getDuration(), LONG_TIMEOUT.getTimeUnit()));
+        Assertions.assertEquals(requestUris.length * n, queue.size());
+        for (final Result<Void> result : queue) {
+            if (result.isOK()) {
+                Assertions.assertEquals(HttpStatus.SC_OK, result.response.getCode());
+            }
+        }
+    }
+
+    @Test
+    void test_auth_failure_wrong_credentials() throws Exception {
+        addCredentials(
+                new AuthScope(target),
+                new UsernamePasswordCredentials("testuser", "wrong password".toCharArray()));
+        final CloseableHttpAsyncClient client = client();
+        final HttpClientContext context = context();
+
+        final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
+                .setHttpHost(target)
+                .setPath("/private/big-secret.txt")
+                .build();
+        final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
+        final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+        Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+        Assertions.assertEquals(HttpVersion.HTTP_2, context.getProtocolVersion());
+    }
+
+    @Test
+    void test_auth_success() throws Exception {
+        addCredentials(
+                new AuthScope(target),
+                new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
+        final CloseableHttpAsyncClient client = client();
+        final HttpClientContext context = context();
+
+        final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
+                .setHttpHost(target)
+                .setPath("/private/big-secret.txt")
+                .build();
+        final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
+        final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertEquals(HttpVersion.HTTP_2, context.getProtocolVersion());
+    }
+
+}

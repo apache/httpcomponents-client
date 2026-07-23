@@ -840,9 +840,12 @@ public class H2AsyncClientBuilder {
                 new H2AsyncMainClientExec(httpProcessor),
                 ChainElement.MAIN_TRANSPORT.name());
 
+        final HttpProcessor proxyConnectHttpProcessor =
+                new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy));
+
         execChainDefinition.addFirst(
                 new AsyncConnectExec(
-                        new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
+                        proxyConnectHttpProcessor,
                         proxyAuthStrategyCopy,
                         schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,
                         authCachingDisabled),
@@ -971,7 +974,21 @@ public class H2AsyncClientBuilder {
         }
 
         final MultihomeConnectionInitiator connectionInitiator = new MultihomeConnectionInitiator(ioReactor, dnsResolver);
-        final InternalH2ConnPool connPool = new InternalH2ConnPool(connectionInitiator, host -> null, tlsStrategyCopy);
+        final H2RouteOperator routeOperator = new H2RouteOperator(
+                tlsStrategyCopy,
+                new H2TunnelProtocolStarter(h2Config, charCodingConfig),
+                proxyConnectHttpProcessor,
+                proxyAuthStrategyCopy,
+                schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,
+                authCachingDisabled,
+                authSchemeRegistryCopy,
+                credentialsProviderCopy,
+                defaultRequestConfig);
+        final InternalH2ConnPool connPool = new InternalH2ConnPool(
+                connectionInitiator,
+                host -> null,
+                tlsStrategyCopy,
+                routeOperator);
         connPool.setConnectionConfigResolver(connectionConfigResolver);
 
         List<Closeable> closeablesCopy = closeables != null ? new ArrayList<>(closeables) : null;
