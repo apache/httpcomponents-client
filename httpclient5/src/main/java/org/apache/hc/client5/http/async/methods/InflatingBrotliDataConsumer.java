@@ -67,7 +67,6 @@ public final class InflatingBrotliDataConsumer implements AsyncDataConsumer {
 
     private final AsyncDataConsumer downstream;
     private final DecoderJNI.Wrapper decoder;
-    private volatile CapacityChannel capacity;
 
 
     public InflatingBrotliDataConsumer(final AsyncDataConsumer downstream) {
@@ -81,8 +80,7 @@ public final class InflatingBrotliDataConsumer implements AsyncDataConsumer {
 
     @Override
     public void updateCapacity(final CapacityChannel capacityChannel) throws IOException {
-        this.capacity = capacityChannel;
-        downstream.updateCapacity(capacityChannel);
+        downstream.updateCapacity(new InflatingCapacityChannel(capacityChannel));
     }
 
     @Override
@@ -102,10 +100,6 @@ public final class InflatingBrotliDataConsumer implements AsyncDataConsumer {
 
             decoder.push(xfer);
             pump();
-        }
-        final CapacityChannel ch = this.capacity;
-        if (ch != null) {
-            ch.update(Integer.MAX_VALUE);
         }
     }
 

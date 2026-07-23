@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -189,6 +190,53 @@ class InflatingBrotliDataConsumerTest {
 
         assertTrue(done.await(2, TimeUnit.SECONDS), "callback timeout");
         assertEquals(ORIGINAL, inner.getContent(), "br inflate mismatch");
+    }
+
+    @Test
+    void consumeDoesNotOverrideDownstreamCapacity() throws Exception {
+        final byte[] compressed = brCompress();
+        final RecordingCapacityChannel reactor = new RecordingCapacityChannel();
+        final AsyncDataConsumer downstream = new AsyncDataConsumer() {
+            @Override
+            public void updateCapacity(final CapacityChannel ch) throws IOException {
+                ch.update(4096);
+            }
+
+            @Override
+            public void consume(final ByteBuffer src) {
+            }
+
+            @Override
+            public void streamEnd(final List<? extends Header> trailers) {
+            }
+
+            @Override
+            public void releaseResources() {
+            }
+        };
+        final InflatingBrotliDataConsumer inflating = new InflatingBrotliDataConsumer(downstream);
+
+        // The downstream advertises 4096 decompressed bytes, so the reactor must receive a
+        // scaled-down (4096 / 4 = 1024) increment, and consume() must never override it with
+        // Integer.MAX_VALUE as the previous implementation did.
+        inflating.updateCapacity(reactor);
+        for (int off = 0; off < compressed.length; off += 1024) {
+            final int n = Math.min(1024, compressed.length - off);
+            inflating.consume(ByteBuffer.wrap(compressed, off, n));
+        }
+
+        assertEquals(1, reactor.increments.size(), "consume() must not push extra capacity updates");
+        assertEquals(1024, reactor.increments.get(0).intValue());
+    }
+
+    private static final class RecordingCapacityChannel implements CapacityChannel {
+
+        final List<Integer> increments = new ArrayList<>();
+
+        @Override
+        public void update(final int increment) {
+            increments.add(increment);
+        }
     }
 
     @Test

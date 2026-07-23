@@ -71,7 +71,7 @@ public final class InflatingGzipDataConsumer implements AsyncDataConsumer {
 
     @Override
     public void updateCapacity(final CapacityChannel c) throws IOException {
-        downstream.updateCapacity(c);
+        downstream.updateCapacity(new InflatingCapacityChannel(c));
     }
 
     @Override
