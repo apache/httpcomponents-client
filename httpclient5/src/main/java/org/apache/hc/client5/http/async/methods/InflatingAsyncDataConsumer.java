@@ -73,7 +73,7 @@ public final class InflatingAsyncDataConsumer implements AsyncDataConsumer {
 
     @Override
     public void updateCapacity(final CapacityChannel ch) throws IOException {
-        downstream.updateCapacity(ch);
+        downstream.updateCapacity(new InflatingCapacityChannel(ch));
     }
 
     @Override
