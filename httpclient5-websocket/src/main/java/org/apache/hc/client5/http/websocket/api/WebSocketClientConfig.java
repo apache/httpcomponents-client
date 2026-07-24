@@ -170,12 +170,13 @@ public final class WebSocketClientConfig {
     }
 
     /**
-     * Optional value for {@code client_max_window_bits} in the PMCE offer.
+     * Offered value for {@code client_max_window_bits}.
      *
-     * <p>Valid values are in range 8..15 when non-null. The client encoder
-     * currently supports only {@code 15} due to JDK Deflater limitations.</p>
+     * <p>The client never offers {@code client_max_window_bits}: the JDK Deflater cannot honor a
+     * server-selected window smaller than 15, which RFC 7692 section 7.2.1 would require. This
+     * always returns {@code null}; configuring a value is rejected when the configuration is built.</p>
      *
-     * @return offered {@code client_max_window_bits}, or {@code null} if not offered
+     * @return always {@code null}
      * @since 5.7
      */
     public Integer getOfferClientMaxWindowBits() {
@@ -332,7 +333,7 @@ public final class WebSocketClientConfig {
         private boolean perMessageDeflateEnabled = true;
         private boolean offerServerNoContextTakeover = true;
         private boolean offerClientNoContextTakeover = true;
-        private Integer offerClientMaxWindowBits = 15;
+        private Integer offerClientMaxWindowBits = null;
         private Integer offerServerMaxWindowBits = null;
 
         private int maxFrameSize = 64 * 1024;
@@ -410,12 +411,12 @@ public final class WebSocketClientConfig {
         }
 
         /**
-         * Offers {@code client_max_window_bits} in the PMCE offer.
+         * Configures {@code client_max_window_bits}. This parameter is not supported: the JDK
+         * Deflater cannot honor a server-selected window smaller than 15 (RFC 7692 section 7.2.1),
+         * so the client never offers it. Only {@code null} is accepted; any non-null value is
+         * rejected when {@link #build()} is called.
          *
-         * <p>Valid values are in range 8..15 when non-null. The client encoder
-         * currently supports only {@code 15} due to JDK Deflater limitations.</p>
-         *
-         * @param v window bits, or {@code null} to omit the parameter
+         * @param v must be {@code null}
          * @return this builder
          * @since 5.7
          */
@@ -570,8 +571,10 @@ public final class WebSocketClientConfig {
          * @since 5.7
          */
         public WebSocketClientConfig build() {
-            if (offerClientMaxWindowBits != null && (offerClientMaxWindowBits < 8 || offerClientMaxWindowBits > 15)) {
-                throw new IllegalArgumentException("offerClientMaxWindowBits must be in range [8..15]");
+            if (offerClientMaxWindowBits != null) {
+                throw new IllegalArgumentException(
+                        "client_max_window_bits cannot be offered: the JDK Deflater cannot honor a "
+                        + "server-selected window smaller than 15 (RFC 7692 section 7.2.1)");
             }
             if (offerServerMaxWindowBits != null && (offerServerMaxWindowBits < 8 || offerServerMaxWindowBits > 15)) {
                 throw new IllegalArgumentException("offerServerMaxWindowBits must be in range [8..15]");

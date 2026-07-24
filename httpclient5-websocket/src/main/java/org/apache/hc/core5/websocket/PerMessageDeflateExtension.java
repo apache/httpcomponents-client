@@ -144,18 +144,25 @@ public final class PerMessageDeflateExtension implements WebSocketExtension {
         deflater.setInput(input);
         final ByteArrayOutputStream out = new ByteArrayOutputStream(Math.max(128, input.length / 2));
         final byte[] buffer = new byte[Math.min(16384, Math.max(1024, input.length))];
-        while (!deflater.needsInput()) {
-            final int count = deflater.deflate(buffer, 0, buffer.length, Deflater.SYNC_FLUSH);
+        // Drain until a SYNC_FLUSH leaves the output buffer partly filled; testing needsInput()
+        // would stop once the input is consumed and could drop the trailing 00 00 FF FF flush bytes.
+        int count;
+        do {
+            count = deflater.deflate(buffer, 0, buffer.length, Deflater.SYNC_FLUSH);
             if (count > 0) {
                 out.write(buffer, 0, count);
-            } else {
-                break;
             }
-        }
+        } while (count == buffer.length);
         final byte[] data = out.toByteArray();
         final ByteBuffer encoded;
-        if (data.length >= 4) {
-            encoded = ByteBuffer.wrap(data, 0, data.length - 4);
+        // Strip the 00 00 FF FF flush trailer only on the final fragment; non-final fragments
+        // must keep it so each intermediate empty stored block stays valid and the reassembled
+        // DEFLATE stream decodes (RFC 7692 section 7.2.1). When stripping leaves nothing the final
+        // fragment is empty, which RFC 7692 section 7.2.3.6 represents as the single octet 0x00.
+        if (fin) {
+            encoded = data.length > 4
+                    ? ByteBuffer.wrap(data, 0, data.length - 4)
+                    : ByteBuffer.wrap(new byte[]{0x00});
         } else {
             encoded = ByteBuffer.wrap(data);
         }
@@ -181,6 +188,12 @@ public final class PerMessageDeflateExtension implements WebSocketExtension {
             params.put("server_max_window_bits", Integer.toString(serverMaxWindowBits));
         }
         return new WebSocketExtensionData(getName(), params);
+    }
+
+    @Override
+    public void close() {
+        deflater.end();
+        inflater.end();
     }
 
     private static boolean isDataFrame(final WebSocketFrameType type) {

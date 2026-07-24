@@ -33,7 +33,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -157,9 +160,8 @@ public final class Http1UpgradeProtocol implements WebSocketProtocolStrategy {
                                 if (cfg.isOfferClientNoContextTakeover()) {
                                     ext.append("; client_no_context_takeover");
                                 }
-                                if (cfg.getOfferClientMaxWindowBits() != null) {
-                                    ext.append("; client_max_window_bits=").append(cfg.getOfferClientMaxWindowBits());
-                                }
+                                // client_max_window_bits is never offered: the JDK Deflater cannot
+                                // honor a server-selected window smaller than 15 (RFC 7692 7.2.1).
                                 if (cfg.getOfferServerMaxWindowBits() != null) {
                                     ext.append("; server_max_window_bits=").append(cfg.getOfferServerMaxWindowBits());
                                 }
@@ -359,9 +361,28 @@ public final class Http1UpgradeProtocol implements WebSocketProtocolStrategy {
         }
     }
 
-    private static String headerValue(final HttpResponse r, final String name) {
-        final Header h = r.getFirstHeader(name);
-        return h != null ? h.getValue() : null;
+    static String headerValue(final HttpResponse r, final String name) {
+        // RFC 6455 section 9.1 permits Sec-WebSocket-Extensions and Sec-WebSocket-Protocol
+        // to be split across multiple header fields; combine them as a comma-separated list.
+        final Header[] headers = r.getHeaders(name);
+        if (headers.length == 0) {
+            return null;
+        }
+        if (headers.length == 1) {
+            return headers[0].getValue();
+        }
+        final StringBuilder buf = new StringBuilder();
+        for (final Header h : headers) {
+            final String value = h.getValue();
+            if (value == null || value.isEmpty()) {
+                continue;
+            }
+            if (buf.length() > 0) {
+                buf.append(", ");
+            }
+            buf.append(value);
+        }
+        return buf.length() > 0 ? buf.toString() : null;
     }
 
     private static boolean containsToken(final HttpResponse r, final String header, final String token) {
@@ -394,8 +415,6 @@ public final class Http1UpgradeProtocol implements WebSocketProtocolStrategy {
         }
         boolean pmceSeen = false, serverNoCtx = false, clientNoCtx = false;
         Integer clientBits = null, serverBits = null;
-        final boolean offerServerNoCtx = cfg.isOfferServerNoContextTakeover();
-        final boolean offerClientNoCtx = cfg.isOfferClientNoContextTakeover();
         final Integer offerClientBits = cfg.getOfferClientMaxWindowBits();
         final Integer offerServerBits = cfg.getOfferServerMaxWindowBits();
 
@@ -414,19 +433,23 @@ public final class Http1UpgradeProtocol implements WebSocketProtocolStrategy {
             }
             pmceSeen = true;
 
+            // RFC 7692 section 7.1: a parameter name must not appear more than once within an
+            // accepted extension; a repeated name makes the response invalid.
+            final Set<String> parameterNames = new HashSet<>();
             for (int i = 1; i < parts.length; i++) {
                 final String p = parts[i].trim();
                 final int eq = p.indexOf('=');
+                final String parameterName = (eq >= 0 ? p.substring(0, eq) : p).trim().toLowerCase(Locale.ROOT);
+                if (!parameterNames.add(parameterName)) {
+                    throw new IllegalStateException("Duplicate permessage-deflate parameter: " + parameterName);
+                }
                 if (eq < 0) {
+                    // RFC 7692 sections 7.1.1.1 and 7.1.1.2 permit the server to include either
+                    // no-context-takeover parameter in the response even when the offer did not;
+                    // both are always safe to honour.
                     if ("server_no_context_takeover".equalsIgnoreCase(p)) {
-                        if (!offerServerNoCtx) {
-                            throw new IllegalStateException("Server selected server_no_context_takeover not offered");
-                        }
                         serverNoCtx = true;
                     } else if ("client_no_context_takeover".equalsIgnoreCase(p)) {
-                        if (!offerClientNoCtx) {
-                            throw new IllegalStateException("Server selected client_no_context_takeover not offered");
-                        }
                         clientNoCtx = true;
                     } else {
                         throw new IllegalStateException("Unsupported permessage-deflate parameter: " + p);
@@ -453,9 +476,8 @@ public final class Http1UpgradeProtocol implements WebSocketProtocolStrategy {
                             throw new IllegalStateException("Invalid client_max_window_bits: " + v, nfe);
                         }
                     } else if ("server_max_window_bits".equalsIgnoreCase(k)) {
-                        if (offerServerBits == null) {
-                            throw new IllegalStateException("Server selected server_max_window_bits not offered");
-                        }
+                        // RFC 7692 section 7.1.2.1 permits the server to include this parameter
+                        // uninvited; a server constraining its own window is always acceptable.
                         try {
                             if (v.isEmpty()) {
                                 throw new IllegalStateException("server_max_window_bits must have a value");

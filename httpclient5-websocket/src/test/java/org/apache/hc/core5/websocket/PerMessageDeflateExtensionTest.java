@@ -96,6 +96,73 @@ class PerMessageDeflateExtensionTest {
         assertArrayEquals(plain, toBytes(out));
     }
 
+    @Test
+    void fragmentedEncodeRoundTripsThroughDecode() throws Exception {
+        // Encode a message as three frames (fin=false, false, true), then decode them back.
+        // Non-final fragments must retain the 00 00 FF FF flush trailer so the reassembled
+        // DEFLATE stream stays valid (RFC 7692 section 7.2.1).
+        final PerMessageDeflateExtension enc = new PerMessageDeflateExtension();
+        final byte[] p1 = "The quick brown fox ".getBytes(StandardCharsets.UTF_8);
+        final byte[] p2 = "jumps over the lazy ".getBytes(StandardCharsets.UTF_8);
+        final byte[] p3 = "dog, and again the fox.".getBytes(StandardCharsets.UTF_8);
+
+        final ByteBuffer f1 = enc.encode(WebSocketFrameType.TEXT, false, ByteBuffer.wrap(p1));
+        final ByteBuffer f2 = enc.encode(WebSocketFrameType.CONTINUATION, false, ByteBuffer.wrap(p2));
+        final ByteBuffer f3 = enc.encode(WebSocketFrameType.CONTINUATION, true, ByteBuffer.wrap(p3));
+
+        final PerMessageDeflateExtension dec = new PerMessageDeflateExtension();
+        final ByteArrayOutputStream joined = new ByteArrayOutputStream();
+        joined.write(toBytes(dec.decode(WebSocketFrameType.TEXT, false, f1)));
+        joined.write(toBytes(dec.decode(WebSocketFrameType.CONTINUATION, false, f2)));
+        joined.write(toBytes(dec.decode(WebSocketFrameType.CONTINUATION, true, f3)));
+
+        final byte[] expected = new byte[p1.length + p2.length + p3.length];
+        System.arraycopy(p1, 0, expected, 0, p1.length);
+        System.arraycopy(p2, 0, expected, p1.length, p2.length);
+        System.arraycopy(p3, 0, expected, p1.length + p2.length, p3.length);
+        assertArrayEquals(expected, joined.toByteArray());
+    }
+
+    @Test
+    void encodesEmptyMessageAsSingleZeroOctet() throws Exception {
+        final PerMessageDeflateExtension enc = new PerMessageDeflateExtension();
+        final ByteBuffer encoded = enc.encode(WebSocketFrameType.BINARY, true, ByteBuffer.allocate(0));
+
+        // RFC 7692 section 7.2.3.6: an empty compressed message is the single octet 0x00.
+        assertArrayEquals(new byte[]{0x00}, toBytes(encoded));
+
+        final PerMessageDeflateExtension dec = new PerMessageDeflateExtension();
+        assertArrayEquals(new byte[0],
+                toBytes(dec.decode(WebSocketFrameType.BINARY, true, ByteBuffer.wrap(new byte[]{0x00}))));
+    }
+
+    @Test
+    void encodesEmptyMessageAsZeroOctetWithContextTakeover() throws Exception {
+        // The default extension keeps deflate/inflate context across messages.
+        final PerMessageDeflateExtension enc = new PerMessageDeflateExtension();
+        final PerMessageDeflateExtension dec = new PerMessageDeflateExtension();
+
+        final byte[] hello = "hello".getBytes(StandardCharsets.UTF_8);
+        assertArrayEquals(hello, toBytes(dec.decode(WebSocketFrameType.TEXT, true,
+                enc.encode(WebSocketFrameType.TEXT, true, ByteBuffer.wrap(hello)))));
+
+        // The deflater now holds context, so an empty message flushes to only 00 00 FF FF; it must
+        // still encode to the single octet 0x00 (RFC 7692 section 7.2.3.6), not to an empty payload.
+        final ByteBuffer emptyEncoded = enc.encode(WebSocketFrameType.TEXT, true, ByteBuffer.allocate(0));
+        assertArrayEquals(new byte[]{0x00}, toBytes(emptyEncoded));
+        assertArrayEquals(new byte[0], toBytes(dec.decode(WebSocketFrameType.TEXT, true, emptyEncoded)));
+    }
+
+    @Test
+    void closeReleasesNativeCodecs() throws Exception {
+        final PerMessageDeflateExtension ext = new PerMessageDeflateExtension();
+        ext.encode(WebSocketFrameType.TEXT, true, ByteBuffer.wrap("hello".getBytes(StandardCharsets.UTF_8)));
+        ext.close();
+        // After close() the Deflater has been ended; reusing the extension must fail.
+        assertThrows(Exception.class,
+                () -> ext.encode(WebSocketFrameType.TEXT, true, ByteBuffer.wrap("again".getBytes(StandardCharsets.UTF_8))));
+    }
+
     private static byte[] deflateWithSyncFlush(final byte[] input) {
         final Deflater deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, true);
         deflater.setInput(input);

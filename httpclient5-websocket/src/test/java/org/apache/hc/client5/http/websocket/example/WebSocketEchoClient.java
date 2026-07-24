@@ -54,7 +54,6 @@ import org.apache.hc.core5.util.Timeout;
  * <ul>
  *   <li>Per-message deflate enabled</li>
  *   <li>Server and client context takeover disabled (stateless compression)</li>
- *   <li>Client maximum window bits set to 15</li>
  * </ul>
  *
  * <p>The lifecycle follows these steps:</p>
@@ -89,7 +88,6 @@ public final class WebSocketEchoClient {
                 .enablePerMessageDeflate(true)
                 .offerServerNoContextTakeover(true)
                 .offerClientNoContextTakeover(true)
-                .offerClientMaxWindowBits(15)
                 .setCloseWaitTimeout(Timeout.ofSeconds(2))
                 .build();
 

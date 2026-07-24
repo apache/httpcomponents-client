@@ -35,6 +35,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
@@ -55,6 +56,7 @@ import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.websocket.WebSocketCloseStatus;
 import org.apache.hc.core5.websocket.WebSocketConfig;
 import org.apache.hc.core5.websocket.WebSocketConstants;
+import org.apache.hc.core5.websocket.WebSocketException;
 import org.apache.hc.core5.websocket.WebSocketExtensionNegotiation;
 import org.apache.hc.core5.websocket.WebSocketExtensionRegistry;
 import org.apache.hc.core5.websocket.WebSocketExtensions;
@@ -67,6 +69,12 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
 
     private static final byte[] END_INBOUND = new byte[0];
     private static final ByteBuffer END_OUTBOUND = ByteBuffer.allocate(0);
+
+    /** Bounded in-flight inbound byte budget advertised via HTTP/2 flow control. */
+    private static final int INBOUND_WINDOW = 256 * 1024;
+
+    /** Maximum number of buffered outbound frames before the application writer is back-pressured. */
+    private static final int OUTBOUND_QUEUE_CAPACITY = 1024;
 
     /**
      * Default execution strategy (no explicit thread creation in the handler).
@@ -81,7 +89,7 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
     private final Executor executor;
 
     private final BlockingQueue<byte[]> inbound = new LinkedBlockingQueue<>();
-    private final BlockingQueue<ByteBuffer> outbound = new LinkedBlockingQueue<>();
+    private final BlockingQueue<ByteBuffer> outbound = new LinkedBlockingQueue<>(OUTBOUND_QUEUE_CAPACITY);
 
     private final ReentrantLock outLock = new ReentrantLock();
     private ByteBuffer currentOutbound;
@@ -90,6 +98,8 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
     private volatile boolean outboundEnd;
     private volatile boolean shutdown;
     private volatile DataStreamChannel dataChannel;
+    private volatile CapacityChannel capacityChannel;
+    private final AtomicBoolean initialCreditGranted = new AtomicBoolean(false);
 
     WebSocketH2ServerExchangeHandler(
             final WebSocketHandler handler,
@@ -136,61 +146,105 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
                 WebSocketExtensions.parse(request.getFirstHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS_LOWER)),
                 true);
 
-        final BasicHttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
-        final String extensionsHeader = negotiation.formatResponseHeader();
-        if (extensionsHeader != null) {
-            response.addHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS_LOWER, extensionsHeader);
-        }
-
-        final List<String> offeredProtocols = WebSocketHandshake.parseSubprotocols(
-                request.getFirstHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL_LOWER));
-        final String protocolResponse = handler.selectSubprotocol(offeredProtocols);
-        if (protocolResponse != null) {
-            response.addHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL_LOWER, protocolResponse);
-        }
-
-        responseChannel.sendResponse(response, new BasicEntityDetails(-1, null), context);
-        responseSent = true;
-
-        final InputStream inputStream = new QueueInputStream(inbound);
-        final OutputStream outputStream = new QueueOutputStream(outbound);
-        final WebSocketSession session = new WebSocketSession(
-                config, inputStream, outputStream, null, null, negotiation.getExtensions());
-
-        executor.execute(() -> {
-            try {
-                handler.onOpen(session);
-                new WebSocketServerProcessor(session, handler, config.getMaxMessageSize()).process();
-            } catch (final WebSocketProtocolException ex) {
-                handler.onError(session, ex);
-                try {
-                    session.close(ex.closeCode, ex.getMessage());
-                } catch (final IOException ignore) {
-                    // ignore
-                }
-            } catch (final Exception ex) {
-                handler.onError(session, ex);
-                try {
-                    session.close(WebSocketCloseStatus.INTERNAL_ERROR.getCode(), "WebSocket error");
-                } catch (final IOException ignore) {
-                    // ignore
-                }
-            } finally {
-                shutdown = true;
-                outbound.offer(END_OUTBOUND);
-                inbound.offer(END_INBOUND);
-
-                final DataStreamChannel channel = dataChannel;
-                if (channel != null) {
-                    channel.requestOutput();
-                }
+        // The worker thread takes ownership of the negotiated extensions once the task is accepted
+        // and releases them in its finally after the stream has been torn down. If the hand-off
+        // never happens (a failed sendResponse or a rejected executor) this method releases them,
+        // attaching any close failure as a suppressed exception rather than masking the original.
+        try {
+            final BasicHttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
+            final String extensionsHeader = negotiation.formatResponseHeader();
+            if (extensionsHeader != null) {
+                response.addHeader(WebSocketConstants.SEC_WEBSOCKET_EXTENSIONS_LOWER, extensionsHeader);
             }
-        });
+
+            final List<String> offeredProtocols = WebSocketHandshake.parseSubprotocols(
+                    request.getFirstHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL_LOWER));
+            final String protocolResponse = handler.selectSubprotocol(offeredProtocols);
+            if (protocolResponse != null) {
+                response.addHeader(WebSocketConstants.SEC_WEBSOCKET_PROTOCOL_LOWER, protocolResponse);
+            }
+
+            responseChannel.sendResponse(response, new BasicEntityDetails(-1, null), context);
+            responseSent = true;
+
+            final InputStream inputStream = new QueueInputStream(inbound);
+            final OutputStream outputStream = new QueueOutputStream();
+            final WebSocketSession session = new WebSocketSession(
+                    config, inputStream, outputStream, null, null, negotiation.getExtensions());
+
+            executor.execute(() -> {
+                try {
+                    handler.onOpen(session);
+                    new WebSocketServerProcessor(session, handler, config.getMaxMessageSize()).process();
+                } catch (final WebSocketProtocolException ex) {
+                    handler.onError(session, ex);
+                    try {
+                        session.close(ex.closeCode, ex.getMessage());
+                    } catch (final IOException ignore) {
+                        // ignore
+                    }
+                } catch (final WebSocketException ex) {
+                    handler.onError(session, ex);
+                    try {
+                        session.close(WebSocketCloseStatus.PROTOCOL_ERROR.getCode(), ex.getMessage());
+                    } catch (final IOException ignore) {
+                        // ignore
+                    }
+                } catch (final Exception ex) {
+                    handler.onError(session, ex);
+                    try {
+                        session.close(WebSocketCloseStatus.INTERNAL_ERROR.getCode(), "WebSocket error");
+                    } catch (final IOException ignore) {
+                        // ignore
+                    }
+                } finally {
+                    // Tear the stream down first so a failing extension close cannot leave the
+                    // HTTP/2 stream without an END_STREAM; release the extensions last, always.
+                    try {
+                        shutdown = true;
+                        enqueueOutboundQuietly(END_OUTBOUND);
+                        inbound.offer(END_INBOUND);
+
+                        final DataStreamChannel channel = dataChannel;
+                        if (channel != null) {
+                            channel.requestOutput();
+                        }
+                    } finally {
+                        negotiation.close();
+                    }
+                }
+            });
+        } catch (final Exception primary) {
+            // The task was never handed off to the worker (sendResponse failed or the executor
+            // rejected it); release the negotiated extensions here, preserving the original failure.
+            try {
+                negotiation.close();
+            } catch (final RuntimeException closeEx) {
+                primary.addSuppressed(closeEx);
+            }
+            throw primary;
+        }
     }
 
     @Override
     public void updateCapacity(final CapacityChannel capacityChannel) throws IOException {
-        capacityChannel.update(Integer.MAX_VALUE);
+        this.capacityChannel = capacityChannel;
+        // Advertise a bounded window once; further credit is replenished as the worker thread
+        // drains buffered bytes, so inbound memory stays bounded even if the worker stalls.
+        if (initialCreditGranted.compareAndSet(false, true)) {
+            capacityChannel.update(INBOUND_WINDOW);
+        }
+    }
+
+    private void replenishInbound(final int n) {
+        final CapacityChannel channel = capacityChannel;
+        if (channel != null && n > 0) {
+            try {
+                channel.update(n);
+            } catch (final IOException ignore) {
+                // channel already gone; nothing to replenish
+            }
+        }
     }
 
     @Override
@@ -296,6 +350,10 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
     @Override
     public void failed(final Exception cause) {
         shutdown = true;
+        // Clear first so a worker blocked on a full outbound queue is released, then post the
+        // sentinels so the worker's blocking reads/writes unwind.
+        outbound.clear();
+        inbound.clear();
         outbound.offer(END_OUTBOUND);
         inbound.offer(END_INBOUND);
 
@@ -310,6 +368,7 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
         shutdown = true;
         outbound.clear();
         inbound.clear();
+        inbound.offer(END_INBOUND);
         outLock.lock();
         try {
             currentOutbound = null;
@@ -318,7 +377,31 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
         }
     }
 
-    private static final class QueueInputStream extends InputStream {
+    private void enqueueOutbound(final ByteBuffer buf) throws IOException {
+        // Once the exchange has failed or been released nothing drains the queue any more,
+        // so a blocking put would wedge the worker thread; fail the write instead.
+        if (shutdown) {
+            throw new IOException("WebSocket stream already terminated");
+        }
+        try {
+            // Bounded blocking put: applies backpressure to the application writer (worker thread)
+            // when the reactor has not yet drained the outbound queue.
+            outbound.put(buf);
+        } catch (final InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted while queuing outbound data", ex);
+        }
+    }
+
+    private void enqueueOutboundQuietly(final ByteBuffer buf) {
+        try {
+            outbound.put(buf);
+        } catch (final InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private final class QueueInputStream extends InputStream {
 
         private final BlockingQueue<byte[]> queue;
         private byte[] current;
@@ -331,6 +414,11 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
         @Override
         public int read() throws IOException {
             if (current == null || pos >= current.length) {
+                // The previous chunk is fully consumed: replenish inbound flow-control credit for
+                // its bytes so the peer may send more, keeping buffered memory bounded.
+                if (current != null && current != END_INBOUND && current.length > 0) {
+                    replenishInbound(current.length);
+                }
                 try {
                     current = queue.take();
                 } catch (final InterruptedException ex) {
@@ -348,15 +436,9 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
 
     private final class QueueOutputStream extends OutputStream {
 
-        private final BlockingQueue<ByteBuffer> queue;
-
-        QueueOutputStream(final BlockingQueue<ByteBuffer> queue) {
-            this.queue = queue;
-        }
-
         @Override
         public void write(final int b) throws IOException {
-            queue.offer(ByteBuffer.wrap(new byte[]{(byte) b}));
+            enqueueOutbound(ByteBuffer.wrap(new byte[]{(byte) b}));
             requestOutput();
         }
 
@@ -367,13 +449,13 @@ final class WebSocketH2ServerExchangeHandler implements AsyncServerExchangeHandl
             }
             final byte[] copy = new byte[len];
             System.arraycopy(b, off, copy, 0, len);
-            queue.offer(ByteBuffer.wrap(copy));
+            enqueueOutbound(ByteBuffer.wrap(copy));
             requestOutput();
         }
 
         @Override
-        public void close() {
-            queue.offer(END_OUTBOUND);
+        public void close() throws IOException {
+            enqueueOutbound(END_OUTBOUND);
             requestOutput();
         }
 

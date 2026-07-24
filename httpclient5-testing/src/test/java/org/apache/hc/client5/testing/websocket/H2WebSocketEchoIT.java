@@ -169,7 +169,6 @@ class H2WebSocketEchoIT {
         final WebSocketClientConfig cfg = WebSocketClientConfig.custom()
                 .enableHttp2(true)
                 .enablePerMessageDeflate(true)
-                .offerClientMaxWindowBits(15)
                 .setCloseWaitTimeout(Timeout.ofSeconds(2))
                 .build();
 

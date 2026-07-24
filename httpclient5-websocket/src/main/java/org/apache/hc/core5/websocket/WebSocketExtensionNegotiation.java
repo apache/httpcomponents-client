@@ -29,12 +29,14 @@ package org.apache.hc.core5.websocket;
 import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
-public final class WebSocketExtensionNegotiation {
+public final class WebSocketExtensionNegotiation implements AutoCloseable {
 
     private final List<WebSocketExtension> extensions;
     private final List<WebSocketExtensionData> responseData;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     WebSocketExtensionNegotiation(
             final List<WebSocketExtension> extensions,
@@ -57,5 +59,33 @@ public final class WebSocketExtensionNegotiation {
             joiner.add(data.format());
         }
         return joiner.length() > 0 ? joiner.toString() : null;
+    }
+
+    /**
+     * Releases the native resources held by the negotiated extensions. Idempotent; only the first
+     * invocation closes the extensions and each extension is closed exactly once. A failure to
+     * close one extension does not prevent the remaining extensions from being closed.
+     *
+     * @since 5.7
+     */
+    @Override
+    public void close() {
+        if (closed.compareAndSet(false, true)) {
+            RuntimeException failure = null;
+            for (final WebSocketExtension extension : extensions) {
+                try {
+                    extension.close();
+                } catch (final RuntimeException ex) {
+                    if (failure == null) {
+                        failure = ex;
+                    } else {
+                        failure.addSuppressed(ex);
+                    }
+                }
+            }
+            if (failure != null) {
+                throw failure;
+            }
+        }
     }
 }
