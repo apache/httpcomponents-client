@@ -98,24 +98,4 @@
     </plugins>
   </build>
 
-  <profiles>
-    <profile>
-      <id>skip-on-java8</id>
-      <activation>
-        <property>
-          <name>hc.build.toolchain.version</name>
-          <value>1.8</value>
-        </property>
-      </activation>
-      <properties>
-        <maven.main.skip>true</maven.main.skip>
-        <maven.test.skip>true</maven.test.skip>
-        <maven.javadoc.skip>true</maven.javadoc.skip>
-        <maven.source.skip>true</maven.source.skip>
-        <maven.install.skip>true</maven.install.skip>
-        <checkstyle.skip>true</checkstyle.skip>
-      </properties>
-    </profile>
-  </profiles>
-
 </project>

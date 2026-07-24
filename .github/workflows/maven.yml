@@ -59,6 +59,16 @@ jobs:
             echo 'HC_BUILD_TOOLCHAIN_VERSION=${{ matrix.java }}' >> "$GITHUB_ENV"
             ;;
         esac
+        # The httpclient5-jakarta-rest-client module is compiled for Java 11, so it must be
+        # excluded from the reactor whenever the selected toolchain is older than 11.
+        case '${{ matrix.java }}' in
+          8)
+            echo 'HC_PROFILE_ARGS=-Dhc.jakarta-rest-client.skip=true' >> "$GITHUB_ENV"
+            ;;
+          *)
+            echo 'HC_PROFILE_ARGS=' >> "$GITHUB_ENV"
+            ;;
+        esac
     - name: Set up toolchain JDK ${{ matrix.java }}
       id: setup-java-toolchain
       uses: actions/setup-java@v5
@@ -90,4 +100,4 @@ jobs:
         </toolchains>
         EOF
     - name: Build with Maven
-      run: ./mvnw -V --file pom.xml --no-transfer-progress -DtrimStackTrace=false -Djunit.jupiter.execution.parallel.enabled=false -Dhc.build.toolchain.version="${HC_BUILD_TOOLCHAIN_VERSION}" -Pdocker
+      run: ./mvnw -V --file pom.xml --no-transfer-progress -DtrimStackTrace=false -Djunit.jupiter.execution.parallel.enabled=false -Dhc.build.toolchain.version="${HC_BUILD_TOOLCHAIN_VERSION}" ${HC_PROFILE_ARGS} -Pdocker
