@@ -130,6 +130,7 @@ public class HttpCacheEntryFactory {
                 latestVariant.getRequestMethod(),
                 latestVariant.getRequestURI(),
                 headers(latestVariant.requestHeaderIterator()),
+                latestVariant.getRequestContent(),
                 latestVariant.getStatus(),
                 headers(latestVariant.headerIterator()),
                 null,
@@ -152,6 +153,27 @@ public class HttpCacheEntryFactory {
                                  final HttpRequest request,
                                  final HttpResponse response,
                                  final Resource resource) {
+        return create(requestInstant, responseInstant, host, request, null, response, resource);
+    }
+
+    /**
+     * Create a new {@link HttpCacheEntry} with the given request content and {@link Resource}.
+     *
+     * @param requestInstant   Date/time when the request was made (Used for age calculations)
+     * @param responseInstant  Date/time that the response came back (Used for age calculations)
+     * @param host             Target host
+     * @param request          Original client request (a deep copy of this object is made)
+     * @param requestContent   Content enclosed in the original client request or {@code null}
+     * @param response         Origin response (a deep copy of this object is made)
+     * @param resource         Resource representing origin response body
+     */
+    public HttpCacheEntry create(final Instant requestInstant,
+                                 final Instant responseInstant,
+                                 final HttpHost host,
+                                 final HttpRequest request,
+                                 final byte[] requestContent,
+                                 final HttpResponse response,
+                                 final Resource resource) {
         Args.notNull(requestInstant, "Request instant");
         Args.notNull(responseInstant, "Response instant");
         Args.notNull(host, "Host");
@@ -169,6 +191,7 @@ public class HttpCacheEntryFactory {
                 request.getMethod(),
                 uri,
                 requestHeaders,
+                requestContent,
                 response.getCode(),
                 responseHeaders,
                 resource,
@@ -213,6 +236,7 @@ public class HttpCacheEntryFactory {
                 request.getMethod(),
                 uri,
                 requestHeaders,
+                entry.getRequestContent(),
                 entry.getStatus(),
                 mergedHeaders,
                 entry.getResource(),
@@ -233,6 +257,7 @@ public class HttpCacheEntryFactory {
                 entry.getRequestMethod(),
                 entry.getRequestURI(),
                 headers(entry.requestHeaderIterator()),
+                entry.getRequestContent(),
                 entry.getStatus(),
                 headers(entry.headerIterator()),
                 entry.getResource(),

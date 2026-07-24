@@ -393,6 +393,111 @@ class TestHttpByteArrayCacheEntrySerializer {
     }
 
     /**
+     * Serialize and deserialize a cache entry with enclosed request content.
+     */
+    @Test
+    void testSerializeAndDeserializeRequestContent() throws Exception {
+        final String requestContent = "{\"criteria\":\"value\"}";
+        final String content = "Hello World";
+        final ContentType contentType = ContentType.TEXT_PLAIN.withCharset(StandardCharsets.UTF_8);
+        final HttpCacheEntry cacheEntry = new HttpCacheEntry(Instant.now(), Instant.now(),
+                "QUERY", "/stuff", HttpTestUtils.headers(new BasicHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())),
+                requestContent.getBytes(StandardCharsets.UTF_8),
+                HttpStatus.SC_OK, HttpTestUtils.headers(new BasicHeader(HttpHeaders.CONTENT_TYPE, contentType.toString())),
+                new HeapResource(content.getBytes(contentType.getCharset())),
+                null);
+        final HttpCacheStorageEntry storageEntry = new HttpCacheStorageEntry("unique-cache-key", cacheEntry);
+        final byte[] serialized = httpCacheEntrySerializer.serialize(storageEntry);
+
+        final HttpCacheStorageEntry deserialized = httpCacheEntrySerializer.deserialize(serialized);
+        Assertions.assertEquals(storageEntry.getKey(), deserialized.getKey());
+        HttpCacheEntryMatcher.assertEquivalent(deserialized.getContent(), storageEntry.getContent());
+    }
+
+    /**
+     * Deserialize a cache entry with request content in a fixed format.
+     */
+    @Test
+    void testDeserializeRequestContent() throws Exception {
+        final String content1 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                "HC-Resource-Length: 11\n" +
+                "HC-Request-Content-Length: 4\n" +
+                "HC-Request-Instant: 1686210849596\n" +
+                "HC-Response-Instant: 1686210849596\n" +
+                "\n" +
+                "QUERY /stuff HTTP/1.1\n" +
+                "Content-Type: text/plain; charset=UTF-8\n" +
+                "\n" +
+                "abcd" +
+                "HTTP/1.1 200 \n" +
+                "Content-Type: text/plain; charset=UTF-8\n" +
+                "\n" +
+                "Hello World";
+        final byte[] bytes1 = content1.getBytes(StandardCharsets.UTF_8);
+        final HttpCacheStorageEntry deserialized = httpCacheEntrySerializer.deserialize(bytes1);
+        final HttpCacheEntry cacheEntry = deserialized.getContent();
+        Assertions.assertEquals("QUERY", cacheEntry.getRequestMethod());
+        Assertions.assertArrayEquals("abcd".getBytes(StandardCharsets.UTF_8), cacheEntry.getRequestContent());
+        Assertions.assertArrayEquals("Hello World".getBytes(StandardCharsets.UTF_8), cacheEntry.getResource().get());
+    }
+
+    /**
+     * Deserialize a cache entry with truncated request content.
+     */
+    @Test
+    void testTruncatedRequestContent() {
+        final String content1 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                "HC-Request-Content-Length: 100\n" +
+                "HC-Request-Instant: 1686210849596\n" +
+                "HC-Response-Instant: 1686210849596\n" +
+                "\n" +
+                "QUERY /stuff HTTP/1.1\n" +
+                "\n" +
+                "abcd";
+        final byte[] bytes1 = content1.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception1 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes1));
+        Assertions.assertEquals("Unexpected end of cache content", exception1.getMessage());
+    }
+
+    /**
+     * Deserialize a cache entry with an invalid (negative or exceeding the size
+     * of the serialized representation) request content length.
+     */
+    @Test
+    void testInvalidRequestContentLength() {
+        final String content1 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                "HC-Request-Content-Length: -2\n" +
+                "HC-Request-Instant: 1686210849596\n" +
+                "HC-Response-Instant: 1686210849596\n" +
+                "\n" +
+                "QUERY /stuff HTTP/1.1\n" +
+                "\n" +
+                "abcd";
+        final byte[] bytes1 = content1.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception1 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes1));
+        Assertions.assertEquals("Invalid cache content length: -2", exception1.getMessage());
+
+        final String content2 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                "HC-Request-Content-Length: 2000000000\n" +
+                "HC-Request-Instant: 1686210849596\n" +
+                "HC-Response-Instant: 1686210849596\n" +
+                "\n" +
+                "QUERY /stuff HTTP/1.1\n" +
+                "\n" +
+                "abcd";
+        final byte[] bytes2 = content2.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception2 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes2));
+        Assertions.assertEquals("Invalid cache content length: 2000000000", exception2.getMessage());
+    }
+
+    /**
      * Deserialize cache entries with trailing garbage.
      */
     @Test
