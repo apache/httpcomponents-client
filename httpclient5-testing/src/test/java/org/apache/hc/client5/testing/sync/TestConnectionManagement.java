@@ -309,7 +309,7 @@ class TestConnectionManagement {
                         .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
                         .setConnPoolPolicy(PoolReusePolicy.LIFO)
                         .setDefaultConnectionConfig(ConnectionConfig.custom()
-                                .setTimeToLive(TimeValue.ofMilliseconds(100))
+                                .setTimeToLive(TimeValue.ofMilliseconds(500))
                                 .build())
                         .build();
         connManager.setMaxTotal(1);
@@ -336,7 +336,7 @@ class TestConnectionManagement {
         Assertions.assertEquals(1, connManager.getTotalStats().getAvailable());
         Assertions.assertEquals(1, connManager.getStats(route).getAvailable());
 
-        Thread.sleep(150);
+        Thread.sleep(600);
 
         connManager.closeExpired();
 
