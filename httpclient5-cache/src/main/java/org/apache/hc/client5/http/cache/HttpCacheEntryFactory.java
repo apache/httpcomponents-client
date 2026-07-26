@@ -166,6 +166,8 @@ public class HttpCacheEntryFactory {
      * @param requestContent   Content enclosed in the original client request or {@code null}
      * @param response         Origin response (a deep copy of this object is made)
      * @param resource         Resource representing origin response body
+     *
+     * @since 5.7
      */
     public HttpCacheEntry create(final Instant requestInstant,
                                  final Instant responseInstant,

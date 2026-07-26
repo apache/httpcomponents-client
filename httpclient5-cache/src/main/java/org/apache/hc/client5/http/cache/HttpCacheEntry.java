@@ -87,6 +87,8 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     /**
      * Internal constructor that makes no validation of the input parameters and makes
      * no copies of the original client request and the origin response.
+     *
+     * @since 5.7
      */
     @Internal
     public HttpCacheEntry(
@@ -516,6 +518,8 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     /**
      * Returns the content of the original client request or {@code null} if the request
      * did not enclose any content.
+     *
+     * @since 5.7
      */
     public byte[] getRequestContent() {
         return requestContent;
