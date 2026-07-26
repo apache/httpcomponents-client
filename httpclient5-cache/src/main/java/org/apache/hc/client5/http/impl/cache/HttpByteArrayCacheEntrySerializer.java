@@ -86,6 +86,7 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
 
     static final String HC_CACHE_KEY = "HC-Key";
     static final String HC_CACHE_LENGTH = "HC-Resource-Length";
+    static final String HC_REQUEST_CONTENT_LENGTH = "HC-Request-Content-Length";
     static final String HC_REQUEST_INSTANT = "HC-Request-Instant";
     static final String HC_RESPONSE_INSTANT = "HC-Response-Instant";
     static final String HC_VARIANT = "HC-Variant";
@@ -133,8 +134,10 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
         final String key = storageEntry.getKey();
         final HttpCacheEntry cacheEntry = storageEntry.getContent();
         final Resource resource = cacheEntry.getResource();
+        final byte[] requestContent = cacheEntry.getRequestContent();
 
-        try (ByteArrayOutputStream out = new ByteArrayOutputStream((resource != null ? (int) resource.length() : 0) + DEFAULT_BUFFER_SIZE)) {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream((resource != null ? (int) resource.length() : 0)
+                + (requestContent != null ? requestContent.length : 0) + DEFAULT_BUFFER_SIZE)) {
             final SessionOutputBuffer outputBuffer = new SessionOutputBufferImpl(bufferSize);
             final CharArrayBuffer line = new CharArrayBuffer(DEFAULT_BUFFER_SIZE);
 
@@ -152,6 +155,14 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
                 line.append(HC_CACHE_LENGTH);
                 line.append(": ");
                 line.append(asStr(resource.length()));
+                outputBuffer.writeLine(line, out);
+            }
+
+            if (requestContent != null) {
+                line.clear();
+                line.append(HC_REQUEST_CONTENT_LENGTH);
+                line.append(": ");
+                line.append(asStr(requestContent.length));
                 outputBuffer.writeLine(line, out);
             }
 
@@ -188,6 +199,11 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
             }
             line.clear();
             outputBuffer.writeLine(line, out);
+
+            if (requestContent != null) {
+                outputBuffer.flush(out);
+                out.write(requestContent);
+            }
 
             line.clear();
             final StatusLine statusLine = new StatusLine(HttpVersion.HTTP_1_1, cacheEntry.getStatus(), "");
@@ -241,6 +257,7 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
             }
             String storageKey = null;
             long length = -1;
+            long requestContentLength = -1;
             Instant requestDate = null;
             Instant responseDate = null;
             final Set<String> variants = new HashSet<>();
@@ -258,6 +275,8 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
                     storageKey = value;
                 } else if (name.equalsIgnoreCase(HC_CACHE_LENGTH)) {
                     length = asLong(value);
+                } else if (name.equalsIgnoreCase(HC_REQUEST_CONTENT_LENGTH)) {
+                    requestContentLength = asLong(value);
                 } else if (name.equalsIgnoreCase(HC_REQUEST_INSTANT)) {
                     requestDate = asInstant(value);
                 } else if (name.equalsIgnoreCase(HC_RESPONSE_INSTANT)) {
@@ -285,6 +304,8 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
                 }
                 requestHeaders.addHeader(lineParser.parseHeader(line));
             }
+            final byte[] requestContent = requestContentLength != -1 ?
+                    readBytes(inputBuffer, in, requestContentLength, serializedObject.length) : null;
             line.clear();
             checkReadResult(inputBuffer.readLine(line, in));
             final StatusLine statusLine = lineParser.parseStatusLine(line);
@@ -298,25 +319,8 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
                 responseHeaders.addHeader(lineParser.parseHeader(line));
             }
 
-            final Resource resource;
-            if (length != -1) {
-                int off = 0;
-                int remaining = (int) length;
-                final byte[] buf = new byte[remaining];
-                while (remaining > 0) {
-                    final int i = inputBuffer.read(buf, off, remaining, in);
-                    if (i > 0) {
-                        off += i;
-                        remaining -= i;
-                    }
-                    if (i == -1) {
-                        throw new ResourceIOException("Unexpected end of cache content");
-                    }
-                }
-                resource = new HeapResource(buf);
-            } else {
-                resource = null;
-            }
+            final Resource resource = length != -1 ?
+                    new HeapResource(readBytes(inputBuffer, in, length, serializedObject.length)) : null;
             if (inputBuffer.read(in) != -1) {
                 throw new ResourceIOException("Unexpected content at the end of cache content");
             }
@@ -327,6 +331,7 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
                     requestLine.getMethod(),
                     requestLine.getUri(),
                     requestHeaders,
+                    requestContent,
                     statusLine.getStatusCode(),
                     responseHeaders,
                     resource,
@@ -345,6 +350,27 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
         } catch (final IOException ex) {
             throw new ResourceIOException("I/O error deserializing cache entry", ex);
         }
+    }
+
+    private static byte[] readBytes(final SessionInputBufferImpl inputBuffer, final InputStream in,
+                                    final long length, final int limit) throws IOException {
+        if (length < 0 || length > limit) {
+            throw new ResourceIOException("Invalid cache content length: " + length);
+        }
+        int off = 0;
+        int remaining = (int) length;
+        final byte[] buf = new byte[remaining];
+        while (remaining > 0) {
+            final int i = inputBuffer.read(buf, off, remaining, in);
+            if (i > 0) {
+                off += i;
+                remaining -= i;
+            }
+            if (i == -1) {
+                throw new ResourceIOException("Unexpected end of cache content");
+            }
+        }
+        return buf;
     }
 
     private static String asStr(final long value) {

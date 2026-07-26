@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.cache;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -278,6 +279,23 @@ class TestHttpCacheEntryFactory {
                 ));
 
         Assertions.assertFalse(newEntry.hasVariants());
+    }
+
+    @Test
+    void testCreateEntryWithRequestContent() {
+        final byte[] requestContent = "{\"criteria\":\"value\"}".getBytes(StandardCharsets.UTF_8);
+        final Resource resource = HttpTestUtils.makeRandomResource(128);
+        final HttpRequest queryRequest = new BasicHttpRequest("QUERY", "/stuff");
+        final HttpResponse okResponse = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
+
+        final HttpCacheEntry newEntry = impl.create(tenSecondsAgo, oneSecondAgo, host, queryRequest, requestContent, okResponse, resource);
+        Assertions.assertArrayEquals(requestContent, newEntry.getRequestContent());
+
+        final HttpCacheEntry updatedEntry = impl.createUpdated(oneSecondAgo, now, host, queryRequest, response, newEntry);
+        Assertions.assertArrayEquals(requestContent, updatedEntry.getRequestContent());
+
+        final HttpCacheEntry copy = impl.copy(newEntry);
+        Assertions.assertArrayEquals(requestContent, copy.getRequestContent());
     }
 
     @Test

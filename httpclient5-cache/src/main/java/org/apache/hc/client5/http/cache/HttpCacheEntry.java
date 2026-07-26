@@ -73,6 +73,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     private final String method;
     private final String requestURI;
     private final HeaderGroup requestHeaders;
+    private final byte[] requestContent;
     private final int status;
     private final HeaderGroup responseHeaders;
     private final Resource resource;
@@ -82,6 +83,41 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     private final AtomicReference<Instant> lastModifiedRef;
 
     private final AtomicReference<ETag> eTagRef;
+
+    /**
+     * Internal constructor that makes no validation of the input parameters and makes
+     * no copies of the original client request and the origin response.
+     *
+     * @since 5.7
+     */
+    @Internal
+    public HttpCacheEntry(
+            final Instant requestDate,
+            final Instant responseDate,
+            final String method,
+            final String requestURI,
+            final HeaderGroup requestHeaders,
+            final byte[] requestContent,
+            final int status,
+            final HeaderGroup responseHeaders,
+            final Resource resource,
+            final Collection<String> variants) {
+        super();
+        this.requestDate = requestDate;
+        this.responseDate = responseDate;
+        this.method = method;
+        this.requestURI = requestURI;
+        this.requestHeaders = requestHeaders;
+        this.requestContent = requestContent;
+        this.status = status;
+        this.responseHeaders = responseHeaders;
+        this.resource = resource;
+        this.variants = variants != null ? Collections.unmodifiableSet(new HashSet<>(variants)) : null;
+        this.dateRef = new AtomicReference<>();
+        this.expiresRef = new AtomicReference<>();
+        this.lastModifiedRef = new AtomicReference<>();
+        this.eTagRef = new AtomicReference<>();
+    }
 
     /**
      * Internal constructor that makes no validation of the input parameters and makes
@@ -98,20 +134,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
             final HeaderGroup responseHeaders,
             final Resource resource,
             final Collection<String> variants) {
-        super();
-        this.requestDate = requestDate;
-        this.responseDate = responseDate;
-        this.method = method;
-        this.requestURI = requestURI;
-        this.requestHeaders = requestHeaders;
-        this.status = status;
-        this.responseHeaders = responseHeaders;
-        this.resource = resource;
-        this.variants = variants != null ? Collections.unmodifiableSet(new HashSet<>(variants)) : null;
-        this.dateRef = new AtomicReference<>();
-        this.expiresRef = new AtomicReference<>();
-        this.lastModifiedRef = new AtomicReference<>();
-        this.eTagRef = new AtomicReference<>();
+        this(requestDate, responseDate, method, requestURI, requestHeaders, null, status, responseHeaders, resource, variants);
     }
 
     /**
@@ -176,6 +199,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
         this.method = Method.GET.name();
         this.requestURI = "/";
         this.requestHeaders = new HeaderGroup();
+        this.requestContent = null;
         this.status = status;
         this.responseHeaders = new HeaderGroup();
         this.responseHeaders.setHeaders(responseHeaders);
@@ -489,6 +513,16 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      */
     public Iterator<Header> requestHeaderIterator(final String headerName) {
         return requestHeaders.headerIterator(headerName);
+    }
+
+    /**
+     * Returns the content of the original client request or {@code null} if the request
+     * did not enclose any content.
+     *
+     * @since 5.7
+     */
+    public byte[] getRequestContent() {
+        return requestContent;
     }
 
     /**
