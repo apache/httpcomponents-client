@@ -1,3 +1,30 @@
+Release 5.6.3
+------------------
+
+This maintenance release fixes a resource management defect in the content
+decompression protocol handler of the classic transport.
+
+Change Log
+-------------------
+
+* ContentCompressionExec fails to close the underlying response stream in case of
+  an unexpected runtime or protocol exception.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Do not call the backend when an only-if-cached request cannot be served from cache
+  (RFC 9111 5.2.1.7).
+  Contributed by hunghh.dev <hunghh.dev at gmail.com>
+
+* Include the request scheme in redirect same-authority check.
+  Contributed by Javid Khan <dxbjavid at gmail.com>
+
+* Escape quotes and strip line breaks in RFC 7578 multipart parameters.
+  Contributed by Javid Khan <dxbjavid at gmail.com>
+
+* HTTPCLIENT-2426: Do not wrap a discarded (null) response body in a content decoder.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+
 Release 5.6.2
 ------------------
 
