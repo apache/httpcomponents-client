@@ -49,7 +49,6 @@ import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -111,7 +110,6 @@ abstract class AbstractTestHttp2StreamResponseTimeout extends AbstractIntegratio
 
 }
 
-@Disabled
 public class TestHttp2StreamResponseTimeout {
 
     @Nested
