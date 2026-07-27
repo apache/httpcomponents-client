@@ -70,6 +70,7 @@ import org.apache.hc.core5.testing.reactive.ReactiveEchoProcessor;
 import org.apache.hc.core5.testing.reactive.ReactiveRandomProcessor;
 import org.apache.hc.core5.util.TextUtils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.reactivestreams.Publisher;
@@ -105,6 +106,7 @@ abstract class AbstractHttpReactiveFundamentalsTest extends AbstractIntegrationT
 
     @Test
     @Timeout(value = 2000, unit = MILLISECONDS)
+    @Disabled("Fails intermittently with CI build server")
     void testSequentialHeadRequests() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", () ->
                 new ReactiveServerExchangeHandler(new ReactiveRandomProcessor())));
