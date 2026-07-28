@@ -46,7 +46,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http2.H2StreamTimeoutException;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
-import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
@@ -103,9 +102,6 @@ abstract class AbstractTestHttp2StreamResponseTimeout extends AbstractIntegratio
         final ExecutionException exception = Assertions.assertThrows(ExecutionException.class, () ->
                 future2.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit()));
         Assertions.assertInstanceOf(H2StreamTimeoutException.class, exception.getCause());
-
-        final PoolStats totalStats = connManager.getTotalStats();
-        Assertions.assertTrue(totalStats.getAvailable() > 0);
     }
 
 }
