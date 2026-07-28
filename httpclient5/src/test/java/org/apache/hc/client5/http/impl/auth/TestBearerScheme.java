@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.auth;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.BearerToken;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -72,6 +73,25 @@ class TestBearerScheme {
         Assertions.assertEquals("test", authscheme.getRealm());
         Assertions.assertTrue(authscheme.isChallengeComplete());
         Assertions.assertFalse(authscheme.isConnectionBased());
+    }
+
+    @Test
+    void testBearerTokenWithControlCharacters() throws Exception {
+        final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, "Bearer",
+                new BasicNameValuePair("realm", "test"));
+
+        final AuthScheme authscheme = new BearerScheme();
+        authscheme.processChallenge(authChallenge, null);
+
+        final HttpHost host = new HttpHost("somehost", 80);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "test", null), new BearerToken("token\r\nX-Injected: evil"))
+                .build();
+
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        Assertions.assertThrows(AuthenticationException.class,
+                () -> authscheme.generateAuthResponse(host, request, null));
     }
 
     @Test

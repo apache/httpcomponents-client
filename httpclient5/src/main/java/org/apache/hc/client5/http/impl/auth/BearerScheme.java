@@ -160,7 +160,13 @@ public class BearerScheme implements AuthScheme, StateHolder<BearerScheme.State>
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
         Asserts.notNull(bearerToken, "Bearer token");
-        return StandardAuthScheme.BEARER + " " + bearerToken.getToken();
+        final String token = bearerToken.getToken();
+        for (int i = 0; i < token.length(); i++) {
+            if (Character.isISOControl(token.charAt(i))) {
+                throw new AuthenticationException("Bearer token must not contain any control characters");
+            }
+        }
+        return StandardAuthScheme.BEARER + " " + token;
     }
 
     @Override
