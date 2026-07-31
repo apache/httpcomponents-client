@@ -35,7 +35,6 @@ import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.ssl.ConscryptClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
-import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.HttpHost;
@@ -68,7 +67,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
 
     private Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
     private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
-    private boolean messageMultiplexing;
+    private boolean messageMultiplexing = true;
 
     public static PoolingAsyncClientConnectionManagerBuilder create() {
         return new PoolingAsyncClientConnectionManagerBuilder();
@@ -249,18 +248,15 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Use experimental connections pool implementation that acts as a caching facade
-     * in front of a standard connection pool and shares already leased connections
+     * Use an extra pool of connections that acts as a caching facade in front
+     * of a standard connection pool and shares already leased connections
      * to multiplex message exchanges over active HTTP/2 connections.
      *<p>
      * Please note this flag has no effect on HTTP/1.1 and HTTP/1.0 connections.
-     *<p>
-     * This feature is considered experimenal
      *
      * @since 5.5
      * @return this instance.
      */
-    @Experimental
     public final PoolingAsyncClientConnectionManagerBuilder setMessageMultiplexing(final boolean messageMultiplexing) {
         this.messageMultiplexing = messageMultiplexing;
         return this;

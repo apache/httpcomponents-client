@@ -41,7 +41,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.CompletedFuture;
@@ -70,7 +69,6 @@ import org.slf4j.LoggerFactory;
  * @since 5.5
  */
 @Contract(threading = ThreadingBehavior.SAFE)
-@Experimental
 public class H2SharingConnPool<T, C extends HttpConnection> implements ManagedConnPool<T, C> {
 
     private static final Logger LOG = LoggerFactory.getLogger(H2SharingConnPool.class);
