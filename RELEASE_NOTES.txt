@@ -1,3 +1,180 @@
+Release 5.7 ALPHA1
+------------------
+
+This is the first ALPHA release in the 5.7 release series. It introduces several new
+modules with Server-Sent Events (SSE) client, WebSocket client and Jakarta REST client
+implementations that build upon the common foundation of the core and client modules.
+Please note the Jakarta REST client presently supports a sub-set of jakarta.ws.rs APIs
+only. This release series also introduces full support for QUERY method including QUERY
+response caching.
+
+
+Notable changes and features included in the 5.7 series:
+
+* Caffeine-based cache backend.
+
+* Server-Sent Events (SSE) client optimized to handle push event streams.
+
+* OFFLOCK pool concurrency policy for connection pools (classic and async).
+
+* TLS-Required mode support.
+
+* WebSocket protocol support (client and server side).
+
+* Jakarta REST client (supports a sub-set of jakarta.ws.rs APIs).
+
+* Optional execution queue that enfoces a max limit on the number of requests
+executed concurrently by the same async client instance. Experimental.
+
+* QUERY method support / QUERY response caching support.
+
+
+Compatibility notes:
+
+* Client and connection pool builders no longer make direct use of `http(s).protocols`,
+`http(s).proxyUser`, `http(s).proxyPassword`, `http.agent`, `http.keepAlive` and
+`http.auth.ntlm.domain`system properties. Please note some of those properties may still
+be used by Authenticator#requestPasswordAuthentication internally.
+
+* Connection pool builders now respect JSSE system properties by default.
+
+* Standard async HttpClient now uses message exchange multiplexing over active HTTP/2
+connections by default.
+
+* IMPORTANT: This is likely the last release series with the Fluent Facade APIs. Users
+of the Fluent Facade are recommended to migrate to Jakarta REST client. Fluent Facade
+APIs should be considered deprecated and its support will be discontinued in
+the 5.8 release.
+
+
+Change Log
+-------------------
+
+* Enable multiplex message exchanges over active HTTP/2 connections by default.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Reject control characters in Bearer tokens used by the BearerScheme.
+  Contributed by Javid Khan <dxbjavid at gmail.com>
+
+* Extended HttpCacheEntry and related classes to store the enclosed request body
+  (#859).
+  Contributed by hunghhdev <hunghh.dev at gmail.com>
+
+* HTTPCLIENT-2428: Scale reactor capacity in inflating AsyncDataConsumers to match
+  decompressed output.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTP cache support for the QUERY method (RFC 10008) (#852)
+  Contributed by hunghhdev <hunghh.dev at gmail.com>
+
+* Do not store a response when the request specifies `no-store` in Cache-Control.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* CacheKeyGenerator to support requests with an enclosed content body such as QUERY.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Include the URI scheme component in redirect same-authority check.
+  Contributed by Javid Khan <dxbjavid at gmail.com>
+
+* Escape quotes and strip line breaks in RFC 7578 multipart parameters.
+  Contributed by Javid Khan <dxbjavid at gmail.com>
+
+* support for HTTP QUERY method (#840).
+  Contributed by Mario Daniel Ruiz Saavedra <desiderantes93 at gmail.com>
+
+* HTTPCLIENT-2423: Propagate trace context in observation interceptors.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-1165: Support for optional async cache request collapsing. Experimental.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Parsing code optimization in DateUtils.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Parsing code optimization in ETag.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2421: Use effective retry interval for response timeout check.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2398: Optional execution queue that enfoces a max limit on the number of
+  requests executed concurrently by the same async client instance.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Jakarta REST client (partial jakarta.ws.rs API support).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2418: Use UTF-8 as the default charset handling in SimpleBody for JSON
+  content.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* H2 streams initiated by the standard async client can be gracefully cancelled
+  or time out without closing the underlying connection.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Improved RFC 9111 cache control compliance.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-973: WebSocket protocol support.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Connection managers to unwrap DeadlineTimeoutException from ExecutionException
+  and propagate it to the caller.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* BasicCookieStore to preserve creation time on cookie replacement as per RFC 6265
+  section 5.3 and section 5.4.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Treat Cache-Control `max-age` <= 0 as immediate expiry (#805).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Treat Cache-Control `max-stale` without a value (accept any staleness) as
+  unbounded value (#804).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Pool lease metrics and helpers for connection managers (#799).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2381: Respect JSSE system properties by default.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* Pluggable ExchangeId generator support.
+  Contributed by yhzdys <yhzdys at foxmail>
+
+* Discontinue the use of `http(s).protocols` system properties.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Discontinue the direct use of `http(s).proxyUser` and `http(s).proxyPassword` system
+  properties.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Discontinue the use of `http.agent`, `http.keepAlive` and `http.auth.ntlm.domain`
+  system properties.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2397: Support for TLS-Required mode (#777).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Support for pluggable connection pool event listeners.
+  Contributed by Florian Tavares <Florian.Tavares at boursorama.fr>
+
+* OFFLOCK pool concurrency policy backed by RouteSegmentedConnPool (#765).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2396: Server-Sent Events client.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2406: MemcachedHttpCacheStorage to support per entry expiry setting.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Caffeine-based cache backend (#756).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Removed AccessController#doPrivileged method calls
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
 Release 5.6 ALPHA1
 ------------------
 
