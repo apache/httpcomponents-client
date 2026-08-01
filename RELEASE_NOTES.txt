@@ -11,20 +11,20 @@ response caching.
 
 Notable changes and features included in the 5.7 series:
 
-* Caffeine-based cache backend.
+* [Experimental] Server-Sent Events (SSE) client optimized to handle push event streams.
 
-* Server-Sent Events (SSE) client optimized to handle push event streams. Experimental.
+* [Experimental] WebSocket protocol support (client and server side).
+
+* [Experimental] Optional execution queue that enforces a max limit on the number of requests
+executed concurrently by the same async client instance.
+
+* Caffeine-based cache backend.
 
 * OFFLOCK pool concurrency policy for connection pools (classic and async).
 
 * TLS-Required mode support.
 
-* WebSocket protocol support (client and server side). Experimental.
-
-* Jakarta REST client (supports a sub-set of jakarta.ws.rs APIs).
-
-* Optional execution queue that enfoces a max limit on the number of requests
-executed concurrently by the same async client instance. Experimental.
+* Jakarta REST client, supporting a sub-set of jakarta.ws.rs APIs.
 
 * QUERY method support / QUERY response caching support.
 
@@ -48,7 +48,7 @@ the 5.8 release.
 
 
 Change Log
--------------------
+----------
 
 * Enable multiplex message exchanges over active HTTP/2 connections by default.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
@@ -79,7 +79,7 @@ Change Log
 * Escape quotes and strip line breaks in RFC 7578 multipart parameters.
   Contributed by Javid Khan <dxbjavid at gmail.com>
 
-* support for HTTP QUERY method (#840).
+* Support for HTTP QUERY method (#840).
   Contributed by Mario Daniel Ruiz Saavedra <desiderantes93 at gmail.com>
 
 * HTTPCLIENT-2423: Propagate trace context in observation interceptors.
@@ -97,7 +97,7 @@ Change Log
 * HTTPCLIENT-2421: Use effective retry interval for response timeout check.
   Contributed by Arturo Bernal <abernal at apache.org>
 
-* HTTPCLIENT-2398: Optional execution queue that enfoces a max limit on the number of
+* HTTPCLIENT-2398: Optional execution queue that enforces a max limit on the number of
   requests executed concurrently by the same async client instance.
   Contributed by Arturo Bernal <abernal at apache.org>
 
@@ -171,7 +171,7 @@ Change Log
 * Caffeine-based cache backend (#756).
   Contributed by Arturo Bernal <abernal at apache.org>
 
-* Removed AccessController#doPrivileged method calls
+* Removed AccessController#doPrivileged method calls.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 
