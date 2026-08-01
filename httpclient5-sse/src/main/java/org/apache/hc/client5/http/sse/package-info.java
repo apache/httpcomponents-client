@@ -33,6 +33,10 @@
  * configurable parsing pipeline. It is designed for very low-latency, high-fan-out
  * read workloads and integrates with HttpClient 5's asynchronous I/O stack.</p>
  *
+ * <p><strong>Experimental.</strong> This module is experimental. Its public API is not yet stable
+ * and may change in an incompatible way, or be removed, in a future release; it is excluded from
+ * the project's binary and source backward-compatibility guarantees for the 5.7 release series.</p>
+ *
  * <h2>Key types</h2>
  * <ul>
  *   <li>{@link org.apache.hc.client5.http.sse.SseExecutor} — entry point that opens

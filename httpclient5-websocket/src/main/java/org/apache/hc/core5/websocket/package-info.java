@@ -32,6 +32,10 @@
  * {@code util}, and {@code exceptions} are internal implementation details
  * and may change without notice.</p>
  *
+ * <p><strong>Experimental.</strong> This module is experimental. Its public API is not yet stable
+ * and may change in an incompatible way, or be removed, in a future release; it is excluded from
+ * the project's binary and source backward-compatibility guarantees for the 5.7 release series.</p>
+ *
  * @since 5.7
  */
 package org.apache.hc.core5.websocket;
