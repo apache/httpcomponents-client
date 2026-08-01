@@ -13,13 +13,13 @@ Notable changes and features included in the 5.7 series:
 
 * Caffeine-based cache backend.
 
-* Server-Sent Events (SSE) client optimized to handle push event streams.
+* Server-Sent Events (SSE) client optimized to handle push event streams. Experimental.
 
 * OFFLOCK pool concurrency policy for connection pools (classic and async).
 
 * TLS-Required mode support.
 
-* WebSocket protocol support (client and server side).
+* WebSocket protocol support (client and server side). Experimental.
 
 * Jakarta REST client (supports a sub-set of jakarta.ws.rs APIs).
 
