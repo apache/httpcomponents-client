@@ -32,7 +32,7 @@ import java.nio.charset.StandardCharsets;
 import org.apache.hc.core5.annotation.Internal;
 
 /**
- * Helpers for RFC6455 CLOSE parsing & validation.
+ * Helpers for RFC6455 CLOSE parsing and validation.
  */
 @Internal
 public final class CloseCodec {

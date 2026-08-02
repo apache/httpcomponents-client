@@ -321,7 +321,7 @@
           <links>
             <link>https://hc.apache.org/httpcomponents-core-5.4.x/current/httpcore5/apidocs/</link>
             <link>https://hc.apache.org/httpcomponents-core-5.4.x/current/httpcore5-h2/apidocs/</link>
-            <link>https://hc.apache.org/httpcomponents-client-5.7.x/current/httpclient5/apidocs/</link>
+            <!-- link>https://hc.apache.org/httpcomponents-client-5.7.x/current/httpclient5/apidocs/</link-->
           </links>
         </configuration>
       </plugin>

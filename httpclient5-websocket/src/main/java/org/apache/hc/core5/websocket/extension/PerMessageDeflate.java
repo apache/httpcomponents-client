@@ -38,8 +38,8 @@ import org.apache.hc.core5.websocket.frame.FrameHeaderBits;
  * permessage-deflate (RFC 7692).
  *
  * <p>Window bit parameters are negotiated during the handshake:
- * {@code client_max_window_bits} limits the client's compression window (client->server),
- * while {@code server_max_window_bits} limits the server's compression window (server->client).
+ * {@code client_max_window_bits} limits the client's compression window (client-&gt;server),
+ * while {@code server_max_window_bits} limits the server's compression window (server-&gt;client).
  * The decoder can accept any server window size (8..15). The encoder currently requires
  * {@code client_max_window_bits} to be 15, due to JDK Deflater limitations.</p>
  */
