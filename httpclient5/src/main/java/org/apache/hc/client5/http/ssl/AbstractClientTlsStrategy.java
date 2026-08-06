@@ -152,11 +152,11 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
                 H2TlsSupport.setEnableRetransmissions(sslParameters, false);
             }
 
-            applyParameters(sslEngine, sslParameters, H2TlsSupport.selectApplicationProtocols(versionPolicy));
-
             if (hostnameVerificationPolicy == HostnameVerificationPolicy.BUILTIN || hostnameVerificationPolicy == HostnameVerificationPolicy.BOTH) {
                 sslParameters.setEndpointIdentificationAlgorithm(URIScheme.HTTPS.id);
             }
+
+            applyParameters(sslEngine, sslParameters, H2TlsSupport.selectApplicationProtocols(versionPolicy));
 
             initializeEngine(sslEngine);
 
