@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.EndpointInfo;
@@ -40,6 +41,8 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.impl.AlpnHeaderSupport;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.AuthenticationHandler;
 import org.apache.hc.client5.http.impl.routing.BasicRouteDirector;
@@ -48,6 +51,7 @@ import org.apache.hc.client5.http.routing.HttpRouteDirector;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
@@ -65,6 +69,8 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
+import org.apache.hc.core5.http2.ssl.H2TlsSupport;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,12 +95,24 @@ public final class ConnectExec implements ExecChainHandler {
     private final AuthCacheKeeper authCacheKeeper;
     private final HttpRouteDirector routeDirector;
 
+    private final Resolver<HttpHost, TlsConfig> tlsConfigResolver;
+
     public ConnectExec(
             final ConnectionReuseStrategy reuseStrategy,
             final HttpProcessor proxyHttpProcessor,
             final AuthenticationStrategy proxyAuthStrategy,
             final SchemePortResolver schemePortResolver,
             final boolean authCachingDisabled) {
+        this(reuseStrategy, proxyHttpProcessor, proxyAuthStrategy, schemePortResolver, authCachingDisabled, null);
+    }
+
+    public ConnectExec(
+            final ConnectionReuseStrategy reuseStrategy,
+            final HttpProcessor proxyHttpProcessor,
+            final AuthenticationStrategy proxyAuthStrategy,
+            final SchemePortResolver schemePortResolver,
+            final boolean authCachingDisabled,
+            final Resolver<HttpHost, TlsConfig> tlsConfigResolver) {
         Args.notNull(reuseStrategy, "Connection reuse strategy");
         Args.notNull(proxyHttpProcessor, "Proxy HTTP processor");
         Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
@@ -104,6 +122,7 @@ public final class ConnectExec implements ExecChainHandler {
         this.authenticator = new AuthenticationHandler();
         this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(schemePortResolver);
         this.routeDirector = BasicRouteDirector.INSTANCE;
+        this.tlsConfigResolver = tlsConfigResolver;
     }
 
     @Override
@@ -139,7 +158,6 @@ public final class ConnectExec implements ExecChainHandler {
                     step = this.routeDirector.nextStep(route, fact);
 
                     switch (step) {
-
                         case HttpRouteDirector.CONNECT_TARGET:
                             execRuntime.connectEndpoint(context);
                             tracker.connectTarget(route.isSecure());
@@ -162,11 +180,8 @@ public final class ConnectExec implements ExecChainHandler {
                         }
                         break;
 
-                        case HttpRouteDirector.TUNNEL_PROXY: {
-                            // Proxy chains are not supported by HttpClient.
-                            // Fail fast instead of attempting an untested tunnel to an intermediate proxy.
+                        case HttpRouteDirector.TUNNEL_PROXY:
                             throw new HttpException("Proxy chains are not supported.");
-                        }
 
                         case HttpRouteDirector.LAYER_PROTOCOL:
                             execRuntime.upgradeTls(context);
@@ -197,14 +212,6 @@ public final class ConnectExec implements ExecChainHandler {
         }
     }
 
-    /**
-     * Creates a tunnel to the target server.
-     * The connection must be established to the (last) proxy.
-     * A CONNECT request for tunnelling through the proxy will
-     * be created and sent, the response received and checked.
-     * This method does <i>not</i> processChallenge the connection with
-     * information about the tunnel, that is left to the caller.
-     */
     private ClassicHttpResponse createTunnelToTarget(
             final String exchangeId,
             final HttpRoute route,
@@ -227,6 +234,18 @@ public final class ConnectExec implements ExecChainHandler {
         final String authority = target.toHostString();
         final ClassicHttpRequest connect = new BasicClassicHttpRequest(Method.CONNECT, target, authority);
         connect.setVersion(HttpVersion.HTTP_1_1);
+
+        // RFC 7639: advertise the same ALPN protocols the tunnel's TLS layer will offer,
+        // derived from the target's HttpVersionPolicy so the header cannot diverge from the
+        // protocol actually negotiated inside the tunnel.
+        if (route.isSecure()) {
+            final TlsConfig tlsConfig = tlsConfigResolver != null ? tlsConfigResolver.resolve(target) : null;
+            final HttpVersionPolicy versionPolicy = tlsConfig != null
+                    ? tlsConfig.getHttpVersionPolicy()
+                    : HttpVersionPolicy.NEGOTIATE;
+            connect.setHeader(AlpnHeaderSupport.formatValue(
+                    Arrays.asList(H2TlsSupport.selectApplicationProtocols(versionPolicy))));
+        }
 
         this.proxyHttpProcessor.process(connect, null, context);
 
@@ -262,12 +281,10 @@ public final class ConnectExec implements ExecChainHandler {
                         authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);
                     }
                     if (updated) {
-                        // Retry request
                         if (this.reuseStrategy.keepAlive(connect, response, context)) {
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("{} connection kept alive", exchangeId);
                             }
-                            // Consume response content
                             final HttpEntity entity = response.getEntity();
                             EntityUtils.consume(entity);
                         } else {
@@ -295,25 +312,10 @@ public final class ConnectExec implements ExecChainHandler {
         return null;
     }
 
-    /**
-     * Creates a tunnel to an intermediate proxy.
-     * This method is <i>not</i> implemented in this class.
-     * It just throws an exception here.
-     */
     private boolean createTunnelToProxy(
             final HttpRoute route,
             final int hop,
             final HttpClientContext context) throws HttpException {
-
-        // Have a look at createTunnelToTarget and replicate the parts
-        // you need in a custom derived class. If your proxies don't require
-        // authentication, it is not too hard. But for the stock version of
-        // HttpClient, we cannot make such simplifying assumptions and would
-        // have to include proxy authentication code. The HttpComponents team
-        // is currently not in a position to support rarely used code of this
-        // complexity. Feel free to submit patches that refactor the code in
-        // createTunnelToTarget to facilitate re-use for proxy tunnelling.
-
         throw new HttpException("Proxy chains are not supported.");
     }
 

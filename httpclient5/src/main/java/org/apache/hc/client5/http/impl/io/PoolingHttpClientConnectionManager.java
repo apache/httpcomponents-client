@@ -712,6 +712,16 @@ public class PoolingHttpClientConnectionManager
         this.tlsConfigResolver = tlsConfigResolver;
     }
 
+    /**
+     * Returns the {@link Resolver} of {@link TlsConfig} on a per host basis, or {@code null} if not set.
+     *
+     * @since 5.7
+     */
+    @Internal
+    public Resolver<HttpHost, TlsConfig> getTlsConfigResolver() {
+        return tlsConfigResolver;
+    }
+
     void closeIfExpired(final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry) {
         final long now = System.currentTimeMillis();
         if (entry.getExpiryDeadline().isBefore(now)) {
