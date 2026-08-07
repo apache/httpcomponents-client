@@ -71,12 +71,12 @@ jobs:
         esac
     - name: Set up toolchain JDK ${{ matrix.java }}
       id: setup-java-toolchain
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@v5.6.0
       with:
         distribution: 'temurin'
         java-version: ${{ matrix.java }}
     - name: Set up JDK 17 for Maven
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@v5.6.0
       with:
         distribution: 'temurin'
         java-version: '17'
