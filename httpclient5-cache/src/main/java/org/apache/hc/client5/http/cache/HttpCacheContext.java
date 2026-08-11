@@ -42,6 +42,7 @@ import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookieSpec;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.impl.cache.CacheStatus;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.core5.annotation.Internal;
@@ -73,6 +74,7 @@ public class HttpCacheContext extends HttpClientContext {
     static final String REQUEST_CACHE_CONTROL = "http.cache.request-control";
     static final String RESPONSE_CACHE_CONTROL = "http.cache.response-control";
     static final String CACHE_ENTRY = "http.cache.entry";
+    static final String CACHE_STATUS = "http.cache.status";
 
     /**
      * @deprecated Use {@link #castOrCreate(HttpContext)}.
@@ -118,10 +120,10 @@ public class HttpCacheContext extends HttpClientContext {
         return new HttpCacheContext();
     }
 
-    private CacheResponseStatus responseStatus;
     private RequestCacheControl requestCacheControl;
     private ResponseCacheControl responseCacheControl;
     private HttpCacheEntry cacheEntry;
+    private CacheStatus cacheStatus;
 
     public HttpCacheContext(final HttpContext context) {
         super(context);
@@ -133,20 +135,12 @@ public class HttpCacheContext extends HttpClientContext {
 
     /**
      * Represents an outcome of the cache operation and the way the response has been
-     * generated.
-     * <p>
-     * This context attribute is expected to be populated by the protocol handler.
+     * generated. The value is derived on the fly from the {@link CacheStatus} recorded for the
+     * exchange, which is the single source of truth for how the request was handled.
      */
     public CacheResponseStatus getCacheResponseStatus() {
-        return responseStatus;
-    }
-
-    /**
-     * @since 5.4
-     */
-    @Internal
-    public void setCacheResponseStatus(final CacheResponseStatus responseStatus) {
-        this.responseStatus = responseStatus;
+        final CacheStatus status = getCacheStatus();
+        return status != null ? status.toResponseStatus() : null;
     }
 
     /**
@@ -229,6 +223,25 @@ public class HttpCacheContext extends HttpClientContext {
     }
 
     /**
+     * Records how the cache handled the current exchange, used to render the RFC 9211
+     * {@code Cache-Status} response header.
+     *
+     * @since 5.7
+     */
+    @Internal
+    public CacheStatus getCacheStatus() {
+        return cacheStatus;
+    }
+
+    /**
+     * @since 5.7
+     */
+    @Internal
+    public void setCacheStatus(final CacheStatus cacheStatus) {
+        this.cacheStatus = cacheStatus;
+    }
+
+    /**
      * Internal adaptor class that delegates all its method calls to {@link HttpClientContext}.
      * To be removed in the future.
      */
@@ -241,16 +254,6 @@ public class HttpCacheContext extends HttpClientContext {
         Delegate(final HttpClientContext clientContext) {
             super(null);
             this.clientContext = clientContext;
-        }
-
-        @Override
-        public CacheResponseStatus getCacheResponseStatus() {
-            return clientContext.getAttribute(CACHE_RESPONSE_STATUS, CacheResponseStatus.class);
-        }
-
-        @Override
-        public void setCacheResponseStatus(final CacheResponseStatus responseStatus) {
-            clientContext.setAttribute(CACHE_RESPONSE_STATUS, responseStatus);
         }
 
         @Override
@@ -281,6 +284,16 @@ public class HttpCacheContext extends HttpClientContext {
         @Override
         public void setCacheEntry(final HttpCacheEntry cacheEntry) {
             clientContext.setAttribute(CACHE_ENTRY, cacheEntry);
+        }
+
+        @Override
+        public CacheStatus getCacheStatus() {
+            return clientContext.getAttribute(CACHE_STATUS, CacheStatus.class);
+        }
+
+        @Override
+        public void setCacheStatus(final CacheStatus cacheStatus) {
+            clientContext.setAttribute(CACHE_STATUS, cacheStatus);
         }
 
         @Override

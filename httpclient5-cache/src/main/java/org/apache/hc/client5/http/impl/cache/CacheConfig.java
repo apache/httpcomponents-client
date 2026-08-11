@@ -123,6 +123,9 @@ public class CacheConfig implements Cloneable {
     /** Default setting for the request-collapsing hint. */
     public static final boolean DEFAULT_REQUEST_COLLAPSING_ENABLED = false;
 
+    /** Default setting for emitting the RFC 9211 {@code Cache-Status} response header. */
+    public static final boolean DEFAULT_CACHE_STATUS_ENABLED = false;
+
     public static final CacheConfig DEFAULT = new Builder().build();
 
     private final long maxObjectSize;
@@ -137,6 +140,7 @@ public class CacheConfig implements Cloneable {
     private final boolean neverCacheHTTP10ResponsesWithQuery;
     private final boolean staleIfErrorEnabled;
     private final boolean requestCollapsingEnabled;
+    private final boolean cacheStatusEnabled;
 
 
     /**
@@ -158,7 +162,8 @@ public class CacheConfig implements Cloneable {
             final boolean neverCacheHTTP10ResponsesWithQuery,
             final boolean neverCacheHTTP11ResponsesWithQuery,
             final boolean staleIfErrorEnabled,
-            final boolean requestCollapsingEnabled) {
+            final boolean requestCollapsingEnabled,
+            final boolean cacheStatusEnabled) {
         super();
         this.maxObjectSize = maxObjectSize;
         this.maxCacheEntries = maxCacheEntries;
@@ -173,6 +178,7 @@ public class CacheConfig implements Cloneable {
         this.neverCacheHTTP11ResponsesWithQuery = neverCacheHTTP11ResponsesWithQuery;
         this.staleIfErrorEnabled = staleIfErrorEnabled;
         this.requestCollapsingEnabled = requestCollapsingEnabled;
+        this.cacheStatusEnabled = cacheStatusEnabled;
     }
 
     /**
@@ -322,6 +328,17 @@ public class CacheConfig implements Cloneable {
         return requestCollapsingEnabled;
     }
 
+    /**
+     * Determines whether the RFC 9211 {@code Cache-Status} response header is added, reporting how
+     * the cache handled the exchange (hit, miss or revalidated). Disabled by default.
+     *
+     * @return this instance.
+     * @since 5.7
+     */
+    public boolean isCacheStatusEnabled() {
+        return cacheStatusEnabled;
+    }
+
     @Override
     protected CacheConfig clone() throws CloneNotSupportedException {
         return (CacheConfig) super.clone();
@@ -345,7 +362,8 @@ public class CacheConfig implements Cloneable {
             .setNeverCacheHTTP10ResponsesWithQueryString(config.isNeverCacheHTTP10ResponsesWithQuery())
             .setNeverCacheHTTP11ResponsesWithQueryString(config.isNeverCacheHTTP11ResponsesWithQuery())
             .setStaleIfErrorEnabled(config.isStaleIfErrorEnabled())
-            .setRequestCollapsingEnabled(config.isRequestCollapsingEnabled());
+            .setRequestCollapsingEnabled(config.isRequestCollapsingEnabled())
+            .setCacheStatusEnabled(config.isCacheStatusEnabled());
     }
 
     public static class Builder {
@@ -363,6 +381,7 @@ public class CacheConfig implements Cloneable {
         private boolean neverCacheHTTP11ResponsesWithQuery;
         private boolean staleIfErrorEnabled;
         private boolean requestCollapsingEnabled;
+        private boolean cacheStatusEnabled;
 
         Builder() {
             this.maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
@@ -376,6 +395,7 @@ public class CacheConfig implements Cloneable {
             this.asynchronousWorkers = DEFAULT_ASYNCHRONOUS_WORKERS;
             this.staleIfErrorEnabled = false;
             this.requestCollapsingEnabled = DEFAULT_REQUEST_COLLAPSING_ENABLED;
+            this.cacheStatusEnabled = DEFAULT_CACHE_STATUS_ENABLED;
         }
 
         /**
@@ -559,6 +579,18 @@ public class CacheConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * Enables the RFC 9211 {@code Cache-Status} response header, reporting how the cache
+         * handled the exchange (hit, miss or revalidated). Disabled by default.
+         *
+         * @return this instance.
+         * @since 5.7
+         */
+        public Builder setCacheStatusEnabled(final boolean cacheStatusEnabled) {
+            this.cacheStatusEnabled = cacheStatusEnabled;
+            return this;
+        }
+
         public CacheConfig build() {
             return new CacheConfig(
                     maxObjectSize,
@@ -573,7 +605,8 @@ public class CacheConfig implements Cloneable {
                     neverCacheHTTP10ResponsesWithQuery,
                     neverCacheHTTP11ResponsesWithQuery,
                     staleIfErrorEnabled,
-                    requestCollapsingEnabled);
+                    requestCollapsingEnabled,
+                    cacheStatusEnabled);
         }
 
     }
@@ -594,6 +627,7 @@ public class CacheConfig implements Cloneable {
                 .append(", neverCacheHTTP11ResponsesWithQuery=").append(this.neverCacheHTTP11ResponsesWithQuery)
                 .append(", staleIfErrorEnabled=").append(this.staleIfErrorEnabled)
                 .append(", requestCollapsingEnabled=").append(this.requestCollapsingEnabled)
+                .append(", cacheStatusEnabled=").append(this.cacheStatusEnabled)
                 .append("]");
         return builder.toString();
     }

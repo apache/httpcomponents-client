@@ -36,6 +36,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.MessageHeaders;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.net.URIBuilder;
@@ -191,6 +192,20 @@ public final class CacheSupport {
 
     public static boolean isSameOrigin(final URI requestURI, final URI targetURI) {
         return targetURI.isAbsolute() && Objects.equals(requestURI.getAuthority(), targetURI.getAuthority());
+    }
+
+    /**
+     * Determines whether the given request method is one the cache is able to handle, that is
+     * {@code GET}, {@code HEAD} or {@code QUERY}.
+     *
+     * @param method the request method
+     * @return {@code true} if the method is supported by the cache
+     * @since 5.7
+     */
+    public static boolean isMethodCacheSupported(final String method) {
+        return Method.GET.isSame(method)
+                || Method.HEAD.isSame(method)
+                || Method.QUERY.isSame(method);
     }
 
     public static final TimeValue MAX_AGE = TimeValue.ofSeconds(Integer.MAX_VALUE + 1L);

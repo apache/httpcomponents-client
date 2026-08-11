@@ -38,7 +38,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.slf4j.Logger;
@@ -108,7 +107,7 @@ class ResponseCachingPolicy {
 
         // Presently only GET, HEAD and QUERY methods are supported
         final String httpMethod = request.getMethod();
-        if (!Method.GET.isSame(httpMethod) && !Method.HEAD.isSame(httpMethod) && !Method.QUERY.isSame(httpMethod)) {
+        if (!CacheSupport.isMethodCacheSupported(httpMethod)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} method response is not cacheable", httpMethod);
             }
