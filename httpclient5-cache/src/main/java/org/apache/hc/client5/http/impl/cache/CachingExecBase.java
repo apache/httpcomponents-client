@@ -30,6 +30,7 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.EntityDetails;
@@ -129,6 +130,35 @@ public class CachingExecBase {
 
     SimpleHttpResponse generateGatewayTimeout() {
         return SimpleHttpResponse.create(HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
+    }
+
+    /**
+     * Returns the {@link CacheStatus} for the current exchange, creating and attaching a fresh one
+     * when absent.
+     */
+    CacheStatus cacheStatus(final HttpCacheContext context) {
+        CacheStatus cacheStatus = context.getCacheStatus();
+        if (cacheStatus == null) {
+            cacheStatus = new CacheStatus();
+            context.setCacheStatus(cacheStatus);
+        }
+        return cacheStatus;
+    }
+
+    /**
+     * Adds the RFC 9211 {@code Cache-Status} header to the response when enabled, describing how the
+     * cache handled the exchange as recorded on the context.
+     */
+    void applyCacheStatus(final HttpResponse response, final HttpCacheContext context) {
+        if (response != null && cacheConfig.isCacheStatusEnabled()) {
+            final CacheStatus cacheStatus = context.getCacheStatus();
+            if (cacheStatus != null) {
+                final Header header = CacheStatusHeaderGenerator.INSTANCE.generate(cacheStatus);
+                if (header != null) {
+                    response.addHeader(header);
+                }
+            }
+        }
     }
 
     Instant getCurrentDate() {

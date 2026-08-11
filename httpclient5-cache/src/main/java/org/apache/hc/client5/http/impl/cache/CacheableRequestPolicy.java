@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cache;
 import org.apache.hc.client5.http.cache.RequestCacheControl;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +56,7 @@ class CacheableRequestPolicy {
             return false;
         }
 
-        if (!Method.GET.isSame(method) && !Method.HEAD.isSame(method) && !Method.QUERY.isSame(method)) {
+        if (!CacheSupport.isMethodCacheSupported(method)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} request cannot be served from cache", method);
             }

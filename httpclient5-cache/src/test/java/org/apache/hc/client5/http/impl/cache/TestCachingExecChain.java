@@ -159,6 +159,215 @@ class TestCachingExecChain {
     }
 
     @Test
+    void testCacheStatusHeaderReportsMissThenHitWhenEnabled() throws Exception {
+        impl = new CachingExec(cache, null, CacheConfig.custom().setCacheStatusEnabled(true).build());
+
+        final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control", "max-age=3600");
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
+        final ClassicHttpResponse miss = execute(req1);
+        Assertions.assertEquals("Apache-HttpClient; fwd=uri-miss",
+                miss.getFirstHeader("Cache-Status").getValue());
+
+        final ClassicHttpResponse hit = execute(HttpTestUtils.makeDefaultRequest());
+        Assertions.assertEquals("Apache-HttpClient; hit",
+                hit.getFirstHeader("Cache-Status").getValue());
+    }
+
+    @Test
+    void testCacheStatusHeaderAbsentByDefault() throws Exception {
+        final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control", "max-age=3600");
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
+        final ClassicHttpResponse result = execute(req1);
+        Assertions.assertNull(result.getFirstHeader("Cache-Status"));
+    }
+
+    @Test
+    void testCacheStatusBypassOnNoCacheRequest() throws Exception {
+        impl = new CachingExec(cache, null, CacheConfig.custom().setCacheStatusEnabled(true).build());
+
+        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control", "max-age=3600");
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+        execute(HttpTestUtils.makeDefaultRequest());
+
+        // A no-cache request bypasses cache lookup entirely; no stored response is ever selected,
+        // so the reason is 'bypass', not 'request'.
+        final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("Cache-Control", "no-cache");
+        final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("Cache-Control", "max-age=3600");
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
+        final ClassicHttpResponse result = execute(req2);
+        Assertions.assertEquals("Apache-HttpClient; fwd=bypass",
+                result.getFirstHeader("Cache-Status").getValue());
+    }
+
+    @Test
+    void testCacheStatusMethodWhenRequestMethodNotSupportedByCache() throws Exception {
+        impl = new CachingExec(cache, null, CacheConfig.custom().setCacheStatusEnabled(true).build());
+
+        // POST is not a cache-supported method; even with a repeatable body it cannot be represented
+        // for caching, so the reason is 'method'.
+        final ClassicHttpRequest post = new BasicClassicHttpRequest("POST", "/");
+        post.setEntity(new StringEntity("payload"));
+        final ClassicHttpResponse resp = HttpTestUtils.make200Response();
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp);
+
+        final ClassicHttpResponse result = execute(post);
+        Assertions.assertEquals("Apache-HttpClient; fwd=method",
+                result.getFirstHeader("Cache-Status").getValue());
+    }
+
+    @Test
+    void testCacheStatusBypassWhenCacheSupportedMethodCannotBeRepresented() throws Exception {
+        impl = new CachingExec(cache, null, CacheConfig.custom().setCacheStatusEnabled(true).build());
+
+        // QUERY is cache-supported, but a non-repeatable body prevents the cache from representing
+        // the request, so the reason is 'bypass'.
+        final ClassicHttpRequest query = new BasicClassicHttpRequest("QUERY", "/");
+        query.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[]{1, 2, 3}),
+                ContentType.APPLICATION_OCTET_STREAM));
+        final ClassicHttpResponse resp = HttpTestUtils.make200Response();
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp);
+
+        final ClassicHttpResponse result = execute(query);
+        Assertions.assertEquals("Apache-HttpClient; fwd=bypass",
+                result.getFirstHeader("Cache-Status").getValue());
+    }
+
+    @Test
+    void testCacheStatusForwardRequestWhenRequestMaxAgeForcesRevalidationOfFreshEntry() throws Exception {
+        impl = new CachingExec(cache, null, CacheConfig.custom().setCacheStatusEnabled(true).build());
+
+        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now().minusSeconds(5)));
+        resp1.setHeader("Cache-Control", "max-age=3600"); // still fresh by the response's own lifetime
+        resp1.setHeader("ETag", "\"etag\"");
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+        execute(HttpTestUtils.makeDefaultRequest());
+
+        // request max-age=0 forces revalidation of a still-fresh stored response -> fwd=request (not stale).
+        final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("Cache-Control", "max-age=0");
+        final ClassicHttpResponse resp304 = HttpTestUtils.make304Response();
+        resp304.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
+        resp304.setHeader("ETag", "\"etag\"");
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp304);
+
+        final ClassicHttpResponse result = execute(req2);
+        Assertions.assertTrue(result.getFirstHeader("Cache-Status").getValue()
+                .startsWith("Apache-HttpClient; fwd=request"), result.getFirstHeader("Cache-Status").getValue());
+    }
+
+    @Test
+    void testCacheStatusVaryMissOnVariantNegotiation() throws Exception {
+        impl = new CachingExec(cache, null, CacheConfig.custom().setCacheStatusEnabled(true).build());
+
+        // Store a first variant keyed on Accept-Encoding.
+        final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        req1.setHeader("Accept-Encoding", "gzip");
+        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control", "max-age=3600");
+        resp1.setHeader("Vary", "Accept-Encoding");
+        resp1.setHeader("ETag", "\"gzip\"");
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+        execute(req1);
+
+        // A request for a different variant matches the URI but not the stored variant -> vary-miss.
+        final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        req2.setHeader("Accept-Encoding", "br");
+        final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("Cache-Control", "max-age=3600");
+        resp2.setHeader("Vary", "Accept-Encoding");
+        resp2.setHeader("ETag", "\"br\"");
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
+        final ClassicHttpResponse result = execute(req2);
+        Assertions.assertEquals("Apache-HttpClient; fwd=vary-miss",
+                result.getFirstHeader("Cache-Status").getValue());
+    }
+
+    @Test
+    void testCacheStatusForwardStaleWithUpstream304() throws Exception {
+        impl = new CachingExec(cache, null, CacheConfig.custom().setCacheStatusEnabled(true).build());
+        final Instant now = Instant.now();
+
+        final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now.minusSeconds(10)));
+        resp1.setHeader("Cache-Control", "max-age=5");
+        resp1.setHeader("ETag", "\"etag\"");
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+        execute(req1);
+
+        // The stored entry is stale; revalidation returns 304, so fwd=stale and fwd-status reports the 304.
+        final ClassicHttpResponse resp304 = HttpTestUtils.make304Response();
+        resp304.setHeader("Date", DateUtils.formatStandardDate(now));
+        resp304.setHeader("ETag", "\"etag\"");
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp304);
+
+        final ClassicHttpResponse result = execute(HttpTestUtils.makeDefaultRequest());
+        Assertions.assertEquals("Apache-HttpClient; fwd=stale; fwd-status=304",
+                result.getFirstHeader("Cache-Status").getValue());
+    }
+
+    @Test
+    void testCacheStatusNeverHitWhenRevalidationForwardsToFailingOrigin() throws Exception {
+        impl = new CachingExec(cache, null, CacheConfig.custom().setCacheStatusEnabled(true).build());
+        final Instant now = Instant.now();
+
+        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now.minusSeconds(10)));
+        resp1.setHeader("Cache-Control", "max-age=5");
+        resp1.setHeader("ETag", "\"etag\"");
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+        execute(HttpTestUtils.makeDefaultRequest());
+
+        final ClassicHttpResponse resp500 = HttpTestUtils.make500Response();
+        resp500.setHeader("Date", DateUtils.formatStandardDate(now));
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp500);
+
+        final ClassicHttpResponse result = execute(HttpTestUtils.makeDefaultRequest());
+        final String cacheStatus = result.getFirstHeader("Cache-Status").getValue();
+        Assertions.assertFalse(cacheStatus.contains("hit"), cacheStatus);
+        Assertions.assertTrue(cacheStatus.startsWith("Apache-HttpClient; fwd=stale"), cacheStatus);
+    }
+
+    @Test
+    void testCacheStatusSuppressedForLocallyGeneratedOnlyIfCached() throws Exception {
+        impl = new CachingExec(cache, null, CacheConfig.custom().setCacheStatusEnabled(true).build());
+        final ClassicHttpRequest req = HttpTestUtils.makeDefaultRequest();
+        req.setHeader("Cache-Control", "only-if-cached");
+
+        final ClassicHttpResponse result = execute(req);
+        Assertions.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, result.getCode());
+        Assertions.assertNull(result.getFirstHeader("Cache-Status"));
+    }
+
+    @Test
+    void testExistingUpstreamCacheStatusPreservedAndAppended() throws Exception {
+        impl = new CachingExec(cache, null, CacheConfig.custom().setCacheStatusEnabled(true).build());
+        final ClassicHttpRequest req = HttpTestUtils.makeDefaultRequest();
+        final ClassicHttpResponse resp = HttpTestUtils.make200Response();
+        resp.setHeader("Cache-Control", "max-age=3600");
+        resp.addHeader("Cache-Status", "ExampleCDN; hit");
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp);
+
+        final ClassicHttpResponse result = execute(req);
+        final Header[] headers = result.getHeaders("Cache-Status");
+        Assertions.assertEquals(2, headers.length);
+        Assertions.assertEquals("ExampleCDN; hit", headers[0].getValue());
+        Assertions.assertEquals("Apache-HttpClient; fwd=uri-miss", headers[1].getValue());
+    }
+
+    @Test
     void testOlderCacheableResponsesDoNotGoIntoCache() throws Exception {
         final Instant now = Instant.now();
         final Instant fiveSecondsAgo = now.minusSeconds(5);
@@ -1219,8 +1428,35 @@ class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
         final ClassicHttpResponse response2 = execute(req2);
         Assertions.assertEquals(HttpStatus.SC_OK, response2.getCode());
+        // A stale response served under stale-if-error is reported as a cache module response.
+        Assertions.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE, context.getCacheResponseStatus());
 
         Mockito.verify(cacheRevalidator, Mockito.never()).revalidateCacheEntry(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    void testSetsModuleResponseContextForStaleWhileRevalidate() throws Exception {
+        impl = new CachingExec(cache, cacheRevalidator, CacheConfig.DEFAULT);
+
+        final BasicClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "http://foo.example.com/");
+        final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"abc\"");
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now().minusSeconds(10)));
+        resp1.setHeader("Cache-Control", "public, max-age=1, stale-while-revalidate=3600");
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+        execute(req1);
+
+        final BasicClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "http://foo.example.com/");
+        Mockito.when(mockExecRuntime.fork(Mockito.any())).thenReturn(mockExecRuntime);
+        final ClassicHttpResponse result = execute(req2);
+
+        // The stale response is served from cache while an asynchronous revalidation is scheduled.
+        Assertions.assertEquals(HttpStatus.SC_OK, result.getCode());
+        Mockito.verify(cacheRevalidator).revalidateCacheEntry(Mockito.any(), Mockito.any());
+        Assertions.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE, context.getCacheResponseStatus());
     }
 
     @Test
