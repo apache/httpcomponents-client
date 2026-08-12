@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.impl.cookie;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,6 +67,12 @@ public class RFC6265CookieSpec implements CookieSpec {
     private final static char EQUAL_CHAR = '=';
     private final static char DQUOTE_CHAR = '"';
     private final static char ESCAPE_CHAR = '\\';
+
+    private final static String SECURE_PREFIX = "__Secure-";
+    private final static String HOST_PREFIX = "__Host-";
+
+    private final static int MAX_NAME_VALUE_LENGTH = 4096;
+    private final static int MAX_ATTRIBUTE_VALUE_LENGTH = 1024;
 
     // IMPORTANT!
     // These private static variables must be treated as immutable and never exposed outside this class
@@ -111,7 +118,7 @@ public class RFC6265CookieSpec implements CookieSpec {
         Args.notNull(origin, "Cookie origin");
         final RawCookie rawCookie = MessageSupport.parserHeaderValue(header, this::parseCookie);
         if (rawCookie == null) {
-            throw new MalformedCookieException("Cookie value is invalid");
+            return Collections.emptyList();
         }
 
         final BasicClientCookie cookie = new BasicClientCookie(rawCookie.name, rawCookie.value);
@@ -152,21 +159,28 @@ public class RFC6265CookieSpec implements CookieSpec {
 
     private RawCookie parseCookie(final CharSequence buffer,
                                   final Tokenizer.Cursor cursor) {
-        final String name = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
-        if (name.isEmpty()) {
-            return null;
-        }
-        if (cursor.atEnd()) {
-            return null;
-        }
-        final int valueDelim = buffer.charAt(cursor.getPos());
-        cursor.updatePos(cursor.getPos() + 1);
-        if (valueDelim != '=') {
-            return null;
-        }
-        final String value = tokenParser.parseValue(buffer, cursor, VALUE_DELIMS);
-        if (!cursor.atEnd()) {
+        final String token = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
+        final String name;
+        final String value;
+        if (!cursor.atEnd() && buffer.charAt(cursor.getPos()) == '=') {
             cursor.updatePos(cursor.getPos() + 1);
+            name = token;
+            value = tokenParser.parseValue(buffer, cursor, VALUE_DELIMS);
+            if (!cursor.atEnd()) {
+                cursor.updatePos(cursor.getPos() + 1);
+            }
+        } else {
+            name = "";
+            value = token;
+            if (!cursor.atEnd()) {
+                cursor.updatePos(cursor.getPos() + 1);
+            }
+        }
+        if (name.isEmpty() && value.isEmpty()) {
+            return null;
+        }
+        if (byteLength(name) + byteLength(value) > MAX_NAME_VALUE_LENGTH) {
+            return null;
         }
 
         final Map<String, String> attribMap = new LinkedHashMap<>();
@@ -183,6 +197,9 @@ public class RFC6265CookieSpec implements CookieSpec {
                         cursor.updatePos(cursor.getPos() + 1);
                     }
                 }
+            }
+            if (paramValue != null && byteLength(paramValue) > MAX_ATTRIBUTE_VALUE_LENGTH) {
+                continue;
             }
             attribMap.put(paramName, paramValue);
         }
@@ -201,6 +218,40 @@ public class RFC6265CookieSpec implements CookieSpec {
         Args.notNull(origin, "Cookie origin");
         for (final CookieAttributeHandler handler: this.attribHandlers) {
             handler.validate(cookie, origin);
+        }
+        validateNamePrefix(cookie);
+    }
+
+    private static void validateNamePrefix(final Cookie cookie) throws MalformedCookieException {
+        final String name = cookie.getName();
+        if (name == null || name.isEmpty()) {
+            final String value = cookie.getValue();
+            if (value != null
+                    && (value.regionMatches(true, 0, HOST_PREFIX, 0, HOST_PREFIX.length())
+                        || value.regionMatches(true, 0, SECURE_PREFIX, 0, SECURE_PREFIX.length()))) {
+                throw new MalformedCookieException(
+                        "Nameless cookie value '" + value + "' uses a reserved name prefix");
+            }
+            return;
+        }
+        if (name.regionMatches(true, 0, HOST_PREFIX, 0, HOST_PREFIX.length())) {
+            if (!cookie.isSecure()) {
+                throw new MalformedCookieException("Cookie '" + name
+                        + "' uses the \"__Host-\" name prefix but is not secure");
+            }
+            if (cookie.containsAttribute(Cookie.DOMAIN_ATTR)) {
+                throw new MalformedCookieException("Cookie '" + name
+                        + "' uses the \"__Host-\" name prefix but carries a domain attribute");
+            }
+            if (!cookie.containsAttribute(Cookie.PATH_ATTR) || !"/".equals(cookie.getPath())) {
+                throw new MalformedCookieException("Cookie '" + name
+                        + "' uses the \"__Host-\" name prefix but does not specify an explicit path of \"/\"");
+            }
+        } else if (name.regionMatches(true, 0, SECURE_PREFIX, 0, SECURE_PREFIX.length())) {
+            if (!cookie.isSecure()) {
+                throw new MalformedCookieException("Cookie '" + name
+                        + "' uses the \"__Secure-\" name prefix but is not secure");
+            }
         }
     }
 
@@ -236,10 +287,16 @@ public class RFC6265CookieSpec implements CookieSpec {
                 buffer.append(PARAM_DELIMITER);
                 buffer.append(' ');
             }
-            buffer.append(cookie.getName());
+            final String cookieName = cookie.getName();
+            final boolean named = cookieName != null && !cookieName.isEmpty();
+            if (named) {
+                buffer.append(cookieName);
+            }
             final String s = cookie.getValue();
             if (s != null) {
-                buffer.append(EQUAL_CHAR);
+                if (named) {
+                    buffer.append(EQUAL_CHAR);
+                }
                 if (containsSpecialChar(s)) {
                     buffer.append(DQUOTE_CHAR);
                     for (int i = 0; i < s.length(); i++) {
@@ -276,6 +333,10 @@ public class RFC6265CookieSpec implements CookieSpec {
             }
         }
         return false;
+    }
+
+    private static int byteLength(final String s) {
+        return s != null ? s.getBytes(StandardCharsets.UTF_8).length : 0;
     }
 
 }

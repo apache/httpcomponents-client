@@ -48,6 +48,11 @@ public interface Cookie {
     String HTTP_ONLY_ATTR = "httponly";
 
     /**
+     * @since 5.7
+     */
+    String SAME_SITE_ATTR = "samesite";
+
+    /**
      * @since 5.0
      */
     String getAttribute(String name);
@@ -179,6 +184,26 @@ public interface Cookie {
      */
     default boolean isHttpOnly() {
         return false;
+    }
+
+    /**
+     * Returns the value of the {@code SameSite} attribute, or {@code null} if the attribute is
+     * absent or unrecognized.
+     *
+     * @since 5.7
+     */
+    default SameSite getSameSite() {
+        return SameSite.fromString(getAttribute(SAME_SITE_ATTR));
+    }
+
+    /**
+     * Indicates whether this cookie is host-only, meaning it was set without a {@code Domain}
+     * attribute and therefore applies only to the exact host that set it.
+     *
+     * @since 5.7
+     */
+    default boolean isHostOnly() {
+        return !containsAttribute(DOMAIN_ATTR);
     }
 
 }

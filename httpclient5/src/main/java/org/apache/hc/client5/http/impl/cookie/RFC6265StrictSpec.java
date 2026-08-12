@@ -48,7 +48,8 @@ public class RFC6265StrictSpec extends RFC6265CookieSpecBase {
                 BasicMaxAgeHandler.INSTANCE,
                 BasicSecureHandler.INSTANCE,
                 BasicHttpOnlyHandler.INSTANCE,
-                new BasicExpiresHandler(DateUtils.STANDARD_PATTERNS));
+                new BasicExpiresHandler(DateUtils.STANDARD_PATTERNS),
+                BasicSameSiteHandler.INSTANCE);
     }
 
     RFC6265StrictSpec(final CommonCookieAttributeHandler... handlers) {

@@ -48,6 +48,20 @@ public interface CookieStore {
     void addCookie(Cookie cookie);
 
     /**
+     * Adds an {@link Cookie} received over a connection whose security is described by
+     * {@code secureConnection}, replacing any existing equivalent cookie. A cookie received over a
+     * non-secure connection must not replace an existing secure cookie of the same identity. The
+     * default implementation ignores the security context and delegates to {@link #addCookie(Cookie)}.
+     *
+     * @param cookie the {@link Cookie cookie} to be added
+     * @param secureConnection whether the cookie was received over a secure connection
+     * @since 5.7
+     */
+    default void addCookie(final Cookie cookie, final boolean secureConnection) {
+        addCookie(cookie);
+    }
+
+    /**
      * Returns all cookies contained in this store.
      *
      * @return all cookies

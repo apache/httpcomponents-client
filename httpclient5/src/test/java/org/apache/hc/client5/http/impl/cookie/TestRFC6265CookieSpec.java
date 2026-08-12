@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
+import org.apache.hc.client5.http.cookie.SameSite;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.jupiter.api.Assertions;
@@ -86,33 +87,79 @@ class TestRFC6265CookieSpec {
     }
 
     @Test
-    void testParseCookieMissingName() throws Exception {
+    void testParseNamelessCookieWithLeadingEquals() throws Exception {
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "=blah ; this = stuff;");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
-        Assertions.assertThrows(MalformedCookieException.class, () ->
-                cookiespec.parse(header, origin));
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
+        Assertions.assertEquals(1, cookies.size());
+        Assertions.assertEquals("", cookies.get(0).getName());
+        Assertions.assertEquals("blah", cookies.get(0).getValue());
     }
 
     @Test
-    void testParseCookieMissingValue1() throws Exception {
+    void testParseNamelessCookieWithoutEquals() throws Exception {
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "blah");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
-        Assertions.assertThrows(MalformedCookieException.class, () ->
-                cookiespec.parse(header, origin));
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
+        Assertions.assertEquals(1, cookies.size());
+        Assertions.assertEquals("", cookies.get(0).getName());
+        Assertions.assertEquals("blah", cookies.get(0).getValue());
     }
 
     @Test
-    void testParseCookieMissingValue2() {
+    void testParseNamelessCookieWithoutEqualsTrailingSemicolon() throws Exception {
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "blah;");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
-        Assertions.assertThrows(MalformedCookieException.class, () ->
-                cookiespec.parse(header, origin));
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
+        Assertions.assertEquals(1, cookies.size());
+        Assertions.assertEquals("", cookies.get(0).getName());
+        Assertions.assertEquals("blah", cookies.get(0).getValue());
+    }
+
+    @Test
+    void testParseEmptyCookieIgnored() throws Exception {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
+        // Both name and value empty -> ignored.
+        Assertions.assertTrue(cookiespec.parse(new BasicHeader("Set-Cookie", "; Path=/"), origin).isEmpty());
+        Assertions.assertTrue(cookiespec.parse(new BasicHeader("Set-Cookie", "="), origin).isEmpty());
+    }
+
+    @Test
+    void testNamelessCookieWithPrefixValueRejectedUnconditionally() throws Exception {
+        final RFC6265StrictSpec cookiespec = new RFC6265StrictSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 443, "/", true);
+
+        // A nameless cookie whose value carries the __Host- prefix is rejected even though it is
+        // secure, host-only and has Path=/ -- i.e. it would satisfy the normal __Host- requirements.
+        final List<Cookie> host = cookiespec.parse(
+                new BasicHeader("Set-Cookie", "__Host-SID; Secure; Path=/"), origin);
+        Assertions.assertEquals(1, host.size());
+        Assertions.assertEquals("", host.get(0).getName());
+        Assertions.assertThrows(MalformedCookieException.class,
+                () -> cookiespec.validate(host.get(0), origin));
+
+        // Likewise for the __Secure- prefix, even when the cookie is secure.
+        final List<Cookie> secure = cookiespec.parse(
+                new BasicHeader("Set-Cookie", "__Secure-SID; Secure"), origin);
+        Assertions.assertThrows(MalformedCookieException.class,
+                () -> cookiespec.validate(secure.get(0), origin));
+    }
+
+    @Test
+    void testFormatNamelessCookie() {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final Cookie cookie = new BasicClientCookie("", "foo");
+        final List<Header> headers = cookiespec.formatCookies(Collections.singletonList(cookie));
+        Assertions.assertEquals(1, headers.size());
+        // A nameless cookie is sent as just its value, without a leading '='.
+        Assertions.assertEquals("foo", headers.get(0).getValue());
     }
 
     @Test
@@ -321,6 +368,196 @@ class TestRFC6265CookieSpec {
 
         Mockito.verify(h1, Mockito.never()).parse(ArgumentMatchers.any(), ArgumentMatchers.anyString());
         Mockito.verify(h2).parse(ArgumentMatchers.any(), ArgumentMatchers.eq("otherstuff"));
+    }
+
+    @Test
+    void testHostPrefixAcceptsSecureHostOnlyRootPathCookie() {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 443, "/", true);
+        final BasicClientCookie cookie = new BasicClientCookie("__Host-SID", "value");
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setAttribute(Cookie.PATH_ATTR, "/");
+        Assertions.assertDoesNotThrow(() -> cookiespec.validate(cookie, origin));
+    }
+
+    @Test
+    void testHostPrefixRejectsInsecureCookie() {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 443, "/", true);
+        final BasicClientCookie cookie = new BasicClientCookie("__Host-SID", "value");
+        cookie.setPath("/");
+        Assertions.assertThrows(MalformedCookieException.class,
+                () -> cookiespec.validate(cookie, origin));
+    }
+
+    @Test
+    void testHostPrefixRejectsDomainAttribute() {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 443, "/", true);
+        final BasicClientCookie cookie = new BasicClientCookie("__Host-SID", "value");
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setAttribute(Cookie.PATH_ATTR, "/");
+        cookie.setAttribute(Cookie.DOMAIN_ATTR, "example.com");
+        Assertions.assertThrows(MalformedCookieException.class,
+                () -> cookiespec.validate(cookie, origin));
+    }
+
+    @Test
+    void testHostPrefixRejectsNonRootPath() {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 443, "/app", true);
+        final BasicClientCookie cookie = new BasicClientCookie("__Host-SID", "value");
+        cookie.setSecure(true);
+        cookie.setPath("/app");
+        cookie.setAttribute(Cookie.PATH_ATTR, "/app");
+        Assertions.assertThrows(MalformedCookieException.class,
+                () -> cookiespec.validate(cookie, origin));
+    }
+
+    @Test
+    void testSecurePrefixRejectsInsecureCookie() {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 443, "/", true);
+        final BasicClientCookie cookie = new BasicClientCookie("__Secure-SID", "value");
+        cookie.setPath("/");
+        Assertions.assertThrows(MalformedCookieException.class,
+                () -> cookiespec.validate(cookie, origin));
+    }
+
+    @Test
+    void testSecurePrefixAcceptsSecureCookie() {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 443, "/", true);
+        final BasicClientCookie cookie = new BasicClientCookie("__Secure-SID", "value");
+        cookie.setSecure(true);
+        // The __Secure- prefix only requires the Secure attribute; a Domain and a non-root Path are permitted.
+        cookie.setPath("/app");
+        cookie.setAttribute(Cookie.DOMAIN_ATTR, "example.com");
+        Assertions.assertDoesNotThrow(() -> cookiespec.validate(cookie, origin));
+    }
+
+    @Test
+    void testNamePrefixMatchIsCaseInsensitive() {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 443, "/", true);
+        final BasicClientCookie cookie = new BasicClientCookie("__HOST-SID", "value");
+        cookie.setPath("/");
+        Assertions.assertThrows(MalformedCookieException.class,
+                () -> cookiespec.validate(cookie, origin));
+    }
+
+    @Test
+    void testOrdinaryCookieNameNotSubjectToPrefixRules() {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 80, "/", false);
+        final BasicClientCookie cookie = new BasicClientCookie("SID", "value");
+        Assertions.assertDoesNotThrow(() -> cookiespec.validate(cookie, origin));
+    }
+
+    @Test
+    void testHostPrefixRejectsDefaultedPath() throws Exception {
+        final RFC6265StrictSpec cookiespec = new RFC6265StrictSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 443, "/", true);
+        // No explicit Path attribute: the path is defaulted to "/", which the __Host- prefix must not accept.
+        final Header header = new BasicHeader("Set-Cookie", "__Host-SID=value; Secure");
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
+        Assertions.assertEquals(1, cookies.size());
+        Assertions.assertThrows(MalformedCookieException.class,
+                () -> cookiespec.validate(cookies.get(0), origin));
+    }
+
+    @Test
+    void testSecurePrefixCookieRejectedFromNonSecureOrigin() throws Exception {
+        final RFC6265StrictSpec cookiespec = new RFC6265StrictSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 80, "/", false);
+        final Header header = new BasicHeader("Set-Cookie", "__Secure-SID=value; Secure");
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
+        Assertions.assertEquals(1, cookies.size());
+        Assertions.assertThrows(MalformedCookieException.class,
+                () -> cookiespec.validate(cookies.get(0), origin));
+    }
+
+    @Test
+    void testHostPrefixCookieRejectedFromNonSecureOrigin() throws Exception {
+        final RFC6265StrictSpec cookiespec = new RFC6265StrictSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 80, "/", false);
+        final Header header = new BasicHeader("Set-Cookie", "__Host-SID=value; Secure; Path=/");
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
+        Assertions.assertEquals(1, cookies.size());
+        Assertions.assertThrows(MalformedCookieException.class,
+                () -> cookiespec.validate(cookies.get(0), origin));
+    }
+
+    @Test
+    void testSameSiteParsedAndExposed() throws Exception {
+        final RFC6265StrictSpec cookiespec = new RFC6265StrictSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 443, "/", true);
+        final Header header = new BasicHeader("Set-Cookie", "SID=value; SameSite=lax");
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
+        Assertions.assertEquals(1, cookies.size());
+        // Recognized case-insensitively and exposed as the canonical enumeration value.
+        Assertions.assertEquals(SameSite.LAX, cookies.get(0).getSameSite());
+    }
+
+    @Test
+    void testSameSiteAbsentOrUnrecognizedYieldsNull() throws Exception {
+        final RFC6265StrictSpec cookiespec = new RFC6265StrictSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 443, "/", true);
+        Assertions.assertNull(cookiespec.parse(
+                new BasicHeader("Set-Cookie", "SID=value"), origin).get(0).getSameSite());
+        Assertions.assertNull(cookiespec.parse(
+                new BasicHeader("Set-Cookie", "SID=value; SameSite=bogus"), origin).get(0).getSameSite());
+    }
+
+    @Test
+    void testSameSiteNoneRequiresSecure() throws Exception {
+        final RFC6265StrictSpec cookiespec = new RFC6265StrictSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 443, "/", true);
+
+        final List<Cookie> insecure = cookiespec.parse(
+                new BasicHeader("Set-Cookie", "SID=value; SameSite=None"), origin);
+        Assertions.assertThrows(MalformedCookieException.class,
+                () -> cookiespec.validate(insecure.get(0), origin));
+
+        final List<Cookie> secure = cookiespec.parse(
+                new BasicHeader("Set-Cookie", "SID=value; SameSite=None; Secure"), origin);
+        Assertions.assertDoesNotThrow(() -> cookiespec.validate(secure.get(0), origin));
+    }
+
+    @Test
+    void testCookieExceedingSizeLimitIsIgnored() throws Exception {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 80, "/", false);
+        final char[] chars = new char[4100];
+        Arrays.fill(chars, 'a');
+        final Header header = new BasicHeader("Set-Cookie", "SID=" + new String(chars));
+        // name + value exceeds 4096 octets -> the cookie is ignored entirely.
+        Assertions.assertTrue(cookiespec.parse(header, origin).isEmpty());
+    }
+
+    @Test
+    void testAttributeExceedingSizeLimitIsIgnored() throws Exception {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 80, "/", false);
+        final char[] chars = new char[1100];
+        Arrays.fill(chars, 'a');
+        final Header header = new BasicHeader("Set-Cookie", "SID=value; Path=/" + new String(chars));
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
+        // The cookie is retained but the oversized attribute is dropped.
+        Assertions.assertEquals(1, cookies.size());
+        Assertions.assertFalse(cookies.get(0).containsAttribute(Cookie.PATH_ATTR));
+    }
+
+    @Test
+    void testHostOnlyFlagReflectsDomainAttribute() throws Exception {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final CookieOrigin origin = new CookieOrigin("host.example.com", 80, "/", false);
+        Assertions.assertTrue(cookiespec.parse(
+                new BasicHeader("Set-Cookie", "SID=value"), origin).get(0).isHostOnly());
+        Assertions.assertFalse(cookiespec.parse(
+                new BasicHeader("Set-Cookie", "SID=value; Domain=example.com"), origin).get(0).isHostOnly());
     }
 
 }

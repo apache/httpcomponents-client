@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.TreeSet;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -79,9 +80,29 @@ public class BasicCookieStore implements CookieStore, Serializable {
      */
     @Override
     public void addCookie(final Cookie cookie) {
+        addCookie(cookie, true);
+    }
+
+    /**
+     * Adds an {@link Cookie HTTP cookie} received over a connection whose security is described by
+     * {@code secureConnection}, replacing any existing equivalent cookie. A cookie received over a
+     * non-secure connection does not replace an existing secure cookie of the same identity. If the
+     * given cookie has already expired it will not be added, but an existing equivalent cookie will
+     * still be removed.
+     *
+     * @param cookie the {@link Cookie cookie} to be added
+     * @param secureConnection whether the cookie was received over a secure connection
+     *
+     * @since 5.7
+     */
+    @Override
+    public void addCookie(final Cookie cookie, final boolean secureConnection) {
         if (cookie != null) {
             lock.writeLock().lock();
             try {
+                if (!secureConnection && overlaysSecureCookie(cookie)) {
+                    return;
+                }
                 final Cookie oldCookie = cookies.ceiling(cookie);
                 if (oldCookie != null && CookieIdentityComparator.INSTANCE.compare(oldCookie, cookie) == 0) {
                     if (cookie instanceof SetCookie) {
@@ -101,6 +122,48 @@ public class BasicCookieStore implements CookieStore, Serializable {
                 lock.writeLock().unlock();
             }
         }
+    }
+
+    private boolean overlaysSecureCookie(final Cookie cookie) {
+        for (final Cookie existing : cookies) {
+            if (existing.isSecure()
+                    && namesMatch(existing.getName(), cookie.getName())
+                    && (domainMatch(cookie.getDomain(), existing.getDomain())
+                        || domainMatch(existing.getDomain(), cookie.getDomain()))
+                    && pathMatch(cookie.getPath(), existing.getPath())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean namesMatch(final String a, final String b) {
+        return a == null ? b == null : a.equals(b);
+    }
+
+    private static boolean domainMatch(final String host, final String domain) {
+        if (host == null || domain == null) {
+            return false;
+        }
+        final String h = host.toLowerCase(Locale.ROOT);
+        String d = domain.toLowerCase(Locale.ROOT);
+        if (d.startsWith(".")) {
+            d = d.substring(1);
+        }
+        return h.equals(d)
+                || h.length() > d.length() && h.endsWith(d) && h.charAt(h.length() - d.length() - 1) == '.';
+    }
+
+    private static boolean pathMatch(final String path, final String cookiePath) {
+        final String p = path == null ? "/" : path;
+        final String cp = cookiePath == null ? "/" : cookiePath;
+        if (p.equals(cp)) {
+            return true;
+        }
+        if (p.startsWith(cp)) {
+            return cp.endsWith("/") || p.charAt(cp.length()) == '/';
+        }
+        return false;
     }
 
     /**
