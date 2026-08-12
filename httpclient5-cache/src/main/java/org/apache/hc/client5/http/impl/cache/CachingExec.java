@@ -59,6 +59,7 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.Method;
@@ -429,8 +430,11 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 cacheUpdates.getAndIncrement();
             }
             if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
-                final CacheHit updated = responseCache.update(hit, target, request, backendResponse, requestDate, responseDate);
+                final ResponseCacheControl backendCacheControl = CacheControlHeaderParser.INSTANCE.parse(backendResponse);
+                final CacheHit updated = responseCache.update(hitToStore(backendCacheControl, hit), target, request,
+                        responseToStore(backendCacheControl, backendResponse), requestDate, responseDate);
                 final SimpleHttpResponse cacheResponse = generateCachedResponse(request, updated.entry, responseDate);
+                restorePrivateFields(cacheResponse, backendCacheControl, backendResponse);
                 context.setCacheEntry(updated.entry);
                 return convert(cacheResponse);
             }
@@ -531,7 +535,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} caching backend response", exchangeId);
             }
-            return cacheAndReturnResponse(target, request, scope, backendResponse, requestDate, responseDate);
+            return cacheAndReturnResponse(target, request, scope, responseCacheControl, backendResponse, requestDate, responseDate);
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} backend response is not cacheable", exchangeId);
@@ -543,6 +547,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final HttpHost target,
             final SimpleHttpRequest request,
             final ExecChain.Scope scope,
+            final ResponseCacheControl responseCacheControl,
             final ClassicHttpResponse backendResponse,
             final Instant requestSent,
             final Instant responseReceived) throws IOException {
@@ -555,13 +560,14 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final CacheHit hit = result != null ? result.hit : null;
             if (hit != null) {
                 final CacheHit updated = responseCache.update(
-                        hit,
+                        hitToStore(responseCacheControl, hit),
                         target,
                         request,
-                        backendResponse,
+                        responseToStore(responseCacheControl, backendResponse),
                         requestSent,
                         responseReceived);
                 final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, updated.entry);
+                restorePrivateFields(cacheResponse, responseCacheControl, backendResponse);
                 context.setCacheEntry(hit.entry);
                 return convert(cacheResponse);
             }
@@ -591,7 +597,9 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         }
         backendResponse.close();
 
+        final HttpResponse responseToCache = responseToStore(responseCacheControl, backendResponse);
         CacheHit hit;
+        boolean stored = false;
         if (cacheConfig.isFreshnessCheckEnabled() && statusCode != HttpStatus.SC_NOT_MODIFIED) {
             final CacheMatch result = responseCache.match(target ,request);
             hit = result != null ? result.hit : null;
@@ -600,18 +608,23 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                     LOG.debug("{} backend already contains fresher cache entry", exchangeId);
                 }
             } else {
-                hit = responseCache.store(target, request, backendResponse, buf, requestSent, responseReceived);
+                hit = responseCache.store(target, request, responseToCache, buf, requestSent, responseReceived);
+                stored = true;
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} backend response successfully cached", exchangeId);
                 }
             }
         } else {
-            hit = responseCache.store(target, request, backendResponse, buf, requestSent, responseReceived);
+            hit = responseCache.store(target, request, responseToCache, buf, requestSent, responseReceived);
+            stored = true;
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} backend response successfully cached (freshness check skipped)", exchangeId);
             }
         }
         final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, hit.entry);
+        if (stored) {
+            restorePrivateFields(cacheResponse, responseCacheControl, backendResponse);
+        }
         context.setCacheEntry(hit.entry);
         return convert(cacheResponse);
     }
@@ -705,8 +718,11 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             context.setCacheResponseStatus(CacheResponseStatus.VALIDATED);
             cacheUpdates.getAndIncrement();
 
-            final CacheHit hit = responseCache.storeFromNegotiated(match, target, request, backendResponse, requestDate, responseDate);
+            final ResponseCacheControl backendCacheControl = CacheControlHeaderParser.INSTANCE.parse(backendResponse);
+            final CacheHit hit = responseCache.storeFromNegotiated(hitToStore(backendCacheControl, match), target, request,
+                    responseToStore(backendCacheControl, backendResponse), requestDate, responseDate);
             final SimpleHttpResponse cacheResponse = generateCachedResponse(request, hit.entry, responseDate);
+            restorePrivateFields(cacheResponse, backendCacheControl, backendResponse);
             context.setCacheEntry(hit.entry);
             return convert(cacheResponse);
         } catch (final IOException | RuntimeException ex) {

@@ -27,11 +27,14 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
+import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -39,6 +42,8 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.http.message.HeaderGroup;
 
 public class CachingExecBase {
 
@@ -127,6 +132,102 @@ public class CachingExecBase {
 
     SimpleHttpResponse generateGatewayTimeout() {
         return SimpleHttpResponse.create(HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
+    }
+
+    /**
+     * Returns the response to be persisted by the cache. When the cache is shared and the response
+     * carries a qualified {@code private} directive, the header fields named by that directive are
+     * removed from a copy so that a shared cache does not store them. The original response is
+     * returned unchanged when the cache is not shared or the directive names no field.
+     */
+    HttpResponse responseToStore(final ResponseCacheControl responseCacheControl, final HttpResponse originResponse) {
+        final Set<String> privateFields = responseCacheControl.getPrivateFields();
+        if (!cacheConfig.isSharedCache() || !responseCacheControl.isCachePrivate() || privateFields.isEmpty()) {
+            return originResponse;
+        }
+        final BasicHttpResponse stripped = new BasicHttpResponse(originResponse.getCode(), originResponse.getReasonPhrase());
+        stripped.setVersion(originResponse.getVersion());
+        stripped.setHeaders(originResponse.getHeaders());
+        for (final String field : privateFields) {
+            stripped.removeHeaders(field);
+        }
+        return stripped;
+    }
+
+    /**
+     * Re-attaches the header fields named by a qualified {@code private} directive to the response
+     * returned to the requesting client. The directive limits only where the fields may be stored,
+     * not whether they may be delivered to the client that issued the request, so the fields removed
+     * from the stored copy by {@link #responseToStore} are restored here from the origin response.
+     */
+    void restorePrivateFields(final SimpleHttpResponse response, final ResponseCacheControl responseCacheControl,
+                              final HttpResponse originResponse) {
+        final Set<String> privateFields = responseCacheControl.getPrivateFields();
+        if (!cacheConfig.isSharedCache() || !responseCacheControl.isCachePrivate() || privateFields.isEmpty()) {
+            return;
+        }
+        for (final String field : privateFields) {
+            final Header[] originHeaders = originResponse.getHeaders(field);
+            if (originHeaders.length > 0) {
+                response.removeHeaders(field);
+                for (final Header header : originHeaders) {
+                    response.addHeader(header);
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns the stored entry a 304 revalidation should update, with the fields named by a qualified
+     * {@code private} directive removed. This complements {@link #responseToStore}: because the header
+     * merge preserves a stored field when the 304 does not carry it, a shared cache must strip the field
+     * from both the stored entry and the 304 to keep it out of the updated entry. The entry is returned
+     * unchanged when the cache is not shared, the directive names no field, or the entry does not carry
+     * any of the named fields.
+     */
+    HttpCacheEntry entryToStore(final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry) {
+        final Set<String> privateFields = responseCacheControl.getPrivateFields();
+        if (!cacheConfig.isSharedCache() || !responseCacheControl.isCachePrivate() || privateFields.isEmpty()) {
+            return entry;
+        }
+        final HeaderGroup responseHeaders = new HeaderGroup();
+        for (final Iterator<Header> it = entry.headerIterator(); it.hasNext(); ) {
+            responseHeaders.addHeader(it.next());
+        }
+        boolean modified = false;
+        for (final String field : privateFields) {
+            if (responseHeaders.containsHeader(field)) {
+                responseHeaders.removeHeaders(field);
+                modified = true;
+            }
+        }
+        if (!modified) {
+            return entry;
+        }
+        final HeaderGroup requestHeaders = new HeaderGroup();
+        for (final Iterator<Header> it = entry.requestHeaderIterator(); it.hasNext(); ) {
+            requestHeaders.addHeader(it.next());
+        }
+        return new HttpCacheEntry(
+                entry.getRequestInstant(),
+                entry.getResponseInstant(),
+                entry.getRequestMethod(),
+                entry.getRequestURI(),
+                requestHeaders,
+                entry.getRequestContent(),
+                entry.getStatus(),
+                responseHeaders,
+                entry.getResource(),
+                entry.hasVariants() ? entry.getVariants() : null);
+    }
+
+    /**
+     * Returns the {@link CacheHit} a 304 revalidation should update, with the stored entry passed
+     * through {@link #entryToStore}. The original hit is returned when no field is stripped.
+     */
+    CacheHit hitToStore(final ResponseCacheControl responseCacheControl, final CacheHit hit) {
+        final HttpCacheEntry stripped = entryToStore(responseCacheControl, hit.entry);
+        return stripped == hit.entry ? hit : new CacheHit(hit.rootKey, hit.variantKey, stripped);
     }
 
     Instant getCurrentDate() {

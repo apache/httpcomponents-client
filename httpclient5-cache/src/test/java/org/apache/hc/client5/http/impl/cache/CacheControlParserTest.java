@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -207,6 +208,37 @@ class CacheControlParserTest {
         assertEquals(120, cacheControl.getStaleWhileRevalidate());
     }
 
+    @Test
+    void testParsePrivateFields() {
+        final Header header = new BasicHeader("Cache-Control", "private=\"X-Private, X-Secret\", s-maxage=3600");
+        final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
+
+        assertTrue(cacheControl.isCachePrivate());
+        assertEquals(2, cacheControl.getPrivateFields().size());
+        assertTrue(cacheControl.getPrivateFields().contains("X-Private"));
+        assertTrue(cacheControl.getPrivateFields().contains("X-Secret"));
+    }
+
+    @Test
+    void testParseBarePrivateHasNoFields() {
+        final Header header = new BasicHeader("Cache-Control", "private, s-maxage=3600");
+        final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
+
+        assertTrue(cacheControl.isCachePrivate());
+        assertTrue(cacheControl.getPrivateFields().isEmpty());
+    }
+
+    @Test
+    void testParseMultiplePrivateDirectivesLastWins() {
+        // A repeated private directive is not cumulative; only the last one takes effect.
+        final Header header = new BasicHeader("Cache-Control", "private=\"X-A\", private=\"X-B\", s-maxage=3600");
+        final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
+
+        assertTrue(cacheControl.isCachePrivate());
+        assertEquals(1, cacheControl.getPrivateFields().size());
+        assertTrue(cacheControl.getPrivateFields().contains("X-B"));
+        assertFalse(cacheControl.getPrivateFields().contains("X-A"));
+    }
 
     @Test
     void testParseMultipleHeaders() {

@@ -146,7 +146,7 @@ class ResponseCachingPolicy {
                 return false;
             }
             // Status code is in a recognized range; treat no-store as overridden.
-            if (sharedCache && cacheControl.isCachePrivate()) {
+            if (sharedCache && cacheControl.isCachePrivate() && cacheControl.getPrivateFields().isEmpty()) {
                 LOG.debug("Response is private and cannot be cached by a shared cache");
                 return false;
             }
@@ -255,7 +255,8 @@ class ResponseCachingPolicy {
         // The response is considered explicitly non-cacheable if it contains
         // "no-store" or (if sharedCache is true) "private" directives.
         // Note that "no-cache" is considered cacheable but requires validation before use.
-        return cacheControl.isNoStore() || sharedCache && cacheControl.isCachePrivate();
+        return cacheControl.isNoStore()
+                || sharedCache && cacheControl.isCachePrivate() && cacheControl.getPrivateFields().isEmpty();
     }
 
     protected boolean isExplicitlyCacheable(final ResponseCacheControl cacheControl, final HttpResponse response) {

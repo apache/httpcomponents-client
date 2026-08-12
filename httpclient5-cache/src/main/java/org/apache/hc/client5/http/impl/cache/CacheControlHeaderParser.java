@@ -189,6 +189,20 @@ class CacheControlHeaderParser {
                 builder.setNoStore(true);
             } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_PRIVATE)) {
                 builder.setCachePrivate(true);
+                if (value != null) {
+                    final Tokenizer.Cursor valCursor = new ParserCursor(0, value.length());
+                    final Set<String> privateFields = new HashSet<>();
+                    while (!valCursor.atEnd()) {
+                        final String token = tokenParser.parseToken(value, valCursor, VALUE_DELIMS);
+                        if (!TextUtils.isBlank(token)) {
+                            privateFields.add(token);
+                        }
+                        if (!valCursor.atEnd()) {
+                            valCursor.updatePos(valCursor.getPos() + 1);
+                        }
+                    }
+                    builder.setPrivateFields(privateFields);
+                }
             } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE)) {
                 builder.setProxyRevalidate(true);
             } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_PUBLIC)) {

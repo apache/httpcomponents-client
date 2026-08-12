@@ -110,6 +110,21 @@ class TestResponseCachingPolicy {
     }
 
     @Test
+    void testBarePrivateNotCacheableInSharedCache() {
+        policy = new ResponseCachingPolicy(true, false, false);
+        responseCacheControl = ResponseCacheControl.builder().setCachePrivate(true).build();
+        Assertions.assertFalse(policy.isResponseCacheable(requestCacheControl, responseCacheControl, request, response));
+    }
+
+    @Test
+    void testQualifiedPrivateCacheableInSharedCache() {
+        policy = new ResponseCachingPolicy(true, false, false);
+        responseCacheControl = ResponseCacheControl.builder()
+                .setCachePrivate(true).setPrivateFields("X-Private").build();
+        Assertions.assertTrue(policy.isResponseCacheable(requestCacheControl, responseCacheControl, request, response));
+    }
+
+    @Test
     void testResponseToRequestWithNoStoreIsNotCacheable() {
         request = new BasicHttpRequest(Method.GET, "/");
         requestCacheControl = RequestCacheControl.builder().setNoStore(true).build();

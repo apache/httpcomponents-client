@@ -32,8 +32,10 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
+import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -42,6 +44,7 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,6 +100,23 @@ class TestAsyncCachingExecChain {
         Assertions.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, responseCaptor.getValue().getCode());
         Mockito.verify(callback).completed();
         Assertions.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE, context.getCacheResponseStatus());
+    }
+
+    @Test
+    void testSharedCacheStripsQualifiedPrivateFieldFromStoredCopyButRetainsForClient() {
+        final HttpResponse origin = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
+        origin.setHeader("Cache-Control", "max-age=3600, private=\"X-Personal\"");
+        origin.setHeader("X-Personal", "secret");
+        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(origin);
+
+        // A shared cache must not store the field named by the qualified private directive.
+        final HttpResponse stored = impl.responseToStore(cacheControl, origin);
+        Assertions.assertFalse(stored.containsHeader("X-Personal"));
+
+        // The qualified private directive limits only storage; the requesting client still receives the field.
+        final SimpleHttpResponse clientResponse = SimpleHttpResponse.create(HttpStatus.SC_OK, "OK");
+        impl.restorePrivateFields(clientResponse, cacheControl, origin);
+        Assertions.assertTrue(clientResponse.containsHeader("X-Personal"));
     }
 
 }

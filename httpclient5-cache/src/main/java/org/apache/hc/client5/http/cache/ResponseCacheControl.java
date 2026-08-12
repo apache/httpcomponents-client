@@ -104,6 +104,11 @@ public final class ResponseCacheControl implements CacheControl {
      */
     private final Set<String> noCacheFields;
 
+    /**
+     * A set of field names specified in the "private" directive of the Cache-Control header.
+     */
+    private final Set<String> privateFields;
+
     private final boolean undefined;
 
     /**
@@ -128,13 +133,15 @@ public final class ResponseCacheControl implements CacheControl {
      * @param staleWhileRevalidate  The stale-while-revalidate value from the Cache-Control header.
      * @param staleIfError    The stale-if-error value from the Cache-Control header.
      * @param noCacheFields   The set of field names specified in the "no-cache" directive of the Cache-Control header.
+     * @param privateFields   The set of field names specified in the "private" directive of the Cache-Control header.
      * @param mustUnderstand  The must-understand value from the Cache-Control header.
      * @param immutable       The immutable value from the Cache-Control header.
      */
     ResponseCacheControl(final long maxAge, final long sharedMaxAge, final boolean mustRevalidate, final boolean noCache,
                          final boolean noStore, final boolean cachePrivate, final boolean proxyRevalidate,
                          final boolean cachePublic, final long staleWhileRevalidate, final long staleIfError,
-                         final Set<String> noCacheFields, final boolean mustUnderstand, final boolean immutable) {
+                         final Set<String> noCacheFields, final Set<String> privateFields, final boolean mustUnderstand,
+                         final boolean immutable) {
         this.maxAge = maxAge;
         this.sharedMaxAge = sharedMaxAge;
         this.noCache = noCache;
@@ -146,6 +153,7 @@ public final class ResponseCacheControl implements CacheControl {
         this.staleWhileRevalidate = staleWhileRevalidate;
         this.staleIfError = staleIfError;
         this.noCacheFields = noCacheFields != null ? Collections.unmodifiableSet(noCacheFields) : Collections.emptySet();
+        this.privateFields = privateFields != null ? Collections.unmodifiableSet(privateFields) : Collections.emptySet();
         this.undefined = maxAge == -1 &&
                 sharedMaxAge == -1 &&
                 !noCache &&
@@ -273,6 +281,16 @@ public final class ResponseCacheControl implements CacheControl {
     }
 
     /**
+     * Returns an unmodifiable set of field names specified in the "private" directive of the Cache-Control header.
+     *
+     * @return The set of field names specified in the "private" directive.
+     * @since 5.7
+     */
+    public Set<String> getPrivateFields() {
+        return privateFields;
+    }
+
+    /**
      * Returns the 'immutable' Cache-Control directive status.
      *
      * @return true if the 'immutable' directive is present in the Cache-Control header.
@@ -356,6 +374,7 @@ public final class ResponseCacheControl implements CacheControl {
         private long staleWhileRevalidate = -1;
         private long staleIfError = -1;
         private Set<String> noCacheFields;
+        private Set<String> privateFields;
         private boolean mustUnderstand;
         private boolean immutable;
 
@@ -467,6 +486,21 @@ public final class ResponseCacheControl implements CacheControl {
             return this;
         }
 
+        public Set<String> getPrivateFields() {
+            return privateFields;
+        }
+
+        public Builder setPrivateFields(final Set<String> privateFields) {
+            this.privateFields = privateFields;
+            return this;
+        }
+
+        public Builder setPrivateFields(final String... privateFields) {
+            this.privateFields = new HashSet<>();
+            this.privateFields.addAll(Arrays.asList(privateFields));
+            return this;
+        }
+
         public boolean isMustUnderstand() {
             return mustUnderstand;
         }
@@ -487,7 +521,7 @@ public final class ResponseCacheControl implements CacheControl {
 
         public ResponseCacheControl build() {
             return new ResponseCacheControl(maxAge, sharedMaxAge, mustRevalidate, noCache, noStore, cachePrivate, proxyRevalidate,
-                    cachePublic, staleWhileRevalidate, staleIfError, noCacheFields, mustUnderstand, immutable);
+                    cachePublic, staleWhileRevalidate, staleIfError, noCacheFields, privateFields, mustUnderstand, immutable);
         }
 
     }

@@ -1954,22 +1954,42 @@ class TestProtocolRequirements {
             final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
             final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
             resp1.setHeader("X-Personal", "stuff");
-            resp1.setHeader("Cache-Control", "private=\"X-Personal\",s-maxage=3600");
+            resp1.setHeader("X-Public", "ok");
+            resp1.setHeader("Cache-Control", "private=\"X-Personal\", s-maxage=3600");
 
             Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
             final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
-            final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
 
-            // this backend request MAY happen
-            Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+            final ClassicHttpResponse first = execute(req1);
+            Assertions.assertNotNull(first.getFirstHeader("X-Personal"));
 
-            execute(req1);
             final ClassicHttpResponse result = execute(req2);
             Assertions.assertNull(result.getFirstHeader("X-Personal"));
+            Assertions.assertNotNull(result.getFirstHeader("X-Public"));
+            Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
+        }
+    }
 
-            Mockito.verify(mockExecChain, Mockito.atLeastOnce()).proceed(Mockito.any(), Mockito.any());
-            Mockito.verify(mockExecChain, Mockito.atMost(2)).proceed(Mockito.any(), Mockito.any());
+    @Test
+    void testPrivateFieldRemovedFromEntryUpdatedByRevalidation() throws Exception {
+        if (config.isSharedCache()) {
+            final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
+            final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
+            resp1.setHeader("X-Personal", "stuff");
+            resp1.setHeader("ETag", "\"v1\"");
+            resp1.setHeader("Cache-Control", "max-age=0");
+            Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+            execute(req1);
+
+            final ClassicHttpResponse resp304 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED);
+            resp304.setHeader("ETag", "\"v1\"");
+            resp304.setHeader("Cache-Control", "private=\"X-Personal\", s-maxage=3600");
+            Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp304);
+            execute(new BasicClassicHttpRequest("GET", "/"));
+
+            final ClassicHttpResponse result = execute(new BasicClassicHttpRequest("GET", "/"));
+            Assertions.assertNull(result.getFirstHeader("X-Personal"));
         }
     }
 

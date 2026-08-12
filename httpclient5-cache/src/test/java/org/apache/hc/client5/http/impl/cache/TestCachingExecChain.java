@@ -47,7 +47,9 @@ import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
+import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
+import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -61,6 +63,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
@@ -76,6 +79,7 @@ import org.apache.hc.core5.net.URIAuthority;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -140,6 +144,65 @@ class TestCachingExecChain {
         Mockito.verify(mockExecChain).proceed(Mockito.any(), Mockito.any());
         Mockito.verify(cache).store(Mockito.eq(host), RequestEquivalent.eq(cacheRequest1),
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    void testSharedCacheStripsQualifiedPrivateFieldFromStoredCopyButReturnsItToClient() throws Exception {
+        final ClassicHttpRequest req = HttpTestUtils.makeDefaultRequest();
+        final ClassicHttpResponse resp = HttpTestUtils.make200Response();
+        resp.setHeader("Cache-Control", "max-age=3600, private=\"X-Personal\"");
+        resp.setHeader("X-Personal", "secret");
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp);
+
+        final ClassicHttpResponse clientResponse = execute(req);
+
+        // The qualified private directive limits only storage; the requesting client still receives the field.
+        Assertions.assertTrue(clientResponse.containsHeader("X-Personal"));
+
+        // The shared cache must not store the field named by the qualified private directive.
+        final ArgumentCaptor<HttpResponse> stored = ArgumentCaptor.forClass(HttpResponse.class);
+        Mockito.verify(cache).store(Mockito.eq(host), Mockito.any(), stored.capture(),
+                Mockito.any(), Mockito.any(), Mockito.any());
+        Assertions.assertFalse(stored.getValue().containsHeader("X-Personal"));
+    }
+
+    @Test
+    void testSharedCacheDoesNotStoreResponseWithBarePrivateDirective() throws Exception {
+        final ClassicHttpRequest req = HttpTestUtils.makeDefaultRequest();
+        final ClassicHttpResponse resp = HttpTestUtils.make200Response();
+        resp.setHeader("Cache-Control", "max-age=3600, private");
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp);
+
+        execute(req);
+
+        Mockito.verify(cache, Mockito.never()).store(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    void testQualifiedPrivateFieldStrippedFrom304MergedEntryForSharedCache() {
+        // A shared cache holds an entry the origin did not originally mark private, so it carries X-Personal.
+        final HttpCacheEntry staleEntry = HttpTestUtils.makeCacheEntry(
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("ETag", "\"v1\""),
+                new BasicHeader("X-Personal", "old-secret"));
+
+        // A 304 revalidation now marks X-Personal private and re-sends a fresh value.
+        final ClassicHttpResponse response = HttpTestUtils.make304Response();
+        response.setHeader("Cache-Control", "private=\"X-Personal\"");
+        response.setHeader("X-Personal", "new-secret");
+        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(response);
+
+        // The exec strips the field from both the stored entry and the 304 before the merge, so the
+        // header merge (which keeps a stored header the 304 does not carry) cannot reintroduce it.
+        final HttpCacheEntry merged = HttpCacheEntryFactory.INSTANCE.createUpdated(
+                Instant.now(), Instant.now(), host, HttpTestUtils.makeDefaultRequest(),
+                impl.responseToStore(cacheControl, response),
+                impl.entryToStore(cacheControl, staleEntry));
+
+        Assertions.assertFalse(merged.containsHeader("X-Personal"));
     }
 
     @Test
@@ -928,7 +991,7 @@ class TestCachingExecChain {
         originResponse.setHeader("Date", DateUtils.formatStandardDate(responseGenerated));
         originResponse.setHeader("ETag", "\"etag\"");
 
-        impl.cacheAndReturnResponse(host, cacheRequest, scope, originResponse, requestSent, responseReceived);
+        impl.cacheAndReturnResponse(host, cacheRequest, scope, CacheControlHeaderParser.INSTANCE.parse(originResponse), originResponse, requestSent, responseReceived);
 
         Mockito.verify(cache, Mockito.never()).store(
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
@@ -965,7 +1028,7 @@ class TestCachingExecChain {
                 Mockito.eq(requestSent),
                 Mockito.eq(responseReceived))).thenReturn(new CacheHit("key", httpCacheEntry));
 
-        impl.cacheAndReturnResponse(host, cacheRequest, scope, originResponse, requestSent, responseReceived);
+        impl.cacheAndReturnResponse(host, cacheRequest, scope, CacheControlHeaderParser.INSTANCE.parse(originResponse), originResponse, requestSent, responseReceived);
 
         Mockito.verify(mockCache).store(
                 Mockito.any(),
@@ -1263,7 +1326,7 @@ class TestCachingExecChain {
                 .thenReturn(new CacheHit("key", cacheEntry));
 
         // Call cacheAndReturnResponse with 304 Not Modified response
-        final ClassicHttpResponse cachedResponse = impl.cacheAndReturnResponse(host, cacheRequest, scope, backendResponse, requestSent, responseReceived);
+        final ClassicHttpResponse cachedResponse = impl.cacheAndReturnResponse(host, cacheRequest, scope, CacheControlHeaderParser.INSTANCE.parse(backendResponse), backendResponse, requestSent, responseReceived);
 
         // Verify cache entry is updated
         Mockito.verify(mockCache).update(

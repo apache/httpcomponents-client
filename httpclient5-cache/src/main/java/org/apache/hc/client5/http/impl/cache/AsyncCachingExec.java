@@ -587,6 +587,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         private final String exchangeId;
         private final AsyncExecCallback fallback;
         private final HttpResponse backendResponse;
+        private final ResponseCacheControl responseCacheControl;
         private final EntityDetails entityDetails;
         private final AtomicBoolean writtenThrough;
         private final AtomicReference<ByteArrayBuffer> bufferRef;
@@ -596,10 +597,12 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 final String exchangeId,
                 final AsyncExecCallback fallback,
                 final HttpResponse backendResponse,
+                final ResponseCacheControl responseCacheControl,
                 final EntityDetails entityDetails) {
             this.exchangeId = exchangeId;
             this.fallback = fallback;
             this.backendResponse = backendResponse;
+            this.responseCacheControl = responseCacheControl;
             this.entityDetails = entityDetails;
             this.writtenThrough = new AtomicBoolean(false);
             this.bufferRef = new AtomicReference<>(entityDetails != null ? new ByteArrayBuffer(1024) : null);
@@ -741,7 +744,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     LOG.debug("{} caching backend response", exchangeId);
                 }
                 final CachingAsyncDataConsumer cachingDataConsumer = new CachingAsyncDataConsumer(
-                        exchangeId, asyncExecCallback, backendResponse, entityDetails);
+                        exchangeId, asyncExecCallback, backendResponse, responseCacheControl, entityDetails);
                 cachingConsumerRef.set(cachingDataConsumer);
                 return cachingDataConsumer;
             }
@@ -756,14 +759,15 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             asyncExecCallback.handleInformationResponse(response);
         }
 
-        void triggerNewCacheEntryResponse(final HttpResponse backendResponse, final Instant responseDate, final ByteArrayBuffer buffer) {
+        void triggerNewCacheEntryResponse(final HttpResponse backendResponse, final ResponseCacheControl responseCacheControl,
+                                          final Instant responseDate, final ByteArrayBuffer buffer) {
             final String exchangeId = scope.exchangeId;
             final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
             final CancellableDependency operation = scope.cancellableDependency;
             operation.setDependency(responseCache.store(
                     target,
                     request,
-                    backendResponse,
+                    responseToStore(responseCacheControl, backendResponse),
                     buffer,
                     requestDate,
                     responseDate,
@@ -776,6 +780,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                             }
                             try {
                                 final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, hit.entry);
+                                restorePrivateFields(cacheResponse, responseCacheControl, backendResponse);
                                 context.setCacheEntry(hit.entry);
                                 triggerResponse(cacheResponse, scope, asyncExecCallback);
                             } catch (final ResourceIOException ex) {
@@ -808,6 +813,19 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             }
         }
 
+        void triggerCachedResponse(final HttpCacheEntry entry, final ResponseCacheControl responseCacheControl,
+                                   final HttpResponse originResponse) {
+            final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
+            try {
+                final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, entry);
+                restorePrivateFields(cacheResponse, responseCacheControl, originResponse);
+                context.setCacheEntry(entry);
+                triggerResponse(cacheResponse, scope, asyncExecCallback);
+            } catch (final ResourceIOException ex) {
+                asyncExecCallback.failed(ex);
+            }
+        }
+
         @Override
         public void completed() {
             final String exchangeId = scope.exchangeId;
@@ -817,6 +835,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 return;
             }
             final HttpResponse backendResponse = cachingDataConsumer.backendResponse;
+            final ResponseCacheControl responseCacheControl = cachingDataConsumer.responseCacheControl;
             final ByteArrayBuffer buffer = cachingDataConsumer.bufferRef.getAndSet(null);
 
             // Handle 304 Not Modified responses
@@ -831,10 +850,10 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                                 LOG.debug("{} existing cache entry found, updating cache entry", exchangeId);
                             }
                             responseCache.update(
-                                    hit,
+                                    hitToStore(responseCacheControl, hit),
                                     target,
                                     request,
-                                    backendResponse,
+                                    responseToStore(responseCacheControl, backendResponse),
                                     requestDate,
                                     responseDate,
                                     new FutureCallback<CacheHit>() {
@@ -844,7 +863,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                                             if (LOG.isDebugEnabled()) {
                                                 LOG.debug("{} cache entry updated, generating response from updated entry", exchangeId);
                                             }
-                                            triggerCachedResponse(updated.entry);
+                                            triggerCachedResponse(updated.entry, responseCacheControl, backendResponse);
                                         }
                                         @Override
                                         public void failed(final Exception cause) {
@@ -864,7 +883,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
                                     });
                         } else {
-                            triggerNewCacheEntryResponse(backendResponse, responseDate, buffer);
+                            triggerNewCacheEntryResponse(backendResponse, responseCacheControl, responseDate, buffer);
                         }
                     }
 
@@ -893,7 +912,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                                 }
                                 triggerCachedResponse(hit.entry);
                             } else {
-                                triggerNewCacheEntryResponse(backendResponse, responseDate, buffer);
+                                triggerNewCacheEntryResponse(backendResponse, responseCacheControl, responseDate, buffer);
                             }
                         }
 
@@ -909,7 +928,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
                     }));
                 } else {
-                    triggerNewCacheEntryResponse(backendResponse, responseDate, buffer);
+                    triggerNewCacheEntryResponse(backendResponse, responseCacheControl, responseDate, buffer);
                 }
             }
         }
@@ -1062,11 +1081,12 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
             void triggerUpdatedCacheEntryResponse(final HttpResponse backendResponse, final Instant responseDate) {
                 final CancellableDependency operation = scope.cancellableDependency;
+                final ResponseCacheControl backendCacheControl = CacheControlHeaderParser.INSTANCE.parse(backendResponse);
                 operation.setDependency(responseCache.update(
-                        hit,
+                        hitToStore(backendCacheControl, hit),
                         target,
                         request,
-                        backendResponse,
+                        responseToStore(backendCacheControl, backendResponse),
                         requestDate,
                         responseDate,
                         new FutureCallback<CacheHit>() {
@@ -1075,6 +1095,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                             public void completed(final CacheHit updated) {
                                 try {
                                     final SimpleHttpResponse cacheResponse = generateCachedResponse(request, updated.entry, responseDate);
+                                    restorePrivateFields(cacheResponse, backendCacheControl, backendResponse);
                                     context.setCacheEntry(updated.entry);
                                     triggerResponse(cacheResponse, scope, asyncExecCallback);
                                 } catch (final ResourceIOException ex) {
@@ -1422,11 +1443,12 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 context.setCacheResponseStatus(CacheResponseStatus.VALIDATED);
                 cacheUpdates.getAndIncrement();
 
+                final ResponseCacheControl backendCacheControl = CacheControlHeaderParser.INSTANCE.parse(backendResponse);
                 operation.setDependency(responseCache.storeFromNegotiated(
-                        match,
+                        hitToStore(backendCacheControl, match),
                         target,
                         request,
-                        backendResponse,
+                        responseToStore(backendCacheControl, backendResponse),
                         requestDate,
                         responseDate,
                         new FutureCallback<CacheHit>() {
@@ -1435,6 +1457,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                             public void completed(final CacheHit hit) {
                                 try {
                                     final SimpleHttpResponse cacheResponse = generateCachedResponse(request, hit.entry, responseDate);
+                                    restorePrivateFields(cacheResponse, backendCacheControl, backendResponse);
                                     context.setCacheEntry(hit.entry);
                                     triggerResponse(cacheResponse, scope, asyncExecCallback);
                                 } catch (final ResourceIOException ex) {
