@@ -130,7 +130,9 @@ public final class InflatingZstdDataConsumer implements AsyncDataConsumer {
 
     @Override
     public void releaseResources() {
-        dctx.close();
+        if (closed.compareAndSet(false, true)) {
+            dctx.close();
+        }
         downstream.releaseResources();
     }
 }

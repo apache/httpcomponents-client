@@ -135,8 +135,9 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         final SimpleBody body = cacheResponse.getBody();
         final byte[] content = body != null ? body.getBodyBytes() : null;
         final ContentType contentType = body != null ? body.getContentType() : null;
+        AsyncDataConsumer dataConsumer = null;
         try {
-            final AsyncDataConsumer dataConsumer = asyncExecCallback.handleResponse(
+            dataConsumer = asyncExecCallback.handleResponse(
                     cacheResponse,
                     content != null ? new BasicEntityDetails(content.length, contentType) : null);
             if (dataConsumer != null) {
@@ -148,6 +149,10 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             asyncExecCallback.completed();
         } catch (final HttpException | IOException ex) {
             asyncExecCallback.failed(ex);
+        } finally {
+            if (dataConsumer != null) {
+                dataConsumer.releaseResources();
+            }
         }
     }
 
