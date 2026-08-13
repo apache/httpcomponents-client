@@ -27,7 +27,7 @@
   <parent>
     <artifactId>httpclient5-parent</artifactId>
     <groupId>org.apache.httpcomponents.client5</groupId>
-    <version>5.7-alpha1-SNAPSHOT</version>
+    <version>5.7-alpha2-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
