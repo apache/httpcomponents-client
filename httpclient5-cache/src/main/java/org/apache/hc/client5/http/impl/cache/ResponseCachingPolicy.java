@@ -129,14 +129,17 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        if (request.getPath().contains("?")) {
-            if (neverCache1_0ResponsesWithQueryString && from1_0Origin(response)) {
-                LOG.debug("Response is not cacheable as it had a query string");
-                return false;
-            } else if (!neverCache1_1ResponsesWithQueryString && !isExplicitlyCacheable(cacheControl, response)) {
-                LOG.debug("Response is not cacheable as it is missing explicit caching headers");
-                return false;
-            }
+        if (neverCache1_0ResponsesWithQueryString
+                && request.getPath().contains("?")
+                && from1_0Origin(response)) {
+            LOG.debug("Response is not cacheable as it had a query string");
+            return false;
+        }
+        if (neverCache1_1ResponsesWithQueryString
+                && request.getPath().contains("?")
+                && !isExplicitlyCacheable(cacheControl, response)) {
+            LOG.debug("Response is not cacheable as it is missing explicit caching headers");
+            return false;
         }
 
         if (cacheControl.isMustUnderstand()) {
