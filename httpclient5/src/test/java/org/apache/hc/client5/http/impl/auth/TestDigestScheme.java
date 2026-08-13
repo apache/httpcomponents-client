@@ -35,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
@@ -57,6 +58,7 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHeaderValueParser;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.CharArrayBuffer;
 import org.junit.jupiter.api.Assertions;
@@ -1159,6 +1161,194 @@ class TestDigestScheme {
         Assertions.assertNotEquals(sessionKey1, sessionKey4);
     }
 
+    private static final HttpHost RSPAUTH_HOST = new HttpHost("somehost", 80);
 
+    private DigestScheme digestSchemeWithResponse(final String qop, final String algorithm) throws Exception {
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(RSPAUTH_HOST, "realm", null), "username", "password".toCharArray())
+                .build();
+        final AuthChallenge challenge = parse(StandardAuthScheme.DIGEST + " realm=\"realm\", nonce=\"TestNonce\", "
+                + "algorithm=" + algorithm + ", qop=\"" + qop + "\"");
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(challenge, null);
+        Assertions.assertTrue(authscheme.isResponseReady(RSPAUTH_HOST, credentialsProvider, null));
+        authscheme.generateAuthResponse(RSPAUTH_HOST, new BasicHttpRequest("GET", "/path"), null);
+        return authscheme;
+    }
+
+    private static String computeRspauth(final DigestScheme authscheme, final String algorithm, final String qop)
+            throws Exception {
+        final MessageDigest md = MessageDigest.getInstance(algorithm);
+        final byte[] a1 = authscheme.getA1().getBytes(StandardCharsets.US_ASCII);
+        final String a2 = authscheme.getA2();
+        final byte[] a2rsp = a2.substring(a2.indexOf(':')).getBytes(StandardCharsets.US_ASCII);
+        final String ha1 = DigestScheme.formatHex(md.digest(a1));
+        final String ha2 = DigestScheme.formatHex(md.digest(a2rsp));
+        final String nc = String.format("%08x", authscheme.getNounceCount());
+        final String kd = ha1 + ":" + authscheme.getNonce() + ":" + nc + ":" + authscheme.getCnonce()
+                + ":" + qop + ":" + ha2;
+        return DigestScheme.formatHex(md.digest(kd.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    private static AuthChallenge authInfo(final DigestScheme authscheme, final String rspauth) {
+        return new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.DIGEST,
+                new BasicNameValuePair("rspauth", rspauth),
+                new BasicNameValuePair("cnonce", authscheme.getCnonce()),
+                new BasicNameValuePair("nc", String.format("%08x", authscheme.getNounceCount())));
+    }
+
+    @Test
+    void testRspauthMutualAuthenticationSucceeds() throws Exception {
+        final DigestScheme authscheme = digestSchemeWithResponse("auth", "MD5");
+        Assertions.assertTrue(authscheme.isChallengeExpected());
+
+        final String rspauth = computeRspauth(authscheme, "MD5", "auth");
+        final AuthChallenge authInfo = authInfo(authscheme, rspauth);
+        Assertions.assertDoesNotThrow(() ->
+                authscheme.processChallenge(RSPAUTH_HOST, false, authInfo, HttpClientContext.create()));
+        Assertions.assertFalse(authscheme.isChallengeComplete());
+    }
+
+    @Test
+    void testRspauthMismatchFailsMutualAuthentication() throws Exception {
+        final DigestScheme authscheme = digestSchemeWithResponse("auth", "MD5");
+        final AuthChallenge authInfo = authInfo(authscheme, "00000000000000000000000000000000");
+        Assertions.assertThrows(AuthenticationException.class, () ->
+                authscheme.processChallenge(RSPAUTH_HOST, false, authInfo, HttpClientContext.create()));
+    }
+
+    @Test
+    void testMissingAuthenticationInfoIsAccepted() throws Exception {
+        final DigestScheme authscheme = digestSchemeWithResponse("auth", "MD5");
+        // No Authentication-Info header at all.
+        Assertions.assertDoesNotThrow(() ->
+                authscheme.processChallenge(RSPAUTH_HOST, false, null, HttpClientContext.create()));
+        Assertions.assertFalse(authscheme.isChallengeComplete());
+        // Authentication-Info without rspauth (e.g. only nextnonce) is also accepted.
+        final AuthChallenge noRspauth = new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.DIGEST,
+                new BasicNameValuePair("nextnonce", "abcdef"));
+        Assertions.assertDoesNotThrow(() ->
+                authscheme.processChallenge(RSPAUTH_HOST, false, noRspauth, HttpClientContext.create()));
+    }
+
+    @Test
+    void testNoQopDoesNotExpectAuthenticationInfo() throws Exception {
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(RSPAUTH_HOST, "realm", null), "username", "password".toCharArray())
+                .build();
+        final AuthChallenge challenge = parse(StandardAuthScheme.DIGEST
+                + " realm=\"realm\", nonce=\"TestNonce\", algorithm=MD5");
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(challenge, null);
+        Assertions.assertTrue(authscheme.isResponseReady(RSPAUTH_HOST, credentialsProvider, null));
+        authscheme.generateAuthResponse(RSPAUTH_HOST, new BasicHttpRequest("GET", "/path"), null);
+        Assertions.assertFalse(authscheme.isChallengeExpected());
+    }
+
+    @Test
+    void testRspauthUppercaseHexIsAccepted() throws Exception {
+        final DigestScheme authscheme = digestSchemeWithResponse("auth", "MD5");
+        final String rspauth = computeRspauth(authscheme, "MD5", "auth").toUpperCase(Locale.ROOT);
+        final AuthChallenge authInfo = authInfo(authscheme, rspauth);
+        Assertions.assertDoesNotThrow(() ->
+                authscheme.processChallenge(RSPAUTH_HOST, false, authInfo, HttpClientContext.create()));
+    }
+
+    @Test
+    void testRspauthMissingCnonceIsRejected() throws Exception {
+        final DigestScheme authscheme = digestSchemeWithResponse("auth", "MD5");
+        final String rspauth = computeRspauth(authscheme, "MD5", "auth");
+        // rspauth is valid but the Authentication-Info omits the cnonce echo.
+        final AuthChallenge authInfo = new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.DIGEST,
+                new BasicNameValuePair("rspauth", rspauth),
+                new BasicNameValuePair("nc", String.format("%08x", authscheme.getNounceCount())));
+        Assertions.assertThrows(AuthenticationException.class, () ->
+                authscheme.processChallenge(RSPAUTH_HOST, false, authInfo, HttpClientContext.create()));
+    }
+
+    @Test
+    void testRspauthCnonceMismatchIsRejected() throws Exception {
+        final DigestScheme authscheme = digestSchemeWithResponse("auth", "MD5");
+        final String rspauth = computeRspauth(authscheme, "MD5", "auth");
+        // The echoed cnonce does not match the one used for the request.
+        final AuthChallenge authInfo = new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.DIGEST,
+                new BasicNameValuePair("rspauth", rspauth),
+                new BasicNameValuePair("cnonce", "deadbeef"),
+                new BasicNameValuePair("nc", String.format("%08x", authscheme.getNounceCount())));
+        Assertions.assertThrows(AuthenticationException.class, () ->
+                authscheme.processChallenge(RSPAUTH_HOST, false, authInfo, HttpClientContext.create()));
+    }
+
+    @Test
+    void testRspauthMissingNcIsRejected() throws Exception {
+        final DigestScheme authscheme = digestSchemeWithResponse("auth", "MD5");
+        final String rspauth = computeRspauth(authscheme, "MD5", "auth");
+        // rspauth is valid but the Authentication-Info omits the nc echo.
+        final AuthChallenge authInfo = new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.DIGEST,
+                new BasicNameValuePair("rspauth", rspauth),
+                new BasicNameValuePair("cnonce", authscheme.getCnonce()));
+        Assertions.assertThrows(AuthenticationException.class, () ->
+                authscheme.processChallenge(RSPAUTH_HOST, false, authInfo, HttpClientContext.create()));
+    }
+
+    @Test
+    void testRspauthNcMismatchIsRejected() throws Exception {
+        final DigestScheme authscheme = digestSchemeWithResponse("auth", "MD5");
+        final String rspauth = computeRspauth(authscheme, "MD5", "auth");
+        // The echoed nc does not match the nonce-count used for the request.
+        final AuthChallenge authInfo = new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.DIGEST,
+                new BasicNameValuePair("rspauth", rspauth),
+                new BasicNameValuePair("cnonce", authscheme.getCnonce()),
+                new BasicNameValuePair("nc", "00000002"));
+        Assertions.assertThrows(AuthenticationException.class, () ->
+                authscheme.processChallenge(RSPAUTH_HOST, false, authInfo, HttpClientContext.create()));
+    }
+
+    @Test
+    void testQopAuthWithoutRspauthIsRejected() throws Exception {
+        final DigestScheme authscheme = digestSchemeWithResponse("auth", "MD5");
+        // Authentication-Info states qop=auth but omits rspauth; per RFC rspauth, cnonce and nc are all required.
+        final AuthChallenge authInfo = new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.DIGEST,
+                new BasicNameValuePair("qop", "auth"),
+                new BasicNameValuePair("cnonce", authscheme.getCnonce()),
+                new BasicNameValuePair("nc", String.format("%08x", authscheme.getNounceCount())));
+        Assertions.assertThrows(AuthenticationException.class, () ->
+                authscheme.processChallenge(RSPAUTH_HOST, false, authInfo, HttpClientContext.create()));
+    }
+
+    @Test
+    void testRspauthMutualAuthenticationSucceedsWithSha256() throws Exception {
+        final DigestScheme authscheme = digestSchemeWithResponse("auth", "SHA-256");
+        final String rspauth = computeRspauth(authscheme, "SHA-256", "auth");
+        final AuthChallenge authInfo = authInfo(authscheme, rspauth);
+        Assertions.assertDoesNotThrow(() ->
+                authscheme.processChallenge(RSPAUTH_HOST, false, authInfo, HttpClientContext.create()));
+        Assertions.assertFalse(authscheme.isChallengeComplete());
+    }
+
+    @Test
+    void testAuthIntDoesNotExpectAuthenticationInfo() throws Exception {
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(RSPAUTH_HOST, "realm", null), "username", "password".toCharArray())
+                .build();
+        final AuthChallenge challenge = parse(StandardAuthScheme.DIGEST
+                + " realm=\"realm\", nonce=\"TestNonce\", algorithm=MD5, qop=\"auth-int\"");
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(challenge, null);
+        Assertions.assertTrue(authscheme.isResponseReady(RSPAUTH_HOST, credentialsProvider, null));
+        authscheme.generateAuthResponse(RSPAUTH_HOST, new BasicClassicHttpRequest("POST", "/path"), null);
+        // rspauth for qop=auth-int hashes the response body, which is unavailable, so it is not verified.
+        Assertions.assertFalse(authscheme.isChallengeExpected());
+    }
+
+    @Test
+    void testProcessChallengeChallengedParsesChallenge() throws Exception {
+        final DigestScheme authscheme = new DigestScheme();
+        final AuthChallenge challenge = parse(StandardAuthScheme.DIGEST
+                + " realm=\"realm\", nonce=\"TestNonce\", algorithm=MD5, qop=\"auth\"");
+        authscheme.processChallenge(RSPAUTH_HOST, true, challenge, HttpClientContext.create());
+        Assertions.assertEquals("realm", authscheme.getRealm());
+        Assertions.assertTrue(authscheme.isChallengeComplete());
+    }
 
 }

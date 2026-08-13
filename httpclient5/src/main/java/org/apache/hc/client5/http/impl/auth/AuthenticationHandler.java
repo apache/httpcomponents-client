@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.impl.auth;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,6 +53,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.MessageSupport;
@@ -230,14 +232,24 @@ public class AuthenticationHandler {
         if (challengeMap.isEmpty() && !challenged && isChallengeExpected) {
             final AuthScheme authScheme = authExchange.getAuthScheme();
             if (authScheme != null) {
+                final String schemeName = authScheme.getName();
+                // Authentication-Info is a comma-separated list that a server may split across several
+                // field lines; combine the parameters from all of them into a single challenge so the
+                // scheme sees the complete set (e.g. rspauth together with cnonce and nc).
+                final List<NameValuePair> authInfoParams = new ArrayList<>();
                 MessageSupport.parseHeaders(
                         response,
                         challengeType == ChallengeType.PROXY ? "Proxy-Authentication-Info" : "Authentication-Info",
                         (buffer, cursor) -> {
-                            final String schemeName = authScheme.getName();
                             final AuthChallenge authChallenge = parser.parse(challengeType, schemeName, buffer, cursor);
-                            challengeMap.put(schemeName.toLowerCase(Locale.ROOT), authChallenge);
+                            if (authChallenge.getParams() != null) {
+                                authInfoParams.addAll(authChallenge.getParams());
+                            }
                         });
+                if (!authInfoParams.isEmpty()) {
+                    challengeMap.put(schemeName.toLowerCase(Locale.ROOT),
+                            new AuthChallenge(challengeType, schemeName, null, authInfoParams));
+                }
             }
         }
 

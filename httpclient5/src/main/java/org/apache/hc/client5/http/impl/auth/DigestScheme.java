@@ -36,6 +36,7 @@ import java.security.MessageDigest;
 import java.security.Principal;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -139,6 +140,24 @@ public class DigestScheme implements AuthScheme, Serializable {
     private byte[] a1;
     private byte[] a2;
 
+    /**
+     * The qop value ("auth" or "auth-int") used by the last generated response, or {@code null} when
+     * no qop was negotiated. Retained to recompute the server's {@code rspauth} for mutual authentication.
+     */
+    private String lastQop;
+
+    /**
+     * Set when the last generated response used a qop, so an {@code Authentication-Info} response with
+     * {@code rspauth} is expected and should be verified.
+     */
+    private boolean expectAuthInfo;
+
+    /**
+     * Set once an {@code Authentication-Info} response has been processed without a mismatch, so the
+     * exchange is not mistaken for a failed challenge.
+     */
+    private boolean mutualAuthComplete;
+
     private UsernamePasswordCredentials credentials;
 
     public DigestScheme() {
@@ -183,11 +202,35 @@ public class DigestScheme implements AuthScheme, Serializable {
     }
 
     @Override
+    public boolean isChallengeExpected() {
+        return this.expectAuthInfo;
+    }
+
+    @Override
     public void processChallenge(
             final AuthChallenge authChallenge,
             final HttpContext context) throws MalformedChallengeException {
+        parseChallenge(authChallenge);
+    }
+
+    @Override
+    public void processChallenge(
+            final HttpHost host,
+            final boolean challenged,
+            final AuthChallenge authChallenge,
+            final HttpContext context) throws MalformedChallengeException, AuthenticationException {
+        if (!challenged) {
+            verifyAuthenticationInfo(authChallenge);
+            this.mutualAuthComplete = true;
+            return;
+        }
+        parseChallenge(authChallenge);
+    }
+
+    private void parseChallenge(final AuthChallenge authChallenge) throws MalformedChallengeException {
         Args.notNull(authChallenge, "AuthChallenge");
         this.paramMap.clear();
+        this.mutualAuthComplete = false;
         final List<NameValuePair> params = authChallenge.getParams();
         if (params != null) {
             for (final NameValuePair param: params) {
@@ -204,8 +247,88 @@ public class DigestScheme implements AuthScheme, Serializable {
         this.complete = true;
     }
 
+    /**
+     * Verifies the {@code rspauth} value carried by an {@code Authentication-Info} response against the
+     * value recomputed from the session state of the last generated response, providing mutual
+     * authentication. When no {@code Authentication-Info} or no {@code rspauth}
+     * is present the response is accepted, since a server is not required to send it.
+     */
+    private void verifyAuthenticationInfo(final AuthChallenge authChallenge) throws AuthenticationException {
+        if (authChallenge == null) {
+            return;
+        }
+        final Map<String, String> params = new HashMap<>();
+        final List<NameValuePair> list = authChallenge.getParams();
+        if (list != null) {
+            for (final NameValuePair param: list) {
+                params.put(param.getName().toLowerCase(Locale.ROOT), param.getValue());
+            }
+        }
+        final String qop = params.get("qop");
+        final String rspauth = params.get("rspauth");
+        final String serverCnonce = params.get("cnonce");
+        final String serverNc = params.get("nc");
+        if ("auth".equalsIgnoreCase(qop)) {
+            // when Authentication-Info states qop=auth it must carry rspauth, cnonce and nc.
+            if (rspauth == null || serverCnonce == null || serverNc == null) {
+                throw new AuthenticationException(
+                        "Digest Authentication-Info with qop=auth must include rspauth, cnonce and nc");
+            }
+        } else if (rspauth == null) {
+            return;
+        }
+        if (a1 == null || a2 == null || lastNonce == null || cnonce == null || lastQop == null) {
+            throw new AuthenticationException("Cannot verify rspauth: missing digest session state");
+        }
+        // For qop=auth the Authentication-Info must echo the exact cnonce and nc used for the request.
+        final StringBuilder ncBuilder = new StringBuilder(8);
+        try (final Formatter formatter = new Formatter(ncBuilder, Locale.ROOT)) {
+            formatter.format("%08x", this.nounceCount);
+        }
+        final String nc = ncBuilder.toString();
+        if (serverCnonce == null || !serverCnonce.equals(this.cnonce)) {
+            throw new AuthenticationException("Digest Authentication-Info cnonce mismatch");
+        }
+        if (serverNc == null || !serverNc.equals(nc)) {
+            throw new AuthenticationException("Digest Authentication-Info nc mismatch");
+        }
+        final String algorithm = this.paramMap.get("algorithm");
+        final MessageDigest digester;
+        try {
+            digester = createMessageDigest(DigestAlgorithm.fromString(algorithm == null ? "MD5" : algorithm)
+                    .getBaseAlgorithm());
+        } catch (final UnsupportedDigestAlgorithmException ex) {
+            throw new AuthenticationException("Unsupported digest algorithm: " + algorithm);
+        }
+        final Charset charset = AuthSchemeSupport.parseCharset(this.paramMap.get("charset"), this.defaultCharset);
+
+        final String hasha1 = formatHex(digester.digest(a1));
+        // The rspauth A2 uses an empty method, so reuse the request A2 from its first ':' onwards.
+        int colon = -1;
+        for (int i = 0; i < a2.length; i++) {
+            if (a2[i] == ':') {
+                colon = i;
+                break;
+            }
+        }
+        final byte[] a2rsp = colon < 0 ? a2 : Arrays.copyOfRange(a2, colon, a2.length);
+        final String hasha2 = formatHex(digester.digest(a2rsp));
+
+        final String kd = hasha1 + ":" + this.lastNonce + ":" + nc + ":" + this.cnonce + ":" + this.lastQop
+                + ":" + hasha2;
+        final String expected = formatHex(digester.digest(kd.getBytes(charset)));
+        if (!MessageDigest.isEqual(
+                expected.getBytes(StandardCharsets.US_ASCII),
+                rspauth.toLowerCase(Locale.ROOT).getBytes(StandardCharsets.US_ASCII))) {
+            throw new AuthenticationException("Digest response authentication failed (rspauth mismatch)");
+        }
+    }
+
     @Override
     public boolean isChallengeComplete() {
+        if (this.mutualAuthComplete) {
+            return false;
+        }
         final String s = this.paramMap.get("stale");
         return !"true".equalsIgnoreCase(s) && this.complete;
     }
@@ -446,6 +569,12 @@ public class DigestScheme implements AuthScheme, Serializable {
         buffer.reset();
 
         final String digest = formatHex(digester.digest(digestInput));
+
+        this.lastQop = qop == QualityOfProtection.MISSING ? null
+                : qop == QualityOfProtection.AUTH_INT ? "auth-int" : "auth";
+        // rspauth for qop=auth-int hashes the response body, which is not available here, so only
+        // qop=auth is verified.
+        this.expectAuthInfo = qop == QualityOfProtection.AUTH;
 
         final CharArrayBuffer buffer = new CharArrayBuffer(128);
         buffer.append(StandardAuthScheme.DIGEST + " ");
