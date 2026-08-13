@@ -527,4 +527,38 @@ class TestAuthenticationHandler {
         Assertions.assertEquals("dj1hYmM", getParam(challenge, "data"));
     }
 
+    @Test
+    void testAuthenticationInfoCombinesMultipleFieldLines() throws Exception {
+        final HttpHost host = new HttpHost("somehost", 80);
+        final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
+        // A server may split the Authentication-Info list across multiple field lines.
+        response.addHeader(new BasicHeader("Authentication-Info", "rspauth=\"abc\""));
+        response.addHeader(new BasicHeader("Authentication-Info", "cnonce=\"xyz\", nc=00000001"));
+
+        final AuthScheme authScheme = Mockito.mock(AuthScheme.class);
+        Mockito.when(authScheme.getName()).thenReturn(StandardAuthScheme.DIGEST);
+        Mockito.when(authScheme.isChallengeExpected()).thenReturn(Boolean.TRUE);
+        Mockito.when(authScheme.isChallengeComplete()).thenReturn(Boolean.FALSE);
+
+        this.authExchange.select(authScheme);
+        this.authExchange.setState(AuthExchange.State.HANDSHAKE);
+
+        final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
+
+        this.httpAuthenticator.handleResponse(
+                host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context);
+
+        final ArgumentCaptor<AuthChallenge> challengeCaptor = ArgumentCaptor.forClass(AuthChallenge.class);
+        Mockito.verify(authScheme).processChallenge(
+                Mockito.eq(host),
+                Mockito.eq(false),
+                challengeCaptor.capture(),
+                Mockito.same(this.context));
+
+        final AuthChallenge challenge = challengeCaptor.getValue();
+        Assertions.assertEquals("abc", getParam(challenge, "rspauth"));
+        Assertions.assertEquals("xyz", getParam(challenge, "cnonce"));
+        Assertions.assertEquals("00000001", getParam(challenge, "nc"));
+    }
+
 }
