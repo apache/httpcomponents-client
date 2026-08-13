@@ -123,10 +123,11 @@ class ResponseCachingPolicy {
         }
 
         if (request.getPath().contains("?")) {
-            if (neverCache1_0ResponsesWithQueryString && from1_0Origin(response)) {
+            if (neverCache1_0ResponsesWithQueryString && from1_0Origin(response) || neverCache1_1ResponsesWithQueryString) {
                 LOG.debug("Response is not cacheable as it had a query string");
                 return false;
-            } else if (!neverCache1_1ResponsesWithQueryString && !isExplicitlyCacheable(cacheControl, response)) {
+            }
+            if (!isExplicitlyCacheable(cacheControl, response)) {
                 LOG.debug("Response is not cacheable as it is missing explicit caching headers");
                 return false;
             }

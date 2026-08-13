@@ -861,9 +861,9 @@ class TestResponseCachingPolicy {
         request = new BasicHttpRequest("GET","/foo?s=bar");
         // HTTPbis working group says ok if explicitly indicated by
         // response headers
-        policy = new ResponseCachingPolicy(true, false, true);
         response.setCode(HttpStatus.SC_OK);
         response.setHeader("Date", DateUtils.formatStandardDate(now));
+        responseCacheControl = ResponseCacheControl.builder().setMaxAge(3600).build();
         assertTrue(policy.isResponseCacheable(requestCacheControl, responseCacheControl, request, response));
     }
 

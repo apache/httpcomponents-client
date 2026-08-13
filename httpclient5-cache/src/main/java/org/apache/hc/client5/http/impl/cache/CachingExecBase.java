@@ -75,6 +75,8 @@ public class CachingExecBase {
         this.cacheConfig = config != null ? config : CacheConfig.DEFAULT;
     }
 
+    // The query-string caching options are deprecated but still honoured while they remain on the API.
+    @SuppressWarnings("deprecation")
     CachingExecBase(final CacheConfig config) {
         super();
         this.cacheConfig = config != null ? config : CacheConfig.DEFAULT;

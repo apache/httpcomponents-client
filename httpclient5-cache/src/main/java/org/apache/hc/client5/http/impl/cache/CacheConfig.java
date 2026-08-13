@@ -41,6 +41,12 @@ import org.apache.hc.core5.util.TimeValue;
  * {@link CacheConfig#isNeverCacheHTTP11ResponsesWithQuery()},
  * {@link CacheConfig#isStaleIfErrorEnabled()}</p>
  *
+ * <p><b>Query string and HTTP/1.0 caching.</b> The options that suppress caching of responses with a query
+ * component are deprecated, since assigning heuristic freshness to such a response is no longer prohibited; an
+ * origin that does not want a response cached should send an explicit directive such as
+ * {@code Cache-Control: no-cache}. HTTP/1.0 response caching is deprecated as a whole and will be removed in a
+ * future release.</p>
+ *
  * <p><b>Cache size.</b> If the backend storage supports these limits, one
  * can specify the {@link CacheConfig#getMaxCacheEntries maximum number of
  * cache entries} as well as the {@link CacheConfig#getMaxObjectSize()}
@@ -189,7 +195,13 @@ public class CacheConfig implements Cloneable {
      * Returns whether the cache will never cache HTTP 1.0 responses with a query string or not.
      * @return {@code true} to not cache query string responses, {@code false} to cache if explicit cache headers are
      * found
+     *
+     * @deprecated Assigning heuristic freshness to a response with a query component is no longer prohibited, so this
+     * option no longer serves a purpose. An origin that does not want such a response cached should send an explicit
+     * directive such as {@code Cache-Control: no-cache}. HTTP/1.0 response caching is deprecated and will be removed
+     * in a future release.
      */
+    @Deprecated
     public boolean isNeverCacheHTTP10ResponsesWithQuery() {
         return neverCacheHTTP10ResponsesWithQuery;
     }
@@ -205,7 +217,12 @@ public class CacheConfig implements Cloneable {
      * @return {@code true} if HTTP/1.1 responses with query strings should never be cached;
      * {@code false} otherwise.
      * @since 5.4
+     *
+     * @deprecated Assigning heuristic freshness to a response with a query component is no longer prohibited, so this
+     * option no longer serves a purpose. An origin that does not want such a response cached should send an explicit
+     * directive such as {@code Cache-Control: no-cache}.
      */
+    @Deprecated
     public boolean isNeverCacheHTTP11ResponsesWithQuery() {
         return neverCacheHTTP11ResponsesWithQuery;
     }
@@ -499,7 +516,13 @@ public class CacheConfig implements Cloneable {
          * to better emulate IE, which also never caches responses, regardless of what caching
          * headers may be present.
          * @return this instance.
+         *
+         * @deprecated Assigning heuristic freshness to a response with a query component is no longer prohibited, so
+         * this option no longer serves a purpose. An origin that does not want such a response cached should send an
+         * explicit directive such as {@code Cache-Control: no-cache}. HTTP/1.0 response caching is deprecated and will
+         * be removed in a future release.
          */
+        @Deprecated
         public Builder setNeverCacheHTTP10ResponsesWithQueryString(
                 final boolean neverCacheHTTP10ResponsesWithQuery) {
             this.neverCacheHTTP10ResponsesWithQuery = neverCacheHTTP10ResponsesWithQuery;
@@ -535,7 +558,12 @@ public class CacheConfig implements Cloneable {
          *
          * @param neverCacheHTTP11ResponsesWithQuery whether to never cache HTTP/1.1 responses with a query string
          * @return this instance.
+         *
+         * @deprecated Assigning heuristic freshness to a response with a query component is no longer prohibited, so
+         * this option no longer serves a purpose. An origin that does not want such a response cached should send an
+         * explicit directive such as {@code Cache-Control: no-cache}.
          */
+        @Deprecated
         public Builder setNeverCacheHTTP11ResponsesWithQueryString(
                 final boolean neverCacheHTTP11ResponsesWithQuery) {
             this.neverCacheHTTP11ResponsesWithQuery = neverCacheHTTP11ResponsesWithQuery;
