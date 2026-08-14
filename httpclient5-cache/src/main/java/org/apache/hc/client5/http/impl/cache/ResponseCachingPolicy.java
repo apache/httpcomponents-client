@@ -98,13 +98,6 @@ class ResponseCachingPolicy {
             }
             return false;
         }
-        final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
-        if (version.compareToVersion(HttpVersion.HTTP_1_1) > 0) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Protocol version {} is non-cacheable", version);
-            }
-            return false;
-        }
 
         // Presently only GET, HEAD and QUERY methods are supported
         final String httpMethod = request.getMethod();
