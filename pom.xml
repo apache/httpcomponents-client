@@ -556,7 +556,7 @@
           <links>
             <link>https://hc.apache.org/httpcomponents-core-5.4.x/current/httpcore5/apidocs/</link>
             <link>https://hc.apache.org/httpcomponents-core-5.4.x/current/httpcore5-h2/apidocs/</link>
-            <link>${project.url}/httpclient5/apidocs/</link>
+            <link>https://hc.apache.org/httpcomponents-client-5.7.x/current/httpclient5/apidocs/</link>
           </links>
           <groups>
             <group>
@@ -588,7 +588,7 @@
               <packages>org.apache.hc.client5.http.sse*</packages>
             </group>
             <group>
-              <title>Apache HttpClient SSE</title>
+              <title>Apache HttpClient WebSocket</title>
               <packages>org.apache.hc.client5.http.websocket*</packages>
             </group>
 
