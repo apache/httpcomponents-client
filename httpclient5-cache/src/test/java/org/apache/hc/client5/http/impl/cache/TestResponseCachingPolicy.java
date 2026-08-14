@@ -1000,4 +1000,20 @@ class TestResponseCachingPolicy {
                 "Response with must-revalidate and Authorization header should be cacheable in shared cache.");
     }
 
+    @Test
+    void testHttp2_0HintCacheable() {
+        request = new BasicHttpRequest("GET", "/");
+        request.setVersion(HttpVersion.HTTP_2);
+        response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
+    }
+
+    @Test
+    void testHttp1_0HintCacheable() {
+        request = new BasicHttpRequest("GET", "/");
+        request.setVersion(HttpVersion.HTTP_1_0);
+        response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
+    }
+
 }

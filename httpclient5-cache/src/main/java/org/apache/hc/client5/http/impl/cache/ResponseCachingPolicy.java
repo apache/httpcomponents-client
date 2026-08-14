@@ -90,14 +90,6 @@ class ResponseCachingPolicy {
      * @return {@code true} if response is cacheable
      */
     public boolean isResponseCacheable(final ResponseCacheControl cacheControl, final HttpRequest request, final HttpResponse response) {
-        final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
-        if (version.compareToVersion(HttpVersion.HTTP_1_1) > 0) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Protocol version {} is non-cacheable", version);
-            }
-            return false;
-        }
-
         // Presently only GET and HEAD methods are supported
         final String httpMethod = request.getMethod();
         if (!Method.GET.isSame(httpMethod) && !Method.HEAD.isSame(httpMethod)) {
