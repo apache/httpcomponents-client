@@ -65,6 +65,9 @@ Protocol conformance
 - [RFC 9218](https://datatracker.ietf.org/doc/html/rfc9218) - Extensible Prioritization Scheme for HTTP
 - [RFC 7804](https://datatracker.ietf.org/doc/html/rfc7804) - Salted Challenge Response HTTP Authentication Mechanism
 - [RFC 10008](https://datatracker.ietf.org/doc/html/rfc10008) - The HTTP QUERY Method
+- [RFC 6455](https://datatracker.ietf.org/doc/html/rfc6455) - The WebSocket Protocol
+- [RFC 7692](https://datatracker.ietf.org/doc/html/rfc7692) - Compression Extensions for WebSocket (permessage-deflate)
+- [RFC 8441](https://datatracker.ietf.org/doc/html/rfc8441) - Bootstrapping WebSockets with HTTP/2
 
 Licensing
 ---------
