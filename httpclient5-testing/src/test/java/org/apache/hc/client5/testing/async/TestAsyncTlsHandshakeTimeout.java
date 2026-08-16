@@ -55,10 +55,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
+@Tag("time-out")
 public class TestAsyncTlsHandshakeTimeout {
     private static final Duration EXPECTED_TIMEOUT = Duration.ofMillis(500);
 
-    @Tag("slow")
     @Timeout(5)
     @ParameterizedTest
     @ValueSource(strings = { "false", "true" })

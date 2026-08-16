@@ -44,6 +44,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -144,6 +145,7 @@ class AbstractTestValidateAfterInactivity {
     }
 
     @Test
+    @Tag("stale-conn")
     void testAsyncClientWithStaleConnection() throws Exception {
         testAsyncClient(false);
     }
