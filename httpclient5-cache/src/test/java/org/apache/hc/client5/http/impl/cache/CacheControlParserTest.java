@@ -62,7 +62,8 @@ class CacheControlParserTest {
     void testParseInvalidCacheValue() {
         final Header header = new BasicHeader("Cache-Control", "max-age=invalid");
         final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
-        assertEquals(0L, cacheControl.getMaxAge());
+        // A malformed delta-seconds value is invalid and must be treated as absent (-1), not a usable 0.
+        assertEquals(-1L, cacheControl.getMaxAge());
     }
 
     @Test

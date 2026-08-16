@@ -79,7 +79,9 @@ public final class CacheSupport {
             return ageValue;
         } catch (final NumberFormatException ignore) {
         }
-        return 0;
+        // A value that is not a valid delta-seconds token is invalid and must be treated as absent (RFC 9111 4.2.1),
+        // not folded into a usable 0 which would look like a genuine directive.
+        return -1;
     }
 
 }

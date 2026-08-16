@@ -43,7 +43,7 @@ class TestCacheSupport {
         Assertions.assertEquals(-1L, CacheSupport.deltaSeconds("-100"));
         Assertions.assertEquals(-1L, CacheSupport.deltaSeconds(""));
         Assertions.assertEquals(-1L, CacheSupport.deltaSeconds(null));
-        Assertions.assertEquals(0L, CacheSupport.deltaSeconds("huh?"));
+        Assertions.assertEquals(-1L, CacheSupport.deltaSeconds("huh?"));
         Assertions.assertEquals(2147483648L, CacheSupport.deltaSeconds("2147483648"));
         Assertions.assertEquals(2147483648L, CacheSupport.deltaSeconds("2147483649"));
         Assertions.assertEquals(2147483648L, CacheSupport.deltaSeconds("214748364712"));

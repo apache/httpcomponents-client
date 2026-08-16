@@ -974,6 +974,20 @@ class TestResponseCachingPolicy {
     }
 
     @Test
+    void testMalformedSMaxageWithAuthorizationNotCacheableBySharedCache() {
+        request = new BasicHttpRequest("GET", "/resource");
+        request.setHeader(HttpHeaders.AUTHORIZATION, "Basic dXNlcjpwYXNzd2Q=");
+        response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
+        response.setHeader("Cache-Control", "s-maxage=invalid");
+        // Parse the actual header so the malformed value is handled the way it is on the wire.
+        responseCacheControl = CacheControlHeaderParser.INSTANCE.parse(response);
+
+        final boolean isCacheable = policy.isResponseCacheable(responseCacheControl, request, response);
+        assertFalse(isCacheable,
+                "Response to an Authorization request with a malformed s-maxage must not be stored by a shared cache.");
+    }
+
+    @Test
     void testNoDirectivesWithAuthorizationNotCacheable() {
         request = new BasicHttpRequest("GET", "/resource");
         request.setHeader(HttpHeaders.AUTHORIZATION, "Basic dXNlcjpwYXNzd2Q=");
