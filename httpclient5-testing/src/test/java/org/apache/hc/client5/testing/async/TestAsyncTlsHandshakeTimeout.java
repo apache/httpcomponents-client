@@ -55,7 +55,7 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-@Tag("slow")
+@Tag("time-out")
 public class TestAsyncTlsHandshakeTimeout {
     @Timeout(5)
     @ParameterizedTest

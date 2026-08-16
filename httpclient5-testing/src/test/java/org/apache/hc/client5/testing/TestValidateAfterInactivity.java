@@ -142,7 +142,7 @@ class AbstractTestValidateAfterInactivity {
     }
 
     @Test
-    @Tag("slow")
+    @Tag("stale-conn")
     void testAsyncClientWithStaleConnection() throws Exception {
         testAsyncClient(false);
     }
