@@ -43,6 +43,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.CharArrayBuffer;
@@ -110,38 +111,23 @@ class CacheControlHeaderParser {
 
     public void parse(final Iterator<Header> headerIterator, final BiConsumer<String, String> consumer) {
         while (headerIterator.hasNext()) {
-            final Header header = headerIterator.next();
-            final CharArrayBuffer buffer;
-            final Tokenizer.Cursor cursor;
-            if (header instanceof FormattedHeader) {
-                buffer = ((FormattedHeader) header).getBuffer();
-                cursor = new Tokenizer.Cursor(((FormattedHeader) header).getValuePos(), buffer.length());
-            } else {
-                final String s = header.getValue();
-                if (s == null) {
-                    continue;
-                }
-                buffer = new CharArrayBuffer(s.length());
-                buffer.append(s);
-                cursor = new Tokenizer.Cursor(0, buffer.length());
-            }
-
-            // Parse the header
-            while (!cursor.atEnd()) {
-                final String name = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
-                String value = null;
-                if (!cursor.atEnd()) {
-                    final int valueDelim = buffer.charAt(cursor.getPos());
-                    cursor.updatePos(cursor.getPos() + 1);
-                    if (valueDelim == EQUAL_CHAR) {
-                        value = tokenParser.parseValue(buffer, cursor, VALUE_DELIMS);
-                        if (!cursor.atEnd()) {
-                            cursor.updatePos(cursor.getPos() + 1);
+            MessageSupport.parseHeader(headerIterator.next(), (buffer, cursor) -> {
+                while (!cursor.atEnd()) {
+                    final String name = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
+                    String value = null;
+                    if (!cursor.atEnd()) {
+                        final int valueDelim = buffer.charAt(cursor.getPos());
+                        cursor.updatePos(cursor.getPos() + 1);
+                        if (valueDelim == EQUAL_CHAR) {
+                            value = tokenParser.parseValue(buffer, cursor, VALUE_DELIMS);
+                            if (!cursor.atEnd()) {
+                                cursor.updatePos(cursor.getPos() + 1);
+                            }
                         }
                     }
+                    consumer.accept(name, value);
                 }
-                consumer.accept(name, value);
-            }
+            });
         }
     }
 
@@ -172,17 +158,13 @@ class CacheControlHeaderParser {
             } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_CACHE)) {
                 builder.setNoCache(true);
                 if (value != null) {
-                    final Tokenizer.Cursor valCursor = new ParserCursor(0, value.length());
+                    final ParserCursor valCursor = new ParserCursor(0, value.length());
                     final Set<String> noCacheFields = new HashSet<>();
-                    while (!valCursor.atEnd()) {
-                        final String token = tokenParser.parseToken(value, valCursor, VALUE_DELIMS);
+                    MessageSupport.parseTokens(value, valCursor, token -> {
                         if (!TextUtils.isBlank(token)) {
                             noCacheFields.add(token);
                         }
-                        if (!valCursor.atEnd()) {
-                            valCursor.updatePos(valCursor.getPos() + 1);
-                        }
-                    }
+                    });
                     builder.setNoCacheFields(noCacheFields);
                 }
             } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_STORE)) {

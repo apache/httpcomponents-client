@@ -30,10 +30,10 @@ package org.apache.hc.client5.http.protocol;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
-import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
@@ -101,16 +101,7 @@ public class NextNonceInterceptor implements HttpResponseInterceptor {
 
         final Header header = response.getFirstHeader(AUTHENTICATION_INFO_HEADER);
         if (header != null) {
-            final String nextNonce;
-            if (header instanceof FormattedHeader) {
-                final CharSequence buf = ((FormattedHeader) header).getBuffer();
-                final ParserCursor cursor = new ParserCursor(((FormattedHeader) header).getValuePos(), buf.length());
-                nextNonce = parseNextNonce(buf, cursor);
-            } else {
-                final CharSequence headerValue = header.getValue();
-                final ParserCursor cursor = new ParserCursor(0, headerValue.length());
-                nextNonce = parseNextNonce(headerValue, cursor);
-            }
+            final String nextNonce = MessageSupport.parserHeaderValue(header, this::parseNextNonce);
             if (!TextUtils.isBlank(nextNonce)) {
                 HttpClientContext.castOrCreate(context).setNextNonce(nextNonce);
             }

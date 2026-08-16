@@ -45,10 +45,10 @@ import org.apache.hc.client5.http.cookie.CookieSpec;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.message.BufferedHeader;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.hc.core5.util.Tokenizer;
@@ -109,43 +109,65 @@ public class RFC6265CookieSpec implements CookieSpec {
     public final List<Cookie> parse(final Header header, final CookieOrigin origin) throws MalformedCookieException {
         Args.notNull(header, "Header");
         Args.notNull(origin, "Cookie origin");
-        if (!header.getName().equalsIgnoreCase("Set-Cookie")) {
-            throw new MalformedCookieException("Unrecognized cookie header: '" + header + "'");
+        final RawCookie rawCookie = MessageSupport.parserHeaderValue(header, this::parseCookie);
+        if (rawCookie == null) {
+            throw new MalformedCookieException("Cookie value is invalid");
         }
-        final CharArrayBuffer buffer;
-        final Tokenizer.Cursor cursor;
-        if (header instanceof FormattedHeader) {
-            buffer = ((FormattedHeader) header).getBuffer();
-            cursor = new Tokenizer.Cursor(((FormattedHeader) header).getValuePos(), buffer.length());
-        } else {
-            final String s = header.getValue();
-            if (s == null) {
-                throw new MalformedCookieException("Header value is null");
+
+        final BasicClientCookie cookie = new BasicClientCookie(rawCookie.name, rawCookie.value);
+        cookie.setPath(getDefaultPath(origin));
+        cookie.setDomain(getDefaultDomain(origin));
+        cookie.setCreationDate(Instant.now());
+
+        for (final Map.Entry<String, String> entry: rawCookie.attribMap.entrySet()) {
+            final String paramName = entry.getKey();
+            final String paramValue = entry.getValue();
+            cookie.setAttribute(paramName, paramValue);
+            final CookieAttributeHandler handler = this.attribHandlerMap.get(paramName);
+            if (handler != null) {
+                handler.parse(cookie, paramValue);
             }
-            buffer = new CharArrayBuffer(s.length());
-            buffer.append(s);
-            cursor = new Tokenizer.Cursor(0, buffer.length());
         }
+        return Collections.singletonList(cookie);
+    }
+
+    static class RawCookie {
+
+        final String name;
+        final String value;
+        final Map<String, String> attribMap;
+
+        RawCookie(final String name, final String value, final Map<String, String> attribMap) {
+            this.name = name;
+            this.value = value;
+            this.attribMap = attribMap;
+        }
+
+        @Override
+        public String toString() {
+            return name + " = " + value + " " + attribMap;
+        }
+
+    }
+
+    private RawCookie parseCookie(final CharSequence buffer,
+                                  final Tokenizer.Cursor cursor) {
         final String name = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
         if (name.isEmpty()) {
-            return Collections.emptyList();
+            return null;
         }
         if (cursor.atEnd()) {
-            return Collections.emptyList();
+            return null;
         }
         final int valueDelim = buffer.charAt(cursor.getPos());
         cursor.updatePos(cursor.getPos() + 1);
         if (valueDelim != '=') {
-            throw new MalformedCookieException("Cookie value is invalid: '" + header + "'");
+            return null;
         }
         final String value = tokenParser.parseValue(buffer, cursor, VALUE_DELIMS);
         if (!cursor.atEnd()) {
             cursor.updatePos(cursor.getPos() + 1);
         }
-        final BasicClientCookie cookie = new BasicClientCookie(name, value);
-        cookie.setPath(getDefaultPath(origin));
-        cookie.setDomain(getDefaultDomain(origin));
-        cookie.setCreationDate(Instant.now());
 
         final Map<String, String> attribMap = new LinkedHashMap<>();
         while (!cursor.atEnd()) {
@@ -162,7 +184,6 @@ public class RFC6265CookieSpec implements CookieSpec {
                     }
                 }
             }
-            cookie.setAttribute(paramName, paramValue);
             attribMap.put(paramName, paramValue);
         }
         // Ignore 'Expires' if 'Max-Age' is present
@@ -170,16 +191,7 @@ public class RFC6265CookieSpec implements CookieSpec {
             attribMap.remove(Cookie.EXPIRES_ATTR);
         }
 
-        for (final Map.Entry<String, String> entry: attribMap.entrySet()) {
-            final String paramName = entry.getKey();
-            final String paramValue = entry.getValue();
-            final CookieAttributeHandler handler = this.attribHandlerMap.get(paramName);
-            if (handler != null) {
-                handler.parse(cookie, paramValue);
-            }
-        }
-
-        return Collections.singletonList(cookie);
+        return new RawCookie(name, value, attribMap);
     }
 
     @Override
