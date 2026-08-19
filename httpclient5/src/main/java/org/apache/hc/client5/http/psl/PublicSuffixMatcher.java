@@ -254,7 +254,14 @@ public final class PublicSuffixMatcher {
 
     @Internal
     public boolean verifyInternal(final String domain) {
-        final DomainRootInfo domainRootInfo = resolveDomainRoot(domain, null);
+        // Match the normalisation performed by getDomainRoot: the rules are held lowercase and in
+        // Unicode form, so an ACE-encoded (xn--) or mixed-case public suffix has to be decoded here
+        // as well, otherwise it fails to match a rule and is mistaken for a registrable domain.
+        String normalized = DnsUtils.normalize(domain);
+        if (normalized != null && normalized.contains("xn-")) {
+            normalized = IDN.toUnicode(normalized);
+        }
+        final DomainRootInfo domainRootInfo = resolveDomainRoot(normalized, null);
         if (domainRootInfo == null) {
             return false;
         }
