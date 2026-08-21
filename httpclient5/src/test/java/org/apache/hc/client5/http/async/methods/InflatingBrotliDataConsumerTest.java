@@ -26,18 +26,23 @@
  */
 package org.apache.hc.client5.http.async.methods;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -197,5 +202,53 @@ class InflatingBrotliDataConsumerTest {
         map.put("br", InflatingBrotliDataConsumer::new);
         final ContentCompressionAsyncExec exec = new ContentCompressionAsyncExec(map);
         assertNotNull(exec);
+    }
+
+    @Test
+    void inflateBrotliLargerThanInputBuffer() {
+        assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+            final byte[] original = new byte[64 * 1024];
+            new Random(42).nextBytes(original);
+
+            final byte[] compressed = Encoder.compress(
+                    original,
+                    new Encoder.Parameters()
+                            .setQuality(6)
+                            .setWindow(22));
+
+            assertTrue(compressed.length > 8 * 1024);
+
+            final ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+            final AsyncDataConsumer downstream = new AsyncDataConsumer() {
+
+                @Override
+                public void updateCapacity(final CapacityChannel capacityChannel) {
+                }
+
+                @Override
+                public void consume(final ByteBuffer src) {
+                    final byte[] buf = new byte[src.remaining()];
+                    src.get(buf);
+                    output.write(buf, 0, buf.length);
+                }
+
+                @Override
+                public void streamEnd(final List<? extends Header> trailers) {
+                }
+
+                @Override
+                public void releaseResources() {
+                }
+            };
+
+            final InflatingBrotliDataConsumer inflating =
+                    new InflatingBrotliDataConsumer(downstream);
+
+            inflating.consume(ByteBuffer.wrap(compressed));
+            inflating.streamEnd(Collections.emptyList());
+
+            assertArrayEquals(original, output.toByteArray());
+        });
     }
 }
