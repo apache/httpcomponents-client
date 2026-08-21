@@ -87,12 +87,9 @@ public final class InflatingBrotliDataConsumer implements AsyncDataConsumer {
     public void consume(final ByteBuffer src) throws IOException {
         while (src.hasRemaining()) {
             final ByteBuffer in = decoder.getInputBuffer();
+            in.clear();
+
             final int xfer = Math.min(src.remaining(), in.remaining());
-            if (xfer == 0) {
-                decoder.push(0);
-                pump();
-                continue;
-            }
             final int lim = src.limit();
             src.limit(src.position() + xfer);
             in.put(src);
