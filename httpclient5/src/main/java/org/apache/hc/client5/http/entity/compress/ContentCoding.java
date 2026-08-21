@@ -67,6 +67,14 @@ public enum ContentCoding {
      */
     ZSTD("zstd"),
     /**
+     * Dictionary-Compressed Brotli format.
+     */
+    DCB("dcb"),
+    /**
+     * Dictionary-Compressed Zstandard format.
+     */
+    DCZ("dcz"),
+    /**
      * XZ compression format.
      */
     XZ("xz"),

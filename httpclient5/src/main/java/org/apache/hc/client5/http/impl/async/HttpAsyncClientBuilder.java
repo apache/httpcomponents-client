@@ -53,6 +53,7 @@ import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.entity.compress.CompressionDictionaryStore;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
@@ -261,6 +262,8 @@ public class HttpAsyncClientBuilder {
      * Maps {@code Content-Encoding} tokens to decoder factories in insertion order.
      */
     private LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> contentDecoderMap;
+
+    private CompressionDictionaryStore compressionDictionaryStore;
 
     /**
      * When {@code true} the client skips <i>all</i> transparent response decompression.
@@ -884,6 +887,25 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
+     * Sets the compression dictionary store used for Compression Dictionary
+     * Transport as defined by RFC 9842.
+     * <p>
+     * When configured, matching dictionaries can be advertised and used for
+     * {@code dcb} and {@code dcz} response decompression.
+     * </p>
+     *
+     * @param compressionDictionaryStore the compression dictionary store,
+     *                                   or {@code null} to disable dictionary transport
+     * @return {@code this} builder instance
+     * @since 5.7
+     */
+    public final HttpAsyncClientBuilder setCompressionDictionaryStore(
+            final CompressionDictionaryStore compressionDictionaryStore) {
+        this.compressionDictionaryStore = compressionDictionaryStore;
+        return this;
+    }
+
+    /**
      * Disables transparent response decompression for the client produced by
      * this builder.
      *
@@ -1117,11 +1139,11 @@ public class HttpAsyncClientBuilder {
         if (!contentCompressionDisabled) {
             if (contentDecoderMap != null && !contentDecoderMap.isEmpty()) {
                 execChainDefinition.addFirst(
-                        new ContentCompressionAsyncExec(contentDecoderMap),
+                        new ContentCompressionAsyncExec(contentDecoderMap, compressionDictionaryStore),
                         ChainElement.COMPRESS.name());
             } else {
                 execChainDefinition.addFirst(
-                        new ContentCompressionAsyncExec(),
+                        new ContentCompressionAsyncExec(compressionDictionaryStore),
                         ChainElement.COMPRESS.name());
             }
         }
