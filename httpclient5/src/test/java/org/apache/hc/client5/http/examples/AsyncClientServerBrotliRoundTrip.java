@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.examples;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,11 +34,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Future;
 
 import com.aayushatharva.brotli4j.Brotli4jLoader;
+import com.aayushatharva.brotli4j.decoder.BrotliInputStream;
 import com.aayushatharva.brotli4j.encoder.BrotliOutputStream;
 
-import org.apache.commons.compress.compressors.CompressorException;
-import org.apache.commons.compress.compressors.CompressorInputStream;
-import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
@@ -74,7 +71,7 @@ import org.apache.hc.core5.io.CloseMode;
  * <p>
  * Notes:
  * - Encoding uses brotli4j (native JNI); make sure matching native dependency is on the runtime classpath.
- * - Decoding here uses Commons Compress via CompressorStreamFactory("br").
+ * - Decoding here uses brotli4j.
  */
 public final class AsyncClientServerBrotliRoundTrip {
 
@@ -124,8 +121,7 @@ public final class AsyncClientServerBrotliRoundTrip {
             final boolean isBr = ce != null && BR.equalsIgnoreCase(ce.getValue());
             System.out.println("Response C-E     : " + (isBr ? BR : "(none)"));
 
-            final byte[] respPlain = isBr ? brotliDecompress(respBodyRaw) : respBodyRaw;
-            System.out.println("Response (plain) : " + new String(respPlain, StandardCharsets.UTF_8));
+            System.out.println("Response (plain) : " + new String(respBodyRaw, StandardCharsets.UTF_8));
         } finally {
             server.close(CloseMode.GRACEFUL);
         }
@@ -155,8 +151,7 @@ public final class AsyncClientServerBrotliRoundTrip {
                 final Header ce = request.getFirstHeader(HttpHeaders.CONTENT_ENCODING);
                 if (ce != null && BR.equalsIgnoreCase(ce.getValue())) {
                     try (final InputStream in = entity.getContent();
-                         final CompressorInputStream bin =
-                                 new CompressorStreamFactory().createCompressorInputStream(BR, in)) {
+                         final BrotliInputStream bin = new BrotliInputStream(in)) {
                         requestPlain = readAll(bin);
                     }
                 } else {
@@ -174,7 +169,7 @@ public final class AsyncClientServerBrotliRoundTrip {
                 response.addHeader(HttpHeaders.CONTENT_ENCODING, BR);
                 response.setEntity(new ByteArrayEntity(respCompressed, ContentType.APPLICATION_OCTET_STREAM));
 
-            } catch (final CompressorException ex) {
+            } catch (final IOException ex) {
                 response.setCode(HttpStatus.SC_BAD_REQUEST);
                 response.setEntity(new StringEntity("Invalid Brotli payload", StandardCharsets.UTF_8));
             } catch (final Exception ex) {
@@ -206,17 +201,5 @@ public final class AsyncClientServerBrotliRoundTrip {
             out.write(plain);
         }
         return baos.toByteArray();
-    }
-
-    /**
-     * Decompress a Brotli-compressed byte[] using Commons Compress.
-     */
-    private static byte[] brotliDecompress(final byte[] compressed) throws IOException {
-        try (final InputStream in = new ByteArrayInputStream(compressed);
-             final CompressorInputStream bin = new CompressorStreamFactory().createCompressorInputStream(BR, in)) {
-            return readAll(bin);
-        } catch (final CompressorException e) {
-            throw new IOException("Failed to decompress Brotli data", e);
-        }
     }
 }
