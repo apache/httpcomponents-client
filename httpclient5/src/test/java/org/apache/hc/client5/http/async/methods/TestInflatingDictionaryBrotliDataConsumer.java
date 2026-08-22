@@ -26,30 +26,36 @@
  */
 package org.apache.hc.client5.http.async.methods;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 
-import org.apache.hc.client5.http.entity.compress.BasicCompressionDictionaryStore;
+import com.aayushatharva.brotli4j.Brotli4jLoader;
+import com.aayushatharva.brotli4j.encoder.BrotliOutputStream;
+import com.aayushatharva.brotli4j.encoder.Encoder;
+import com.aayushatharva.brotli4j.encoder.PreparedDictionary;
+
 import org.apache.hc.client5.http.entity.compress.CompressionDictionary;
-import org.apache.hc.client5.http.entity.compress.CompressionDictionaryStore;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
+import org.apache.hc.core5.http.nio.CapacityChannel;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Native-free unit tests for {@link InflatingDictionaryBrotliDataConsumer}.
- * <p>
- * These tests exercise only the header-parsing and dictionary-lookup logic,
- * all of which runs before the lazy Brotli {@code DecoderJNI.Wrapper} is
- * created, so no native Brotli library is required.
+ * Unit tests for {@link InflatingDictionaryBrotliDataConsumer}.
  */
 class TestInflatingDictionaryBrotliDataConsumer {
 
@@ -82,9 +88,9 @@ class TestInflatingDictionaryBrotliDataConsumer {
     @Test
     void invalidMagicThrowsFromConsumeSingleBuffer() {
         final AsyncDataConsumer downstream = mock(AsyncDataConsumer.class);
-        final CompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary dictionary = dictionary(new byte[]{1});
         final InflatingDictionaryBrotliDataConsumer consumer =
-                new InflatingDictionaryBrotliDataConsumer(downstream, store);
+                new InflatingDictionaryBrotliDataConsumer(downstream, dictionary);
 
         final byte[] bogusMagic = {0x00, 0x44, 0x43, 0x42};
         final byte[] hash = new byte[HASH_LENGTH];
@@ -98,9 +104,9 @@ class TestInflatingDictionaryBrotliDataConsumer {
     @Test
     void invalidMagicThrowsWhenHeaderSplitAcrossTwoBuffers() {
         final AsyncDataConsumer downstream = mock(AsyncDataConsumer.class);
-        final CompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary dictionary = dictionary(new byte[]{1});
         final InflatingDictionaryBrotliDataConsumer consumer =
-                new InflatingDictionaryBrotliDataConsumer(downstream, store);
+                new InflatingDictionaryBrotliDataConsumer(downstream, dictionary);
 
         final byte[] bogusMagic = {0x00, 0x44, 0x43, 0x42};
         final byte[] hash = new byte[HASH_LENGTH];
@@ -118,13 +124,12 @@ class TestInflatingDictionaryBrotliDataConsumer {
     }
 
     @Test
-    void unknownDictionaryThrowsFromConsume() {
+    void differentDictionaryHashThrowsFromConsume() {
         final AsyncDataConsumer downstream = mock(AsyncDataConsumer.class);
-        final CompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary dictionary = dictionary(new byte[]{1});
         final InflatingDictionaryBrotliDataConsumer consumer =
-                new InflatingDictionaryBrotliDataConsumer(downstream, store);
+                new InflatingDictionaryBrotliDataConsumer(downstream, dictionary);
 
-        // Valid MAGIC, but the store is empty so getByHash returns null.
         final byte[] hash = new byte[HASH_LENGTH];
         for (int i = 0; i < HASH_LENGTH; i++) {
             hash[i] = (byte) i;
@@ -132,16 +137,16 @@ class TestInflatingDictionaryBrotliDataConsumer {
         final ByteBuffer src = ByteBuffer.wrap(header(MAGIC, hash));
 
         final IOException ex = assertThrows(IOException.class, () -> consumer.consume(src));
-        assertTrue(ex.getMessage().contains("Compression dictionary not available"), ex.getMessage());
+        assertTrue(ex.getMessage().contains("does not use the negotiated dictionary"), ex.getMessage());
         verifyNoInteractions(downstream);
     }
 
     @Test
-    void unknownDictionaryThrowsWhenHeaderSplitAcrossTwoBuffers() {
+    void differentDictionaryHashThrowsWhenHeaderSplitAcrossTwoBuffers() {
         final AsyncDataConsumer downstream = mock(AsyncDataConsumer.class);
-        final CompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary dictionary = dictionary(new byte[]{1});
         final InflatingDictionaryBrotliDataConsumer consumer =
-                new InflatingDictionaryBrotliDataConsumer(downstream, store);
+                new InflatingDictionaryBrotliDataConsumer(downstream, dictionary);
 
         final byte[] hash = new byte[HASH_LENGTH];
         final byte[] full = header(MAGIC, hash);
@@ -151,23 +156,17 @@ class TestInflatingDictionaryBrotliDataConsumer {
 
         final ByteBuffer second = ByteBuffer.wrap(full, 20, full.length - 20).slice();
         final IOException ex = assertThrows(IOException.class, () -> consumer.consume(second));
-        assertTrue(ex.getMessage().contains("Compression dictionary not available"), ex.getMessage());
+        assertTrue(ex.getMessage().contains("does not use the negotiated dictionary"), ex.getMessage());
         verifyNoInteractions(downstream);
     }
 
     @Test
-    void knownHashPresentAndMatchingPassesLookupAndReachesDecoderInit() {
-        // A real store keyed by the dictionary's own SHA-256; the header hash
-        // matches, so the lookup succeeds and control proceeds to lazy decoder
-        // creation. Without the native library that step throws, but the lookup
-        // guard itself must be cleared (message must NOT be about availability).
+    void knownHashPresentAndMatchingReachesDecoderInit() {
         final AsyncDataConsumer downstream = mock(AsyncDataConsumer.class);
-        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
         final CompressionDictionary dict = dictionary(new byte[]{'h', 'e', 'l', 'l', 'o'});
-        store.add(dict);
 
         final InflatingDictionaryBrotliDataConsumer consumer =
-                new InflatingDictionaryBrotliDataConsumer(downstream, store);
+                new InflatingDictionaryBrotliDataConsumer(downstream, dict);
 
         final ByteBuffer src = ByteBuffer.wrap(header(MAGIC, dict.getSha256()));
 
@@ -175,8 +174,7 @@ class TestInflatingDictionaryBrotliDataConsumer {
             consumer.consume(src);
             // If the native library is present, header consumed without error.
         } catch (final IOException ex) {
-            // If native init fails, it must not be the availability guard.
-            assertTrue(!ex.getMessage().contains("Compression dictionary not available"), ex.getMessage());
+            assertTrue(!ex.getMessage().contains("does not use the negotiated dictionary"), ex.getMessage());
         } catch (final Throwable linkError) {
             // UnsatisfiedLinkError / NoClassDefFoundError when native lib absent.
             assertTrue(true);
@@ -185,31 +183,27 @@ class TestInflatingDictionaryBrotliDataConsumer {
 
     @Test
     void hashPresentButNotMatchingThrows() {
-        // Store returns a dictionary for any hash, but its SHA-256 differs from
-        // the header hash, so matchesHash() fails.
         final AsyncDataConsumer downstream = mock(AsyncDataConsumer.class);
         final CompressionDictionary dict = dictionary(new byte[]{1, 2, 3, 4});
-        final CompressionDictionaryStore store = mock(CompressionDictionaryStore.class);
-        when(store.getByHash(org.mockito.ArgumentMatchers.any())).thenReturn(dict);
 
         final InflatingDictionaryBrotliDataConsumer consumer =
-                new InflatingDictionaryBrotliDataConsumer(downstream, store);
+                new InflatingDictionaryBrotliDataConsumer(downstream, dict);
 
         // Header hash of all-zeros will not equal the dictionary's real SHA-256.
         final byte[] hash = new byte[HASH_LENGTH];
         final ByteBuffer src = ByteBuffer.wrap(header(MAGIC, hash));
 
         final IOException ex = assertThrows(IOException.class, () -> consumer.consume(src));
-        assertTrue(ex.getMessage().contains("Compression dictionary not available"), ex.getMessage());
+        assertTrue(ex.getMessage().contains("does not use the negotiated dictionary"), ex.getMessage());
         verifyNoInteractions(downstream);
     }
 
     @Test
     void truncatedHeaderThenStreamEndThrows() {
         final AsyncDataConsumer downstream = mock(AsyncDataConsumer.class);
-        final CompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary dictionary = dictionary(new byte[]{1});
         final InflatingDictionaryBrotliDataConsumer consumer =
-                new InflatingDictionaryBrotliDataConsumer(downstream, store);
+                new InflatingDictionaryBrotliDataConsumer(downstream, dictionary);
 
         // Fewer than 36 bytes: header stays incomplete, decoder stays null.
         final byte[] partial = new byte[10];
@@ -226,14 +220,114 @@ class TestInflatingDictionaryBrotliDataConsumer {
     @Test
     void streamEndWithNoDataThrowsTruncatedHeader() {
         final AsyncDataConsumer downstream = mock(AsyncDataConsumer.class);
-        final CompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary dictionary = dictionary(new byte[]{1});
         final InflatingDictionaryBrotliDataConsumer consumer =
-                new InflatingDictionaryBrotliDataConsumer(downstream, store);
+                new InflatingDictionaryBrotliDataConsumer(downstream, dictionary);
 
         final IOException ex = assertThrows(IOException.class,
                 () -> consumer.streamEnd(Collections.emptyList()));
         assertTrue(ex.getMessage().contains("Truncated DCB stream header"), ex.getMessage());
         verifyNoInteractions(downstream);
+    }
+
+    @Test
+    void roundTripWithSharedDictionary() throws Exception {
+        Assumptions.assumeTrue(brotliAvailable(), "Brotli native runtime is unavailable");
+
+        final byte[] dictionaryContent =
+                "the quick brown fox jumps over the lazy dog".getBytes(StandardCharsets.UTF_8);
+        final byte[] payload = ("the quick brown fox jumps over the lazy dog "
+                + "and then the quick brown fox runs away").getBytes(StandardCharsets.UTF_8);
+        final CompressionDictionary dictionary = dictionary(dictionaryContent);
+        final byte[] stream = concat(MAGIC, dictionary.getSha256(), compress(dictionaryContent, payload));
+        final AccumulatingConsumer downstream = new AccumulatingConsumer();
+        final InflatingDictionaryBrotliDataConsumer consumer =
+                new InflatingDictionaryBrotliDataConsumer(downstream, dictionary);
+
+        for (int i = 0; i < stream.length; i++) {
+            consumer.consume(ByteBuffer.wrap(stream, i, 1));
+        }
+        consumer.streamEnd(Collections.<Header>emptyList());
+
+        assertArrayEquals(payload, downstream.toByteArray());
+        assertTrue(downstream.ended);
+        consumer.releaseResources();
+    }
+
+    private static byte[] compress(final byte[] dictionary, final byte[] payload) throws IOException {
+        final ByteBuffer buffer = ByteBuffer.allocateDirect(dictionary.length);
+        buffer.put(dictionary).flip();
+        final PreparedDictionary prepared = Encoder.prepareDictionary(buffer, 0);
+        final ByteArrayOutputStream compressed = new ByteArrayOutputStream();
+        try {
+            final Encoder.Parameters parameters = Encoder.Parameters.create(6, 24, Encoder.Mode.TEXT);
+            try (BrotliOutputStream out = new BrotliOutputStream(compressed, parameters)) {
+                out.attachDictionary(prepared);
+                out.write(payload);
+            }
+            return compressed.toByteArray();
+        } finally {
+            if (prepared instanceof AutoCloseable) {
+                try {
+                    ((AutoCloseable) prepared).close();
+                } catch (final Exception ex) {
+                    throw new IOException("Unable to release Brotli dictionary", ex);
+                }
+            }
+        }
+    }
+
+    private static byte[] concat(final byte[]... parts) {
+        int length = 0;
+        for (final byte[] part : parts) {
+            length += part.length;
+        }
+        final byte[] result = new byte[length];
+        int offset = 0;
+        for (final byte[] part : parts) {
+            System.arraycopy(part, 0, result, offset, part.length);
+            offset += part.length;
+        }
+        return result;
+    }
+
+    private static boolean brotliAvailable() {
+        try {
+            Brotli4jLoader.ensureAvailability();
+            return true;
+        } catch (final Throwable ex) {
+            return false;
+        }
+    }
+
+    private static final class AccumulatingConsumer implements AsyncDataConsumer {
+        private final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        private boolean ended;
+
+        @Override
+        public void updateCapacity(final CapacityChannel capacityChannel) throws IOException {
+            capacityChannel.update(Integer.MAX_VALUE);
+        }
+
+        @Override
+        public void consume(final ByteBuffer src) {
+            while (src.hasRemaining()) {
+                out.write(src.get());
+            }
+        }
+
+        @Override
+        public void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
+            ended = true;
+        }
+
+        @Override
+        public void releaseResources() {
+        }
+
+        byte[] toByteArray() {
+            return out.toByteArray();
+        }
     }
 
     private static void assertDoesNotThrowConsume(

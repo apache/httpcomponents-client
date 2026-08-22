@@ -68,9 +68,9 @@ class TestUseAsDictionary {
     }
 
     @Test
-    void typeRawIsCaseInsensitive() throws ParseException {
+    void typeTokenIsCaseSensitive() throws ParseException {
         final UseAsDictionary dictionary = UseAsDictionary.parse("match=\"/app/*\", type=RAW");
-        assertTrue(dictionary.isSupported());
+        assertFalse(dictionary.isSupported());
     }
 
     @Test
@@ -174,10 +174,18 @@ class TestUseAsDictionary {
     }
 
     @Test
-    void commaInsideParensIsNotSeparator() throws ParseException {
-        final UseAsDictionary dictionary = UseAsDictionary.parse("dummy=(a, b), match=\"/x\", type=raw");
-        assertEquals("/x", dictionary.getMatch());
-        assertTrue(dictionary.isSupported());
+    void commaInsideInnerListIsInvalidStructuredFieldSyntax() {
+        assertThrows(ParseException.class,
+                () -> UseAsDictionary.parse("dummy=(a, b), match=\"/x\", type=raw"));
+    }
+
+    @Test
+    void matchDestParsesInnerListOfStrings() throws ParseException {
+        final UseAsDictionary dictionary = UseAsDictionary.parse(
+                "match=\"/x\", match-dest=(\"document\" \"script\")");
+        assertEquals(2, dictionary.getMatchDest().size());
+        assertEquals("document", dictionary.getMatchDest().get(0));
+        assertEquals("script", dictionary.getMatchDest().get(1));
     }
 
     @Test
@@ -190,6 +198,12 @@ class TestUseAsDictionary {
     void parametersAfterSemicolonAreIgnored() throws ParseException {
         final UseAsDictionary dictionary = UseAsDictionary.parse("match=\"/x\", type=raw;foo=bar");
         assertTrue(dictionary.isSupported());
+    }
+
+    @Test
+    void spaceAfterParameterSemicolonIsAccepted() throws ParseException {
+        final UseAsDictionary dictionary = UseAsDictionary.parse("match=\"/x\"; foo=bar");
+        assertEquals("/x", dictionary.getMatch());
     }
 
     @Test
@@ -206,5 +220,41 @@ class TestUseAsDictionary {
     @Test
     void invalidTypeTokenCharacterThrows() {
         assertThrows(ParseException.class, () -> UseAsDictionary.parse("match=\"/x\", type=a b"));
+    }
+
+    @Test
+    void integerLongerThanFifteenDigitsInvalidatesWholeField() {
+        assertThrows(ParseException.class,
+                () -> UseAsDictionary.parse("match=\"/x\", extension=1234567890123456"));
+    }
+
+    @Test
+    void decimalIntegerPartLongerThanTwelveDigitsInvalidatesWholeField() {
+        assertThrows(ParseException.class,
+                () -> UseAsDictionary.parse("match=\"/x\", extension=1234567890123.1"));
+    }
+
+    @Test
+    void dateLongerThanFifteenDigitsInvalidatesWholeField() {
+        assertThrows(ParseException.class,
+                () -> UseAsDictionary.parse("match=\"/x\", extension=@1234567890123456"));
+    }
+
+    @Test
+    void malformedUtf8DisplayStringInvalidatesWholeField() {
+        assertThrows(ParseException.class,
+                () -> UseAsDictionary.parse("match=\"/x\", extension=%\"%ff\""));
+    }
+
+    @Test
+    void validUtf8DisplayStringIsAcceptedAsAnExtension() throws ParseException {
+        final UseAsDictionary dictionary = UseAsDictionary.parse(
+                "match=\"/x\", extension=%\"caf%c3%a9\"");
+        assertEquals("/x", dictionary.getMatch());
+    }
+
+    @Test
+    void leadingTabIsNotAccepted() {
+        assertThrows(ParseException.class, () -> UseAsDictionary.parse("\tmatch=\"/x\""));
     }
 }

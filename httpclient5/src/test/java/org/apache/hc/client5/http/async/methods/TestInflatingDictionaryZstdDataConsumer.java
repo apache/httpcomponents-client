@@ -37,7 +37,6 @@ import java.util.List;
 
 import com.github.luben.zstd.ZstdCompressCtx;
 
-import org.apache.hc.client5.http.entity.compress.BasicCompressionDictionaryStore;
 import org.apache.hc.client5.http.entity.compress.CompressionDictionary;
 import org.apache.hc.client5.http.impl.ZstdRuntime;
 import org.apache.hc.core5.http.Header;
@@ -130,9 +129,9 @@ class TestInflatingDictionaryZstdDataConsumer {
         Assumptions.assumeTrue(ZstdRuntime.available());
 
         final AccumulatingConsumer downstream = new AccumulatingConsumer();
-        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary dictionary = dictionaryOf(new byte[]{1});
         final InflatingDictionaryZstdDataConsumer consumer =
-                new InflatingDictionaryZstdDataConsumer(downstream, store);
+                new InflatingDictionaryZstdDataConsumer(downstream, dictionary);
 
         final byte[] header = new byte[MAGIC.length + HASH_LENGTH];
         // deliberately wrong first byte
@@ -146,13 +145,13 @@ class TestInflatingDictionaryZstdDataConsumer {
     }
 
     @Test
-    void unknownDictionaryHashRaisesIOException() {
+    void differentDictionaryHashRaisesIOException() {
         Assumptions.assumeTrue(ZstdRuntime.available());
 
         final AccumulatingConsumer downstream = new AccumulatingConsumer();
-        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary dictionary = dictionaryOf(new byte[]{1});
         final InflatingDictionaryZstdDataConsumer consumer =
-                new InflatingDictionaryZstdDataConsumer(downstream, store);
+                new InflatingDictionaryZstdDataConsumer(downstream, dictionary);
 
         final byte[] hash = new byte[HASH_LENGTH];
         for (int i = 0; i < hash.length; i++) {
@@ -162,7 +161,7 @@ class TestInflatingDictionaryZstdDataConsumer {
 
         final ByteBuffer src = ByteBuffer.wrap(header);
         final IOException ex = Assertions.assertThrows(IOException.class, () -> consumer.consume(src));
-        Assertions.assertEquals("Compression dictionary not available", ex.getMessage());
+        Assertions.assertEquals("DCZ stream does not use the negotiated dictionary", ex.getMessage());
 
         consumer.releaseResources();
     }
@@ -172,9 +171,9 @@ class TestInflatingDictionaryZstdDataConsumer {
         Assumptions.assumeTrue(ZstdRuntime.available());
 
         final AccumulatingConsumer downstream = new AccumulatingConsumer();
-        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary dictionary = dictionaryOf(new byte[]{1});
         final InflatingDictionaryZstdDataConsumer consumer =
-                new InflatingDictionaryZstdDataConsumer(downstream, store);
+                new InflatingDictionaryZstdDataConsumer(downstream, dictionary);
 
         // feed only part of the magic; header stays incomplete, so not initialized
         final ByteBuffer src = ByteBuffer.wrap(new byte[] {MAGIC[0], MAGIC[1], MAGIC[2]});
@@ -188,25 +187,25 @@ class TestInflatingDictionaryZstdDataConsumer {
     }
 
     @Test
-    void headerSplitAcrossBuffersRaisesUnknownDictionary() {
+    void headerSplitAcrossBuffersRejectsDifferentDictionary() {
         Assumptions.assumeTrue(ZstdRuntime.available());
 
         final AccumulatingConsumer downstream = new AccumulatingConsumer();
-        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary dictionary = dictionaryOf(new byte[]{1});
         final InflatingDictionaryZstdDataConsumer consumer =
-                new InflatingDictionaryZstdDataConsumer(downstream, store);
+                new InflatingDictionaryZstdDataConsumer(downstream, dictionary);
 
         final byte[] hash = new byte[HASH_LENGTH];
         final byte[] header = concat(MAGIC, hash);
 
         // split header across two ByteBuffers; the valid MAGIC still validates,
-        // then the (all-zero, absent) dictionary hash is rejected.
+        // then the all-zero hash is rejected because it is not the negotiated dictionary.
         final ByteBuffer first = ByteBuffer.wrap(header, 0, 5);
         final ByteBuffer second = ByteBuffer.wrap(header, 5, header.length - 5);
 
         Assertions.assertDoesNotThrow(() -> consumer.consume(first));
         final IOException ex = Assertions.assertThrows(IOException.class, () -> consumer.consume(second));
-        Assertions.assertEquals("Compression dictionary not available", ex.getMessage());
+        Assertions.assertEquals("DCZ stream does not use the negotiated dictionary", ex.getMessage());
 
         consumer.releaseResources();
     }
@@ -220,15 +219,13 @@ class TestInflatingDictionaryZstdDataConsumer {
                 + "and then the quick brown fox runs away").getBytes(StandardCharsets.UTF_8);
 
         final CompressionDictionary dictionary = dictionaryOf(dictionaryContent);
-        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
-        store.add(dictionary);
 
         final byte[] frame = compress(dictionaryContent, payload);
         final byte[] stream = concat(MAGIC, dictionary.getSha256(), frame);
 
         final AccumulatingConsumer downstream = new AccumulatingConsumer();
         final InflatingDictionaryZstdDataConsumer consumer =
-                new InflatingDictionaryZstdDataConsumer(downstream, store);
+                new InflatingDictionaryZstdDataConsumer(downstream, dictionary);
 
         consumer.consume(ByteBuffer.wrap(stream));
         consumer.streamEnd(Collections.<Header>emptyList());
@@ -251,15 +248,13 @@ class TestInflatingDictionaryZstdDataConsumer {
         final byte[] payload = sb.toString().getBytes(StandardCharsets.UTF_8);
 
         final CompressionDictionary dictionary = dictionaryOf(dictionaryContent);
-        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
-        store.add(dictionary);
 
         final byte[] frame = compress(dictionaryContent, payload);
         final byte[] stream = concat(MAGIC, dictionary.getSha256(), frame);
 
         final AccumulatingConsumer downstream = new AccumulatingConsumer();
         final InflatingDictionaryZstdDataConsumer consumer =
-                new InflatingDictionaryZstdDataConsumer(downstream, store);
+                new InflatingDictionaryZstdDataConsumer(downstream, dictionary);
 
         // feed one byte at a time to exercise header/frame splitting
         for (int i = 0; i < stream.length; i++) {

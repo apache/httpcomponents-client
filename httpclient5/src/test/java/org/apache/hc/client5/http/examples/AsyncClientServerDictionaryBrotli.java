@@ -59,6 +59,7 @@ import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -212,6 +213,7 @@ public final class AsyncClientServerDictionaryBrotli {
 
         final BasicCompressionDictionaryStore dictionaryStore =
                 new BasicCompressionDictionaryStore();
+        final HttpClientContext clientContext = HttpClientContext.create();
 
         final PoolingAsyncClientConnectionManager connectionManager =
                 PoolingAsyncClientConnectionManagerBuilder.create()
@@ -229,7 +231,7 @@ public final class AsyncClientServerDictionaryBrotli {
             System.out.println("  " + dictionaryUri);
 
             final Message<HttpResponse, byte[]> dictionaryResponse =
-                    execute(client, dictionaryUri);
+                    execute(client, clientContext, dictionaryUri);
 
             final HttpResponse dictionaryHead =
                     dictionaryResponse.getHead();
@@ -249,14 +251,15 @@ public final class AsyncClientServerDictionaryBrotli {
                     + dictionaryResponse.getBody().length);
 
             System.out.println("Stored dictionaries: "
-                    + dictionaryStore.getByOrigin(dictionaryUri).size());
+                    + dictionaryStore.getByOrigin(
+                            clientContext.getCookieStore(), dictionaryUri).size());
 
             System.out.println();
             System.out.println("Fetching DCB resource:");
             System.out.println("  " + resourceUri);
 
             final Message<HttpResponse, byte[]> resourceResponse =
-                    execute(client, resourceUri);
+                    execute(client, clientContext, resourceUri);
 
             final HttpResponse resourceHead =
                     resourceResponse.getHead();
@@ -299,6 +302,7 @@ public final class AsyncClientServerDictionaryBrotli {
 
     private static Message<HttpResponse, byte[]> execute(
             final CloseableHttpAsyncClient client,
+            final HttpClientContext context,
             final URI uri) throws Exception {
 
         final SimpleHttpRequest request =
@@ -309,6 +313,7 @@ public final class AsyncClientServerDictionaryBrotli {
                         new BasicRequestProducer(request, null),
                         new BasicResponseConsumer<>(
                                 new BasicAsyncEntityConsumer()),
+                        context,
                         null);
 
         return future.get();

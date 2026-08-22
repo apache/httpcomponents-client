@@ -47,6 +47,21 @@ import org.apache.hc.client5.http.entity.compress.CompressionDictionary;
 
 interface CompressionDictionaryMatcher {
 
+    /**
+     * Selects the single dictionary to advertise for the given request, or {@code null} when
+     * none is eligible. Only a candidate that is fresh, shares the request origin and whose
+     * stored URL pattern matches the request qualifies; when several qualify the most specific
+     * one is returned.
+     *
+     * @param requestUri the absolute request target. Dictionary transport is confined to secure
+     *   origins, so a target whose scheme is not {@code https} matches nothing.
+     * @param requestDestination the request destination the response is bound for, tested against
+     *   each candidate's {@code match-dest}, or {@code null} when the caller does not support
+     *   request destinations.
+     * @param dictionaries the stored dictionaries to consider.
+     * @return the winning dictionary, whose identifier the caller offers to the origin through
+     *   {@code Available-Dictionary}, or {@code null} when no candidate is eligible.
+     */
     CompressionDictionary match(
             URI requestUri,
             String requestDestination,

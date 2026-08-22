@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.async;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
 import java.time.Clock;
@@ -38,6 +39,7 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.apache.hc.client5.http.entity.compress.CompressionDictionary;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,11 +61,22 @@ class TestDefaultCompressionDictionaryMatcher {
             final String match,
             final Instant storedAt,
             final Instant validUntil) {
+        return dictionary(source, match, Collections.<String>emptyList(), storedAt, validUntil);
+    }
+
+    private static CompressionDictionary dictionary(
+            final String source,
+            final String match,
+            final List<String> matchDest,
+            final Instant storedAt,
+            final Instant validUntil) {
         return new CompressionDictionary(
                 new byte[] {1, 2, 3},
                 URI.create(source),
                 match,
+                matchDest,
                 "id",
+                "raw",
                 storedAt,
                 validUntil);
     }
@@ -113,13 +126,12 @@ class TestDefaultCompressionDictionaryMatcher {
     }
 
     @Test
-    void nonHttpsDictionarySourceIsNotMatched() {
-        final CompressionDictionary dictionary = dictionary(
+    void nonHttpsDictionarySourceIsRejected() {
+        assertThrows(IllegalArgumentException.class, () -> dictionary(
                 "http://example.com/",
                 "/*",
                 NOW.minus(Duration.ofMinutes(1)),
-                NOW.plus(Duration.ofHours(1)));
-        assertNull(matcher.match(URI.create("https://example.com/app"), list(dictionary)));
+                NOW.plus(Duration.ofHours(1))));
     }
 
     @Test
@@ -175,21 +187,40 @@ class TestDefaultCompressionDictionaryMatcher {
     }
 
     @Test
-    void patternMustStartWithSlash() {
+    void relativePatternUsesOutboundRequestAsBase() {
         final CompressionDictionary dictionary = fresh("app/*");
         assertNull(matcher.match(URI.create("https://example.com/app/x"), list(dictionary)));
     }
 
     @Test
-    void patternWithQueryCharNeverMatches() {
-        final CompressionDictionary dictionary = fresh("/app?x");
-        assertNull(matcher.match(URI.create("https://example.com/app?x"), list(dictionary)));
+    void relativePatternWithParentSegmentUsesOutboundRequestAsBase() {
+        final CompressionDictionary dictionary = fresh("../app/*");
+        assertSame(dictionary, matcher.match(URI.create("https://example.com/app/x"), list(dictionary)));
     }
 
     @Test
-    void patternWithFragmentCharNeverMatches() {
+    void patternWithQueryMatchesQueryComponent() {
+        final CompressionDictionary dictionary = fresh("/app?x");
+        assertSame(dictionary, matcher.match(URI.create("https://example.com/app?x"), list(dictionary)));
+    }
+
+    @Test
+    void wildcardQuestionMarkIsAGroupModifier() {
+        final CompressionDictionary dictionary = fresh("https://example.com/*?foo");
+        assertNull(matcher.match(URI.create("https://example.com/?foo"), list(dictionary)));
+    }
+
+    @Test
+    void escapedQuestionMarkSeparatesTheSearchComponent() {
+        final CompressionDictionary dictionary = fresh("https://example.com/*\\?foo");
+        assertSame(dictionary,
+                matcher.match(URI.create("https://example.com/?foo"), list(dictionary)));
+    }
+
+    @Test
+    void patternWithFragmentMatchesFragmentComponent() {
         final CompressionDictionary dictionary = fresh("/app#x");
-        assertNull(matcher.match(URI.create("https://example.com/app"), list(dictionary)));
+        assertSame(dictionary, matcher.match(URI.create("https://example.com/app#x"), list(dictionary)));
     }
 
     @Test
@@ -199,15 +230,106 @@ class TestDefaultCompressionDictionaryMatcher {
     }
 
     @Test
-    void patternWithBracesNeverMatches() {
+    void rfcPathPrefixExampleMatches() {
+        final CompressionDictionary dictionary = fresh("/product/*");
+        assertSame(dictionary,
+                matcher.match(URI.create("https://example.com/product/123"), list(dictionary)));
+    }
+
+    @Test
+    void rfcVersionedDirectoriesExampleMatches() {
+        final CompressionDictionary dictionary = fresh("/app/*/main.js");
+        assertSame(dictionary,
+                matcher.match(URI.create("https://example.com/app/v1/main.js"), list(dictionary)));
+    }
+
+    @Test
+    void percentEncodedPathMatchesAtHttpLevel() {
+        final CompressionDictionary dictionary = fresh("/d%C3%BCsseldorf");
+        assertSame(dictionary,
+                matcher.match(URI.create("https://example.com/d%C3%BCsseldorf"), list(dictionary)));
+    }
+
+    @Test
+    void unbalancedPatternBracesNeverMatch() {
         assertNull(matcher.match(URI.create("https://example.com/app"), list(fresh("/app{"))));
         assertNull(matcher.match(URI.create("https://example.com/app"), list(fresh("/app}"))));
+    }
+
+    @Test
+    void optionalBraceGroupMatches() {
+        final CompressionDictionary dictionary = fresh("/app{/v1}?/*");
+        assertSame(dictionary,
+                matcher.match(URI.create("https://example.com/app/v1/main.js"), list(dictionary)));
+        assertSame(dictionary,
+                matcher.match(URI.create("https://example.com/app/main.js"), list(dictionary)));
     }
 
     @Test
     void patternWithColonNeverMatches() {
         final CompressionDictionary dictionary = fresh("/app:x");
         assertNull(matcher.match(URI.create("https://example.com/app"), list(dictionary)));
+    }
+
+    @Test
+    void namedGroupMatchesOnePathSegment() {
+        final CompressionDictionary dictionary = fresh("/app/:name");
+        assertSame(dictionary,
+                matcher.match(URI.create("https://example.com/app/main.js"), list(dictionary)));
+        assertNull(matcher.match(URI.create("https://example.com/app/a/main.js"), list(dictionary)));
+    }
+
+    @Test
+    void absoluteSameOriginPatternMatches() {
+        final CompressionDictionary dictionary = fresh("https://example.com/app/*");
+        assertSame(dictionary,
+                matcher.match(URI.create("https://example.com/app/main.js?version=1"), list(dictionary)));
+    }
+
+    @Test
+    void absoluteCrossOriginPatternNeverMatches() {
+        final CompressionDictionary dictionary = fresh("https://other.example/app/*");
+        assertNull(matcher.match(URI.create("https://example.com/app/main.js"), list(dictionary)));
+    }
+
+    @Test
+    void absoluteCrossOriginPatternIsValidButCannotMatchDictionaryOrigin() {
+        final CompressionDictionaryUrlPatternMatcher patternMatcher =
+                new DefaultCompressionDictionaryUrlPatternMatcher();
+        assertTrue(patternMatcher.isValid(
+                "https://other.example/app/*", URI.create("https://example.com/dictionary")));
+        assertNull(matcher.match(URI.create("https://example.com/app/main.js"),
+                list(fresh("https://other.example/app/*"))));
+    }
+
+    @Test
+    void patternedHostnameCanMatchWithinDictionaryOrigin() {
+        final CompressionDictionary dictionary = dictionary(
+                "https://www.example.com/",
+                "https://*.example.com/app/*",
+                NOW.minus(Duration.ofMinutes(1)),
+                NOW.plus(Duration.ofHours(1)));
+        assertSame(dictionary,
+                matcher.match(URI.create("https://www.example.com/app/main.js"), list(dictionary)));
+    }
+
+    @Test
+    void bracedAuthorityPatternMatchesWithinDictionaryOrigin() {
+        final CompressionDictionary dictionary = fresh(
+                "https://{sub.}?example{.com/}foo");
+        assertSame(dictionary,
+                matcher.match(URI.create("https://example.com/foo"), list(dictionary)));
+    }
+
+    @Test
+    void escapedUserInfoDelimiterMatches() {
+        final CompressionDictionary dictionary = dictionary(
+                "https://foo:bar@example.com/dictionary",
+                "https://foo\\:bar@example.com",
+                NOW.minus(Duration.ofMinutes(1)),
+                NOW.plus(Duration.ofHours(1)));
+        assertSame(dictionary,
+                matcher.match(URI.create("https://foo:bar@example.com"), list(dictionary)));
     }
 
     @Test
@@ -258,6 +380,44 @@ class TestDefaultCompressionDictionaryMatcher {
         // order independent
         assertSame(narrow,
                 matcher.match(URI.create("https://example.com/app/main.js"), list(narrow, broad)));
+    }
+
+    @Test
+    void matchingDestinationTakesPrecedence() {
+        final CompressionDictionary destinationAgnostic = fresh("/app/*");
+        final CompressionDictionary destinationSpecific = dictionary(
+                "https://example.com/",
+                "/*",
+                Collections.singletonList("script"),
+                NOW.minus(Duration.ofMinutes(10)),
+                NOW.plus(Duration.ofHours(1)));
+        assertSame(destinationSpecific,
+                matcher.match(URI.create("https://example.com/app/main.js"), "script",
+                        list(destinationAgnostic, destinationSpecific)));
+    }
+
+    @Test
+    void nonMatchingDestinationIsExcluded() {
+        final CompressionDictionary dictionary = dictionary(
+                "https://example.com/",
+                "/*",
+                Collections.singletonList("document"),
+                NOW.minus(Duration.ofMinutes(10)),
+                NOW.plus(Duration.ofHours(1)));
+        assertNull(matcher.match(
+                URI.create("https://example.com/app/main.js"), "script", list(dictionary)));
+    }
+
+    @Test
+    void unsupportedRequestDestinationsMatchAll() {
+        final CompressionDictionary dictionary = dictionary(
+                "https://example.com/",
+                "/*",
+                Collections.singletonList("document"),
+                NOW.minus(Duration.ofMinutes(10)),
+                NOW.plus(Duration.ofHours(1)));
+        assertSame(dictionary,
+                matcher.match(URI.create("https://example.com/app/main.js"), null, list(dictionary)));
     }
 
     @Test

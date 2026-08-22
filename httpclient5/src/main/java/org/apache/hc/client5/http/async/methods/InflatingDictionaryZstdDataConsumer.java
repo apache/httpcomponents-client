@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.github.luben.zstd.ZstdDecompressCtx;
 
 import org.apache.hc.client5.http.entity.compress.CompressionDictionary;
-import org.apache.hc.client5.http.entity.compress.CompressionDictionaryStore;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
@@ -47,8 +46,8 @@ import org.apache.hc.core5.util.Args;
  * <p>
  * The stream opens with the {@code dcz} framing prefix defined by Compression Dictionary Transport: an eight-byte
  * magic sequence followed by the 32-byte hash of the dictionary the origin used to compress
- * the body. The hash is looked up in the supplied {@link CompressionDictionaryStore} and the
- * matching {@link CompressionDictionary} is loaded into the Zstandard decompression context
+ * the body. The hash is checked against the supplied {@link CompressionDictionary}, which is
+ * loaded into the Zstandard decompression context
  * before any payload is decoded. If the prefix is malformed, or no dictionary matching the
  * advertised hash is available, decoding fails with an {@link IOException} so the exchange is
  * not silently served undecoded content.
@@ -73,7 +72,7 @@ public final class InflatingDictionaryZstdDataConsumer implements AsyncDataConsu
     private static final int OUT_BUF = 128 * 1024;
 
     private final AsyncDataConsumer downstream;
-    private final CompressionDictionaryStore store;
+    private final CompressionDictionary dictionary;
     private final ByteBuffer header;
     private final ZstdDecompressCtx dctx;
     private final ByteBuffer inDirect;
@@ -87,16 +86,14 @@ public final class InflatingDictionaryZstdDataConsumer implements AsyncDataConsu
      * Creates a consumer that decodes a {@code dcz} body and forwards the inflated bytes.
      *
      * @param downstream the consumer that receives the decoded content; must not be {@code null}.
-     * @param store      the dictionary store queried, by the hash carried in the {@code dcz}
-     *                   prefix, for the dictionary required to decode the body; must not be
-     *                   {@code null}.
+     * @param dictionary the exact dictionary advertised for this exchange; must not be {@code null}.
      * @since 5.7
      */
     public InflatingDictionaryZstdDataConsumer(
             final AsyncDataConsumer downstream,
-            final CompressionDictionaryStore store) {
+            final CompressionDictionary dictionary) {
         this.downstream = Args.notNull(downstream, "Downstream data consumer");
-        this.store = Args.notNull(store, "Dictionary store");
+        this.dictionary = Args.notNull(dictionary, "Compression dictionary");
         this.header = ByteBuffer.allocate(HEADER_LENGTH);
         this.dctx = new ZstdDecompressCtx();
         this.inDirect = ByteBuffer.allocateDirect(IN_BUF);
@@ -199,9 +196,8 @@ public final class InflatingDictionaryZstdDataConsumer implements AsyncDataConsu
         final byte[] hash = new byte[HASH_LENGTH];
         header.get(hash);
 
-        final CompressionDictionary dictionary = store.getByHash(hash);
-        if (dictionary == null || !dictionary.matchesHash(hash)) {
-            throw new IOException("Compression dictionary not available");
+        if (!dictionary.matchesHash(hash)) {
+            throw new IOException("DCZ stream does not use the negotiated dictionary");
         }
 
         try {
@@ -209,6 +205,36 @@ public final class InflatingDictionaryZstdDataConsumer implements AsyncDataConsu
             initialized = true;
         } catch (final RuntimeException ex) {
             throw new IOException("Unable to initialize DCZ decoder", ex);
+        }
+    }
+
+    private void finishBufferedInput() throws IOException {
+        try {
+            drainOutput();
+            while (inDirect.hasRemaining()) {
+                final int inputPosition = inDirect.position();
+                outDirect.compact();
+                frameComplete = dctx.decompressDirectByteBufferStream(outDirect, inDirect);
+                outDirect.flip();
+                drainOutput();
+                if (inDirect.position() == inputPosition) {
+                    throw new IOException("DCZ stream made no progress");
+                }
+            }
+        } catch (final IOException ex) {
+            throw ex;
+        } catch (final RuntimeException ex) {
+            throw new IOException("DCZ stream corrupted", ex);
+        }
+    }
+
+    private void drainOutput() throws IOException {
+        while (outDirect.hasRemaining()) {
+            final int position = outDirect.position();
+            downstream.consume(outDirect);
+            if (outDirect.position() == position) {
+                throw new IOException("Unable to deliver decoded DCZ data");
+            }
         }
     }
 
@@ -226,6 +252,8 @@ public final class InflatingDictionaryZstdDataConsumer implements AsyncDataConsu
         if (!initialized) {
             throw new IOException("Truncated DCZ stream header");
         }
+
+        finishBufferedInput();
 
         if (!frameComplete) {
             throw new IOException("Truncated DCZ stream");

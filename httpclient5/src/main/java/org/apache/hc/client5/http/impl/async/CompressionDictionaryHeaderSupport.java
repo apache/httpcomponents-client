@@ -31,46 +31,79 @@ import java.util.Base64;
 import org.apache.hc.core5.util.Args;
 
 /**
- * Encodes the request headers used to negotiate a
- * {@link org.apache.hc.client5.http.entity.compress.CompressionDictionary} for Compression
- * Dictionary Transport. The header values are HTTP Structured Field
- * items: {@code Available-Dictionary} carries the dictionary hash as a Byte Sequence and
- * {@code Dictionary-ID} carries the server-supplied identifier as a String.
+ * Names the Compression Dictionary Transport headers and encodes the request headers used to
+ * negotiate a dictionary. {@code Available-Dictionary} carries the SHA-256 hash of the stored
+ * dictionary as an HTTP Structured Field Byte Sequence, and {@code Dictionary-ID} carries the
+ * opaque identifier the origin assigned through {@code Use-As-Dictionary} as a Structured Field
+ * String. Both header values are produced in the wire form required by the negotiation rather than
+ * as raw bytes or text.
  * <p>
- * This class is a stateless collection of static helpers and holds no mutable state; it is therefore
- * safe for concurrent use. It cannot be instantiated.
+ * Stateless and not instantiable.
  */
 final class CompressionDictionaryHeaderSupport {
 
+    /**
+     * Response header through which an origin designates a resource as a dictionary and declares
+     * how it may be matched against future requests.
+     */
     static final String USE_AS_DICTIONARY = "Use-As-Dictionary";
+
+    /**
+     * Request header naming the dictionary the client holds, keyed by the SHA-256 hash of its
+     * content encoded as a Structured Field Byte Sequence.
+     */
     static final String AVAILABLE_DICTIONARY = "Available-Dictionary";
+
+    /**
+     * Request header echoing the opaque identifier the origin bound to the dictionary via
+     * {@code Use-As-Dictionary}, encoded as a Structured Field String.
+     */
     static final String DICTIONARY_ID = "Dictionary-ID";
 
     private CompressionDictionaryHeaderSupport() {
     }
 
-    static String formatHash(final byte[] hash) {
-        return ":" + Base64.getEncoder().encodeToString(hash) + ":";
+    /**
+     * Encodes a dictionary hash as the {@code Available-Dictionary} value. The hash is emitted as a
+     * Structured Field Byte Sequence, that is base64 wrapped in a leading and trailing colon.
+     *
+     * @param hash the SHA-256 hash of the dictionary content; must not be {@code null}.
+     * @return the {@code Available-Dictionary} field value.
+     */
+    static String formatAvailableDictionary(final byte[] hash) {
+        return ":" + Base64.getEncoder().encodeToString(Args.notNull(hash, "Dictionary hash")) + ":";
     }
 
-    static String formatString(final String value) {
-        final StringBuilder buffer =
-                new StringBuilder(value.length() + 2);
-
+    /**
+     * Encodes a dictionary identifier as the {@code Dictionary-ID} value. The identifier is emitted
+     * as a Structured Field String, double quoted with a backslash escaping any embedded quote or
+     * backslash. The string form only admits printable ASCII, so any character outside the range
+     * {@code 0x20} to {@code 0x7e} is rejected, as is a value longer than the 1024-character limit
+     * imposed on the identifier.
+     *
+     * @param value the opaque dictionary identifier; must not be {@code null}.
+     * @return the {@code Dictionary-ID} field value.
+     * @throws IllegalArgumentException if the value exceeds 1024 characters or contains a character
+     *         that a Structured Field String cannot represent.
+     */
+    static String formatDictionaryId(final String value) {
+        Args.notNull(value, "Dictionary ID");
+        if (value.length() > 1024) {
+            throw new IllegalArgumentException("Dictionary ID length exceeds 1024 characters");
+        }
+        final StringBuilder buffer = new StringBuilder(value.length() + 2);
         buffer.append('"');
-
         for (int i = 0; i < value.length(); i++) {
             final char ch = value.charAt(i);
-
+            if (ch < 0x20 || ch > 0x7e) {
+                throw new IllegalArgumentException("Dictionary ID contains a character not permitted in a Structured Field String");
+            }
             if (ch == '"' || ch == '\\') {
                 buffer.append('\\');
             }
-
             buffer.append(ch);
         }
-
         buffer.append('"');
-
         return buffer.toString();
     }
 }

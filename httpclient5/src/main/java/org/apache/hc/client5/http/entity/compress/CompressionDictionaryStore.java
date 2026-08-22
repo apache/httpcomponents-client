@@ -29,16 +29,21 @@ package org.apache.hc.client5.http.entity.compress;
 import java.net.URI;
 import java.util.List;
 
+import org.apache.hc.client5.http.cookie.CookieStore;
+
 /**
  * Repository of {@link CompressionDictionary} instances available to the client for
  * decoding dictionary-compressed Brotli ({@code dcb}) and dictionary-compressed
  * Zstandard ({@code dcz}) responses under Compression Dictionary Transport.
  * <p>
- * Dictionaries are indexed both by their SHA-256 hash, which the origin echoes back in
- * the {@code Dictionary-ID} header to identify the dictionary a response was encoded
- * against, and by request origin, so that the client can select the candidates whose
- * match pattern applies to an outbound request and advertise them through the
- * {@code Available-Dictionary} header.
+ * Entries are keyed by privacy partition, request origin and the SHA-256 hash of their content.
+ * The privacy partition is represented by the {@link CookieStore} used for the exchange, ensuring
+ * dictionary state is never shared more broadly than cookie state.
+ * The hash-keyed lookup resolves the exact dictionary a response was encoded against,
+ * named by the hash carried in a {@code dcb} or {@code dcz} frame or advertised to the
+ * origin in the {@code Available-Dictionary} header. The origin-scoped lookup yields the
+ * candidates whose {@code Use-As-Dictionary} match pattern applies to an outbound request,
+ * from which the client selects what to advertise.
  * <p>
  * Implementations are expected to be thread-safe, since a store is shared across
  * concurrent exchanges. The store keeps entries as supplied; enforcing freshness against
@@ -46,14 +51,56 @@ import java.util.List;
  *
  * @since 5.7
  */
-
 public interface CompressionDictionaryStore {
 
-    void add(CompressionDictionary dictionary);
+    /**
+     * Stores a dictionary, replacing any entry already held under the same origin and
+     * SHA-256 hash.
+     *
+     * @param partition the cookie storage partition; must not be {@code null}.
+     * @param dictionary the dictionary to store; must not be {@code null}.
+     * @since 5.7
+     */
+    void add(CookieStore partition, CompressionDictionary dictionary);
 
-    CompressionDictionary getByHash(URI origin, byte[] sha256);
+    /**
+     * Resolves the dictionary a response was encoded against, identified by the SHA-256
+     * hash carried in a {@code dcb} or {@code dcz} frame or advertised in the
+     * {@code Available-Dictionary} header, scoped to the response origin.
+     *
+     * @param partition the cookie storage partition; must not be {@code null}.
+     * @param origin the origin the dictionary is associated with; must not be {@code null}.
+     * @param sha256 the SHA-256 hash of the dictionary content; must not be {@code null}.
+     * @return the matching dictionary, or {@code null} if none is held for the given
+     *   origin and hash.
+     * @since 5.7
+     */
+    CompressionDictionary getByHash(CookieStore partition, URI origin, byte[] sha256);
 
-    List<CompressionDictionary> getByOrigin(URI origin);
+    /**
+     * Returns the dictionaries associated with the given request origin, that is the
+     * candidates eligible to be advertised through {@code Available-Dictionary} for a
+     * request to that origin.
+     *
+     * @param partition the cookie storage partition; must not be {@code null}.
+     * @param origin the request origin to look up; must not be {@code null}.
+     * @return the matching dictionaries, never {@code null}; an empty list if none apply.
+     * @since 5.7
+     */
+    List<CompressionDictionary> getByOrigin(CookieStore partition, URI origin);
 
+    /**
+     * Removes all dictionaries associated with a cookie storage partition.
+     *
+     * @param partition the cookie storage partition; must not be {@code null}.
+     * @since 5.7
+     */
+    void clear(CookieStore partition);
+
+    /**
+     * Removes all stored dictionaries.
+     *
+     * @since 5.7
+     */
     void clear();
 }

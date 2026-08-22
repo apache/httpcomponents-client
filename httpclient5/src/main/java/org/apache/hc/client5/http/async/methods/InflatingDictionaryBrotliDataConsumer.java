@@ -33,7 +33,6 @@ import java.util.List;
 import com.aayushatharva.brotli4j.decoder.DecoderJNI;
 
 import org.apache.hc.client5.http.entity.compress.CompressionDictionary;
-import org.apache.hc.client5.http.entity.compress.CompressionDictionaryStore;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
@@ -46,10 +45,11 @@ import org.apache.hc.core5.util.Args;
  * <p>
  * A {@code dcb} stream begins with a fixed header: the four-byte magic sequence
  * {@code 0xFF 0x44 0x43 0x42} followed by the 32-byte SHA-256 hash of the dictionary the origin
- * used to compress the body. The header is buffered until complete, the hash is looked up in the
- * supplied {@link CompressionDictionaryStore}, and the matching {@link CompressionDictionary} is
- * attached to the Brotli decoder as the shared dictionary before any compressed payload is
- * decoded. If the hash is unknown, or the header does not validate, the stream is rejected. See
+ * used to compress the body. The header is buffered until complete and checked against the
+ * supplied {@link CompressionDictionary}, which is attached to the Brotli decoder as the shared
+ * dictionary before any compressed payload is
+ * decoded. The header hash must identify the exact dictionary negotiated for this exchange;
+ * otherwise the stream is rejected. See
  * the Compression Dictionary Transport specification for the dictionary negotiation and framing.
  * <p>
  * This consumer is stateful and not thread-safe; a fresh instance is required per response.
@@ -66,25 +66,25 @@ public final class InflatingDictionaryBrotliDataConsumer implements AsyncDataCon
     private static final int HEADER_LENGTH = MAGIC.length + HASH_LENGTH;
 
     private final AsyncDataConsumer downstream;
-    private final CompressionDictionaryStore store;
+    private final CompressionDictionary dictionary;
     private final ByteBuffer header;
 
     private DecoderJNI.Wrapper decoder;
+    private ByteBuffer pendingOutput;
 
     /**
      * Creates a consumer that decodes a {@code dcb} stream and forwards the decoded bytes to
      * {@code downstream}.
      *
      * @param downstream the consumer that receives the decompressed content; must not be {@code null}.
-     * @param store      the store consulted to resolve the dictionary referenced by the stream header;
-     *                   must not be {@code null}.
+     * @param dictionary the exact dictionary advertised for this exchange; must not be {@code null}.
      * @since 5.7
      */
     public InflatingDictionaryBrotliDataConsumer(
             final AsyncDataConsumer downstream,
-            final CompressionDictionaryStore store) {
+            final CompressionDictionary dictionary) {
         this.downstream = Args.notNull(downstream, "Downstream data consumer");
-        this.store = Args.notNull(store, "Dictionary store");
+        this.dictionary = Args.notNull(dictionary, "Compression dictionary");
         this.header = ByteBuffer.allocate(HEADER_LENGTH);
     }
 
@@ -119,6 +119,9 @@ public final class InflatingDictionaryBrotliDataConsumer implements AsyncDataCon
             if (decoder == null) {
                 return;
             }
+        }
+        if (!drainPendingOutput()) {
+            return;
         }
 
         while (src.hasRemaining()) {
@@ -162,9 +165,8 @@ public final class InflatingDictionaryBrotliDataConsumer implements AsyncDataCon
         final byte[] hash = new byte[HASH_LENGTH];
         header.get(hash);
 
-        final CompressionDictionary dictionary = store.getByHash(hash);
-        if (dictionary == null || !dictionary.matchesHash(hash)) {
-            throw new IOException("Compression dictionary not available");
+        if (!dictionary.matchesHash(hash)) {
+            throw new IOException("DCB stream does not use the negotiated dictionary");
         }
 
         try {
@@ -188,6 +190,9 @@ public final class InflatingDictionaryBrotliDataConsumer implements AsyncDataCon
     }
 
     private void pump() throws IOException {
+        if (!drainPendingOutput()) {
+            return;
+        }
         for (; ; ) {
             switch (decoder.getStatus()) {
                 case OK:
@@ -195,10 +200,8 @@ public final class InflatingDictionaryBrotliDataConsumer implements AsyncDataCon
                     break;
                 case NEEDS_MORE_OUTPUT: {
                     final ByteBuffer nativeBuf = decoder.pull();
-                    if (nativeBuf != null && nativeBuf.hasRemaining()) {
-                        final ByteBuffer copy = ByteBuffer.allocateDirect(nativeBuf.remaining());
-                        copy.put(nativeBuf).flip();
-                        downstream.consume(copy);
+                    if (!deliver(nativeBuf)) {
+                        return;
                     }
                     break;
                 }
@@ -206,9 +209,9 @@ public final class InflatingDictionaryBrotliDataConsumer implements AsyncDataCon
                     if (decoder.hasOutput()) {
                         final ByteBuffer nativeBuf = decoder.pull();
                         if (nativeBuf != null && nativeBuf.hasRemaining()) {
-                            final ByteBuffer copy = ByteBuffer.allocateDirect(nativeBuf.remaining());
-                            copy.put(nativeBuf).flip();
-                            downstream.consume(copy);
+                            if (!deliver(nativeBuf)) {
+                                return;
+                            }
                             break;
                         }
                     }
@@ -217,9 +220,9 @@ public final class InflatingDictionaryBrotliDataConsumer implements AsyncDataCon
                     if (decoder.hasOutput()) {
                         final ByteBuffer nativeBuf = decoder.pull();
                         if (nativeBuf != null && nativeBuf.hasRemaining()) {
-                            final ByteBuffer copy = ByteBuffer.allocateDirect(nativeBuf.remaining());
-                            copy.put(nativeBuf).flip();
-                            downstream.consume(copy);
+                            if (!deliver(nativeBuf)) {
+                                return;
+                            }
                             break;
                         }
                     }
@@ -228,6 +231,38 @@ public final class InflatingDictionaryBrotliDataConsumer implements AsyncDataCon
                     throw new IOException("DCB stream corrupted");
             }
         }
+    }
+
+    private boolean deliver(final ByteBuffer source) throws IOException {
+        if (source != null && source.hasRemaining()) {
+            pendingOutput = ByteBuffer.allocateDirect(source.remaining());
+            pendingOutput.put(source).flip();
+        }
+        return drainPendingOutput();
+    }
+
+    private boolean drainPendingOutput() throws IOException {
+        if (pendingOutput != null) {
+            downstream.consume(pendingOutput);
+            if (!pendingOutput.hasRemaining()) {
+                pendingOutput = null;
+            }
+        }
+        return pendingOutput == null;
+    }
+
+    private void drainDecoderAtEnd() throws IOException {
+        do {
+            pump();
+            while (pendingOutput != null) {
+                final int position = pendingOutput.position();
+                drainPendingOutput();
+                if (pendingOutput != null && pendingOutput.position() == position) {
+                    throw new IOException("Unable to deliver decoded DCB data");
+                }
+            }
+        } while (decoder.getStatus() == DecoderJNI.Status.NEEDS_MORE_OUTPUT
+                || decoder.hasOutput());
     }
 
     /**
@@ -245,7 +280,16 @@ public final class InflatingDictionaryBrotliDataConsumer implements AsyncDataCon
             throw new IOException("Truncated DCB stream header");
         }
 
-        pump();
+        drainDecoderAtEnd();
+
+        if (decoder.getStatus() == DecoderJNI.Status.NEEDS_MORE_INPUT) {
+            try {
+                decoder.push(0);
+                drainDecoderAtEnd();
+            } catch (final RuntimeException ex) {
+                throw new IOException("DCB stream corrupted", ex);
+            }
+        }
 
         if (decoder.getStatus() != DecoderJNI.Status.DONE) {
             throw new IOException("Truncated DCB stream");
@@ -267,8 +311,11 @@ public final class InflatingDictionaryBrotliDataConsumer implements AsyncDataCon
             try {
                 decoder.destroy();
             } catch (final Throwable ignore) {
+            } finally {
+                decoder = null;
             }
         }
+        pendingOutput = null;
         downstream.releaseResources();
     }
 }

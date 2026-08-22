@@ -29,13 +29,12 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.DateTimeException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 
@@ -48,6 +47,7 @@ import org.apache.hc.client5.http.async.methods.InflatingDictionaryBrotliDataCon
 import org.apache.hc.client5.http.async.methods.InflatingDictionaryZstdDataConsumer;
 import org.apache.hc.client5.http.async.methods.InflatingGzipDataConsumer;
 import org.apache.hc.client5.http.async.methods.InflatingZstdDataConsumer;
+import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.entity.compress.CompressionDictionary;
 import org.apache.hc.client5.http.entity.compress.CompressionDictionaryStore;
 import org.apache.hc.client5.http.entity.compress.ContentCoding;
@@ -104,19 +104,15 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
 
         final List<String> dictionaryTokens = new ArrayList<>();
         if (compressionDictionaryStore != null) {
-            if (decoderMap.containsKey(ContentCoding.DCB.token())) {
+            if (containsToken(decoderMap, ContentCoding.DCB.token())) {
                 dictionaryTokens.add(ContentCoding.DCB.token());
             } else if (Brotli4jRuntime.available()) {
-                rb.register(ContentCoding.DCB.token(),
-                        d -> new InflatingDictionaryBrotliDataConsumer(d, compressionDictionaryStore));
                 dictionaryTokens.add(ContentCoding.DCB.token());
             }
 
-            if (decoderMap.containsKey(ContentCoding.DCZ.token())) {
+            if (containsToken(decoderMap, ContentCoding.DCZ.token())) {
                 dictionaryTokens.add(ContentCoding.DCZ.token());
             } else if (ZstdRuntime.available()) {
-                rb.register(ContentCoding.DCZ.token(),
-                        d -> new InflatingDictionaryZstdDataConsumer(d, compressionDictionaryStore));
                 dictionaryTokens.add(ContentCoding.DCZ.token());
             }
         }
@@ -180,14 +176,10 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
         final List<String> dictionaryTokens = new ArrayList<>();
         if (compressionDictionaryStore != null) {
             if (Brotli4jRuntime.available()) {
-                rb.register(ContentCoding.DCB.token(),
-                        d -> new InflatingDictionaryBrotliDataConsumer(d, compressionDictionaryStore));
                 dictionaryTokens.add(ContentCoding.DCB.token());
             }
 
             if (ZstdRuntime.available()) {
-                rb.register(ContentCoding.DCZ.token(),
-                        d -> new InflatingDictionaryZstdDataConsumer(d, compressionDictionaryStore));
                 dictionaryTokens.add(ContentCoding.DCZ.token());
             }
         }
@@ -226,9 +218,11 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
         final HttpClientContext ctx = scope != null ? scope.clientContext : HttpClientContext.create();
         final boolean enabled = ctx.getRequestConfigOrDefault().isContentCompressionEnabled();
         final URI requestUri = resolveRequestUri(request, scope);
+        final Instant requestTime = Instant.now();
+        final CookieStore privacyPartition = getPrivacyPartition(ctx);
 
         final CompressionDictionary dictionary = enabled
-                ? findDictionary(request, requestUri)
+                ? findDictionary(request, requestUri, privacyPartition)
                 : null;
 
         if (dictionary != null) {
@@ -267,14 +261,12 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
                 }
 
                 final UseAsDictionary useAsDictionary =
-                        parseUseAsDictionary(rsp, requestUri);
+                        parseUseAsDictionary(rsp, requestUri, privacyPartition);
 
-                final Instant storedAt = useAsDictionary != null
-                        ? Instant.now()
-                        : null;
-
+                final Instant responseTime = Instant.now();
+                final Instant storedAt = useAsDictionary != null ? responseTime : null;
                 final Instant validUntil = storedAt != null
-                        ? getValidUntil(rsp, storedAt)
+                        ? CompressionDictionaryFreshness.determineValidUntil(rsp, requestTime, responseTime)
                         : null;
 
                 final List<String> codecs = ContentCodingSupport.parseContentCodecs(details);
@@ -289,6 +281,7 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
                         downstream = new DictionaryCapturingAsyncDataConsumer(
                                 downstream,
                                 compressionDictionaryStore,
+                                privacyPartition,
                                 requestUri,
                                 useAsDictionary,
                                 storedAt,
@@ -306,11 +299,29 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
                                     "Dictionary Content-Encoding without negotiated dictionary: " + codec);
                         }
 
-                        final UnaryOperator<AsyncDataConsumer> op = decoders.lookup(codec);
-                        if (op != null) {
-                            downstream = op.apply(downstream);
+                        if (ContentCoding.DCB.token().equalsIgnoreCase(codec)) {
+                            if (!dictionaryAcceptTokens.contains(ContentCoding.DCB.token())) {
+                                throw new HttpException("Unsupported Content-Encoding: " + codec);
+                            }
+                            final UnaryOperator<AsyncDataConsumer> op = decoders.lookup(codec);
+                            downstream = op != null
+                                    ? op.apply(downstream)
+                                    : new InflatingDictionaryBrotliDataConsumer(downstream, dictionary);
+                        } else if (ContentCoding.DCZ.token().equalsIgnoreCase(codec)) {
+                            if (!dictionaryAcceptTokens.contains(ContentCoding.DCZ.token())) {
+                                throw new HttpException("Unsupported Content-Encoding: " + codec);
+                            }
+                            final UnaryOperator<AsyncDataConsumer> op = decoders.lookup(codec);
+                            downstream = op != null
+                                    ? op.apply(downstream)
+                                    : new InflatingDictionaryZstdDataConsumer(downstream, dictionary);
                         } else {
-                            throw new HttpException("Unsupported Content-Encoding: " + codec);
+                            final UnaryOperator<AsyncDataConsumer> op = decoders.lookup(codec);
+                            if (op != null) {
+                                downstream = op.apply(downstream);
+                            } else {
+                                throw new HttpException("Unsupported Content-Encoding: " + codec);
+                            }
                         }
                     }
                     return downstream;
@@ -321,6 +332,7 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
                     downstream = new DictionaryCapturingAsyncDataConsumer(
                             downstream,
                             compressionDictionaryStore,
+                            privacyPartition,
                             requestUri,
                             useAsDictionary,
                             storedAt,
@@ -350,9 +362,11 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
 
     private CompressionDictionary findDictionary(
             final HttpRequest request,
-            final URI requestUri) {
+            final URI requestUri,
+            final CookieStore privacyPartition) {
         if (compressionDictionaryStore == null
                 || compressionDictionaryMatcher == null
+                || privacyPartition == null
                 || requestUri == null
                 || !"https".equalsIgnoreCase(requestUri.getScheme())
                 || request.containsHeader(CompressionDictionaryHeaderSupport.AVAILABLE_DICTIONARY)
@@ -362,92 +376,66 @@ public final class ContentCompressionAsyncExec implements AsyncExecChainHandler 
 
         return compressionDictionaryMatcher.match(
                 requestUri,
-                compressionDictionaryStore.getByOrigin(requestUri));
+                null,
+                compressionDictionaryStore.getByOrigin(privacyPartition, requestUri));
     }
 
     private UseAsDictionary parseUseAsDictionary(
             final HttpResponse response,
-            final URI requestUri) {
+            final URI requestUri,
+            final CookieStore privacyPartition) {
         if (compressionDictionaryStore == null
+                || privacyPartition == null
                 || requestUri == null
                 || !"https".equalsIgnoreCase(requestUri.getScheme())) {
             return null;
         }
 
-        final Header header =
-                response.getFirstHeader(CompressionDictionaryHeaderSupport.USE_AS_DICTIONARY);
-        if (header == null) {
+        final Header[] headers = response.getHeaders(CompressionDictionaryHeaderSupport.USE_AS_DICTIONARY);
+        if (headers == null || headers.length == 0) {
             return null;
+        }
+
+        final StringBuilder value = new StringBuilder();
+        for (final Header header : headers) {
+            if (value.length() > 0) {
+                value.append(',');
+            }
+            value.append(header.getValue());
         }
 
         try {
-            final UseAsDictionary useAsDictionary = UseAsDictionary.parse(header.getValue());
-            return useAsDictionary.isSupported() ? useAsDictionary : null;
-        } catch (final ParseException ex) {
-            return null;
-        }
-    }
-
-    private static Instant getValidUntil(
-            final HttpResponse response,
-            final Instant storedAt) {
-        long maxAge = -1;
-
-        for (final Header header : response.getHeaders(HttpHeaders.CACHE_CONTROL)) {
-            final String[] directives = header.getValue().split(",");
-            for (final String value : directives) {
-                final String directive = value.trim();
-                final String lowerCase = directive.toLowerCase(Locale.ROOT);
-
-                if ("no-store".equals(lowerCase) || "no-cache".equals(lowerCase)) {
-                    return null;
-                }
-
-                if (lowerCase.startsWith("max-age=")) {
-                    final String maxAgeValue = unquote(
-                            directive.substring(directive.indexOf('=') + 1).trim());
-                    try {
-                        maxAge = Long.parseLong(maxAgeValue);
-                    } catch (final NumberFormatException ex) {
-                        return null;
-                    }
-                }
-            }
-        }
-
-        if (maxAge <= 0) {
-            return null;
-        }
-
-        long age = 0;
-        final Header ageHeader = response.getFirstHeader("Age");
-        if (ageHeader != null) {
-            try {
-                age = Long.parseLong(ageHeader.getValue());
-            } catch (final NumberFormatException ex) {
+            final UseAsDictionary useAsDictionary = UseAsDictionary.parse(value.toString());
+            if (!useAsDictionary.isSupported()
+                    || !new DefaultCompressionDictionaryUrlPatternMatcher().isValid(
+                            useAsDictionary.getMatch(), requestUri)) {
                 return null;
             }
-        }
-
-        final long remaining = maxAge - Math.max(0, age);
-        if (remaining <= 0) {
-            return null;
-        }
-
-        try {
-            return storedAt.plusSeconds(remaining);
-        } catch (final DateTimeException | ArithmeticException ex) {
+            return useAsDictionary;
+        } catch (final ParseException | IllegalArgumentException ex) {
             return null;
         }
     }
 
-    private static String unquote(final String value) {
-        if (value.length() > 1
-                && value.charAt(0) == '"'
-                && value.charAt(value.length() - 1) == '"') {
-            return value.substring(1, value.length() - 1);
+    private CookieStore getPrivacyPartition(final HttpClientContext context) {
+        final CookieStore cookieStore = context.getCookieStore();
+        if (cookieStore instanceof CompressionDictionaryCookieStore
+                && ((CompressionDictionaryCookieStore) cookieStore)
+                        .isBoundTo(compressionDictionaryStore)) {
+            return cookieStore;
         }
-        return value;
+        return null;
+    }
+
+    private static boolean containsToken(
+            final Map<String, ?> map,
+            final String expected) {
+        for (final String token : map.keySet()) {
+            if (expected.equalsIgnoreCase(token)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static URI resolveRequestUri(

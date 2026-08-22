@@ -45,13 +45,17 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.UnaryOperator;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
+import org.apache.hc.client5.http.cookie.BasicCookieStore;
+import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.entity.compress.BasicCompressionDictionaryStore;
 import org.apache.hc.client5.http.entity.compress.CompressionDictionary;
 import org.apache.hc.client5.http.entity.compress.CompressionDictionaryStore;
@@ -99,6 +103,7 @@ class TestContentCompressionAsyncExecDictionary {
     private HttpClientContext context;
     private AsyncExecChain.Scope scope;
     private BasicCompressionDictionaryStore store;
+    private CookieStore cookieStore;
     private ContentCompressionAsyncExec impl;
 
     @BeforeEach
@@ -108,7 +113,6 @@ class TestContentCompressionAsyncExecDictionary {
         final HttpHost target = new HttpHost("https", "example.com", 443);
         final HttpRequest originalRequest = new BasicHttpRequest(Method.GET, "/");
         context = HttpClientContext.create();
-
         scope = new AsyncExecChain.Scope(
                 "test",
                 new HttpRoute(target),
@@ -120,6 +124,8 @@ class TestContentCompressionAsyncExecDictionary {
                 new AtomicInteger());
 
         store = new BasicCompressionDictionaryStore();
+        cookieStore = new CompressionDictionaryCookieStore(new BasicCookieStore(), store);
+        context.setCookieStore(cookieStore);
         impl = new ContentCompressionAsyncExec((CompressionDictionaryStore) store);
     }
 
@@ -148,7 +154,7 @@ class TestContentCompressionAsyncExecDictionary {
     @Test
     void testFreshDictionaryAddsAvailableDictionaryHeader() throws Exception {
         final CompressionDictionary dictionary = freshDictionary("/*", "dict-1");
-        store.add(dictionary);
+        store.add(cookieStore, dictionary);
 
         final HttpRequest request = new BasicHttpRequest(Method.GET, URI.create(ORIGIN + "/page.html"));
         executeAndCapture(request);
@@ -160,7 +166,7 @@ class TestContentCompressionAsyncExecDictionary {
 
     @Test
     void testFreshDictionaryAddsDictionaryIdHeaderWhenIdPresent() throws Exception {
-        store.add(freshDictionary("/*", "dict-1"));
+        store.add(cookieStore, freshDictionary("/*", "dict-1"));
 
         final HttpRequest request = new BasicHttpRequest(Method.GET, URI.create(ORIGIN + "/page.html"));
         executeAndCapture(request);
@@ -171,7 +177,7 @@ class TestContentCompressionAsyncExecDictionary {
 
     @Test
     void testDictionaryIdHeaderOmittedWhenIdEmpty() throws Exception {
-        store.add(freshDictionary("/*", ""));
+        store.add(cookieStore, freshDictionary("/*", ""));
 
         final HttpRequest request = new BasicHttpRequest(Method.GET, URI.create(ORIGIN + "/page.html"));
         executeAndCapture(request);
@@ -182,7 +188,7 @@ class TestContentCompressionAsyncExecDictionary {
 
     @Test
     void testAcceptEncodingIncludesDictionaryTokensWhenAvailable() throws Exception {
-        store.add(freshDictionary("/*", "dict-1"));
+        store.add(cookieStore, freshDictionary("/*", "dict-1"));
 
         final HttpRequest request = new BasicHttpRequest(Method.GET, URI.create(ORIGIN + "/page.html"));
         executeAndCapture(request);
@@ -206,7 +212,7 @@ class TestContentCompressionAsyncExecDictionary {
 
     @Test
     void testNoDictionaryWhenRequestAlreadyHasAvailableDictionary() throws Exception {
-        store.add(freshDictionary("/*", "dict-1"));
+        store.add(cookieStore, freshDictionary("/*", "dict-1"));
 
         final HttpRequest request = new BasicHttpRequest(Method.GET, URI.create(ORIGIN + "/page.html"));
         request.addHeader(AVAILABLE_DICTIONARY, ":preset:");
@@ -224,7 +230,7 @@ class TestContentCompressionAsyncExecDictionary {
 
     @Test
     void testNoDictionaryWhenRequestUriNotHttps() throws Exception {
-        store.add(freshDictionary("/*", "dict-1"));
+        store.add(cookieStore, freshDictionary("/*", "dict-1"));
 
         final HttpRequest request = new BasicHttpRequest(Method.GET, URI.create("http://example.com/page.html"));
         executeAndCapture(request);
@@ -292,10 +298,34 @@ class TestContentCompressionAsyncExecDictionary {
 
         assertTrue(downstream.ended);
 
-        final List<CompressionDictionary> stored = store.getByOrigin(URI.create(ORIGIN + "/page.html"));
+        final List<CompressionDictionary> stored =
+                store.getByOrigin(cookieStore, URI.create(ORIGIN + "/page.html"));
         assertEquals(1, stored.size());
         assertEquals("/page.html", stored.get(0).getMatch());
         assertArrayEquals(body, stored.get(0).getContent());
+    }
+
+    @Test
+    void testUseAsDictionaryCombinesMultipleFieldLines() throws Exception {
+        final HttpRequest request = new BasicHttpRequest(Method.GET, URI.create(ORIGIN + "/page.html"));
+        final AsyncExecCallback cb = executeAndCapture(request);
+        final HttpResponse rsp = new BasicHttpResponse(200, "OK");
+        rsp.addHeader(USE_AS_DICTIONARY, "match=\"/page.html\"");
+        rsp.addHeader(USE_AS_DICTIONARY, "id=\"split-field\"");
+        rsp.addHeader(HttpHeaders.CACHE_CONTROL, "max-age=3600");
+        final EntityDetails details = mock(EntityDetails.class);
+        when(details.getContentEncoding()).thenReturn(null);
+        final DrainingConsumer downstream = new DrainingConsumer();
+        when(originalCb.handleResponse(same(rsp), any(EntityDetails.class))).thenReturn(downstream);
+
+        final AsyncDataConsumer wrapped = cb.handleResponse(rsp, details);
+        wrapped.consume(ByteBuffer.wrap("dictionary".getBytes(StandardCharsets.UTF_8)));
+        wrapped.streamEnd(null);
+
+        final List<CompressionDictionary> stored =
+                store.getByOrigin(cookieStore, URI.create(ORIGIN + "/page.html"));
+        assertEquals(1, stored.size());
+        assertEquals("split-field", stored.get(0).getId());
     }
 
     @Test
@@ -316,6 +346,63 @@ class TestContentCompressionAsyncExecDictionary {
         final AsyncDataConsumer wrapped = cb.handleResponse(rsp, details);
 
         assertSame(downstream, wrapped);
+    }
+
+    @Test
+    void testDictionaryIsNotVisibleFromAnotherCookiePartition() throws Exception {
+        final CompressionDictionary dictionary = freshDictionary("/*", "dict-1");
+        store.add(cookieStore, dictionary);
+        context.setCookieStore(new CompressionDictionaryCookieStore(new BasicCookieStore(), store));
+
+        final HttpRequest request = new BasicHttpRequest(Method.GET, URI.create(ORIGIN + "/page.html"));
+        executeAndCapture(request);
+
+        assertFalse(request.containsHeader(AVAILABLE_DICTIONARY));
+        assertFalse(request.containsHeader(DICTIONARY_ID));
+    }
+
+    @Test
+    void testClearingCookiesClearsDictionaryPartition() throws Exception {
+        final CompressionDictionary dictionary = freshDictionary("/*", "dict-1");
+        store.add(cookieStore, dictionary);
+        final HttpRequest request = new BasicHttpRequest(Method.GET, URI.create(ORIGIN + "/page.html"));
+        executeAndCapture(request);
+
+        cookieStore.clear();
+
+        assertTrue(store.getByOrigin(cookieStore, URI.create(ORIGIN)).isEmpty());
+    }
+
+    @Test
+    void testUnmanagedCookieStoreDisablesDictionaryTransport() throws Exception {
+        final CookieStore unmanagedPartition = new BasicCookieStore();
+        context.setCookieStore(unmanagedPartition);
+        store.add(unmanagedPartition, freshDictionary("/*", "dict-1"));
+
+        final HttpRequest request = new BasicHttpRequest(Method.GET, URI.create(ORIGIN + "/page.html"));
+        executeAndCapture(request);
+
+        assertFalse(request.containsHeader(AVAILABLE_DICTIONARY));
+        assertFalse(request.containsHeader(DICTIONARY_ID));
+    }
+
+    @Test
+    void testCustomDcbDecoderIsUsed() throws Exception {
+        final LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> decoders = new LinkedHashMap<>();
+        final AsyncDataConsumer custom = mock(AsyncDataConsumer.class);
+        decoders.put("DCB", downstream -> custom);
+        impl = new ContentCompressionAsyncExec(decoders, store);
+        store.add(cookieStore, freshDictionary("/*", "dict-1"));
+
+        final HttpRequest request = new BasicHttpRequest(Method.GET, URI.create(ORIGIN + "/page.html"));
+        final AsyncExecCallback cb = executeAndCapture(request);
+        final HttpResponse rsp = new BasicHttpResponse(200, "OK");
+        final EntityDetails details = mock(EntityDetails.class);
+        when(details.getContentEncoding()).thenReturn("dcb");
+        when(originalCb.handleResponse(same(rsp), any(EntityDetails.class)))
+                .thenReturn(mock(AsyncDataConsumer.class));
+
+        assertSame(custom, cb.handleResponse(rsp, details));
     }
 
     private static final class DrainingConsumer implements AsyncDataConsumer {

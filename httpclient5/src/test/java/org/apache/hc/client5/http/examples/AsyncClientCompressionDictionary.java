@@ -37,6 +37,7 @@ import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.entity.compress.BasicCompressionDictionaryStore;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpResponse;
@@ -68,6 +69,7 @@ public final class AsyncClientCompressionDictionary {
     public static void main(final String[] args) throws Exception {
         final BasicCompressionDictionaryStore dictionaryStore =
                 new BasicCompressionDictionaryStore();
+        final HttpClientContext clientContext = HttpClientContext.create();
 
         try (final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
                 .setCompressionDictionaryStore(dictionaryStore)
@@ -76,7 +78,7 @@ public final class AsyncClientCompressionDictionary {
             client.start();
 
             final Message<HttpResponse, byte[]> manifestResponse =
-                    execute(client, MANIFEST_URI);
+                    execute(client, clientContext, MANIFEST_URI);
 
             final String manifest = new String(
                     manifestResponse.getBody(),
@@ -107,7 +109,7 @@ public final class AsyncClientCompressionDictionary {
             System.out.println("Fetching dictionary...");
 
             final Message<HttpResponse, byte[]> dictionaryResponse =
-                    execute(client, dictionaryUri);
+                    execute(client, clientContext, dictionaryUri);
 
             final HttpResponse dictionaryHead = dictionaryResponse.getHead();
 
@@ -127,13 +129,14 @@ public final class AsyncClientCompressionDictionary {
                     : 0));
 
             System.out.println("Stored dictionaries: "
-                    + dictionaryStore.getByOrigin(dictionaryUri).size());
+                    + dictionaryStore.getByOrigin(
+                            clientContext.getCookieStore(), dictionaryUri).size());
 
             System.out.println();
             System.out.println("Fetching current resource...");
 
             final Message<HttpResponse, byte[]> resourceResponse =
-                    execute(client, resourceUri);
+                    execute(client, clientContext, resourceUri);
 
             final HttpResponse resourceHead = resourceResponse.getHead();
 
@@ -163,6 +166,7 @@ public final class AsyncClientCompressionDictionary {
 
     private static Message<HttpResponse, byte[]> execute(
             final CloseableHttpAsyncClient client,
+            final HttpClientContext context,
             final URI uri) throws Exception {
 
         final SimpleHttpRequest request = SimpleRequestBuilder.get(uri)
@@ -171,6 +175,7 @@ public final class AsyncClientCompressionDictionary {
         final Future<Message<HttpResponse, byte[]>> future = client.execute(
                 new BasicRequestProducer(request, null),
                 new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()),
+                context,
                 null);
 
         return future.get();

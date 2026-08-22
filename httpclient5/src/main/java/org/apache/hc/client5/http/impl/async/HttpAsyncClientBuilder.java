@@ -891,7 +891,11 @@ public class HttpAsyncClientBuilder {
      * Transport as defined by RFC 9842.
      * <p>
      * When configured, matching dictionaries can be advertised and used for
-     * {@code dcb} and {@code dcz} response decompression.
+     * {@code dcb} and {@code dcz} response decompression. The default cookie
+     * store is bound to the dictionary store so clearing cookies also clears
+     * the corresponding dictionary partition. Dictionary transport is disabled
+     * when a custom cookie store is configured on the builder or supplied by an
+     * execution context, because its clearing lifecycle cannot be observed.
      * </p>
      *
      * @param compressionDictionaryStore the compression dictionary store,
@@ -1271,6 +1275,10 @@ public class HttpAsyncClientBuilder {
         CookieStore cookieStoreCopy = this.cookieStore;
         if (cookieStoreCopy == null) {
             cookieStoreCopy = new BasicCookieStore();
+            if (compressionDictionaryStore != null) {
+                cookieStoreCopy = new CompressionDictionaryCookieStore(
+                        cookieStoreCopy, compressionDictionaryStore);
+            }
         }
 
         CredentialsProvider credentialsProviderCopy = this.credentialsProvider;

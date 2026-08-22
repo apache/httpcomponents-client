@@ -30,6 +30,8 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -43,6 +45,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.hc.client5.http.cookie.BasicCookieStore;
+import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.entity.compress.BasicCompressionDictionaryStore;
 import org.apache.hc.client5.http.entity.compress.CompressionDictionary;
 import org.apache.hc.client5.http.entity.compress.CompressionDictionaryStore;
@@ -61,11 +65,13 @@ class TestDictionaryCapturingAsyncDataConsumer {
 
     private RecordingDataConsumer downstream;
     private CompressionDictionaryStore store;
+    private CookieStore partition;
 
     @BeforeEach
     void setUp() {
         downstream = new RecordingDataConsumer();
         store = new BasicCompressionDictionaryStore();
+        partition = new BasicCookieStore();
     }
 
     private static UseAsDictionary rawDirective() throws Exception {
@@ -78,64 +84,71 @@ class TestDictionaryCapturingAsyncDataConsumer {
 
     private DictionaryCapturingAsyncDataConsumer consumer(final int maxSize) throws Exception {
         return new DictionaryCapturingAsyncDataConsumer(
-                downstream, store, SOURCE, rawDirective(), STORED_AT, VALID_UNTIL, maxSize);
+                downstream, store, partition, SOURCE, rawDirective(), STORED_AT, VALID_UNTIL, maxSize);
     }
 
     @Test
     void testConstructorRejectsNullDownstream() throws Exception {
         final UseAsDictionary directive = rawDirective();
         assertThrows(NullPointerException.class, () -> new DictionaryCapturingAsyncDataConsumer(
-                null, store, SOURCE, directive, STORED_AT, VALID_UNTIL, 1024));
+                null, store, partition, SOURCE, directive, STORED_AT, VALID_UNTIL, 1024));
     }
 
     @Test
     void testConstructorRejectsNullStore() throws Exception {
         final UseAsDictionary directive = rawDirective();
         assertThrows(NullPointerException.class, () -> new DictionaryCapturingAsyncDataConsumer(
-                downstream, null, SOURCE, directive, STORED_AT, VALID_UNTIL, 1024));
+                downstream, null, partition, SOURCE, directive, STORED_AT, VALID_UNTIL, 1024));
+    }
+
+    @Test
+    void testConstructorRejectsNullPartition() throws Exception {
+        final UseAsDictionary directive = rawDirective();
+        assertThrows(NullPointerException.class, () -> new DictionaryCapturingAsyncDataConsumer(
+                downstream, store, null, SOURCE, directive, STORED_AT, VALID_UNTIL, 1024));
     }
 
     @Test
     void testConstructorRejectsNullSource() throws Exception {
         final UseAsDictionary directive = rawDirective();
         assertThrows(NullPointerException.class, () -> new DictionaryCapturingAsyncDataConsumer(
-                downstream, store, null, directive, STORED_AT, VALID_UNTIL, 1024));
+                downstream, store, partition, null, directive, STORED_AT, VALID_UNTIL, 1024));
     }
 
     @Test
     void testConstructorRejectsNullDirective() {
         assertThrows(NullPointerException.class, () -> new DictionaryCapturingAsyncDataConsumer(
-                downstream, store, SOURCE, null, STORED_AT, VALID_UNTIL, 1024));
+                downstream, store, partition, SOURCE, null, STORED_AT, VALID_UNTIL, 1024));
     }
 
     @Test
     void testConstructorRejectsNullStoredAt() throws Exception {
         final UseAsDictionary directive = rawDirective();
         assertThrows(NullPointerException.class, () -> new DictionaryCapturingAsyncDataConsumer(
-                downstream, store, SOURCE, directive, null, VALID_UNTIL, 1024));
+                downstream, store, partition, SOURCE, directive, null, VALID_UNTIL, 1024));
     }
 
     @Test
     void testConstructorRejectsNullValidUntil() throws Exception {
         final UseAsDictionary directive = rawDirective();
         assertThrows(NullPointerException.class, () -> new DictionaryCapturingAsyncDataConsumer(
-                downstream, store, SOURCE, directive, STORED_AT, null, 1024));
+                downstream, store, partition, SOURCE, directive, STORED_AT, null, 1024));
     }
 
     @Test
     void testConstructorRejectsNonPositiveMaxSize() throws Exception {
         final UseAsDictionary directive = rawDirective();
         assertThrows(IllegalArgumentException.class, () -> new DictionaryCapturingAsyncDataConsumer(
-                downstream, store, SOURCE, directive, STORED_AT, VALID_UNTIL, 0));
+                downstream, store, partition, SOURCE, directive, STORED_AT, VALID_UNTIL, 0));
         assertThrows(IllegalArgumentException.class, () -> new DictionaryCapturingAsyncDataConsumer(
-                downstream, store, SOURCE, directive, STORED_AT, VALID_UNTIL, -1));
+                downstream, store, partition, SOURCE, directive, STORED_AT, VALID_UNTIL, -1));
     }
 
     @Test
     void testUpdateCapacityDelegates() throws Exception {
         final AsyncDataConsumer spy = mock(AsyncDataConsumer.class);
         final DictionaryCapturingAsyncDataConsumer mocked = new DictionaryCapturingAsyncDataConsumer(
-                spy, store, SOURCE, rawDirective(), STORED_AT, VALID_UNTIL, 1024);
+                spy, store, partition, SOURCE, rawDirective(), STORED_AT, VALID_UNTIL, 1024);
         final CapacityChannel channel = mock(CapacityChannel.class);
         mocked.updateCapacity(channel);
         verify(spy).updateCapacity(channel);
@@ -165,7 +178,7 @@ class TestDictionaryCapturingAsyncDataConsumer {
 
         assertTrue(downstream.streamEnded());
 
-        final List<CompressionDictionary> stored = store.getByOrigin(SOURCE);
+        final List<CompressionDictionary> stored = store.getByOrigin(partition, SOURCE);
         assertEquals(1, stored.size());
         final CompressionDictionary dictionary = stored.get(0);
         assertArrayEquals("abcdefgh".getBytes(StandardCharsets.UTF_8), dictionary.getContent());
@@ -186,7 +199,7 @@ class TestDictionaryCapturingAsyncDataConsumer {
         c.consume(ByteBuffer.wrap(part2));
         c.streamEnd(Collections.<Header>emptyList());
 
-        assertTrue(store.getByOrigin(SOURCE).isEmpty());
+        assertTrue(store.getByOrigin(partition, SOURCE).isEmpty());
         assertArrayEquals("abcdefgh".getBytes(StandardCharsets.UTF_8), downstream.consumedBytes());
         assertTrue(downstream.streamEnded());
     }
@@ -194,15 +207,27 @@ class TestDictionaryCapturingAsyncDataConsumer {
     @Test
     void testUnsupportedDirectiveStoresNothing() throws Exception {
         final DictionaryCapturingAsyncDataConsumer c = new DictionaryCapturingAsyncDataConsumer(
-                downstream, store, SOURCE, unsupportedDirective(), STORED_AT, VALID_UNTIL, 1024);
+                downstream, store, partition, SOURCE, unsupportedDirective(), STORED_AT, VALID_UNTIL, 1024);
         final byte[] payload = "payload".getBytes(StandardCharsets.UTF_8);
 
         c.consume(ByteBuffer.wrap(payload));
         c.streamEnd(Collections.<Header>emptyList());
 
-        assertTrue(store.getByOrigin(SOURCE).isEmpty());
+        assertTrue(store.getByOrigin(partition, SOURCE).isEmpty());
         assertArrayEquals(payload, downstream.consumedBytes());
         assertTrue(downstream.streamEnded());
+    }
+
+    @Test
+    void testDownstreamFailurePreventsStore() throws Exception {
+        final AsyncDataConsumer failing = mock(AsyncDataConsumer.class);
+        doThrow(new IOException("failure")).when(failing).streamEnd(anyList());
+        final DictionaryCapturingAsyncDataConsumer c = new DictionaryCapturingAsyncDataConsumer(
+                failing, store, partition, SOURCE, rawDirective(), STORED_AT, VALID_UNTIL, 1024);
+        c.consume(ByteBuffer.wrap("payload".getBytes(StandardCharsets.UTF_8)));
+
+        assertThrows(IOException.class, () -> c.streamEnd(Collections.<Header>emptyList()));
+        assertTrue(store.getByOrigin(partition, SOURCE).isEmpty());
     }
 
     @Test
@@ -215,7 +240,7 @@ class TestDictionaryCapturingAsyncDataConsumer {
         c.streamEnd(Collections.<Header>emptyList());
 
         assertTrue(downstream.released());
-        assertTrue(store.getByOrigin(SOURCE).isEmpty());
+        assertTrue(store.getByOrigin(partition, SOURCE).isEmpty());
     }
 
     /**

@@ -60,11 +60,42 @@ final class DefaultCompressionDictionaryMatcher
     private final Clock clock;
     private final CompressionDictionaryUrlPatternMatcher urlPatternMatcher;
 
+    /**
+     * Creates a matcher backed by the system UTC clock and the default URL pattern matcher.
+     */
+    DefaultCompressionDictionaryMatcher() {
+        this(Clock.systemUTC(), new DefaultCompressionDictionaryUrlPatternMatcher());
+    }
+
+    /**
+     * Creates a matcher with an explicit clock, used to make freshness evaluation deterministic
+     * in tests.
+     *
+     * @param clock the clock supplying the instant against which candidate freshness is judged.
+     */
+    DefaultCompressionDictionaryMatcher(final Clock clock) {
+        this(clock, new DefaultCompressionDictionaryUrlPatternMatcher());
+    }
+
+    /**
+     * Creates a matcher with an explicit URL pattern matcher over the system UTC clock.
+     *
+     * @param urlPatternMatcher the strategy that validates and evaluates a candidate's stored
+     *   {@code match} pattern against the request.
+     */
     DefaultCompressionDictionaryMatcher(
             final CompressionDictionaryUrlPatternMatcher urlPatternMatcher) {
         this(Clock.systemUTC(), urlPatternMatcher);
     }
 
+    /**
+     * Creates a matcher with both collaborators supplied explicitly.
+     *
+     * @param clock the clock supplying the instant against which candidate freshness is judged.
+     * @param urlPatternMatcher the strategy that validates and evaluates a candidate's stored
+     *   {@code match} pattern against the request.
+     * @throws NullPointerException if either argument is {@code null}.
+     */
     DefaultCompressionDictionaryMatcher(
             final Clock clock,
             final CompressionDictionaryUrlPatternMatcher urlPatternMatcher) {
@@ -73,15 +104,42 @@ final class DefaultCompressionDictionaryMatcher
                 Args.notNull(urlPatternMatcher, "URL pattern matcher");
     }
 
+    /**
+     * Convenience overload for callers that do not carry a request destination; equivalent to
+     * {@link #match(URI, String, Collection)} with a {@code null} destination.
+     *
+     * @param requestUri the absolute request target.
+     * @param dictionaries the stored dictionaries to consider.
+     * @return the winning dictionary, or {@code null} when no candidate is eligible.
+     */
+    CompressionDictionary match(
+            final URI requestUri,
+            final Collection<CompressionDictionary> dictionaries) {
+        return match(requestUri, null, dictionaries);
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * A candidate survives only when it is fresh at the clock instant, is a {@code raw}
+     * dictionary, shares the request origin, applies to the request destination and carries a
+     * {@code match} pattern that is valid for its source and matches the request. Among the
+     * survivors the winner is chosen by three keys in order: a {@code match-dest} that names the
+     * request destination outranks a destination-agnostic one, then the longest {@code match}
+     * pattern wins, and finally the most recently stored dictionary breaks any remaining tie.
+     *
+     * @throws NullPointerException if {@code requestUri} or {@code dictionaries} is {@code null}.
+     */
     @Override
     public CompressionDictionary match(
             final URI requestUri,
             final String requestDestination,
             final Collection<CompressionDictionary> dictionaries) {
 
-        if (requestUri == null
-                || !"https".equalsIgnoreCase(requestUri.getScheme())
-                || dictionaries == null
+        Args.notNull(requestUri, "Request URI");
+        Args.notNull(dictionaries, "Dictionaries");
+
+        if (!"https".equalsIgnoreCase(requestUri.getScheme())
                 || dictionaries.isEmpty()) {
             return null;
         }
@@ -90,12 +148,13 @@ final class DefaultCompressionDictionaryMatcher
 
         return dictionaries.stream()
                 .filter(dictionary -> dictionary.isFresh(now))
-                .filter(dictionary -> "raw".equalsIgnoreCase(
-                        dictionary.getType()))
+                .filter(dictionary -> "raw".equals(dictionary.getType()))
                 .filter(dictionary -> sameOrigin(
                         dictionary.getSource(), requestUri))
                 .filter(dictionary -> destinationMatches(
                         dictionary, requestDestination))
+                .filter(dictionary -> urlPatternMatcher.isValid(
+                        dictionary.getMatch(), dictionary.getSource()))
                 .filter(dictionary -> urlPatternMatcher.matches(
                         dictionary.getMatch(),
                         dictionary.getSource(),
@@ -115,6 +174,12 @@ final class DefaultCompressionDictionaryMatcher
                 .orElse(null);
     }
 
+    /**
+     * Ranks a candidate for tie-breaking: a dictionary whose {@code match-dest} explicitly names
+     * the request destination is preferred over one that matches irrespective of destination.
+     * Returns {@code 1} for such an explicit destination match and {@code 0} otherwise, including
+     * when the caller carries no destination or the candidate constrains none.
+     */
     private static int destinationPrecedence(
             final CompressionDictionary dictionary,
             final String requestDestination) {
@@ -129,14 +194,18 @@ final class DefaultCompressionDictionaryMatcher
                 : 0;
     }
 
+    /**
+     * Tests whether a candidate's {@code match-dest} admits the request destination. An empty
+     * {@code match-dest} places no constraint and admits every destination.
+     */
     private static boolean destinationMatches(
             final CompressionDictionary dictionary,
             final String requestDestination) {
 
         if (requestDestination == null) {
             /*
-             * RFC 9842: clients that do not support request destinations
-             * MUST treat match-dest as an empty list.
+             * Compression Dictionary Transport: a client that does not support request
+             * destinations treats match-dest as an empty list, so the constraint is waived.
              */
             return true;
         }
@@ -145,6 +214,11 @@ final class DefaultCompressionDictionaryMatcher
                 || dictionary.getMatchDest().contains(requestDestination);
     }
 
+    /**
+     * Tests whether two URIs denote the same origin, that is the same scheme, host and effective
+     * port. Dictionary transport is scoped to a single origin, so a candidate stored for one
+     * origin is never advertised on a request to another.
+     */
     private static boolean sameOrigin(
             final URI first,
             final URI second) {
@@ -162,6 +236,11 @@ final class DefaultCompressionDictionaryMatcher
                 && first.equalsIgnoreCase(second);
     }
 
+    /**
+     * Resolves the port that participates in origin comparison, substituting the scheme default
+     * when the URI carries no explicit port: {@code 443} for {@code https} and {@code 80} for
+     * {@code http}. Any other scheme with no port yields {@code -1}.
+     */
     private static int effectivePort(final URI uri) {
         if (uri.getPort() >= 0) {
             return uri.getPort();

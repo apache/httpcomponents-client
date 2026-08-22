@@ -38,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
 
@@ -84,6 +85,43 @@ class TestCompressionDictionary {
     void constructorRejectsBlankMatch() {
         assertThrows(IllegalArgumentException.class, () ->
                 new CompressionDictionary(CONTENT, SOURCE, "   ", ID, STORED_AT, VALID_UNTIL));
+    }
+
+    @Test
+    void constructorRejectsNonHttpsOrRelativeSource() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new CompressionDictionary(CONTENT, URI.create("http://example.com/dict"),
+                        MATCH, ID, STORED_AT, VALID_UNTIL));
+        assertThrows(IllegalArgumentException.class, () ->
+                new CompressionDictionary(CONTENT, URI.create("/dict"),
+                        MATCH, ID, STORED_AT, VALID_UNTIL));
+    }
+
+    @Test
+    void constructorRejectsInvalidStructuredFieldStrings() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new CompressionDictionary(CONTENT, SOURCE, "/caf\u00e9", ID, STORED_AT, VALID_UNTIL));
+        assertThrows(IllegalArgumentException.class, () ->
+                new CompressionDictionary(CONTENT, SOURCE, MATCH, "bad\nid", STORED_AT, VALID_UNTIL));
+        assertThrows(IllegalArgumentException.class, () ->
+                new CompressionDictionary(CONTENT, SOURCE, MATCH,
+                        Arrays.asList("document", null), ID, "raw", STORED_AT, VALID_UNTIL));
+    }
+
+    @Test
+    void constructorRejectsOversizedId() {
+        final char[] chars = new char[1025];
+        Arrays.fill(chars, 'x');
+        assertThrows(IllegalArgumentException.class, () ->
+                new CompressionDictionary(CONTENT, SOURCE, MATCH,
+                        new String(chars), STORED_AT, VALID_UNTIL));
+    }
+
+    @Test
+    void constructorRejectsInvalidTypeToken() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new CompressionDictionary(CONTENT, SOURCE, MATCH,
+                        null, ID, "raw type", STORED_AT, VALID_UNTIL));
     }
 
     @Test
