@@ -121,6 +121,7 @@ import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.reactor.IOSessionListener;
+import org.apache.hc.core5.reactor.SocketChannelFactory;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
@@ -200,6 +201,7 @@ public class HttpAsyncClientBuilder {
     private AsyncClientConnectionManager connManager;
     private boolean connManagerShared;
     private IOReactorConfig ioReactorConfig;
+    private SocketChannelFactory socketChannelFactory;
     private IOSessionListener ioSessionListener;
     private Callback<Exception> ioReactorExceptionCallback;
     private Http1Config h1Config;
@@ -343,6 +345,18 @@ public class HttpAsyncClientBuilder {
      */
     public final HttpAsyncClientBuilder setIOReactorConfig(final IOReactorConfig ioReactorConfig) {
         this.ioReactorConfig = ioReactorConfig;
+        return this;
+    }
+
+    /**
+     * Sets the factory used by the I/O reactor to create socket channels for
+     * outgoing connections.
+     *
+     * @return this instance.
+     * @since 5.7
+     */
+    public final HttpAsyncClientBuilder setSocketChannelFactory(final SocketChannelFactory socketChannelFactory) {
+        this.socketChannelFactory = socketChannelFactory;
         return this;
     }
 
@@ -1197,7 +1211,8 @@ public class HttpAsyncClientBuilder {
                 ioSessionDecorator != null ? ioSessionDecorator : LoggingIOSessionDecorator.INSTANCE,
                 ioReactorExceptionCallback != null ? ioReactorExceptionCallback : LoggingExceptionCallback.INSTANCE,
                 ioSessionListener,
-                ioSession -> ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE));
+                ioSession -> ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE),
+                socketChannelFactory);
 
         if (execInterceptors != null) {
             for (final ExecInterceptorEntry entry: execInterceptors) {
