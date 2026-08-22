@@ -24,63 +24,55 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.cookie;
 
-import java.math.BigInteger;
-import java.time.Instant;
+package org.apache.hc.client5.http.impl.cookie;
 
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
+import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
+import org.apache.hc.client5.http.cookie.SameSite;
 import org.apache.hc.client5.http.cookie.SetCookie;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
 
 /**
- * Cookie {@code max-age} attribute handler.
+ * Cookie {@code SameSite} attribute handler. The raw attribute value is retained by the cookie
+ * specification and exposed through {@link Cookie#getSameSite()}; this handler enforces that a
+ * {@code SameSite=None} cookie must also be secure.
  *
- * @since 4.0
+ * @since 5.7
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
-public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
+public class BasicSameSiteHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
     /**
-     * Default instance of {@link BasicMaxAgeHandler}.
-     *
-     * @since 5.2
+     * Default instance of {@link BasicSameSiteHandler}.
      */
-    public static final BasicMaxAgeHandler INSTANCE = new BasicMaxAgeHandler();
+    public static final BasicSameSiteHandler INSTANCE = new BasicSameSiteHandler();
 
-    public BasicMaxAgeHandler() {
+    public BasicSameSiteHandler() {
         super();
     }
 
     @Override
-    public void parse(final SetCookie cookie, final String value)
-            throws MalformedCookieException {
+    public void parse(final SetCookie cookie, final String value) throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
-        if (value == null) {
-            throw new MalformedCookieException("Missing value for 'max-age' attribute");
+    }
+
+    @Override
+    public void validate(final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
+        Args.notNull(cookie, "Cookie");
+        if (SameSite.NONE == cookie.getSameSite() && !cookie.isSecure()) {
+            throw new MalformedCookieException("Cookie '" + cookie.getName()
+                    + "' has SameSite=None but is not marked secure");
         }
-        final BigInteger age;
-        try {
-            age = new BigInteger(value);
-        } catch (final NumberFormatException e) {
-            throw new MalformedCookieException("Invalid 'max-age' attribute: " + value);
-        }
-        if (age.signum() <= 0) {
-            // RFC 6265 user-agent processing: delta-seconds <= 0 means immediate expiry.
-            cookie.setExpiryDate(Instant.EPOCH);
-            return;
-        }
-        final BigInteger maxSeconds = BigInteger.valueOf(CookieExpiryPolicy.MAX_LIFETIME.getSeconds());
-        cookie.setExpiryDate(Instant.now().plusSeconds(age.min(maxSeconds).longValueExact()));
     }
 
     @Override
     public String getAttributeName() {
-        return Cookie.MAX_AGE_ATTR;
+        return Cookie.SAME_SITE_ATTR;
     }
 
 }

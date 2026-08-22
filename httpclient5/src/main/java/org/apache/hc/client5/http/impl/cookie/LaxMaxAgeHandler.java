@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cookie;
 
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,14 +70,14 @@ public class LaxMaxAgeHandler extends AbstractCookieAttributeHandler implements 
         }
         final Matcher matcher = MAX_AGE_PATTERN.matcher(value);
         if (matcher.matches()) {
-            final int age;
-            try {
-                age = Integer.parseInt(value);
-            } catch (final NumberFormatException e) {
-                return;
+            final BigInteger age = new BigInteger(value);
+            final Instant expiryDate;
+            if (age.signum() >= 0) {
+                final BigInteger maxSeconds = BigInteger.valueOf(CookieExpiryPolicy.MAX_LIFETIME.getSeconds());
+                expiryDate = Instant.now().plusSeconds(age.min(maxSeconds).longValueExact());
+            } else {
+                expiryDate = Instant.EPOCH;
             }
-            final Instant expiryDate = age >= 0 ? Instant.now().plusSeconds(age) :
-                    Instant.EPOCH;
             cookie.setExpiryDate(expiryDate);
         }
     }

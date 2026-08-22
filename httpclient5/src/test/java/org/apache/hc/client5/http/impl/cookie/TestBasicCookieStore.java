@@ -121,4 +121,87 @@ class TestBasicCookieStore {
         }
     }
 
+    private static BasicClientCookie cookie(final String name, final String value, final boolean secure) {
+        final BasicClientCookie cookie = new BasicClientCookie(name, value);
+        cookie.setDomain("example.com");
+        cookie.setPath("/");
+        cookie.setSecure(secure);
+        return cookie;
+    }
+
+    @Test
+    void testSecureCookieNotOverwrittenByNonSecureConnection() {
+        final BasicCookieStore store = new BasicCookieStore();
+        store.addCookie(cookie("SID", "secure-value", true), true);
+        // A cookie received over a non-secure connection must not overwrite the secure cookie.
+        store.addCookie(cookie("SID", "insecure-value", false), false);
+
+        final List<Cookie> cookies = store.getCookies();
+        Assertions.assertEquals(1, cookies.size());
+        Assertions.assertEquals("secure-value", cookies.get(0).getValue());
+    }
+
+    @Test
+    void testSecureCookieOverwrittenBySecureConnection() {
+        final BasicCookieStore store = new BasicCookieStore();
+        store.addCookie(cookie("SID", "old", true), true);
+        store.addCookie(cookie("SID", "new", true), true);
+
+        final List<Cookie> cookies = store.getCookies();
+        Assertions.assertEquals(1, cookies.size());
+        Assertions.assertEquals("new", cookies.get(0).getValue());
+    }
+
+    @Test
+    void testSecureCookieNotOverlaidByNonSecureDeeperPath() {
+        final BasicCookieStore store = new BasicCookieStore();
+        store.addCookie(cookie("SID", "secure-value", true), true);   // path "/"
+        // Same name and domain but a deeper path "/app": overlays the secure cookie and is rejected,
+        // even though it is not an exact identity match.
+        final BasicClientCookie insecure = new BasicClientCookie("SID", "insecure-value");
+        insecure.setDomain("example.com");
+        insecure.setPath("/app");
+        store.addCookie(insecure, false);
+
+        final List<Cookie> cookies = store.getCookies();
+        Assertions.assertEquals(1, cookies.size());
+        Assertions.assertEquals("secure-value", cookies.get(0).getValue());
+    }
+
+    @Test
+    void testNonSecureCookieAllowedWhenItDoesNotOverlaySecure() {
+        final BasicCookieStore store = new BasicCookieStore();
+        // Secure cookie at the deeper path "/app".
+        final BasicClientCookie secure = new BasicClientCookie("SID", "secure-value");
+        secure.setDomain("example.com");
+        secure.setPath("/app");
+        secure.setSecure(true);
+        store.addCookie(secure, true);
+        // A non-secure cookie at "/" does not overlay the secure cookie at "/app".
+        final BasicClientCookie insecure = new BasicClientCookie("SID", "insecure-value");
+        insecure.setDomain("example.com");
+        insecure.setPath("/");
+        store.addCookie(insecure, false);
+
+        Assertions.assertEquals(2, store.getCookies().size());
+    }
+
+    @Test
+    void testHostOnlyAndDomainCookiesCoexist() {
+        final BasicCookieStore store = new BasicCookieStore();
+        // Host-only cookie: no Domain attribute.
+        final BasicClientCookie hostOnly = new BasicClientCookie("SID", "host-only");
+        hostOnly.setDomain("example.com");
+        hostOnly.setPath("/");
+        store.addCookie(hostOnly);
+        // Domain cookie: same name, domain and path, but a Domain attribute is present.
+        final BasicClientCookie domain = new BasicClientCookie("SID", "domain");
+        domain.setDomain("example.com");
+        domain.setPath("/");
+        domain.setAttribute(Cookie.DOMAIN_ATTR, "example.com");
+        store.addCookie(domain);
+
+        Assertions.assertEquals(2, store.getCookies().size());
+    }
+
 }
