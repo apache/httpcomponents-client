@@ -249,7 +249,15 @@ public final class PublicSuffixMatcher {
          if (domain == null) {
              return false;
          }
-         return verifyInternal(domain.startsWith(".") ? domain.substring(1) : domain);
+         // Normalise here so that verifyInternal can assume its input is already lowercase and in
+         // Unicode form. The rules are held that way, so an ACE-encoded (xn--) or mixed-case public
+         // suffix has to be decoded first, mirroring getDomainRoot; otherwise it fails to match a
+         // rule and is mistaken for a registrable domain.
+         String normalized = DnsUtils.normalize(domain.startsWith(".") ? domain.substring(1) : domain);
+         if (normalized.contains("xn-")) {
+             normalized = IDN.toUnicode(normalized);
+         }
+         return verifyInternal(normalized);
      }
 
     @Internal
