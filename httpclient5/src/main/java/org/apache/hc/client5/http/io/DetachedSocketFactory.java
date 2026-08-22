@@ -32,13 +32,13 @@ import java.net.Proxy;
 import java.net.Socket;
 
 import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
+ * Factory for detached sockets used for outgoing classic connections.
+ *
  * @since 5.4
  */
-@Internal
 @Contract(threading = ThreadingBehavior.STATELESS)
 public interface DetachedSocketFactory {
 
