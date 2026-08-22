@@ -48,6 +48,9 @@ public final class ContainerImages {
     public final static String PROXY = "test-proxy";
     public final static int PROXY_PORT = 8888;
     public final static int PROXY_PW_PROTECTED_PORT = 8889;
+    public final static String H2_PROXY = "test-h2-proxy";
+    public final static int H2_PROXY_PORT = 8443;
+    public final static int H2_PROXY_PW_PROTECTED_PORT = 8444;
 
     static final byte[] BYTES = "0123456789ABCDEF".getBytes(StandardCharsets.UTF_8);
 
@@ -114,6 +117,33 @@ public final class ContainerImages {
                 .withLogConsumer(new Slf4jLogConsumer(LOG))
                 .withExposedPorts(PROXY_PORT, PROXY_PW_PROTECTED_PORT);
 
+    }
+
+    /**
+     * Caddy 2 with the {@code forwardproxy} plugin. Provides a TLS-terminated HTTP/2
+     * forward proxy that supports the CONNECT method on two ports: an open one and a
+     * Basic-auth protected one (user {@code caddy}, password {@code nopassword}).
+     */
+    public static GenericContainer<?> caddyH2Proxy(final Network network) {
+        return new GenericContainer<>(new ImageFromDockerfile()
+                .withFileFromClasspath("Caddyfile", "docker/caddy/Caddyfile")
+                .withFileFromClasspath("server-cert.pem", "docker/server-cert.pem")
+                .withFileFromClasspath("server-key.pem", "docker/server-key.pem")
+                .withFileFromString("Dockerfile",
+                        "FROM caddy:2-builder AS builder\n"
+                                + "RUN xcaddy build --with github.com/caddyserver/forwardproxy@caddy2\n"
+                                + "\n"
+                                + "FROM caddy:2\n"
+                                + "COPY --from=builder /usr/bin/caddy /usr/bin/caddy\n"
+                                + "COPY Caddyfile /etc/caddy/Caddyfile\n"
+                                + "COPY server-cert.pem /etc/caddy/server-cert.pem\n"
+                                + "COPY server-key.pem /etc/caddy/server-key.pem\n"
+                                + "EXPOSE " + H2_PROXY_PORT + " " + H2_PROXY_PW_PROTECTED_PORT + "\n"
+                                + "ENTRYPOINT [\"caddy\", \"run\", \"--config\", \"/etc/caddy/Caddyfile\", \"--adapter\", \"caddyfile\"]\n"))
+                .withNetwork(network)
+                .withNetworkAliases(H2_PROXY)
+                .withLogConsumer(new Slf4jLogConsumer(LOG))
+                .withExposedPorts(H2_PROXY_PORT, H2_PROXY_PW_PROTECTED_PORT);
     }
 
 }
