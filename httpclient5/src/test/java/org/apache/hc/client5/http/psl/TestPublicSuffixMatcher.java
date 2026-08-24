@@ -191,6 +191,18 @@ class TestPublicSuffixMatcher {
         Assertions.assertTrue(matcher.matches(".xn--h-2fa.no"));
     }
 
+    @Test
+    void testVerifyUnicode() {
+        // A public suffix must be rejected by verify() whether it is given in Unicode or in its
+        // ACE (xn--) form; matches() already recognises both, so verify() must agree.
+        Assertions.assertTrue(matcher.matches(".xn--h-2fa.no"));
+        Assertions.assertFalse(matcher.verify("hå.no")); // å is <aring>
+        Assertions.assertFalse(matcher.verify("xn--h-2fa.no"));
+        // A genuine registrable domain under the IDN suffix is still allowed, in either form.
+        Assertions.assertTrue(matcher.verify("foo.hå.no"));
+        Assertions.assertTrue(matcher.verify("foo.xn--h-2fa.no"));
+    }
+
     private void checkPublicSuffix(final String input, final String expected) {
         Assertions.assertEquals(expected, pslMatcher.getDomainRoot(input));
     }
