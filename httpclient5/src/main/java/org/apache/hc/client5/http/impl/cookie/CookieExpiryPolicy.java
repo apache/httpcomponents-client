@@ -27,38 +27,26 @@
 
 package org.apache.hc.client5.http.impl.cookie;
 
-import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
+import java.time.Duration;
+import java.time.Instant;
 
 /**
- * Standard {@link org.apache.hc.client5.http.cookie.CookieSpec} implementation that enforces
- * a more relaxed interpretation of the HTTP state management specification (RFC 6265, section 5)
- * for interoperability with existing servers that do not conform to the well behaved profile
- * (RFC 6265, section 4).
- *
- * @since 4.4
+ * Applies an upper bound on cookie lifetime. An expiry more than 400 days after the time the
+ * cookie was received is reduced to that limit.
  */
-@Contract(threading = ThreadingBehavior.SAFE)
-public class RFC6265LaxSpec extends RFC6265CookieSpecBase {
+final class CookieExpiryPolicy {
 
-    public RFC6265LaxSpec() {
-        super(BasicPathHandler.INSTANCE,
-                BasicDomainHandler.INSTANCE,
-                LaxMaxAgeHandler.INSTANCE,
-                BasicSecureHandler.INSTANCE,
-                BasicHttpOnlyHandler.INSTANCE,
-                LaxExpiresHandler.INSTANCE,
-                BasicSameSiteHandler.INSTANCE);
+    static final Duration MAX_LIFETIME = Duration.ofDays(400);
+
+    static Instant cap(final Instant expiry, final Instant now) {
+        if (expiry == null) {
+            return null;
+        }
+        final Instant limit = now.plus(MAX_LIFETIME);
+        return expiry.isAfter(limit) ? limit : expiry;
     }
 
-    RFC6265LaxSpec(final CommonCookieAttributeHandler... handlers) {
-        super(handlers);
-    }
-
-    @Override
-    public String toString() {
-        return "rfc6265-lax";
+    private CookieExpiryPolicy() {
     }
 
 }

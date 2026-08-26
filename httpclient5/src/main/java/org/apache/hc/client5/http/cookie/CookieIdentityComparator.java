@@ -80,6 +80,9 @@ public class CookieIdentityComparator implements Serializable, Comparator<Cookie
             }
             res = p1.compareTo(p2);
         }
+        if (res == 0) {
+            res = Boolean.compare(c1.isHostOnly(), c2.isHostOnly());
+        }
         return res;
     }
 
