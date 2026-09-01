@@ -51,6 +51,7 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
 import org.apache.hc.client5.http.io.LeaseRequest;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.annotation.Contract;
@@ -552,6 +553,10 @@ public class PoolingHttpClientConnectionManager
         final HttpHost firstHop = route.getProxyHost() != null ? route.getProxyHost() : route.getTargetHost();
         final SocketConfig socketConfig = resolveSocketConfig(route);
         final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
+        final TlsConfig tlsConfig = resolveTlsConfig(route.getTargetHost());
+        if (context != null) {
+            HttpClientContext.cast(context).setHttpVersionPolicy(tlsConfig.getHttpVersionPolicy());
+        }
         final Timeout connectTimeout = timeout != null ? Timeout.of(timeout.getDuration(), timeout.getTimeUnit()) : connectionConfig.getConnectTimeout();
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} connecting endpoint to {} ({})", ConnPoolSupport.getId(endpoint), firstHop, connectTimeout);
@@ -565,7 +570,7 @@ public class PoolingHttpClientConnectionManager
                 route.getLocalSocketAddress(),
                 connectTimeout,
                 socketConfig,
-                route.isTunnelled() ? null : resolveTlsConfig(route.getTargetHost()),
+                route.isTunnelled() ? null : tlsConfig,
                 context);
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} connected {}", ConnPoolSupport.getId(endpoint), ConnPoolSupport.getId(conn));

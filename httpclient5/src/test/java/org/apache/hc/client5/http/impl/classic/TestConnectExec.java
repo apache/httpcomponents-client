@@ -47,6 +47,7 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -55,6 +56,7 @@ import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -324,7 +326,6 @@ class TestConnectExec {
         private boolean connected;
 
         public Answer<?> connectAnswer() {
-
             return invocationOnMock -> {
                 connected = true;
                 return null;
@@ -332,10 +333,69 @@ class TestConnectExec {
         }
 
         public Answer<Boolean> isConnectedAnswer() {
-
             return invocationOnMock -> connected;
-
         }
+    }
+
+    @Test
+    void testEstablishRouteViaProxyTunnelAddsAlpnHeader() throws Exception {
+        // No HttpVersionPolicy on the context: the interceptor falls back to NEGOTIATE, so the
+        // tunnel's TLS layer offers both protocols and the ALPN header advertises the same set.
+        exec = new ConnectExec(reuseStrategy, proxyHttpProcessor, proxyAuthStrategy, null, true);
+
+        final HttpRoute route = new HttpRoute(target, null, proxy, true);
+        final HttpClientContext context = HttpClientContext.create();
+        final ClassicHttpRequest request = new HttpGet("http://bar/test");
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
+
+        final ConnectionState connectionState = new ConnectionState();
+        Mockito.doAnswer(connectionState.connectAnswer()).when(execRuntime).connectEndpoint(Mockito.any());
+        Mockito.when(execRuntime.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
+        Mockito.when(execRuntime.execute(Mockito.anyString(), Mockito.any(), Mockito.any())).thenReturn(response);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+        exec.execute(request, scope, execChain);
+
+        final ArgumentCaptor<ClassicHttpRequest> reqCaptor = ArgumentCaptor.forClass(ClassicHttpRequest.class);
+        Mockito.verify(execRuntime).execute(Mockito.anyString(), reqCaptor.capture(), Mockito.same(context));
+
+        final ClassicHttpRequest connect = reqCaptor.getValue();
+        Assertions.assertEquals("CONNECT", connect.getMethod());
+        Assertions.assertEquals("foo:80", connect.getRequestUri());
+
+        final Header h = connect.getFirstHeader(HttpHeaders.ALPN);
+        Assertions.assertNotNull(h, "ALPN header must be present");
+        Assertions.assertEquals(HttpHeaders.ALPN, h.getName());
+        Assertions.assertEquals("h2, http%2F1.1", h.getValue());
+    }
+
+    @Test
+    void testEstablishRouteViaProxyTunnelAlpnHeaderReflectsVersionPolicy() throws Exception {
+        // A FORCE_HTTP_1 policy published on the context must be reflected verbatim: only http/1.1
+        // is advertised, so the header can never contradict the protocol negotiated inside the tunnel.
+        exec = new ConnectExec(reuseStrategy, proxyHttpProcessor, proxyAuthStrategy, null, true);
+
+        final HttpRoute route = new HttpRoute(target, null, proxy, true);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setHttpVersionPolicy(HttpVersionPolicy.FORCE_HTTP_1);
+        final ClassicHttpRequest request = new HttpGet("http://bar/test");
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
+
+        final ConnectionState connectionState = new ConnectionState();
+        Mockito.doAnswer(connectionState.connectAnswer()).when(execRuntime).connectEndpoint(Mockito.any());
+        Mockito.when(execRuntime.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
+        Mockito.when(execRuntime.execute(Mockito.anyString(), Mockito.any(), Mockito.any())).thenReturn(response);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+        exec.execute(request, scope, execChain);
+
+        final ArgumentCaptor<ClassicHttpRequest> reqCaptor = ArgumentCaptor.forClass(ClassicHttpRequest.class);
+        Mockito.verify(execRuntime).execute(Mockito.anyString(), reqCaptor.capture(), Mockito.same(context));
+
+        final ClassicHttpRequest connect = reqCaptor.getValue();
+        final Header h = connect.getFirstHeader(HttpHeaders.ALPN);
+        Assertions.assertNotNull(h, "ALPN header must be present");
+        Assertions.assertEquals("http%2F1.1", h.getValue());
     }
 
 }

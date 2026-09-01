@@ -53,6 +53,7 @@ import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.pool.PoolEntry;
 import org.apache.hc.core5.pool.StrictConnPool;
 import org.apache.hc.core5.util.TimeValue;
@@ -262,6 +263,7 @@ class TestPoolingHttpClientConnectionManager {
         mgr.setDefaultConnectionConfig(connectionConfig);
         final TlsConfig tlsConfig = TlsConfig.custom()
                 .setHandshakeTimeout(345, TimeUnit.MILLISECONDS)
+                .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_2)
                 .build();
         mgr.setDefaultTlsConfig(tlsConfig);
 
@@ -279,6 +281,8 @@ class TestPoolingHttpClientConnectionManager {
 
         mgr.connect(endpoint1, null, context);
 
+        // connect() publishes the target's HttpVersionPolicy on the context for the interceptors
+        Assertions.assertEquals(HttpVersionPolicy.FORCE_HTTP_2, context.getHttpVersionPolicy());
         Mockito.verify(dnsResolver, Mockito.times(1)).resolve("somehost", 8443);
         Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target.getSchemeName(), target);
         Mockito.verify(detachedSocketFactory, Mockito.times(1)).create("https", null);
