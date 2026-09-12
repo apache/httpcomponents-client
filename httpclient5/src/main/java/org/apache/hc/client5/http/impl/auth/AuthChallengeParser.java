@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.ChallengeType;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.message.BasicHeaderValueParser;
@@ -83,15 +84,14 @@ public class AuthChallengeParser {
     }
 
     /**
-     * Parses the given sequence of characters into a list of {@link AuthChallenge} elements.
-     *
-     * @param challengeType the type of challenge (target or proxy).
-     * @param buffer the sequence of characters to be parsed.
-     * @param cursor the parser cursor.
-     * @return a list of auth challenge elements.
+     * @since 5.7
      */
-    public List<AuthChallenge> parse(
-            final ChallengeType challengeType, final CharSequence buffer, final ParserCursor cursor) throws ParseException {
+    @Internal
+    public void parse(
+            final ChallengeType challengeType,
+            final List<AuthChallenge> challenges,
+            final CharSequence buffer,
+            final ParserCursor cursor) throws ParseException {
         tokenParser.skipWhiteSpace(buffer, cursor);
         if (cursor.atEnd()) {
             throw new ParseException("Malformed auth challenge");
@@ -106,10 +106,23 @@ public class AuthChallengeParser {
             internalChallenges.add(current);
             current = parseChallenge(buffer, cursor, current);
         }
-        final List<AuthChallenge> challenges = new ArrayList<>(internalChallenges.size());
         for (final ChallengeInt internal : internalChallenges) {
             challenges.add(parseInt(challengeType, internal));
         }
+    }
+
+    /**
+     * Parses the given sequence of characters into a list of {@link AuthChallenge} elements.
+     *
+     * @param challengeType the type of challenge (target or proxy).
+     * @param buffer the sequence of characters to be parsed.
+     * @param cursor the parser cursor.
+     * @return a list of auth challenge elements.
+     */
+    public List<AuthChallenge> parse(
+            final ChallengeType challengeType, final CharSequence buffer, final ParserCursor cursor) throws ParseException {
+        final List<AuthChallenge> challenges = new ArrayList<>(10);
+        parse(challengeType, challenges, buffer, cursor);
         return challenges;
     }
 

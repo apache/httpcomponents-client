@@ -28,12 +28,13 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.auth.AuthChallenge;
@@ -163,33 +164,37 @@ public class AuthenticationHandler {
         return authScheme != null && authScheme.isChallengeExpected();
     }
 
+    private Map<String, AuthChallenge> extractChallengeMap(
+            final ChallengeType challengeType,
+            final HttpResponse response) throws ParseException {
+        final List<AuthChallenge> authChallenges = new ArrayList<>(10);
+        MessageSupport.parseHeadersStrict(
+                response,
+                challengeType == ChallengeType.PROXY ? HttpHeaders.PROXY_AUTHENTICATE : HttpHeaders.WWW_AUTHENTICATE,
+                (buffer, cursor) ->
+                        parser.parse(challengeType, authChallenges, buffer, cursor));
+
+        return authChallenges.stream()
+                .collect(Collectors.toMap(
+                        c -> c.getSchemeName().toLowerCase(Locale.ROOT),
+                        c -> c,
+                        (c1, c2) -> c1));
+    }
+
     public Map<String, AuthChallenge> extractChallengeMap(
             final ChallengeType challengeType,
             final HttpResponse response,
             final HttpClientContext context) {
-        final Map<String, AuthChallenge> challengeMap = new HashMap<>();
         try {
-            MessageSupport.parseHeadersStrict(
-                    response,
-                    challengeType == ChallengeType.PROXY ? HttpHeaders.PROXY_AUTHENTICATE : HttpHeaders.WWW_AUTHENTICATE,
-                    (buffer, cursor) -> {
-                        final List<AuthChallenge> authChallenges = parser.parse(challengeType, buffer, cursor);
-                        for (final AuthChallenge authChallenge : authChallenges) {
-                            final String schemeName = authChallenge.getSchemeName().toLowerCase(Locale.ROOT);
-                            if (!challengeMap.containsKey(schemeName)) {
-                                challengeMap.put(schemeName, authChallenge);
-                            }
-                        }
-
-                    });
+            return extractChallengeMap(challengeType, response);
         } catch (final ParseException ex) {
             if (LOG.isWarnEnabled()) {
                 final HttpClientContext clientContext = HttpClientContext.cast(context);
                 final String exchangeId = clientContext.getExchangeId();
                 LOG.warn("{} Malformed challenge", exchangeId);
             }
+            return Collections.emptyMap();
         }
-        return challengeMap;
     }
 
     /**
