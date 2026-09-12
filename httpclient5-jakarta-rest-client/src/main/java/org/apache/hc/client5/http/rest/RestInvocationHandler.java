@@ -47,8 +47,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.ResponseProcessingException;
 import jakarta.ws.rs.core.Response;
@@ -73,11 +71,12 @@ import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
-import org.apache.hc.core5.jackson2.http.JsonObjectEntityProducer;
-import org.apache.hc.core5.jackson2.http.JsonResponseConsumers;
+import org.apache.hc.core5.jackson3.http.JsonObjectEntityProducer;
+import org.apache.hc.core5.jackson3.http.JsonResponseConsumers;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.net.WWWFormCodec;
 import org.apache.hc.core5.util.Args;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@link InvocationHandler} that translates interface method calls into HTTP requests
@@ -257,7 +256,7 @@ final class RestInvocationHandler implements InvocationHandler {
                         throwIfError(result);
                         final Header header = result.getHead().getFirstHeader(HttpHeaders.CONTENT_TYPE);
                         final ContentType contentType = header != null
-                                ? MessageSupport.parserHeaderValue(header, ContentType::parse)
+                                ? MessageSupport.parseHeaderValue(header, ContentType::parse)
                                 : null;
                         if (contentType != null && !ContentType.APPLICATION_FORM_URLENCODED.isSameMimeType(contentType)) {
                             throw new RestResourceException(

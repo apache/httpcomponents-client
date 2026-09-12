@@ -41,8 +41,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Link;
@@ -61,6 +59,7 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.CharArrayBuffer;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Minimal {@link Response} implementation backed by a consumed {@link JsonNode}

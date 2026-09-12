@@ -30,8 +30,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Supplier;
@@ -45,6 +43,7 @@ import org.apache.hc.core5.http.nio.AsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Response consumer that routes success and error responses to different entity consumers.

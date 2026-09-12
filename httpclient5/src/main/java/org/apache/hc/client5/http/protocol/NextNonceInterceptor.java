@@ -101,7 +101,7 @@ public class NextNonceInterceptor implements HttpResponseInterceptor {
 
         final Header header = response.getFirstHeader(AUTHENTICATION_INFO_HEADER);
         if (header != null) {
-            final String nextNonce = MessageSupport.parserHeaderValue(header, this::parseNextNonce);
+            final String nextNonce = MessageSupport.parseHeaderValue(header, this::parseNextNonce);
             if (!TextUtils.isBlank(nextNonce)) {
                 HttpClientContext.castOrCreate(context).setNextNonce(nextNonce);
             }

@@ -139,7 +139,7 @@ public final class ETag {
         if (h == null) {
             return null;
         }
-        return MessageSupport.parserHeaderValue(h, ETag::parse);
+        return MessageSupport.parseHeaderValue(h, ETag::parse);
     }
 
     public static ETag get(final MessageHeaders message) {

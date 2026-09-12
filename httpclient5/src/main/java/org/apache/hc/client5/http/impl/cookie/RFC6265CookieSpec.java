@@ -109,7 +109,7 @@ public class RFC6265CookieSpec implements CookieSpec {
     public final List<Cookie> parse(final Header header, final CookieOrigin origin) throws MalformedCookieException {
         Args.notNull(header, "Header");
         Args.notNull(origin, "Cookie origin");
-        final RawCookie rawCookie = MessageSupport.parserHeaderValue(header, this::parseCookie);
+        final RawCookie rawCookie = MessageSupport.parseHeaderValue(header, this::parseCookie);
         if (rawCookie == null) {
             throw new MalformedCookieException("Cookie value is invalid");
         }

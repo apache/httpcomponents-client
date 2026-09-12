@@ -31,18 +31,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.BinaryNode;
-import com.fasterxml.jackson.databind.node.TextNode;
-
 import org.apache.hc.core5.http.ContentType;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.BinaryNode;
 
 class RestContentTest {
 
@@ -125,7 +123,7 @@ class RestContentTest {
         Assertions.assertThat(content).isNotNull().satisfies(c -> {
             Assertions.assertThat(c.asByteArray()).isSameAs(bytes);
             Assertions.assertThat(c.asString()).isEqualTo(new String(bytes, StandardCharsets.ISO_8859_1));
-            Assertions.assertThatThrownBy(c::asJsonNode).isInstanceOf(JsonParseException.class);
+            Assertions.assertThatThrownBy(c::asJsonNode).isInstanceOf(StreamReadException.class);
         });
     }
 
@@ -138,7 +136,7 @@ class RestContentTest {
         Assertions.assertThat(content).isNotNull().satisfies(c -> {
             Assertions.assertThat(c.asByteArray()).containsSequence(string.getBytes(StandardCharsets.UTF_8));
             Assertions.assertThat(c.asString()).isEqualTo(string);
-            Assertions.assertThatThrownBy(c::asJsonNode).isInstanceOf(JsonParseException.class);
+            Assertions.assertThatThrownBy(c::asJsonNode).isInstanceOf(StreamReadException.class);
         });
     }
 
@@ -159,7 +157,7 @@ class RestContentTest {
     @Test
     void testJsonTextNodeContent() throws Exception {
         final String string = "some stuff with funny characters \u00e9";
-        final JsonNode jsonNode = new TextNode(string);
+        final JsonNode jsonNode = objectMapper.stringNode(string);
 
         final RestContent content = RestContent.create(objectMapper, jsonNode, ContentType.APPLICATION_JSON);
 

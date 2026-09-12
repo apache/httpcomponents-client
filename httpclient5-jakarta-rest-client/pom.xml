@@ -52,7 +52,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents.core5</groupId>
-      <artifactId>httpcore5-jackson2</artifactId>
+      <artifactId>httpcore5-jackson3</artifactId>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>

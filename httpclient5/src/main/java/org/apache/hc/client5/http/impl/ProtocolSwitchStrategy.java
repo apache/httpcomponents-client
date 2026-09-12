@@ -26,8 +26,9 @@
  */
 package org.apache.hc.client5.http.impl;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -37,7 +38,6 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.ProtocolVersionParser;
-import org.apache.hc.core5.http.message.HeaderElementConsumer;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.ssl.TLS;
@@ -61,22 +61,23 @@ public final class ProtocolSwitchStrategy {
             throw new ProtocolException("Invalid protocol switch response: missing Connection: Upgrade");
         }
 
-        final AtomicReference<ProtocolVersion> tlsUpgrade = new AtomicReference<>();
-
+        final List<ProtocolVersion> tlsUpgradeProtocols = new LinkedList<>();
         MessageSupport.parseHeadersStrict(response, HttpHeaders.UPGRADE, (buf1, c1) -> {
-            MessageSupport.parseElementListStrict(buf1, c1, (HeaderElementConsumer) (buf2, c2) -> {
+            MessageSupport.parseElementListStrict(buf1, c1, (buf2, c2) -> {
                 final ProtocolVersion protocolVersion = parseProtocolVersion(buf2, c2);
                 if (protocolVersion != null) {
-                    if ("TLS".equalsIgnoreCase(protocolVersion.getProtocol())) {
-                        tlsUpgrade.set(protocolVersion);
-                    } else if (!protocolVersion.equals(HttpVersion.HTTP_1_1)) {
-                        throw new ProtocolException("Unsupported protocol or HTTP version: " + protocolVersion);
-                    }
+                    tlsUpgradeProtocols.add(protocolVersion);
                 }
             });
         });
-
-        final ProtocolVersion result = tlsUpgrade.get();
+        ProtocolVersion result = null;
+        for (final ProtocolVersion protocolVersion : tlsUpgradeProtocols) {
+            if ("TLS".equalsIgnoreCase(protocolVersion.getProtocol())) {
+                result = protocolVersion;
+            } else if (!protocolVersion.equals(HttpVersion.HTTP_1_1)) {
+                throw new ProtocolException("Unsupported protocol or HTTP version: " + protocolVersion);
+            }
+        }
         if (result != null) {
             return result;
         } else {
@@ -94,7 +95,7 @@ public final class ProtocolSwitchStrategy {
         return found.get();
     }
 
-    private ProtocolVersion parseProtocolVersion(final CharSequence buffer, final ParserCursor cursor) throws ProtocolException {
+    private ProtocolVersion parseProtocolVersion(final CharSequence buffer, final ParserCursor cursor) throws ParseException {
         TOKENIZER.skipWhiteSpace(buffer, cursor);
         final String proto = TOKENIZER.parseToken(buffer, cursor, LAX_PROTO_DELIMITER);
         if (!cursor.atEnd()) {
@@ -112,7 +113,7 @@ public final class ProtocolSwitchStrategy {
         } else if (proto.equalsIgnoreCase("TLS")) {
             return TLS.V_1_2.getVersion();
         } else {
-            throw new ProtocolException("Unsupported or invalid protocol: " + proto);
+            throw new ParseException("Unsupported or invalid protocol: " + proto);
         }
     }
 

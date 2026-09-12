@@ -168,11 +168,11 @@ public class AuthenticationHandler {
             final HttpResponse response,
             final HttpClientContext context) {
         final Map<String, AuthChallenge> challengeMap = new HashMap<>();
-        MessageSupport.parseHeaders(
-                response,
-                challengeType == ChallengeType.PROXY ? HttpHeaders.PROXY_AUTHENTICATE : HttpHeaders.WWW_AUTHENTICATE,
-                (buffer, cursor) -> {
-                    try {
+        try {
+            MessageSupport.parseHeadersStrict(
+                    response,
+                    challengeType == ChallengeType.PROXY ? HttpHeaders.PROXY_AUTHENTICATE : HttpHeaders.WWW_AUTHENTICATE,
+                    (buffer, cursor) -> {
                         final List<AuthChallenge> authChallenges = parser.parse(challengeType, buffer, cursor);
                         for (final AuthChallenge authChallenge : authChallenges) {
                             final String schemeName = authChallenge.getSchemeName().toLowerCase(Locale.ROOT);
@@ -180,15 +180,15 @@ public class AuthenticationHandler {
                                 challengeMap.put(schemeName, authChallenge);
                             }
                         }
-                    } catch (final ParseException ex) {
-                        if (LOG.isWarnEnabled()) {
-                            final HttpClientContext clientContext = HttpClientContext.cast(context);
-                            final String exchangeId = clientContext.getExchangeId();
-                            LOG.warn("{} Malformed challenge", exchangeId);
-                        }
-                    }
 
-                });
+                    });
+        } catch (final ParseException ex) {
+            if (LOG.isWarnEnabled()) {
+                final HttpClientContext clientContext = HttpClientContext.cast(context);
+                final String exchangeId = clientContext.getExchangeId();
+                LOG.warn("{} Malformed challenge", exchangeId);
+            }
+        }
         return challengeMap;
     }
 

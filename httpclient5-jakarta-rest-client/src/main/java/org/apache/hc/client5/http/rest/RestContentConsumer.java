@@ -31,9 +31,6 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ContentType;
@@ -44,8 +41,10 @@ import org.apache.hc.core5.http.nio.AsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
-import org.apache.hc.core5.jackson2.http.JsonNodeEntityConsumer;
+import org.apache.hc.core5.jackson3.http.JsonNodeEntityConsumer;
 import org.apache.hc.core5.util.Args;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 final class RestContentConsumer implements AsyncEntityConsumer<RestContent> {
 
@@ -66,7 +65,7 @@ final class RestContentConsumer implements AsyncEntityConsumer<RestContent> {
         }
         final ContentType contentType = ContentType.parseLenient(entityDetails.getContentType());
         if (contentType == null || ContentType.APPLICATION_JSON.isSameMimeType(contentType)) {
-            final AsyncEntityConsumer<JsonNode> entityConsumer = new JsonNodeEntityConsumer(objectMapper.getFactory());
+            final AsyncEntityConsumer<JsonNode> entityConsumer = new JsonNodeEntityConsumer(objectMapper.tokenStreamFactory());
             entityConsumerRef.set(entityConsumer);
             entityConsumer.streamStart(entityDetails, new CallbackContribution<>(resultCallback) {
 

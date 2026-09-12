@@ -219,7 +219,7 @@ public final class DateUtils {
      */
     public static Instant parseDate(final Header header, final DateTimeFormatter... dateFormatters) {
         Args.notNull(header, "Header");
-        return MessageSupport.parserHeaderValue(header, (cs, cursor) -> {
+        return MessageSupport.parseHeaderValue(header, (cs, cursor) -> {
             Tokenizer.INSTANCE.skipWhiteSpace(cs, cursor);
             return parseDate(cs.subSequence(cursor.getPos(), cursor.getUpperBound()), dateFormatters);
         });

@@ -33,10 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.core5.util.Args;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Builds type-safe REST client proxies from Jakarta REST annotated interfaces. The proxy
