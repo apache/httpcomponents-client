@@ -31,17 +31,30 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.ExecRuntime;
+import org.apache.hc.client5.http.io.ConnectionEndpoint;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.io.LeaseRequest;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.function.Supplier;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.impl.io.ChunkedInputStream;
+import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.impl.io.SessionInputBufferImpl;
 import org.apache.hc.core5.http.io.SessionInputBuffer;
 import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +62,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.LoggerFactory;
 
 class TestResponseEntityProxy {
 
@@ -157,5 +171,98 @@ class TestResponseEntityProxy {
 
         Mockito.verify(execRuntime).disconnectEndpoint();
         Mockito.verify(execRuntime).discardEndpoint();
+    }
+
+    /**
+     * Regression test for HTTPCLIENT-2432.
+     * <p>
+     * On paths that reach {@code cleanup()} while the endpoint is still leased
+     * (e.g. {@code streamAbort()}, or {@code streamClosed()} swallowing a
+     * {@code SocketException}), {@code disconnectEndpoint()} is invoked on a
+     * connection whose socket may be in a broken state. Prior to the fix, an
+     * {@code IOException} from {@code endpoint.close()} propagated out and
+     * skipped {@code discardEndpoint()} - the only path that calls
+     * {@code manager.release(...)} and returns the lease to the pool. Under
+     * load this exhausted the pool.
+     * <p>
+     * The test wires a real {@link InternalExecRuntime} to a fake connection
+     * manager whose leased endpoint throws from {@code close()}, then triggers
+     * {@code cleanup()} via {@code streamAbort()} and asserts the manager
+     * received exactly one {@code release()} call.
+     */
+    @Test
+    void testPoolLeaseReturnedWhenDisconnectEndpointThrows() throws Exception {
+        final AtomicInteger releaseCount = new AtomicInteger();
+        final ConnectionEndpoint brokenEndpoint = new ConnectionEndpoint() {
+            @Override
+            public ClassicHttpResponse execute(final String id, final ClassicHttpRequest request,
+                                               final HttpRequestExecutor executor, final HttpContext context) {
+                throw new UnsupportedOperationException();
+            }
+            @Override
+            public boolean isConnected() {
+                return true;
+            }
+            @Override
+            public void setSocketTimeout(final Timeout timeout) {
+            }
+            @Override
+            public void close(final CloseMode closeMode) {
+            }
+            @Override
+            public void close() throws IOException {
+                throw new IOException("simulated dead socket");
+            }
+        };
+
+        final HttpClientConnectionManager fakeManager = new HttpClientConnectionManager() {
+            @Override
+            public LeaseRequest lease(final String id, final HttpRoute route,
+                                      final Timeout requestTimeout, final Object state) {
+                return new LeaseRequest() {
+                    @Override
+                    public ConnectionEndpoint get(final Timeout timeout) {
+                        return brokenEndpoint;
+                    }
+                    @Override
+                    public boolean cancel() {
+                        return false;
+                    }
+                };
+            }
+            @Override
+            public void release(final ConnectionEndpoint endpoint, final Object newState,
+                                final TimeValue validDuration) {
+                releaseCount.incrementAndGet();
+            }
+            @Override
+            public void connect(final ConnectionEndpoint endpoint, final TimeValue connectTimeout,
+                                final HttpContext context) {
+            }
+            @Override
+            public void upgrade(final ConnectionEndpoint endpoint, final HttpContext context) {
+            }
+            @Override
+            public void close() {
+            }
+            @Override
+            public void close(final CloseMode closeMode) {
+            }
+        };
+
+        final InternalExecRuntime runtime = new InternalExecRuntime(
+                LoggerFactory.getLogger(TestResponseEntityProxy.class),
+                fakeManager,
+                new HttpRequestExecutor(),
+                null);
+        runtime.acquireEndpoint("id1", new HttpRoute(new HttpHost("localhost", 80)),
+                null, HttpClientContext.create());
+
+        final ResponseEntityProxy proxy = new ResponseEntityProxy(entity, runtime);
+
+        Assertions.assertThrows(IOException.class, () -> proxy.streamAbort(null));
+
+        Assertions.assertEquals(1, releaseCount.get(),
+                "connection lease must be returned to the pool even when disconnectEndpoint() throws");
     }
 }
