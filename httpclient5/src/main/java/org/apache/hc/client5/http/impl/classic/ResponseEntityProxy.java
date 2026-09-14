@@ -62,10 +62,17 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
 
     private void cleanup() throws IOException {
         if (this.execRuntime != null) {
-            if (this.execRuntime.isEndpointConnected()) {
-                this.execRuntime.disconnectEndpoint();
+            try {
+                if (this.execRuntime.isEndpointConnected()) {
+                    this.execRuntime.disconnectEndpoint();
+                }
+            } finally {
+                // discardEndpoint() is the only path that returns the lease to the
+                // pool (its manager.release(...) runs inside a finally). Guard it so
+                // an IOException from disconnectEndpoint() on a dead socket cannot
+                // strand the connection as permanently leased.
+                this.execRuntime.discardEndpoint();
             }
-            this.execRuntime.discardEndpoint();
         }
     }
 

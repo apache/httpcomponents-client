@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -136,5 +137,25 @@ class TestResponseEntityProxy {
         Assertions.assertEquals("test", header.getValue());
 
 
+    }
+
+    @Test
+    void testCleanupDiscardsEndpointWhenDisconnectEndpointThrows() throws Exception {
+        // Simulate a dead socket: disconnectEndpoint() throws (endpoint.close() on
+        // a broken connection). Without the fix, discardEndpoint() would be skipped
+        // and the connection would remain permanently leased in the pool.
+        Mockito.when(execRuntime.isEndpointConnected()).thenReturn(Boolean.TRUE);
+        Mockito.doThrow(new IOException("simulated dead socket"))
+                .when(execRuntime).disconnectEndpoint();
+
+        final ArgumentCaptor<HttpEntity> captor = ArgumentCaptor.forClass(HttpEntity.class);
+        ResponseEntityProxy.enhance(response, execRuntime);
+        Mockito.verify(response).setEntity(captor.capture());
+        final HttpEntity wrappedEntity = captor.getValue();
+
+        Assertions.assertThrows(IOException.class, wrappedEntity::close);
+
+        Mockito.verify(execRuntime).disconnectEndpoint();
+        Mockito.verify(execRuntime).discardEndpoint();
     }
 }
