@@ -50,10 +50,6 @@ the 5.8 release.
 Change Log
 ----------
 
-* HTTPCLIENT-2432: Fix connection-pool leak in ResponseEntityProxy#cleanup()
-  when ExecRuntime#disconnectEndpoint() throws before discardEndpoint().
-  Contributed by Victor Alekseev <krocodl at gmail.com>
-
 * Enable multiplex message exchanges over active HTTP/2 connections by default.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
