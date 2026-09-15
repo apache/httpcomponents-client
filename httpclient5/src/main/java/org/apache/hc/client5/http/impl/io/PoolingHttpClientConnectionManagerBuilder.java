@@ -34,6 +34,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
+import org.apache.hc.client5.http.io.DetachedSocketFactory;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
@@ -60,6 +61,7 @@ import org.apache.hc.core5.util.TimeValue;
 public class PoolingHttpClientConnectionManagerBuilder {
 
     private HttpConnectionFactory<ManagedHttpClientConnection> connectionFactory;
+    private DetachedSocketFactory detachedSocketFactory;
     private TlsSocketStrategy tlsSocketStrategy;
     private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
@@ -93,6 +95,18 @@ public class PoolingHttpClientConnectionManagerBuilder {
     public final PoolingHttpClientConnectionManagerBuilder setConnectionFactory(
             final HttpConnectionFactory<ManagedHttpClientConnection> connectionFactory) {
         this.connectionFactory = connectionFactory;
+        return this;
+    }
+
+    /**
+     * Sets the factory used to create detached sockets for outgoing connections.
+     *
+     * @return this instance.
+     * @since 5.7
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setDetachedSocketFactory(
+            final DetachedSocketFactory detachedSocketFactory) {
+        this.detachedSocketFactory = detachedSocketFactory;
         return this;
     }
 
@@ -325,7 +339,10 @@ public class PoolingHttpClientConnectionManagerBuilder {
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
             final TlsSocketStrategy tlsSocketStrategy) {
-        return new DefaultHttpClientConnectionOperator(schemePortResolver, dnsResolver,
+        return new DefaultHttpClientConnectionOperator(
+                detachedSocketFactory != null ? detachedSocketFactory : DefaultHttpClientConnectionOperator.PLAIN_SOCKET_FACTORY,
+                schemePortResolver,
+                dnsResolver,
                 RegistryBuilder.<TlsSocketStrategy>create()
                         .register(URIScheme.HTTPS.id, tlsSocketStrategy)
                         .build());

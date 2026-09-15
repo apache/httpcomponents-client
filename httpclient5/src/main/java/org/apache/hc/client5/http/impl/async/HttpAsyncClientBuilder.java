@@ -29,6 +29,8 @@ package org.apache.hc.client5.http.impl.async;
 
 import java.io.Closeable;
 import java.net.ProxySelector;
+import java.net.SocketAddress;
+import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -114,6 +116,7 @@ import org.apache.hc.core5.http2.protocol.H2RequestConnControl;
 import org.apache.hc.core5.http2.protocol.H2RequestContent;
 import org.apache.hc.core5.http2.protocol.H2RequestTargetHost;
 import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.io.IOFunction;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
@@ -200,6 +203,7 @@ public class HttpAsyncClientBuilder {
     private AsyncClientConnectionManager connManager;
     private boolean connManagerShared;
     private IOReactorConfig ioReactorConfig;
+    private IOFunction<SocketAddress, SocketChannel> socketChannelFactory;
     private IOSessionListener ioSessionListener;
     private Callback<Exception> ioReactorExceptionCallback;
     private Http1Config h1Config;
@@ -343,6 +347,18 @@ public class HttpAsyncClientBuilder {
      */
     public final HttpAsyncClientBuilder setIOReactorConfig(final IOReactorConfig ioReactorConfig) {
         this.ioReactorConfig = ioReactorConfig;
+        return this;
+    }
+
+    /**
+     * Sets the factory used by the I/O reactor to create socket channels for
+     * outgoing connections.
+     *
+     * @return this instance.
+     * @since 5.7
+     */
+    public final HttpAsyncClientBuilder setSocketChannelFactory(final IOFunction<SocketAddress, SocketChannel> socketChannelFactory) {
+        this.socketChannelFactory = socketChannelFactory;
         return this;
     }
 
@@ -1197,7 +1213,8 @@ public class HttpAsyncClientBuilder {
                 ioSessionDecorator != null ? ioSessionDecorator : LoggingIOSessionDecorator.INSTANCE,
                 ioReactorExceptionCallback != null ? ioReactorExceptionCallback : LoggingExceptionCallback.INSTANCE,
                 ioSessionListener,
-                ioSession -> ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE));
+                ioSession -> ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE),
+                socketChannelFactory);
 
         if (execInterceptors != null) {
             for (final ExecInterceptorEntry entry: execInterceptors) {
