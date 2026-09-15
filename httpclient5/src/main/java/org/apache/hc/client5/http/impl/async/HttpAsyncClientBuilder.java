@@ -53,6 +53,7 @@ import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.entity.compress.CompressionDictionaryStore;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
@@ -261,6 +262,8 @@ public class HttpAsyncClientBuilder {
      * Maps {@code Content-Encoding} tokens to decoder factories in insertion order.
      */
     private LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> contentDecoderMap;
+
+    private CompressionDictionaryStore compressionDictionaryStore;
 
     /**
      * When {@code true} the client skips <i>all</i> transparent response decompression.
@@ -869,7 +872,9 @@ public class HttpAsyncClientBuilder {
      * Replaces the current decoder registry with {@code contentDecoderMap}.
      *
      * <p>The map’s insertion order defines the {@code Accept-Encoding}
-     * preference list sent on every request.</p>
+     * preference list sent on every request. The dictionary-aware {@code dcb}
+     * and {@code dcz} codings are reserved and must not be registered here;
+     * they require the dictionary selected for the current exchange.</p>
      *
      * @param contentDecoderMap a non-empty {@link LinkedHashMap} whose keys are
      *                          lower-case coding tokens and whose values create
@@ -880,6 +885,30 @@ public class HttpAsyncClientBuilder {
     public HttpAsyncClientBuilder setContentDecoderMap(
             final LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> contentDecoderMap) {
         this.contentDecoderMap = contentDecoderMap;
+        return this;
+    }
+
+    /**
+     * Sets the compression dictionary store used for Compression Dictionary
+     * Transport as defined by RFC 9842.
+     * <p>
+     * When configured, matching dictionaries can be advertised and used for
+     * {@code dcb} and {@code dcz} response decompression. The default cookie
+     * store is bound to the dictionary store so clearing cookies also clears
+     * the corresponding dictionary partition. A custom cookie store cannot be
+     * combined with dictionary transport because its clearing lifecycle cannot
+     * be observed; such a configuration is rejected rather than silently
+     * disabling dictionary transport.
+     * </p>
+     *
+     * @param compressionDictionaryStore the compression dictionary store,
+     *                                   or {@code null} to disable dictionary transport
+     * @return {@code this} builder instance
+     * @since 5.7
+     */
+    public final HttpAsyncClientBuilder setCompressionDictionaryStore(
+            final CompressionDictionaryStore compressionDictionaryStore) {
+        this.compressionDictionaryStore = compressionDictionaryStore;
         return this;
     }
 
@@ -991,6 +1020,14 @@ public class HttpAsyncClientBuilder {
 
     @SuppressWarnings("deprecated")
     public CloseableHttpAsyncClient build() {
+        if (cookieManagementDisabled && compressionDictionaryStore != null) {
+            throw new IllegalStateException(
+                    "Compression Dictionary Transport requires cookie management");
+        }
+        if (compressionDictionaryStore != null && cookieStore != null) {
+            throw new IllegalStateException(
+                    "Compression Dictionary Transport requires the managed cookie store");
+        }
         AsyncClientConnectionManager connManagerCopy = this.connManager;
         if (connManagerCopy == null) {
             connManagerCopy = PoolingAsyncClientConnectionManagerBuilder.create().build();
@@ -1117,11 +1154,11 @@ public class HttpAsyncClientBuilder {
         if (!contentCompressionDisabled) {
             if (contentDecoderMap != null && !contentDecoderMap.isEmpty()) {
                 execChainDefinition.addFirst(
-                        new ContentCompressionAsyncExec(contentDecoderMap),
+                        new ContentCompressionAsyncExec(contentDecoderMap, compressionDictionaryStore),
                         ChainElement.COMPRESS.name());
             } else {
                 execChainDefinition.addFirst(
-                        new ContentCompressionAsyncExec(),
+                        new ContentCompressionAsyncExec(compressionDictionaryStore),
                         ChainElement.COMPRESS.name());
             }
         }
@@ -1249,6 +1286,10 @@ public class HttpAsyncClientBuilder {
         CookieStore cookieStoreCopy = this.cookieStore;
         if (cookieStoreCopy == null) {
             cookieStoreCopy = new BasicCookieStore();
+            if (compressionDictionaryStore != null) {
+                cookieStoreCopy = new CompressionDictionaryCookieStore(
+                        cookieStoreCopy, compressionDictionaryStore);
+            }
         }
 
         CredentialsProvider credentialsProviderCopy = this.credentialsProvider;
