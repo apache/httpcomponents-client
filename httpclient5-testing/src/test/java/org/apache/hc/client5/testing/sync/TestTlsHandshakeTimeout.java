@@ -26,6 +26,11 @@
  */
 package org.apache.hc.client5.testing.sync;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
@@ -42,15 +47,12 @@ import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.client5.testing.tls.TlsHandshakeTimeoutServer;
 import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+@Tag("time-out")
 public class TestTlsHandshakeTimeout {
     @Timeout(5)
     @ParameterizedTest
