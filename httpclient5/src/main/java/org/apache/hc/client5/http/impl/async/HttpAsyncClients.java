@@ -276,12 +276,16 @@ public final class HttpAsyncClients {
     private static MinimalH2AsyncClient createMinimalHttp2AsyncClientImpl(
             final IOEventHandlerFactory eventHandlerFactory,
             final AsyncPushConsumerRegistry pushConsumerRegistry,
+            final H2Config h2Config,
+            final CharCodingConfig charCodingConfig,
             final IOReactorConfig ioReactorConfig,
             final DnsResolver dnsResolver,
             final TlsStrategy tlsStrategy) {
         return new MinimalH2AsyncClient(
                 eventHandlerFactory,
                 pushConsumerRegistry,
+                h2Config,
+                charCodingConfig,
                 ioReactorConfig,
                 new DefaultThreadFactory("httpclient-main", true),
                 new DefaultThreadFactory("httpclient-dispatch", true),
@@ -307,6 +311,8 @@ public final class HttpAsyncClients {
                         CharCodingConfig.DEFAULT,
                         LoggingExceptionCallback.INSTANCE),
                 pushConsumerRegistry,
+                h2Config,
+                CharCodingConfig.DEFAULT,
                 ioReactorConfig,
                 dnsResolver,
                 tlsStrategy);

@@ -176,6 +176,18 @@ public interface AsyncExecRuntime {
     void markConnectionNonReusable();
 
     /**
+     * Returns the route that has already been established by the connection pool,
+     * or {@code null} if route completion is not handled at the pool level.
+     *
+     * @return the established route, or {@code null}.
+     *
+     * @since 5.7
+     */
+    default HttpRoute getEstablishedRoute() {
+        return null;
+    }
+
+    /**
      * Forks this runtime for parallel execution.
      *
      * @return another runtime with the same configuration.
