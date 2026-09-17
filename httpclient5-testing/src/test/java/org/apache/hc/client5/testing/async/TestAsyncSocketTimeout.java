@@ -39,6 +39,7 @@ import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.io.CloseMode;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -117,6 +118,7 @@ abstract class AbstractTestSocketTimeout extends AbstractIntegrationTestBase {
     }
 }
 
+@Tag("time-out")
 public class TestAsyncSocketTimeout {
     @Nested
     class Http extends AbstractTestSocketTimeout {
