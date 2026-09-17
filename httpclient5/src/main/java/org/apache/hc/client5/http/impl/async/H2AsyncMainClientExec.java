@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.HttpRoute;
@@ -95,15 +96,25 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
             LOG.debug("{} executing {} {}", exchangeId, request.getMethod(), request.getRequestUri());
         }
 
+        final AtomicInteger messageCountDown = new AtomicInteger(2);
         final AsyncClientExchangeHandler internalExchangeHandler = new AsyncClientExchangeHandler() {
 
             private final AtomicReference<AsyncDataConsumer> entityConsumerRef = new AtomicReference<>();
+
+            private void messageCompleted() {
+                if (messageCountDown.decrementAndGet() == 0) {
+                    asyncExecCallback.completed();
+                }
+            }
 
             @Override
             public void releaseResources() {
                 final AsyncDataConsumer entityConsumer = entityConsumerRef.getAndSet(null);
                 if (entityConsumer != null) {
                     entityConsumer.releaseResources();
+                }
+                if (messageCountDown.get() > 0) {
+                    messageCompleted();
                 }
             }
 
@@ -114,12 +125,16 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
                     entityConsumer.releaseResources();
                 }
                 execRuntime.markConnectionNonReusable();
-                asyncExecCallback.failed(cause);
+                if (messageCountDown.getAndSet(0) > 0) {
+                    asyncExecCallback.failed(cause);
+                }
             }
 
             @Override
             public void cancel() {
-                failed(new InterruptedIOException());
+                if (messageCountDown.get() > 0) {
+                    failed(new InterruptedIOException());
+                }
             }
 
             @Override
@@ -129,6 +144,9 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
                 httpProcessor.process(request, entityProducer, clientContext);
 
                 channel.sendRequest(request, entityProducer, context);
+                if (entityProducer == null) {
+                    messageCompleted();
+                }
             }
 
             @Override
@@ -138,7 +156,31 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
 
             @Override
             public void produce(final DataStreamChannel channel) throws IOException {
-                entityProducer.produce(channel);
+                entityProducer.produce(new DataStreamChannel() {
+
+                    @Override
+                    public void requestOutput() {
+                        channel.requestOutput();
+                    }
+
+                    @Override
+                    public int write(final ByteBuffer src) throws IOException {
+                        return channel.write(src);
+                    }
+
+                    @Override
+                    public void endStream(final List<? extends Header> trailers) throws IOException {
+                        channel.endStream(trailers);
+                        messageCompleted();
+                    }
+
+                    @Override
+                    public void endStream() throws IOException {
+                        channel.endStream();
+                        messageCompleted();
+                    }
+
+                });
             }
 
             @Override
@@ -157,7 +199,7 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
                 entityConsumerRef.set(asyncExecCallback.handleResponse(response, entityDetails));
                 if (entityDetails == null) {
                     execRuntime.validateConnection();
-                    asyncExecCallback.completed();
+                    messageCompleted();
                 }
             }
 
@@ -187,7 +229,7 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
                 } else {
                     execRuntime.validateConnection();
                 }
-                asyncExecCallback.completed();
+                messageCompleted();
             }
 
         };
