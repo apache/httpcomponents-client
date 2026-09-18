@@ -765,7 +765,11 @@ public class HttpClientBuilder {
      *
      * @return this instance.
      * @since 4.4
+     * @deprecated Configure connection keep-alive settings appropriately and use
+     * {@link #evictExpiredConnections()} instead.
+     * @see RequestConfig#getConnectionKeepAlive()
      */
+    @Deprecated
     public final HttpClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {
         this.evictIdleConnections = true;
         this.maxIdleTime = Args.notNull(maxIdleTime, "Max idle time");

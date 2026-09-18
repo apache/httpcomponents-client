@@ -734,7 +734,11 @@ public class H2AsyncClientBuilder {
      * get closed and evicted from the pool.
      *
      * @return this instance.
+     * @deprecated Configure connection keep-alive settings appropriately and use
+     * {@link #evictExpiredConnections()} instead.
+     * @see RequestConfig#getConnectionKeepAlive()
      */
+    @Deprecated
     public final H2AsyncClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {
         this.evictIdleConnections = true;
         this.maxIdleTime = maxIdleTime;
