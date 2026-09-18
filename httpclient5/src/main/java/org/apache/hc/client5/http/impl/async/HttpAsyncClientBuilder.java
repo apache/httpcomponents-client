@@ -234,6 +234,7 @@ public class HttpAsyncClientBuilder {
     private RequestConfig defaultRequestConfig;
     private boolean evictExpiredConnections;
     private boolean evictIdleConnections;
+    private TimeValue evictorSleepTime;
     private TimeValue maxIdleTime;
 
     private boolean automaticRetriesDisabled;
@@ -860,9 +861,41 @@ public class HttpAsyncClientBuilder {
      */
     public final HttpAsyncClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {
         this.evictIdleConnections = true;
+        this.evictorSleepTime = null;
         this.maxIdleTime = Args.notNull(maxIdleTime, "Max idle time");
         return this;
     }
+
+    /**
+     * Makes this instance of HttpClient proactively evict idle connections from the
+     * connection pool using a background thread with a custom eviction interval.
+     * <p>
+     * One MUST explicitly close HttpClient with {@link CloseableHttpAsyncClient#close()} in order
+     * to stop and release the background thread.
+     * <p>
+     * Please note this method has no effect if the instance of HttpClient is configured to
+     * use a shared connection manager.
+     *
+     * @see #setConnectionManagerShared(boolean)
+     * @see ConnPoolControl#closeIdle(TimeValue)
+     *
+     * @param sleepTime interval between successive connection eviction checks.
+     * @param maxIdleTime maximum time persistent connections can stay idle while kept alive
+     * in the connection pool. Connections whose inactivity period exceeds this value will
+     * get closed and evicted from the pool.
+     *
+     * @return this instance.
+     * @since 5.7
+     */
+    public final HttpAsyncClientBuilder evictIdleConnections(
+            final TimeValue sleepTime,
+            final TimeValue maxIdleTime) {
+        this.evictIdleConnections = true;
+        this.evictorSleepTime = Args.notNull(sleepTime, "Sleep time");
+        this.maxIdleTime = Args.notNull(maxIdleTime, "Max idle time");
+        return this;
+    }
+
 
 
     /**
@@ -1170,7 +1203,7 @@ public class HttpAsyncClientBuilder {
             if (evictExpiredConnections || evictIdleConnections) {
                 if (connManagerCopy instanceof ConnPoolControl) {
                     final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor((ConnPoolControl<?>) connManagerCopy,
-                            null, evictIdleConnections ? maxIdleTime : null);
+                            evictorSleepTime, evictIdleConnections ? maxIdleTime : null);
                     closeablesCopy.add(connectionEvictor::shutdown);
                     connectionEvictor.start();
                 }
