@@ -27,27 +27,34 @@
 package org.apache.hc.client5.http.examples;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
- * Example demonstrating how to evict expired and idle connections
+ * Example demonstrating how to make sure connections connections expire
+ * after 5 seconds of inactivity and how to proactively evict expired connections
  * from the connection pool.
  */
 public class ClientEvictExpiredConnections {
 
     public static void main(final String[] args) throws Exception {
-        final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-        cm.setMaxTotal(100);
+        final PoolingHttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
+                .setMaxConnTotal(100)
+                .build();
         try (final CloseableHttpClient httpclient = HttpClients.custom()
                 .setConnectionManager(cm)
+                // Lazily evict expired connections every minute
                 .evictExpiredConnections()
-                .evictIdleConnections(TimeValue.ofSeconds(5))
+                .setDefaultRequestConfig(RequestConfig.custom()
+                        .setConnectionKeepAlive(TimeValue.ofSeconds(5))
+                        .build())
                 .build()) {
             // create an array of URIs to perform GETs on
             final String[] urisToGet = {
@@ -72,8 +79,11 @@ public class ClientEvictExpiredConnections {
             final PoolStats stats1 = cm.getTotalStats();
             System.out.println("Connections kept alive: " + stats1.getAvailable());
 
-            // Sleep 10 sec and let the connection evictor do its job
+            // Sleep 10 sec
             Thread.sleep(10000);
+
+            // Manually force eviction of expired connections
+            cm.closeExpired();
 
             final PoolStats stats2 = cm.getTotalStats();
             System.out.println("Connections kept alive: " + stats2.getAvailable());
