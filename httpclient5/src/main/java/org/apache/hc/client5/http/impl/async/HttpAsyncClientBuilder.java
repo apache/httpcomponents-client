@@ -857,7 +857,10 @@ public class HttpAsyncClientBuilder {
      * get closed and evicted from the pool.
      *
      * @return this instance.
+          * @deprecated Configure connection keep-alive settings appropriately and use
+     * {@link #evictExpiredConnections()} instead.
      */
+    @Deprecated
     public final HttpAsyncClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {
         this.evictIdleConnections = true;
         this.maxIdleTime = Args.notNull(maxIdleTime, "Max idle time");
