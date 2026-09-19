@@ -181,6 +181,7 @@ public class ConnectionConfig implements Cloneable {
         return new Builder()
                 .setConnectTimeout(config.getConnectTimeout())
                 .setSocketTimeout(config.getSocketTimeout())
+                .setIdleTimeout(config.getIdleTimeout())
                 .setValidateAfterInactivity(config.getValidateAfterInactivity())
                 .setTimeToLive(config.getTimeToLive());
     }
