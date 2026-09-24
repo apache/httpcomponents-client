@@ -67,7 +67,7 @@
     <httpcore.version>5.5-beta3</httpcore.version>
     <log4j.version>2.26.1</log4j.version>
     <brotli4j.version>1.23.0</brotli4j.version>
-    <conscrypt.version>2.6.1</conscrypt.version>
+    <conscrypt.version>2.6.3</conscrypt.version>
     <ehcache.version>3.11.1</ehcache.version>
     <memcached.version>2.12.3</memcached.version>
     <slf4j.version>1.7.36</slf4j.version>
@@ -76,14 +76,14 @@
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <rxjava3.version>3.1.12</rxjava3.version>
     <testcontainers.version>1.21.4</testcontainers.version>
-    <junixsocket.version>2.10.1</junixsocket.version>
+    <junixsocket.version>2.11.0</junixsocket.version>
     <api.comparison.version>5.6</api.comparison.version>
     <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer,jdk.net.ExtendedSocketOptions,jdk.net.Sockets</hc.animal-sniffer.signature.ignores>
     <commons.compress.version>1.28.0</commons.compress.version>
-    <zstd.jni.version>1.5.7-11</zstd.jni.version>
-    <micrometer.version>1.17.0</micrometer.version>
-    <micrometer.tracing.version>1.7.0</micrometer.tracing.version>
-    <otel.version>1.64.0</otel.version>     <!-- already used elsewhere -->
+    <zstd.jni.version>1.5.7-15</zstd.jni.version>
+    <micrometer.version>1.17.1</micrometer.version>
+    <micrometer.tracing.version>1.7.1</micrometer.tracing.version>
+    <otel.version>1.65.0</otel.version>     <!-- already used elsewhere -->
     <commons-compress.version>1.26.2</commons-compress.version>
     <caffeine.version>2.9.3</caffeine.version>  <!-- java 8. current version 3.2.3 -->
     <jakarta.ws.rs.version>4.0.0</jakarta.ws.rs.version>
@@ -523,7 +523,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-toolchains-plugin</artifactId>
-            <version>3.2.0</version>
+            <version>3.3.0</version>
             <configuration combine.self="override">
               <toolchains>
                 <jdk>
