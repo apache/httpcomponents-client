@@ -60,6 +60,7 @@ import org.apache.hc.client5.http.entity.compress.BasicCompressionDictionaryStor
 import org.apache.hc.client5.http.entity.compress.CompressionDictionary;
 import org.apache.hc.client5.http.entity.compress.CompressionDictionaryStore;
 import org.apache.hc.client5.http.impl.Brotli4jRuntime;
+import org.apache.hc.client5.http.impl.CompressionDictionaryCookieStore;
 import org.apache.hc.client5.http.impl.ZstdRuntime;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.CancellableDependency;

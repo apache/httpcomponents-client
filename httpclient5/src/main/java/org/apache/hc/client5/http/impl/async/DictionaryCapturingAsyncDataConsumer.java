@@ -36,6 +36,7 @@ import java.util.List;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.entity.compress.CompressionDictionary;
 import org.apache.hc.client5.http.entity.compress.CompressionDictionaryStore;
+import org.apache.hc.client5.http.impl.UseAsDictionary;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
