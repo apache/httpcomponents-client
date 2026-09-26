@@ -89,6 +89,11 @@ final class ReleasingAsyncClientExchangeHandler implements AsyncClientExchangeHa
     }
 
     @Override
+    public void outputAborted() {
+        handler.outputAborted();
+    }
+
+    @Override
     public void updateCapacity(final CapacityChannel capacityChannel) throws IOException {
         handler.updateCapacity(capacityChannel);
     }

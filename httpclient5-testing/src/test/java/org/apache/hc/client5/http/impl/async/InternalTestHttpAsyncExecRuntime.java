@@ -125,6 +125,11 @@ public final class InternalTestHttpAsyncExecRuntime extends InternalHttpAsyncExe
                 exchangeHandler.consume(src);
             }
 
+            @Override
+            public void outputAborted() {
+                exchangeHandler.outputAborted();
+            }
+
             public void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
                 exchangeHandler.streamEnd(trailers);
             }

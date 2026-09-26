@@ -120,6 +120,11 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
     }
 
     @Override
+    public void outputAborted() {
+        handler.outputAborted();
+    }
+
+    @Override
     public void consumeInformation(
             final HttpResponse response,
             final HttpContext context) throws HttpException, IOException {

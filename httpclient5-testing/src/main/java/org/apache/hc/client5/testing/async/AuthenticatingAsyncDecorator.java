@@ -156,6 +156,14 @@ public class AuthenticatingAsyncDecorator implements AsyncServerExchangeHandler 
     }
 
     @Override
+    public void outputAborted() {
+        final AsyncResponseProducer responseProducer = responseProducerRef.get();
+        if (responseProducer == null) {
+            exchangeHandler.outputAborted();
+        }
+    }
+
+    @Override
     public final int available() {
         final AsyncResponseProducer responseProducer = responseProducerRef.get();
         if (responseProducer == null) {

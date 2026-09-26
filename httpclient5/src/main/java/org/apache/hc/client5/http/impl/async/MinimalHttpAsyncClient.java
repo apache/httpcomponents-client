@@ -394,6 +394,11 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                                     }
 
                                     @Override
+                                    public void outputAborted() {
+                                        exchangeHandler.outputAborted();
+                                    }
+
+                                    @Override
                                     public void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
                                         if (messageCountDown.decrementAndGet() <= 0) {
                                             endpoint.releaseAndReuse();
