@@ -578,6 +578,12 @@ public class RequestConfig implements Cloneable {
          * Determines the default of value of connection keep-alive time period when not
          * explicitly communicated by the origin server with a {@code Keep-Alive} response
          * header.
+         * <P>
+         * Please note this parameter applies to HTTP/1.1 connections only. It has no effect
+         * on HTTP/2 connections. HTTP/2 connections do not make use of the keep-alive mechanism
+         * and do not expire. Consider setting a finite socket timeout with
+         * {@link ConnectionConfig#getSocketTimeout()}, which will trigger clean termination of
+         * HTTP/2 connections after the specific period of inactivity.
          * <p>
          * A negative value is interpreted as an infinite keep-alive period.
          * </p>

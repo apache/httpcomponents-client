@@ -53,6 +53,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
@@ -214,7 +215,10 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
                 httpProcessor.process(response, entityDetails, clientContext);
 
                 entityConsumerRef.set(asyncExecCallback.handleResponse(response, entityDetails));
-                final TimeValue keepAliveDuration = keepAliveStrategy.getKeepAliveDuration(response, clientContext);
+
+                final ProtocolVersion protocolVersion = context.getProtocolVersion();
+                final TimeValue keepAliveDuration = protocolVersion.lessEquals(HttpVersion.HTTP_1_1) ?
+                        keepAliveStrategy.getKeepAliveDuration(response, clientContext) : null;
                 Object userToken = clientContext.getUserToken();
                 if (userToken == null) {
                     userToken = userTokenHandler.getUserToken(route, request, clientContext);

@@ -36,6 +36,8 @@ import org.apache.hc.core5.util.TimeValue;
  * Interface for deciding how long a connection can remain
  * idle before being reused.
  * <p>
+ * Please note this strategy applies to HTTP/1.1 connections only.
+ * <p>
  * Implementations of this interface must be thread-safe. Access to shared
  * data must be synchronized as methods of this interface may be executed
  * from multiple threads.
@@ -48,7 +50,7 @@ public interface ConnectionKeepAliveStrategy {
     /**
      * Returns the duration of time which this connection can be safely kept
      * idle. If the connection is left idle for longer than this period of time,
-     * it MUST not reused. A value of 0 or less may be returned to indicate that
+     * it MUST not be re-used. A value of 0 or less may be returned to indicate that
      * there is no suitable suggestion.
      *
      * When coupled with a {@link org.apache.hc.core5.http.ConnectionReuseStrategy}, if

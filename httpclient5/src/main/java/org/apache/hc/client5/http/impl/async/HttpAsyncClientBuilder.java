@@ -48,6 +48,7 @@ import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
@@ -857,9 +858,11 @@ public class HttpAsyncClientBuilder {
      * get closed and evicted from the pool.
      *
      * @return this instance.
-     * @deprecated Configure connection keep-alive settings appropriately and use
+     * @deprecated Configure connection settings appropriately and use
      * {@link #evictExpiredConnections()} instead.
      * @see RequestConfig#getConnectionKeepAlive()
+     * @see ConnectionConfig#getSocketTimeout()
+     * @see ConnectionConfig#getTimeToLive()
      */
     @Deprecated
     public final HttpAsyncClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {

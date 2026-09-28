@@ -440,7 +440,6 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
     @Override
     public void release(final AsyncConnectionEndpoint endpoint, final Object state, final TimeValue keepAlive) {
         Args.notNull(endpoint, "Managed endpoint");
-        Args.notNull(keepAlive, "Keep-alive time");
         final PoolEntry<HttpRoute, ManagedAsyncClientConnection> entry = cast(endpoint).detach();
         if (entry == null) {
             return;
@@ -456,7 +455,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         try {
             if (reusable) {
                 entry.updateState(state);
-                entry.updateExpiry(keepAlive);
+                if (keepAlive != null) {
+                    entry.updateExpiry(keepAlive);
+                }
                 connection.passivate();
                 if (LOG.isDebugEnabled()) {
                     final String s;
