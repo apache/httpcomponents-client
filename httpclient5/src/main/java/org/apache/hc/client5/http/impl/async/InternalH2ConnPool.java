@@ -102,8 +102,10 @@ class InternalH2ConnPool implements ModalCloseable {
                 });
     }
 
-    public void closeIdle(final TimeValue idleTime) {
-        sessionPool.closeIdle(idleTime);
+    public void evictExpired() {
+        sessionPool.enumAvailable(e -> {
+            // no op
+        });
     }
 
     public void setConnectionConfigResolver(final Resolver<HttpHost, ConnectionConfig> connectionConfigResolver) {

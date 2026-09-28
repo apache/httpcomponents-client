@@ -197,8 +197,7 @@ public class H2AsyncClientBuilder {
     private Collection<? extends Header> defaultHeaders;
     private RequestConfig defaultRequestConfig;
     private Resolver<HttpHost, ConnectionConfig> connectionConfigResolver;
-    private boolean evictIdleConnections;
-    private TimeValue maxIdleTime;
+    private boolean evictExpiredConnections;
 
     private boolean automaticRetriesDisabled;
     private boolean redirectHandlingDisabled;
@@ -211,7 +210,6 @@ public class H2AsyncClientBuilder {
     private ThreadFactory threadFactory;
 
     private List<Closeable> closeables;
-
 
     private Callback<Exception> ioReactorExceptionCallback;
 
@@ -718,33 +716,39 @@ public class H2AsyncClientBuilder {
     }
 
     /**
-     * Makes this instance of HttpClient proactively evict idle connections from the
-     * connection pool using a background thread.
-     * <p>
-     * One MUST explicitly close HttpClient with {@link CloseableHttpAsyncClient#close()}
-     * in order to stop and release the background thread.
-     * </p>
-     * <p>
-     * Please note this method has no effect if the instance of HttpClient is configured to
-     * use a shared connection manager.
-     * </p>
+     * This method has no effect. Its initial implementation has been removed, as it can
+     * cause premature termination of sessions with multiplexing message exchanges.
      *
-     * @param maxIdleTime maximum time persistent connections can stay idle while kept alive
-     * in the connection pool. Connections whose inactivity period exceeds this value will
-     * get closed and evicted from the pool.
+     * @deprecated This method has no effect as of version 5.7 and should not be used.
+     * Use {{@link ConnectionConfig#getSocketTimeout()}} to ensure idle connections time out
+     * and get gracefully terminated. Use {@link #evictExpiredConnections()} to proactively
+     * evict expired (closed) connections if required.
      *
-     * @return this instance.
-     * @deprecated Configure connection keep-alive settings appropriately and use
-     * {@link #evictExpiredConnections()} instead.
-     * @see RequestConfig#getConnectionKeepAlive()
+     * @see ConnectionConfig#getSocketTimeout()
      */
     @Deprecated
     public final H2AsyncClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {
-        this.evictIdleConnections = true;
-        this.maxIdleTime = maxIdleTime;
         return this;
     }
 
+    /**
+     * Makes this instance of HttpClient proactively evict expired connections from the
+     * connection pool using a background thread.
+     * <p>
+     * Use {{@link ConnectionConfig#getSocketTimeout()}} to ensure idle connections time out
+     * and get gracefully terminated.
+     * <p>
+     * One MUST explicitly close HttpClient with {@link CloseableHttpAsyncClient#close()} in order
+     * to stop and release the background thread.
+     *
+     * @return this instance.
+     *
+     * @since 5.7
+     */
+    public final H2AsyncClientBuilder evictExpiredConnections() {
+        this.evictExpiredConnections = true;
+        return this;
+    }
 
     /**
      * Request exec chain customization and extension.
@@ -982,9 +986,8 @@ public class H2AsyncClientBuilder {
         if (closeablesCopy == null) {
             closeablesCopy = new ArrayList<>(1);
         }
-        if (evictIdleConnections) {
-            final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(connPool,
-                    maxIdleTime != null ? maxIdleTime : TimeValue.ofSeconds(30L));
+        if (evictExpiredConnections) {
+            final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(connPool);
             closeablesCopy.add(connectionEvictor::shutdown);
             connectionEvictor.start();
         }
@@ -1008,16 +1011,18 @@ public class H2AsyncClientBuilder {
 
     }
 
+    private static final TimeValue ONE_MINUTE = TimeValue.ofMinutes(1L);
+
     static class IdleConnectionEvictor implements Closeable {
 
         private final Thread thread;
 
-        public IdleConnectionEvictor(final InternalH2ConnPool connPool, final TimeValue maxIdleTime) {
+        public IdleConnectionEvictor(final InternalH2ConnPool connPool) {
             this.thread = new DefaultThreadFactory("idle-connection-evictor", true).newThread(() -> {
                 try {
                     while (!Thread.currentThread().isInterrupted()) {
-                        maxIdleTime.sleep();
-                        connPool.closeIdle(maxIdleTime);
+                        ONE_MINUTE.sleep();
+                        connPool.evictExpired();
                     }
                 } catch (final InterruptedException ex) {
                     Thread.currentThread().interrupt();
