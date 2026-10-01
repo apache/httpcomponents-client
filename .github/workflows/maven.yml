@@ -42,7 +42,7 @@ jobs:
       fail-fast: false
         
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - uses: actions/cache@v4
       with:
         path: ~/.m2/repository
