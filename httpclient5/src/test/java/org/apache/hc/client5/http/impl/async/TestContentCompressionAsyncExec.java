@@ -40,7 +40,10 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.UnaryOperator;
 
@@ -158,6 +161,33 @@ class TestContentCompressionAsyncExec {
         when(originalCb.handleResponse(eq(rsp), any(EntityDetails.class))).thenReturn(downstream);
 
         assertSame(downstream, cb.handleResponse(rsp, details));
+    }
+
+    @Test
+    void testMultipleContentCodingsAreWrappedInApplicationOrder() throws Exception {
+        final List<String> applied = new ArrayList<>();
+        final LinkedHashMap<String, UnaryOperator<AsyncDataConsumer>> decoders = new LinkedHashMap<>();
+        decoders.put("first", downstream -> {
+            applied.add("first");
+            return downstream;
+        });
+        decoders.put("second", downstream -> {
+            applied.add("second");
+            return downstream;
+        });
+        impl = new ContentCompressionAsyncExec(decoders);
+
+        final HttpRequest request = new BasicHttpRequest(Method.GET, "/");
+        final AsyncExecCallback cb = executeAndCapture(request);
+        final HttpResponse rsp = new BasicHttpResponse(200, "OK");
+        final EntityDetails details = mock(EntityDetails.class);
+        when(details.getContentEncoding()).thenReturn("first, second");
+        when(originalCb.handleResponse(same(rsp), any(EntityDetails.class)))
+                .thenReturn(new StringAsyncEntityConsumer());
+
+        cb.handleResponse(rsp, details);
+
+        assertEquals(Arrays.asList("first", "second"), applied);
     }
 
     @Test
