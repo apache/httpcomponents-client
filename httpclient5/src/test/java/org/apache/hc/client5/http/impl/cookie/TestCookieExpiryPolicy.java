@@ -27,38 +27,31 @@
 
 package org.apache.hc.client5.http.impl.cookie;
 
-import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
+import java.time.Duration;
+import java.time.Instant;
 
-/**
- * Standard {@link org.apache.hc.client5.http.cookie.CookieSpec} implementation that enforces
- * a more relaxed interpretation of the HTTP state management specification (RFC 6265, section 5)
- * for interoperability with existing servers that do not conform to the well behaved profile
- * (RFC 6265, section 4).
- *
- * @since 4.4
- */
-@Contract(threading = ThreadingBehavior.SAFE)
-public class RFC6265LaxSpec extends RFC6265CookieSpecBase {
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-    public RFC6265LaxSpec() {
-        super(BasicPathHandler.INSTANCE,
-                BasicDomainHandler.INSTANCE,
-                LaxMaxAgeHandler.INSTANCE,
-                BasicSecureHandler.INSTANCE,
-                BasicHttpOnlyHandler.INSTANCE,
-                LaxExpiresHandler.INSTANCE,
-                BasicSameSiteHandler.INSTANCE);
+class TestCookieExpiryPolicy {
+
+    private static final Instant NOW = Instant.parse("2026-01-01T00:00:00Z");
+
+    @Test
+    void testCapsExpiryBeyond400Days() {
+        final Instant capped = CookieExpiryPolicy.cap(NOW.plus(Duration.ofDays(1000)), NOW);
+        Assertions.assertEquals(NOW.plus(Duration.ofDays(400)), capped);
     }
 
-    RFC6265LaxSpec(final CommonCookieAttributeHandler... handlers) {
-        super(handlers);
+    @Test
+    void testLeavesEarlierExpiryUnchanged() {
+        final Instant near = NOW.plus(Duration.ofDays(10));
+        Assertions.assertEquals(near, CookieExpiryPolicy.cap(near, NOW));
     }
 
-    @Override
-    public String toString() {
-        return "rfc6265-lax";
+    @Test
+    void testPreservesNull() {
+        Assertions.assertNull(CookieExpiryPolicy.cap(null, NOW));
     }
 
 }

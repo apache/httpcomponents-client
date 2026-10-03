@@ -186,7 +186,7 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
 
         final Instant expiryDate = ZonedDateTime.of(year, month.getValue(), day, hour, minute, second, 0,
                 ZoneId.of("UTC")).toInstant();
-        cookie.setExpiryDate(expiryDate);
+        cookie.setExpiryDate(CookieExpiryPolicy.cap(expiryDate, Instant.now()));
     }
 
     private void skipDelims(final CharSequence buf, final Tokenizer.Cursor cursor) {

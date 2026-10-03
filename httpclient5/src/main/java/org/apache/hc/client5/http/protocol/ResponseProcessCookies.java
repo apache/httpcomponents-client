@@ -121,7 +121,7 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
                 for (final Cookie cookie : cookies) {
                     try {
                         cookieSpec.validate(cookie, cookieOrigin);
-                        cookieStore.addCookie(cookie);
+                        cookieStore.addCookie(cookie, cookieOrigin.isSecure());
 
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("{} Cookie accepted [{}]", exchangeId, formatCookie(cookie));
