@@ -1,3 +1,44 @@
+Release 5.6.5
+------------------
+
+This maintenance release fixes several defects found since the previous release
+including the defect in the async Brotli decompression code that can cause
+the message exchange to hang indefinitely. It also upgrades HttpCore to version 5.4.4.
+
+Change Log
+-------------------
+
+* Upgraded HttpCore to version 5.4.4.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2433: Prevent concurrent HTTP/2 request body replay.
+  Contributed by Matthias Kurz <m.kurz at irregular.at>
+
+* HTTPCLIENT-2432: Fixed connection-pool leak in ResponseEntityProxy#cleanup() when
+  runtime #disconnectEndpoint throws an exception (#883).
+  Contributed by Victor Alekseev <krocodl at gmail.com>
+
+* Decode punycode public suffixes in PublicSuffixMatcher#verify (#876).
+  Contributed by Javid Khan <dxbjavid at gmail.com>
+
+* Fixed Brotli decompression hang with large input buffers.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTP cache to treat malformed delta-seconds as absent.
+  Contributed by Arturo Bernal Javid Khan <dxbjavid at gmail.com>
+
+* Bug-fix: ResponseCachingPolicy incorrectly applies `neverCache1_1ResponsesWithQueryString`
+  config parameter. This config parameter and related functionality will be deprecated
+  in the next feature release and removed in the future.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Removed invalid request version check from ResponseCachingPolicy.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fixed resource leaking on error in AsyncCachingExec
+  Contributed by Jeremie Bolduc <16137441+Jouramie at users.noreply.github.com>
+
+
 Release 5.6.4
 ------------------
 
