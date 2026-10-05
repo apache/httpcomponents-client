@@ -78,6 +78,21 @@ class SseEntityConsumerTest {
     }
 
     @Test
+    void treatsLoneCrAsLineTerminator() throws Exception {
+        final Cb cb = new Cb();
+        final SseEntityConsumer c = new SseEntityConsumer(cb);
+
+        c.streamStart(ContentType.parse("text/event-stream"));
+        // A stream delimited with lone CR (a valid SSE separator). A CR in the id value must
+        // terminate the line rather than be retained, otherwise it would later be copied into
+        // the Last-Event-ID request header on reconnect.
+        c.data(CharBuffer.wrap("id: 1\rdata: v\r\r"), true);
+
+        assertEquals("1", cb.id);
+        assertEquals("v", cb.data);
+    }
+
+    @Test
     void rejectsWrongContentType() {
         final Cb cb = new Cb();
         final SseEntityConsumer c = new SseEntityConsumer(cb);

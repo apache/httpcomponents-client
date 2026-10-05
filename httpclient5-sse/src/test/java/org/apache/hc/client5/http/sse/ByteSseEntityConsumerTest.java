@@ -85,6 +85,23 @@ class ByteSseEntityConsumerTest {
     }
 
     @Test
+    void treatsLoneCrAsLineTerminator() throws Exception {
+        final Cb cb = new Cb();
+        final ByteSseEntityConsumer c = new ByteSseEntityConsumer(cb);
+        c.streamStart(ContentType.parse("text/event-stream"));
+
+        // A stream delimited with lone CR (a valid SSE separator). A CR in the id value must
+        // terminate the line rather than be retained, otherwise it would later be copied into
+        // the Last-Event-ID request header on reconnect.
+        final byte[] p = "id: 1\rdata: v\r\r".getBytes(StandardCharsets.UTF_8);
+        c.consume(ByteBuffer.wrap(p));
+        c.streamEnd(null);
+
+        assertEquals("1", cb.id);
+        assertEquals("v", cb.data);
+    }
+
+    @Test
     void emitsRetry() throws Exception {
         final Cb cb = new Cb();
         final ByteSseEntityConsumer c = new ByteSseEntityConsumer(cb);

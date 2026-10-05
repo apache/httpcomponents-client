@@ -66,6 +66,7 @@ public final class SseEntityConsumer extends AbstractCharAsyncEntityConsumer<Voi
     private final StringBuilder partial = new StringBuilder(256);
     private ServerSentEventReader reader;
     private boolean firstChunk = true;
+    private boolean pendingCr = false;
 
     public SseEntityConsumer(final SseCallbacks callbacks) {
         this.cb = callbacks;
@@ -94,13 +95,20 @@ public final class SseEntityConsumer extends AbstractCharAsyncEntityConsumer<Voi
         while (src.hasRemaining()) {
             final char c = src.get();
             if (c == '\n') {
-                final int len = partial.length();
-                if (len > 0 && partial.charAt(len - 1) == '\r') {
-                    partial.setLength(len - 1);
+                if (pendingCr) {
+                    // LF completing a CRLF pair; the line was already emitted on the CR.
+                    pendingCr = false;
+                } else {
+                    reader.line(partial.toString());
+                    partial.setLength(0);
                 }
+            } else if (c == '\r') {
+                // A lone CR is a line terminator per the SSE grammar (CR / LF / CRLF).
+                pendingCr = true;
                 reader.line(partial.toString());
                 partial.setLength(0);
             } else {
+                pendingCr = false;
                 partial.append(c);
             }
         }
@@ -127,6 +135,7 @@ public final class SseEntityConsumer extends AbstractCharAsyncEntityConsumer<Voi
     @Override
     public void releaseResources() {
         partial.setLength(0);
+        pendingCr = false;
         reader = null;
     }
 
