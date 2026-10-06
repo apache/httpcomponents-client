@@ -32,7 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -322,5 +324,44 @@ class DefaultEventSourceTest {
         assertEquals(
                 "42",
                 client.lastRequest.getFirstHeader("Last-Event-ID").getValue());
+    }
+
+    @Test
+    void headerNamesAreCaseInsensitive() {
+        final DefaultEventSource eventSource = new DefaultEventSource(
+                new CapturingClient(),
+                URI.create("http://localhost/sse"),
+                Collections.emptyMap(),
+                null);
+
+        eventSource.setHeader("Authorization", "one");
+        eventSource.setHeader("authorization", "two");
+
+        final Map<String, String> headers = eventSource.getHeaders();
+
+        assertEquals(1, headers.size());
+        assertEquals("two", headers.get("AUTHORIZATION"));
+
+        eventSource.removeHeader("AUTHORIZATION");
+
+        assertTrue(eventSource.getHeaders().isEmpty());
+    }
+
+    @Test
+    void initialHeaderNamesAreCaseInsensitive() {
+        final Map<String, String> initialHeaders = new LinkedHashMap<>();
+        initialHeaders.put("X-Test", "one");
+        initialHeaders.put("x-test", "two");
+
+        final DefaultEventSource eventSource = new DefaultEventSource(
+                new CapturingClient(),
+                URI.create("http://localhost/sse"),
+                initialHeaders,
+                null);
+
+        final Map<String, String> headers = eventSource.getHeaders();
+
+        assertEquals(1, headers.size());
+        assertEquals("two", headers.get("X-TEST"));
     }
 }
