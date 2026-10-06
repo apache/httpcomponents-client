@@ -113,12 +113,7 @@ public final class SseEntityConsumer extends AbstractCharAsyncEntityConsumer<Voi
             }
         }
         if (endOfStream) {
-            if (partial.length() > 0) {
-                reader.line(partial.toString());
-                partial.setLength(0);
-            }
-            // Flush any accumulated fields into a final event.
-            reader.line("");
+            partial.setLength(0);
         }
     }
 
