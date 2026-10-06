@@ -323,7 +323,7 @@ public final class DefaultEventSource implements EventSource {
         final SimpleRequestBuilder rb = SimpleRequestBuilder.get(uri);
         rb.setHeader(HttpHeaders.ACCEPT, TEXT_EVENT_STREAM.getMimeType());
         rb.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache");
-        if (lastEventId != null) {
+        if (lastEventId != null && !lastEventId.isEmpty()) {
             rb.setHeader("Last-Event-ID", lastEventId);
         }
         for (final Map.Entry<String, String> e : headers.entrySet()) {
@@ -394,10 +394,12 @@ public final class DefaultEventSource implements EventSource {
             }
 
             @Override
+            public void onLastEventId(final String id) {
+                lastEventId = id;
+            }
+
+            @Override
             public void onEvent(final String id, final String type, final String data) {
-                if (id != null) {
-                    lastEventId = id;
-                }
                 dispatch(() -> listener.onEvent(id, type, data));
             }
 

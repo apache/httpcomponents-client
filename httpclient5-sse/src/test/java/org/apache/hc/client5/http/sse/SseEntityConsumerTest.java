@@ -44,6 +44,7 @@ class SseEntityConsumerTest {
         boolean opened;
         String id, type, data;
         Long retry;
+        String lastEventId;
 
         @Override
         public void onOpen() {
@@ -60,6 +61,11 @@ class SseEntityConsumerTest {
         @Override
         public void onRetry(final long retryMs) {
             retry = retryMs;
+        }
+
+        @Override
+        public void onLastEventId(final String id) {
+            lastEventId = id;
         }
     }
 
@@ -145,5 +151,29 @@ class SseEntityConsumerTest {
         c.data(CharBuffer.wrap("retry: 2500\n"), true);
 
         assertEquals(Long.valueOf(2500L), cb.retry);
+    }
+
+    @Test
+    void updatesLastEventIdWithoutDispatchingEvent() throws Exception {
+        final Cb cb = new Cb();
+        final SseEntityConsumer c = new SseEntityConsumer(cb);
+
+        c.streamStart(ContentType.parse("text/event-stream"));
+        c.data(CharBuffer.wrap("id: 42\n\n"), false);
+
+        assertEquals("42", cb.lastEventId);
+        assertNull(cb.data);
+    }
+
+    @Test
+    void resetsLastEventIdWithoutDispatchingEvent() throws Exception {
+        final Cb cb = new Cb();
+        final SseEntityConsumer c = new SseEntityConsumer(cb);
+
+        c.streamStart(ContentType.parse("text/event-stream"));
+        c.data(CharBuffer.wrap("id: 42\n\nid:\n\n"), false);
+
+        assertEquals("", cb.lastEventId);
+        assertNull(cb.data);
     }
 }

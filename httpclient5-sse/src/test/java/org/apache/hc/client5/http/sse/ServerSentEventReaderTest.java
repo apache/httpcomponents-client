@@ -36,6 +36,7 @@ class ServerSentEventReaderTest {
 
     static final class Capt implements ServerSentEventReader.Callback {
         String id, type, data, comment;
+        String lastEventId;
         Long retry;
 
         @Override
@@ -43,6 +44,11 @@ class ServerSentEventReaderTest {
             this.id = id;
             this.type = type;
             this.data = data;
+        }
+
+        @Override
+        public void onLastEventId(final String id) {
+            this.lastEventId = id;
         }
 
         @Override
@@ -100,5 +106,37 @@ class ServerSentEventReaderTest {
 
         assertNull(c.id);
         assertEquals("d", c.data);
+    }
+
+    @Test
+    void updatesLastEventIdOnBlankLineWithoutDispatchingEvent() {
+        final Capt c = new Capt();
+        final ServerSentEventReader r = new ServerSentEventReader(c);
+
+        r.line("id: 42");
+
+        assertNull(c.lastEventId);
+
+        r.line("");
+
+        assertEquals("42", c.lastEventId);
+        assertNull(c.data);
+    }
+
+    @Test
+    void resetsLastEventIdOnBlankLineWithoutDispatchingEvent() {
+        final Capt c = new Capt();
+        final ServerSentEventReader r = new ServerSentEventReader(c);
+
+        r.line("id: 42");
+        r.line("");
+
+        assertEquals("42", c.lastEventId);
+
+        r.line("id:");
+        r.line("");
+
+        assertEquals("", c.lastEventId);
+        assertNull(c.data);
     }
 }

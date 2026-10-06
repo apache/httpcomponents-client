@@ -134,6 +134,11 @@ public final class SseEntityConsumer extends AbstractCharAsyncEntityConsumer<Voi
         reader = null;
     }
 
+    @Override
+    public void onLastEventId(final String id) {
+        cb.onLastEventId(id);
+    }
+
     // ServerSentEventReader.Callback
 
     @Override
