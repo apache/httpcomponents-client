@@ -48,6 +48,9 @@ public final class ServerSentEventReader {
         void onComment(String comment);
 
         void onRetryChange(long retryMs);
+
+        default void onLastEventId(final String id) {
+        }
     }
 
     private final Callback cb;
@@ -159,11 +162,16 @@ public final class ServerSentEventReader {
     }
 
     private void dispatch() {
+        if (id != null) {
+            cb.onLastEventId(id);
+        }
+
         if (data.length() == 0) {
             // spec: a blank line with no "data:" accumulates nothing -> just clear type
             type = null;
             return;
         }
+
         final int n = data.length();
         if (n > 0 && data.charAt(n - 1) == '\n') {
             data.setLength(n - 1);

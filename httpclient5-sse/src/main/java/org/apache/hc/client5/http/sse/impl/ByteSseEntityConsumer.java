@@ -246,10 +246,15 @@ public final class ByteSseEntityConsumer extends AbstractBinAsyncEntityConsumer<
     }
 
     private void dispatch() {
+        if (id != null) {
+            cb.onLastEventId(id);
+        }
+
         if (data.length() == 0) {
             type = null;
             return;
         }
+
         final int n = data.length();
         if (n > 0 && data.charAt(n - 1) == '\n') {
             data.setLength(n - 1);

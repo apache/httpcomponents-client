@@ -44,6 +44,7 @@ class ByteSseEntityConsumerTest {
         boolean opened;
         String id, type, data;
         Long retry;
+        String lastEventId;
 
         @Override
         public void onOpen() {
@@ -60,6 +61,11 @@ class ByteSseEntityConsumerTest {
         @Override
         public void onRetry(final long retryMs) {
             retry = retryMs;
+        }
+
+        @Override
+        public void onLastEventId(final String id) {
+            lastEventId = id;
         }
     }
 
@@ -177,5 +183,33 @@ class ByteSseEntityConsumerTest {
         c.streamEnd(null);
 
         assertEquals(Long.valueOf(2500L), cb.retry);
+    }
+
+    @Test
+    void updatesLastEventIdWithoutDispatchingEvent() throws Exception {
+        final Cb cb = new Cb();
+        final ByteSseEntityConsumer c = new ByteSseEntityConsumer(cb);
+
+        c.streamStart(ContentType.parse("text/event-stream"));
+
+        final byte[] p = "id: 42\n\n".getBytes(StandardCharsets.UTF_8);
+        c.consume(ByteBuffer.wrap(p));
+
+        assertEquals("42", cb.lastEventId);
+        assertNull(cb.data);
+    }
+
+    @Test
+    void resetsLastEventIdWithoutDispatchingEvent() throws Exception {
+        final Cb cb = new Cb();
+        final ByteSseEntityConsumer c = new ByteSseEntityConsumer(cb);
+
+        c.streamStart(ContentType.parse("text/event-stream"));
+
+        final byte[] p = "id: 42\n\nid:\n\n".getBytes(StandardCharsets.UTF_8);
+        c.consume(ByteBuffer.wrap(p));
+
+        assertEquals("", cb.lastEventId);
+        assertNull(cb.data);
     }
 }

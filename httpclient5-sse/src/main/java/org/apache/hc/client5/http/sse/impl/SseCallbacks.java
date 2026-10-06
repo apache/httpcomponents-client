@@ -64,4 +64,12 @@ public interface SseCallbacks {
      * @param retryMs new retry delay in milliseconds (non-negative)
      */
     void onRetry(long retryMs);
+
+    /**
+     * Notifies that the last event ID has been committed by the SSE dispatch step.
+     *
+     * @param id the last event ID, possibly empty to reset it
+     */
+    default void onLastEventId(final String id) {
+    }
 }
