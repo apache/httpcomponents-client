@@ -51,8 +51,7 @@ import org.apache.hc.core5.http.nio.entity.AbstractBinAsyncEntityConsumer;
  *   <li>Accepts CR, LF and CRLF line endings per the SSE grammar; tolerates CRLF split across buffers.</li>
  *   <li>Implements WHATWG SSE fields: {@code data}, {@code id}, {@code event}, {@code retry}.
  *       Unknown fields and malformed {@code retry} values are ignored.</li>
- *   <li>At end of stream, flushes any partially accumulated line and forces a final
- *       dispatch of the current event if it has data.</li>
+ *  <li>At end of stream, discards any incomplete line or event.</li>
  * </ul>
  *
  * <h3>Thread-safety</h3>
@@ -164,11 +163,9 @@ public final class ByteSseEntityConsumer extends AbstractBinAsyncEntityConsumer<
     }
 
     private void flushEndOfStream() {
-        if (lineLen > 0) {
-            handleLine(lineBuf, lineLen);
-            lineLen = 0;
-        }
-        handleLine(lineBuf, 0);
+        lineLen = 0;
+        data.setLength(0);
+        type = null;
     }
 
     private void appendByte(final byte b) {
