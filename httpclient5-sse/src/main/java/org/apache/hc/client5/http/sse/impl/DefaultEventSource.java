@@ -32,8 +32,9 @@ import java.io.InterruptedIOException;
 import java.net.URI;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
@@ -178,7 +179,8 @@ public final class DefaultEventSource implements EventSource {
                        final SseParser parser) {
         this.client = Objects.requireNonNull(client, "client");
         this.uri = Objects.requireNonNull(uri, "uri");
-        this.headers = new ConcurrentHashMap<>(Objects.requireNonNull(headers, "headers"));
+        this.headers = new ConcurrentSkipListMap<>(String.CASE_INSENSITIVE_ORDER);
+        this.headers.putAll(Objects.requireNonNull(headers, "headers"));
         this.listener = listener != null ? listener : (id, type, data) -> { /* no-op */ };
 
         if (scheduler != null) {
@@ -273,7 +275,9 @@ public final class DefaultEventSource implements EventSource {
      */
     @Override
     public Map<String, String> getHeaders() {
-        return new ConcurrentHashMap<>(headers);
+        final Map<String, String> copy = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        copy.putAll(headers);
+        return copy;
     }
 
     /**
