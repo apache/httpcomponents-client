@@ -116,12 +116,12 @@ public final class ByteSseEntityConsumer extends AbstractBinAsyncEntityConsumer<
                     continue;
                 }
                 if (bomMatched > 0) {
-                    appendByte((byte) 0xEF);
+                    processByte((byte) 0xEF);
                     if (bomMatched >= 2) {
-                        appendByte((byte) 0xBB);
+                        processByte((byte) 0xBB);
                     }
                 }
-                appendByte((byte) b);
+                processByte((byte) b);
                 bomMatched = 0;
                 bomDone = true;
                 break; // drop into normal loop below for the rest of 'src'
@@ -135,28 +135,31 @@ public final class ByteSseEntityConsumer extends AbstractBinAsyncEntityConsumer<
         }
 
         while (src.hasRemaining()) {
-            final byte b = src.get();
-            if (b == LF) {
-                if (pendingCr) {
-                    // LF completing a CRLF pair; the line was already emitted on the CR.
-                    pendingCr = false;
-                } else {
-                    handleLine(lineBuf, lineLen);
-                    lineLen = 0;
-                }
-            } else if (b == CR) {
-                // A lone CR is a line terminator per the SSE grammar (CR / LF / CRLF).
-                pendingCr = true;
-                handleLine(lineBuf, lineLen);
-                lineLen = 0;
-            } else {
-                pendingCr = false;
-                appendByte(b);
-            }
+            processByte(src.get());
         }
 
         if (endOfStream) {
             flushEndOfStream();
+        }
+    }
+
+    private void processByte(final byte b) {
+        if (b == LF) {
+            if (pendingCr) {
+                // LF completing a CRLF pair; the line was already emitted on the CR.
+                pendingCr = false;
+            } else {
+                handleLine(lineBuf, lineLen);
+                lineLen = 0;
+            }
+        } else if (b == CR) {
+            // A lone CR is a line terminator per the SSE grammar (CR / LF / CRLF).
+            pendingCr = true;
+            handleLine(lineBuf, lineLen);
+            lineLen = 0;
+        } else {
+            pendingCr = false;
+            appendByte(b);
         }
     }
 
