@@ -102,6 +102,22 @@ class ByteSseEntityConsumerTest {
     }
 
     @Test
+    void treatsLeadingLoneCrAsLineTerminator() throws Exception {
+        final Cb cb = new Cb();
+        final ByteSseEntityConsumer c = new ByteSseEntityConsumer(cb);
+        c.streamStart(ContentType.parse("text/event-stream"));
+
+        // The first byte is a lone CR, which is resolved during BOM detection. It must still be
+        // routed through the normal CR/LF handling so the empty leading line is terminated rather
+        // than the CR being retained inside the buffer.
+        final byte[] p = "\rdata: v\r\r".getBytes(StandardCharsets.UTF_8);
+        c.consume(ByteBuffer.wrap(p));
+        c.streamEnd(null);
+
+        assertEquals("v", cb.data);
+    }
+
+    @Test
     void emitsRetry() throws Exception {
         final Cb cb = new Cb();
         final ByteSseEntityConsumer c = new ByteSseEntityConsumer(cb);
