@@ -67,10 +67,12 @@ import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class TestContentCompressionAsyncExec {
 
     @Mock
@@ -90,7 +92,6 @@ class TestContentCompressionAsyncExec {
 
     @BeforeEach
     void init() {
-        MockitoAnnotations.openMocks(this);
 
         final HttpHost target = new HttpHost("somehost", 80);
         final HttpRequest req = new BasicHttpRequest(Method.GET, "/");
@@ -215,9 +216,6 @@ class TestContentCompressionAsyncExec {
         final HttpResponse rsp2 = new BasicHttpResponse(200, "OK");
         final EntityDetails details2 = mock(EntityDetails.class);
         when(details2.getContentEncoding()).thenReturn("gzip,gzip,gzip,gzip,gzip,gzip");
-
-        final AsyncDataConsumer downstream2 = new StringAsyncEntityConsumer();
-        when(originalCb.handleResponse(same(rsp2), same(details2))).thenReturn(downstream2);
 
         final ProtocolException exception = assertThrows(ProtocolException.class, () -> cb.handleResponse(rsp2, details2));
         assertEquals("Codec list exceeds maximum of 5 elements", exception.getMessage());

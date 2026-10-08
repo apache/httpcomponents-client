@@ -44,14 +44,16 @@ import org.apache.hc.core5.concurrent.FutureCallback;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
+@ExtendWith(MockitoExtension.class)
 class TestAbstractSerializingAsyncCacheStorage {
 
     @Mock
@@ -72,7 +74,6 @@ class TestAbstractSerializingAsyncCacheStorage {
     @BeforeEach
     @SuppressWarnings("unchecked")
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         impl = Mockito.mock(AbstractBinaryAsyncCacheStorage.class,
                 Mockito.withSettings().defaultAnswer(Answers.CALLS_REAL_METHODS).useConstructor(3));
     }

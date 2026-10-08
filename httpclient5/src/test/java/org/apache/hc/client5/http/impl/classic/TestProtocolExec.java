@@ -57,12 +57,14 @@ import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"static-access"}) // test code
+@ExtendWith(MockitoExtension.class)
 class TestProtocolExec {
 
     @Mock
@@ -76,14 +78,11 @@ class TestProtocolExec {
 
     private ProtocolExec protocolExec;
     private HttpHost target;
-    private HttpHost proxy;
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
         protocolExec = new ProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, true);
         target = new HttpHost("foo", 80);
-        proxy = new HttpHost("bar", 8888);
     }
 
     @Test
@@ -102,11 +101,6 @@ class TestProtocolExec {
         final ClassicHttpRequest request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
-        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
-
-        Mockito.when(chain.proceed(
-                Mockito.any(),
-                Mockito.any())).thenReturn(response);
         Mockito.doThrow(new HttpException("Ooopsie")).when(chain).proceed(Mockito.any(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         Assertions.assertThrows(HttpException.class, () ->
@@ -120,10 +114,6 @@ class TestProtocolExec {
         final ClassicHttpRequest request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
-        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
-        Mockito.when(chain.proceed(
-                Mockito.any(),
-                Mockito.any())).thenReturn(response);
         Mockito.doThrow(new IOException("Ooopsie")).when(chain).proceed(Mockito.any(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         Assertions.assertThrows(IOException.class, () ->
@@ -137,10 +127,6 @@ class TestProtocolExec {
         final ClassicHttpRequest request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
-        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
-        Mockito.when(chain.proceed(
-                Mockito.any(),
-                Mockito.any())).thenReturn(response);
         Mockito.doThrow(new RuntimeException("Ooopsie")).when(chain).proceed(Mockito.any(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         Assertions.assertThrows(RuntimeException.class, () ->

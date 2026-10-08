@@ -53,15 +53,17 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * A suite of acceptance tests for compliance with RFC5861, which
  * describes the stale-if-error and stale-while-revalidate
  * Cache-Control extensions.
  */
+@ExtendWith(MockitoExtension.class)
 class TestRFC5861Compliance {
 
     static final int MAX_BYTES = 1024;
@@ -85,7 +87,6 @@ class TestRFC5861Compliance {
 
     @BeforeEach
     void setUp() throws Exception {
-        MockitoAnnotations.openMocks(this);
 
         host = new HttpHost("foo.example.com", 80);
 
@@ -110,7 +111,6 @@ class TestRFC5861Compliance {
         executorService = new ScheduledThreadPoolExecutor(1);
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-        Mockito.when(mockExecRuntime.fork(null)).thenReturn(mockExecRuntime);
     }
 
     @AfterEach

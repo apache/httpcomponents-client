@@ -43,14 +43,16 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * This class tests behavior that is allowed (MAY) by the HTTP/1.1 protocol
  * specification and for which we have implemented the behavior in HTTP cache.
  */
+@ExtendWith(MockitoExtension.class)
 class TestProtocolAllowedBehavior {
 
     static final int MAX_BYTES = 1024;
@@ -74,7 +76,6 @@ class TestProtocolAllowedBehavior {
 
     @BeforeEach
     void setUp() throws Exception {
-        MockitoAnnotations.openMocks(this);
         host = new HttpHost("foo.example.com", 80);
 
         route = new HttpRoute(host);

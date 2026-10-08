@@ -56,10 +56,12 @@ import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class TestBasicHttpClientConnectionManager {
 
     @Mock
@@ -85,7 +87,6 @@ class TestBasicHttpClientConnectionManager {
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
         mgr = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperator(
                 detachedSocketFactory, schemePortResolver, dnsResolver, tlsSocketStrategyLookup),
                 connFactory);
@@ -393,7 +394,7 @@ class TestBasicHttpClientConnectionManager {
         Mockito.when(tlsSocketStrategy.upgrade(
                 Mockito.same(socket),
                 Mockito.eq("somehost"),
-                Mockito.eq(8443),
+                Mockito.eq(443),
                 Mockito.any(),
                 Mockito.any())).thenReturn(upgradedSocket);
 
@@ -444,7 +445,7 @@ class TestBasicHttpClientConnectionManager {
 
         Mockito.when(dnsResolver.resolve("someproxy", 8080)).thenReturn(Collections.singletonList(new InetSocketAddress(remote, 8080)));
         Mockito.when(schemePortResolver.resolve(proxy.getSchemeName(), proxy)).thenReturn(8080);
-        Mockito.when(schemePortResolver.resolve(target.getSchemeName(), target)).thenReturn(8443);
+        Mockito.when(tlsSocketStrategyLookup.lookup("http")).thenReturn(null);
         Mockito.when(tlsSocketStrategyLookup.lookup("https")).thenReturn(tlsSocketStrategy);
         Mockito.when(detachedSocketFactory.create(Mockito.any(), Mockito.any())).thenReturn(socket);
 
@@ -486,7 +487,6 @@ class TestBasicHttpClientConnectionManager {
         Assertions.assertNull(mgr.getState());
 
         final LeaseRequest connRequest2 = mgr.lease("some-id", route, null);
-        Mockito.when(conn.isStale()).thenReturn(Boolean.TRUE);
         final ConnectionEndpoint conn2 = connRequest2.get(Timeout.ZERO_MILLISECONDS);
         Assertions.assertNotNull(conn2);
         Assertions.assertTrue(conn2.isConnected());
@@ -515,9 +515,6 @@ class TestBasicHttpClientConnectionManager {
 
         // Ensure the connection was closed
         Mockito.verify(conn, Mockito.times(1)).close(CloseMode.GRACEFUL);
-
-        // Now, when a new lease request is made, the connection is stale
-        Mockito.when(conn.isStale()).thenReturn(Boolean.TRUE);
 
         // Attempt to lease a new connection
         final LeaseRequest connRequest2 = mgr.lease("some-id", route, null);

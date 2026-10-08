@@ -55,13 +55,15 @@ import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  *  Simple tests for {@link InternalHttpClient}.
  */
+@ExtendWith(MockitoExtension.class)
 class TestInternalHttpClient {
 
     @Mock
@@ -93,7 +95,6 @@ class TestInternalHttpClient {
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
         client = new InternalHttpClient(connManager, requestExecutor, exchangeIdGenerator,
                 new ExecChainElement(execChain, null), routePlanner,
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider,
@@ -249,7 +250,6 @@ class TestInternalHttpClient {
     void testDoExecuteThrowsWhenNoTargetOrHost() throws Exception {
         final ClassicHttpRequest request = ClassicRequestBuilder.get("/foo").build();
         final HttpClientContext context = HttpClientContext.create();
-        Mockito.when(exchangeIdGenerator.get()).thenReturn(ExecSupport.getNextExchangeId());
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(null),
                 Mockito.any(),

@@ -42,9 +42,11 @@ import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class TestRequestIfRange {
     @Mock
     private HttpRequest request;
@@ -59,7 +61,6 @@ class TestRequestIfRange {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         requestIfRange = new RequestIfRange();
     }
 

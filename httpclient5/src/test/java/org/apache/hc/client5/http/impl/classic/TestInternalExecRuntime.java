@@ -46,12 +46,14 @@ import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 
 @SuppressWarnings({"static-access"}) // test code
+@ExtendWith(MockitoExtension.class)
 class TestInternalExecRuntime {
 
     @Mock
@@ -72,7 +74,6 @@ class TestInternalExecRuntime {
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
         route = new HttpRoute(new HttpHost("host", 80));
         execRuntime = new InternalExecRuntime(log, mgr, requestExecutor, cancellableDependency);
     }

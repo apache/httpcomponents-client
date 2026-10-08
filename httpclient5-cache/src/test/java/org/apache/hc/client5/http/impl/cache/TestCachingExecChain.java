@@ -76,13 +76,15 @@ import org.apache.hc.core5.net.URIAuthority;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class TestCachingExecChain {
 
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     ExecChain mockExecChain;
     @Mock
     ExecRuntime mockExecRuntime;
@@ -103,7 +105,6 @@ class TestCachingExecChain {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         host = new HttpHost("foo.example.com", 80);
         route = new HttpRoute(host);
         request = new BasicClassicHttpRequest("GET", "/stuff");
@@ -1384,7 +1385,6 @@ class TestCachingExecChain {
         execute(req1);
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
-        Mockito.when(mockExecRuntime.fork(Mockito.any())).thenReturn(mockExecRuntime);
         final ClassicHttpResponse result = execute(req2);
         Assertions.assertEquals(HttpStatus.SC_OK, result.getCode());
 
@@ -1424,7 +1424,6 @@ class TestCachingExecChain {
         Assertions.assertEquals(HttpStatus.SC_OK, response1.getCode());
 
         // Execute the second request and assert the response
-        Mockito.when(mockExecRuntime.fork(Mockito.any())).thenReturn(mockExecRuntime);
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
         final ClassicHttpResponse response2 = execute(req2);
         Assertions.assertEquals(HttpStatus.SC_OK, response2.getCode());

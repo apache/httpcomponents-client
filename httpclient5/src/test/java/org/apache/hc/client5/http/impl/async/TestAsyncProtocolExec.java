@@ -55,10 +55,12 @@ import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class TestAsyncProtocolExec {
 
     @Mock
@@ -75,7 +77,6 @@ class TestAsyncProtocolExec {
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
         protocolExec = new AsyncProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, true);
         target = new HttpHost("http", "foo", 80);
     }

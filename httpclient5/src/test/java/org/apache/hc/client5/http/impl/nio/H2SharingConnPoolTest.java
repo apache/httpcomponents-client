@@ -40,10 +40,12 @@ import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class H2SharingConnPoolTest {
 
     static final String DEFAULT_ROUTE = "DEFAULT_ROUTE";
@@ -58,7 +60,6 @@ public class H2SharingConnPoolTest {
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
         h2SharingPool = new H2SharingConnPool<>(connPool);
     }
 
@@ -258,7 +259,6 @@ public class H2SharingConnPoolTest {
 
         final PoolEntry<String, HttpConnection> poolEntry = new PoolEntry<>(DEFAULT_ROUTE);
         poolEntry.assignConnection(connection);
-        Mockito.when(connection.getProtocolVersion()).thenReturn(HttpVersion.HTTP_2);
         future.completed(poolEntry);
 
         Assertions.assertTrue(result.isDone());
@@ -279,7 +279,6 @@ public class H2SharingConnPoolTest {
     void testReleaseReusableNoCacheReturnedToPool() throws Exception {
         final PoolEntry<String, HttpConnection> poolEntry = new PoolEntry<>(DEFAULT_ROUTE);
         poolEntry.assignConnection(connection);
-        Mockito.when(connection.isOpen()).thenReturn(true);
 
         h2SharingPool.release(poolEntry, true);
 
@@ -292,7 +291,6 @@ public class H2SharingConnPoolTest {
     void testReleaseReusableNotInCacheReturnedToPool() throws Exception {
         final PoolEntry<String, HttpConnection> poolEntry = new PoolEntry<>(DEFAULT_ROUTE);
         poolEntry.assignConnection(connection);
-        Mockito.when(connection.isOpen()).thenReturn(true);
         final H2SharingConnPool.PerRoutePool<String, HttpConnection> routePool = h2SharingPool.getPerRoutePool(DEFAULT_ROUTE);
         routePool.track(poolEntry);
 
@@ -307,7 +305,6 @@ public class H2SharingConnPoolTest {
     void testReleaseReusableInCacheNotReturnedToPool() throws Exception {
         final PoolEntry<String, HttpConnection> poolEntry = new PoolEntry<>(DEFAULT_ROUTE);
         poolEntry.assignConnection(connection);
-        Mockito.when(connection.isOpen()).thenReturn(true);
         final H2SharingConnPool.PerRoutePool<String, HttpConnection> routePool = h2SharingPool.getPerRoutePool(DEFAULT_ROUTE);
         routePool.track(poolEntry);
         routePool.track(poolEntry);
@@ -330,7 +327,6 @@ public class H2SharingConnPoolTest {
     void testReleaseNonReusableNotInCacheReturnedToPool() throws Exception {
         final PoolEntry<String, HttpConnection> poolEntry = new PoolEntry<>(DEFAULT_ROUTE);
         poolEntry.assignConnection(connection);
-        Mockito.when(connection.isOpen()).thenReturn(false);
         final H2SharingConnPool.PerRoutePool<String, HttpConnection> routePool = h2SharingPool.getPerRoutePool(DEFAULT_ROUTE);
         routePool.track(poolEntry);
         routePool.track(poolEntry);
@@ -374,7 +370,6 @@ public class H2SharingConnPoolTest {
     void testReleasePoolClosed() throws Exception {
         final PoolEntry<String, HttpConnection> poolEntry = new PoolEntry<>(DEFAULT_ROUTE);
         poolEntry.assignConnection(connection);
-        Mockito.when(connection.isOpen()).thenReturn(false);
         final H2SharingConnPool.PerRoutePool<String, HttpConnection> routePool = h2SharingPool.getPerRoutePool(DEFAULT_ROUTE);
         routePool.track(poolEntry);
 

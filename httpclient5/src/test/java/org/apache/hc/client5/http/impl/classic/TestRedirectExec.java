@@ -62,13 +62,15 @@ import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class TestRedirectExec {
 
     @Mock
@@ -84,7 +86,6 @@ class TestRedirectExec {
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
         target = new HttpHost("localhost", 80);
         redirectStrategy = Mockito.spy(new DefaultRedirectStrategy());
         redirectExec = new RedirectExec(httpRoutePlanner, redirectStrategy);

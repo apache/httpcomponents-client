@@ -193,7 +193,6 @@
         <groupId>io.reactivex.rxjava3</groupId>
         <artifactId>rxjava</artifactId>
         <version>${rxjava3.version}</version>
-        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.kohlschutter.junixsocket</groupId>
@@ -212,7 +211,11 @@
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
         <version>${mockito.version}</version>
-        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-junit-jupiter</artifactId>
+        <version>${mockito.version}</version>
       </dependency>
       <dependency>
         <groupId>org.testcontainers</groupId>
@@ -258,7 +261,6 @@
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-tracing</artifactId>
         <version>${micrometer.tracing.version}</version>
-        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>io.micrometer</groupId>

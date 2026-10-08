@@ -46,10 +46,12 @@ import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class TestContentCompressionExec {
 
     @Mock
@@ -66,7 +68,6 @@ class TestContentCompressionExec {
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
         host = new HttpHost("somehost", 80);
         context = HttpClientContext.create();
         scope = new ExecChain.Scope("test", new HttpRoute(host), originaRequest, execRuntime, context);

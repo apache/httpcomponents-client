@@ -60,13 +60,15 @@ import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
+@ExtendWith(MockitoExtension.class)
 class TestConnectExec {
 
     @Mock
@@ -86,7 +88,6 @@ class TestConnectExec {
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
         exec = new ConnectExec(reuseStrategy, proxyHttpProcessor, proxyAuthStrategy, null, true);
         target = new HttpHost("foo", 80);
         proxy = new HttpHost("bar", 8888);

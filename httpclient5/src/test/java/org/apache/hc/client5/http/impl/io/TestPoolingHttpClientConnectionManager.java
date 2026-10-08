@@ -61,13 +61,15 @@ import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * {@link PoolingHttpClientConnectionManager} tests.
  */
+@ExtendWith(MockitoExtension.class)
 class TestPoolingHttpClientConnectionManager {
 
     @Mock
@@ -95,7 +97,6 @@ class TestPoolingHttpClientConnectionManager {
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
         mgr = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperator(
                 detachedSocketFactory, schemePortResolver, dnsResolver, tlsSocketStrategyLookup), pool,
                 null);
@@ -338,7 +339,7 @@ class TestPoolingHttpClientConnectionManager {
 
         Mockito.when(dnsResolver.resolve("someproxy", 8080)).thenReturn(Collections.singletonList(new InetSocketAddress(remote, 8080)));
         Mockito.when(schemePortResolver.resolve(proxy.getSchemeName(), proxy)).thenReturn(8080);
-        Mockito.when(schemePortResolver.resolve(target.getSchemeName(), target)).thenReturn(8443);
+        Mockito.when(tlsSocketStrategyLookup.lookup("http")).thenReturn(null);
         Mockito.when(tlsSocketStrategyLookup.lookup("https")).thenReturn(tlsSocketStrategy);
         Mockito.when(detachedSocketFactory.create(Mockito.any(), Mockito.any())).thenReturn(socket);
 
@@ -383,9 +384,6 @@ class TestPoolingHttpClientConnectionManager {
 
     @Test
     void testIsShutdown() {
-        // Setup phase
-        Mockito.when(pool.isShutdown()).thenReturn(false, true); // Simulate changing states
-
         // Execution phase: Initially, the manager should not be shutdown
         Assertions.assertFalse(mgr.isClosed(), "Connection manager should not be shutdown initially.");
 

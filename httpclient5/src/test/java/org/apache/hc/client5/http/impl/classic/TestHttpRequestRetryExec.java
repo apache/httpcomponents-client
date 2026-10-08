@@ -48,11 +48,13 @@ import org.apache.hc.core5.util.TimeValue;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
+@ExtendWith(MockitoExtension.class)
 class TestHttpRequestRetryExec {
 
     @Mock
@@ -69,7 +71,6 @@ class TestHttpRequestRetryExec {
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
         retryExec = new HttpRequestRetryExec(retryStrategy);
         target = new HttpHost("localhost", 80);
     }
@@ -126,7 +127,6 @@ class TestHttpRequestRetryExec {
                 Mockito.anyInt(),
                 Mockito.any())).thenReturn(nextInterval);
         Mockito.when(nextInterval.getDuration()).thenReturn(100L);
-        Mockito.when(nextInterval.compareTo(Mockito.any())).thenReturn(-1);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         retryExec.execute(request, scope, chain);

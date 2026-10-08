@@ -50,10 +50,12 @@ import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class TestAsyncConnectExec {
 
     @Mock
@@ -70,7 +72,6 @@ class TestAsyncConnectExec {
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
         target = new HttpHost("https", "foo", 443);
         proxy = new HttpHost("bar", 8888);
     }

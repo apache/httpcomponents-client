@@ -58,24 +58,25 @@ import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 
+@ExtendWith(MockitoExtension.class)
 class TestResponseEntityProxy {
 
     @Mock
-    private ClassicHttpResponse response;
-    @Mock
     private ExecRuntime execRuntime;
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
+    private ClassicHttpResponse response;
+    @Mock(strictness = Mock.Strictness.LENIENT)
     private HttpEntity entity;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         Mockito.when(entity.isStreaming()).thenReturn(Boolean.TRUE);
         Mockito.when(response.getEntity()).thenReturn(entity);
     }

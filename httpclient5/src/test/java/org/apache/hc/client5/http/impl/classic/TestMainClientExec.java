@@ -52,10 +52,12 @@ import org.apache.hc.core5.util.TimeValue;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class TestMainClientExec {
 
     @Mock
@@ -76,7 +78,6 @@ class TestMainClientExec {
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
         mainClientExec = new MainClientExec(connectionManager, httpProcessor, reuseStrategy, keepAliveStrategy, userTokenHandler);
         target = new HttpHost("foo", 80);
     }

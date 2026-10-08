@@ -57,16 +57,18 @@ import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /*
  * This test class captures functionality required to achieve unconditional
  * compliance with the HTTP/1.1 caching protocol (SHOULD, SHOULD NOT,
  * RECOMMENDED, and NOT RECOMMENDED behaviors).
  */
+@ExtendWith(MockitoExtension.class)
 class TestProtocolRecommendations {
 
     static final int MAX_BYTES = 1024;
@@ -77,7 +79,7 @@ class TestProtocolRecommendations {
     HttpRoute route;
     HttpEntity body;
     HttpCacheContext context;
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     ExecChain mockExecChain;
     @Mock
     ExecRuntime mockExecRuntime;
@@ -92,7 +94,6 @@ class TestProtocolRecommendations {
 
     @BeforeEach
     void setUp() throws Exception {
-        MockitoAnnotations.openMocks(this);
         host = new HttpHost("foo.example.com", 80);
 
         route = new HttpRoute(host);
