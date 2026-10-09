@@ -31,6 +31,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.channels.SocketChannel;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -997,7 +998,11 @@ public class H2AsyncClientBuilder {
         }
 
         final MultihomeConnectionInitiator connectionInitiator = new MultihomeConnectionInitiator(ioReactor, dnsResolver);
-        final InternalH2ConnPool connPool = new InternalH2ConnPool(connectionInitiator, host -> null, tlsStrategyCopy);
+        final InternalH2ConnPool connPool = new InternalH2ConnPool(
+                Clock.systemUTC(),
+                connectionInitiator,
+                host -> null,
+                tlsStrategyCopy);
         connPool.setConnectionConfigResolver(connectionConfigResolver);
 
         List<Closeable> closeablesCopy = closeables != null ? new ArrayList<>(closeables) : null;

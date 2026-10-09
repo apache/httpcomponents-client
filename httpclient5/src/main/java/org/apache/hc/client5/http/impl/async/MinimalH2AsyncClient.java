@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.time.Clock;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
@@ -115,7 +116,7 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                 pushConsumerRegistry,
                 threadFactory);
         this.connectionInitiator = new MultihomeConnectionInitiator(getConnectionInitiator(), dnsResolver);
-        this.connPool = new InternalH2ConnPool(this.connectionInitiator, object -> null, tlsStrategy);
+        this.connPool = new InternalH2ConnPool(Clock.systemUTC(), this.connectionInitiator, object -> null, tlsStrategy);
     }
 
     @Override

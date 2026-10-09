@@ -34,6 +34,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.nio.ByteBuffer;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -158,7 +161,7 @@ public class InternalH2AsyncExecRuntimeQueueCapTest {
         private final IOSession session;
 
         FakeH2ConnPool(final IOSession session) {
-            super(null, null, null);
+            super(Clock.fixed(Instant.now(), ZoneId.of("UTC")), null, null, null);
             this.session = session;
         }
 

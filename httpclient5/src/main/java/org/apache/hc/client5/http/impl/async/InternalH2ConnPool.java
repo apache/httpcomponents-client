@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.net.InetSocketAddress;
+import java.time.Clock;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.HttpRoute;
@@ -35,6 +36,7 @@ import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.function.Resolver;
+import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
@@ -43,10 +45,10 @@ import org.apache.hc.core5.http2.nio.command.PingCommand;
 import org.apache.hc.core5.http2.nio.support.BasicPingHandler;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
-import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.AbstractIOSessionPool;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
+import org.apache.hc.core5.reactor.IOEventHandler;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 import org.apache.hc.core5.util.TimeValue;
@@ -56,12 +58,12 @@ class InternalH2ConnPool implements ModalCloseable {
 
     private final SessionPool sessionPool;
 
-    private volatile Resolver<HttpHost, ConnectionConfig> connectionConfigResolver;
-
-    InternalH2ConnPool(final ConnectionInitiator connectionInitiator,
-                       final Resolver<HttpHost, InetSocketAddress> addressResolver,
-                       final TlsStrategy tlsStrategy) {
-        this.sessionPool = new SessionPool(connectionInitiator, addressResolver, tlsStrategy);
+    InternalH2ConnPool(
+            final Clock clock,
+            final ConnectionInitiator connectionInitiator,
+            final Resolver<HttpHost, InetSocketAddress> addressResolver,
+            final TlsStrategy tlsStrategy) {
+        this.sessionPool = new SessionPool(clock, connectionInitiator, addressResolver, tlsStrategy);
     }
 
     @Override
@@ -74,52 +76,20 @@ class InternalH2ConnPool implements ModalCloseable {
         sessionPool.close();
     }
 
-    private ConnectionConfig resolveConnectionConfig(final HttpHost httpHost) {
-        final Resolver<HttpHost, ConnectionConfig> resolver = this.connectionConfigResolver;
-        final ConnectionConfig connectionConfig = resolver != null ? resolver.resolve(httpHost) : null;
-        return connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
-    }
-
     public Future<IOSession> getSession(
             final HttpRoute route,
             final Timeout connectTimeout,
             final FutureCallback<IOSession> callback) {
-        final ConnectionConfig connectionConfig = resolveConnectionConfig(route.getTargetHost());
-        return sessionPool.getSession(
-                route,
-                connectTimeout != null ? connectTimeout : connectionConfig.getConnectTimeout(),
-                new CallbackContribution<IOSession>(callback) {
-
-                    @Override
-                    public void completed(final IOSession ioSession) {
-                        final Timeout socketTimeout = connectionConfig.getSocketTimeout();
-                        if (socketTimeout != null) {
-                            ioSession.setSocketTimeout(socketTimeout);
-                        }
-                        callback.completed(ioSession);
-                    }
-
-                });
-    }
-
-    public void evictExpired() {
-        sessionPool.enumAvailable(e -> {
-            // no op
-        });
+        return sessionPool.getSession(route, connectTimeout, callback);
     }
 
     public void setConnectionConfigResolver(final Resolver<HttpHost, ConnectionConfig> connectionConfigResolver) {
-        this.connectionConfigResolver = connectionConfigResolver;
+        this.sessionPool.setConnectionConfigResolver(connectionConfigResolver);
     }
 
-    public TimeValue getValidateAfterInactivity() {
-        return sessionPool.validateAfterInactivity;
+    public void evictExpired() {
+        sessionPool.evictExpired();
     }
-
-    public void setValidateAfterInactivity(final TimeValue timeValue) {
-        sessionPool.validateAfterInactivity = timeValue;
-    }
-
 
     static class SessionPool extends AbstractIOSessionPool<HttpRoute> {
 
@@ -127,23 +97,31 @@ class InternalH2ConnPool implements ModalCloseable {
         private final Resolver<HttpHost, InetSocketAddress> addressResolver;
         private final TlsStrategy tlsStrategy;
 
-        private volatile TimeValue validateAfterInactivity = TimeValue.NEG_ONE_MILLISECOND;
+        private volatile Resolver<HttpHost, ConnectionConfig> connectionConfigResolver;
 
-        SessionPool(final ConnectionInitiator connectionInitiator,
+        SessionPool(final Clock clock,
+                    final ConnectionInitiator connectionInitiator,
                     final Resolver<HttpHost, InetSocketAddress> addressResolver,
                     final TlsStrategy tlsStrategy) {
+            super(clock);
             this.connectionInitiator = connectionInitiator;
             this.addressResolver = addressResolver;
             this.tlsStrategy = tlsStrategy;
         }
 
+        public void setConnectionConfigResolver(final Resolver<HttpHost, ConnectionConfig> connectionConfigResolver) {
+            this.connectionConfigResolver = connectionConfigResolver;
+        }
+
         @Override
         protected Future<IOSession> connectSession(final HttpRoute route,
-                                                   final Timeout connectTimeout,
+                                                   final Timeout timeout,
                                                    final FutureCallback<IOSession> callback) {
             final HttpHost target = route.getTargetHost();
             final InetSocketAddress localAddress = route.getLocalSocketAddress();
             final InetSocketAddress remoteAddress = addressResolver.resolve(target);
+            final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
+            final Timeout connectTimeout = timeout != null ? timeout : connectionConfig.getConnectTimeout();
             return connectionInitiator.connect(
                     target,
                     remoteAddress,
@@ -154,25 +132,31 @@ class InternalH2ConnPool implements ModalCloseable {
 
                         @Override
                         public void completed(final IOSession ioSession) {
+                            final Timeout socketTimeout = connectionConfig.getSocketTimeout();
                             if (tlsStrategy != null
                                     && URIScheme.HTTPS.same(target.getSchemeName())
                                     && ioSession instanceof TransportSecurityLayer) {
-                                final NamedEndpoint tlsName = route.getTargetName() != null ? route.getTargetName() : target;
+                                ioSession.setSocketTimeout(connectTimeout);
                                 tlsStrategy.upgrade(
                                         (TransportSecurityLayer) ioSession,
-                                        tlsName,
+                                        target,
                                         null,
                                         connectTimeout,
                                         new CallbackContribution<TransportSecurityLayer>(callback) {
 
                                             @Override
                                             public void completed(final TransportSecurityLayer transportSecurityLayer) {
+                                                if (socketTimeout != null) {
+                                                    ioSession.setSocketTimeout(socketTimeout);
+                                                }
                                                 callback.completed(ioSession);
                                             }
 
                                         });
-                                ioSession.setSocketTimeout(connectTimeout);
                             } else {
+                                if (socketTimeout != null) {
+                                    ioSession.setSocketTimeout(socketTimeout);
+                                }
                                 callback.completed(ioSession);
                             }
                         }
@@ -181,25 +165,22 @@ class InternalH2ConnPool implements ModalCloseable {
         }
 
         @Override
-        protected void validateSession(final IOSession ioSession,
+        protected void validateSession(final HttpRoute route,
+                                       final IOSession ioSession,
                                        final Callback<Boolean> callback) {
             if (ioSession.isOpen()) {
-                final TimeValue timeValue = validateAfterInactivity;
-                if (TimeValue.isNonNegative(timeValue)) {
-                    final long lastAccessTime = Math.min(ioSession.getLastReadTime(), ioSession.getLastWriteTime());
-                    final long deadline = lastAccessTime + timeValue.toMilliseconds();
-                    if (deadline <= System.currentTimeMillis()) {
-                        final Timeout socketTimeoutMillis = ioSession.getSocketTimeout();
-                        ioSession.enqueue(new PingCommand(new BasicPingHandler(result -> {
-                            ioSession.setSocketTimeout(socketTimeoutMillis);
-                            callback.execute(result);
-                        })), Command.Priority.NORMAL);
+                final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
+                final TimeValue validateAfterInactivity = connectionConfig.getValidateAfterInactivity();
+                if (TimeValue.isNonNegative(validateAfterInactivity)) {
+                    final long deadline = this.clockMillis() - validateAfterInactivity.toMilliseconds();
+                    if (ioSession.getLastEventTime() <= deadline) {
+                        ioSession.enqueue(new PingCommand(new BasicPingHandler(callback)), Command.Priority.NORMAL);
                         return;
                     }
                 }
-                callback.execute(true);
+                callback.execute(Boolean.TRUE);
             } else {
-                callback.execute(false);
+                callback.execute(Boolean.FALSE);
             }
         }
 
@@ -212,6 +193,43 @@ class InternalH2ConnPool implements ModalCloseable {
                 ioSession.close(closeMode);
             }
         }
+
+        ConnectionConfig resolveConnectionConfig(final HttpRoute route) {
+            final HttpHost target = route.getTargetHost();
+            final Resolver<HttpHost, ConnectionConfig> localResolver = connectionConfigResolver;
+            final ConnectionConfig connectionConfig = localResolver != null ? localResolver.resolve(target) : null;
+            return connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
+        }
+
+        @Override
+        protected boolean isIdle(final IOSession session) {
+            final IOEventHandler handler = session.getHandler();
+            return handler instanceof HttpConnection && ((HttpConnection) handler).isIdle();
+        }
+
+        @Override
+        protected boolean isExpired(final HttpRoute route, final IOSession ioSession) {
+            final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
+            final Timeout idleTimeout = connectionConfig.getIdleTimeout();
+            if (idleTimeout != null) {
+                final long deadline = this.clockMillis() - idleTimeout.toMilliseconds();
+                if (ioSession.getLastEventTime() <= deadline) {
+                    return true;
+                }
+            }
+            final TimeValue timeToLive = connectionConfig.getTimeToLive();
+            if (TimeValue.isPositive(timeToLive)) {
+                final long initiationTime = ioSession.getInitiationTime();
+                if (initiationTime > 0) {
+                    final long totalLifeTime = clockMillis() - initiationTime;
+                    if (totalLifeTime > timeToLive.toMilliseconds()) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
     }
 
 }
