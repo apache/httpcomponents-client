@@ -52,8 +52,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class WebSocketClientTest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(WebSocketClientTest.class);
 
     private WebSocketServer server;
     private int port;
@@ -106,7 +110,7 @@ final class WebSocketClientTest {
             final StringBuilder echoed = new StringBuilder();
             final AtomicReference<WebSocket> wsRef = new AtomicReference<>();
 
-            System.out.println("[TEST] connecting: " + uri);
+            LOG.info("[TEST] connecting: {}", uri);
 
             final WebSocketListener listener = new WebSocketListener() {
 
@@ -114,17 +118,17 @@ final class WebSocketClientTest {
                 public void onOpen(final WebSocket ws) {
                     wsRef.set(ws);
                     final String payload = buildPayload();
-                    System.out.println("[TEST] open: " + uri);
+                    LOG.info("[TEST] open: {}", uri);
                     final boolean sent = ws.sendText(payload, true);
-                    System.out.println("[TEST] sent (chars=" + payload.length() + ") sent=" + sent);
+                    LOG.info("[TEST] sent (chars={}) sent={}", payload.length(), sent);
                 }
 
                 @Override
                 public void onText(final CharBuffer text, final boolean last) {
                     echoed.append(text);
                     if (last) {
-                        System.out.println("[TEST] text (chars=" + text.length() + "): " +
-                                (text.length() > 80 ? text.subSequence(0, 80) + "…" : text));
+                        LOG.info("[TEST] text (chars={}): {}", text.length(),
+                                text.length() > 80 ? text.subSequence(0, 80) + "…" : text);
                         final WebSocket ws = wsRef.get();
                         if (ws != null) {
                             ws.close(1000, "done");
@@ -135,7 +139,7 @@ final class WebSocketClientTest {
                 @Override
                 public void onClose(final int code, final String reason) {
                     try {
-                        System.out.println("[TEST] close: " + code + " " + reason);
+                        LOG.info("[TEST] close: {} {}", code, reason);
                         assertEquals(1000, code);
                         assertTrue(echoed.length() > 0, "No text echoed back");
                     } finally {
@@ -145,7 +149,7 @@ final class WebSocketClientTest {
 
                 @Override
                 public void onError(final Throwable ex) {
-                    ex.printStackTrace(System.out);
+                    LOG.error(ex.getMessage(), ex);
                     errorRef.set(ex);
                     done.countDown();
                 }
