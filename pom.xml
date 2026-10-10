@@ -450,11 +450,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <!-- Several features such as group exclusion and parallel test execution
-             in the integration test suite do not appear to work reliably with
-             versions of maven-surefire-plugin higher than 3.5.0
-             -->
-        <version>3.5.0</version>
         <configuration>
           <excludedGroups>slow,time-out,stale-conn</excludedGroups>
         </configuration>
