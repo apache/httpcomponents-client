@@ -258,6 +258,36 @@ final class TestScramScheme {
     }
 
     @Test
+    void strictScram_serverNonceNotExtended_rejectedAt401() throws Exception {
+        final ScramScheme scheme = new ScramScheme();
+        final BasicCredentialsProvider creds = new BasicCredentialsProvider();
+        creds.setCredentials(new AuthScope(HOST, REALM, scheme.getName()),
+                new UsernamePasswordCredentials(USER, PASS.toCharArray()));
+        final HttpClientContext ctx = HttpClientContext.create();
+
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("realm", REALM)),
+                ctx);
+        assertTrue(scheme.isResponseReady(HOST, creds, ctx));
+
+        final String authz1 = scheme.generateAuthResponse(HOST, null, ctx);
+        final String clientFirstBare = deb64s(splitHeader(authz1).get("data")).substring("n,,".length());
+        final String clientNonce = parseCsvAttrs(clientFirstBare).get("r");
+
+        // Server echoes the client nonce verbatim, contributing no server nonce of its own.
+        final String serverFirst = "r=" + clientNonce + ",s=" + b64("salt".getBytes(StandardCharsets.UTF_8)) + ",i=4096";
+        final AuthenticationException ex = assertThrows(AuthenticationException.class, () ->
+                scheme.processChallenge(HOST, true,
+                        new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                                new BasicNameValuePair("sid", SID),
+                                new BasicNameValuePair("data", b64(serverFirst.getBytes(StandardCharsets.UTF_8)))),
+                        ctx));
+        assertTrue(ex.getMessage().toLowerCase(Locale.ROOT).contains("nonce"));
+        assertTrue(scheme.isChallengeComplete());
+    }
+
+    @Test
     void strictScram_minIterations_enforced() throws Exception {
         final ScramScheme scheme = new ScramScheme(4096, 4096, 100000, null);
         final BasicCredentialsProvider creds = new BasicCredentialsProvider();
