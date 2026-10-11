@@ -289,9 +289,10 @@ public final class ScramScheme implements AuthScheme {
                 this.state = State.FAILED;
                 throw new MalformedChallengeException("SCRAM server-first missing r/s/i");
             }
-            if (this.clientNonce == null || !r.startsWith(this.clientNonce)) {
+            if (this.clientNonce == null || !r.startsWith(this.clientNonce)
+                    || r.length() <= this.clientNonce.length()) {
                 this.state = State.FAILED;
-                throw new AuthenticationException("SCRAM server nonce does not start with client nonce");
+                throw new AuthenticationException("SCRAM server nonce does not extend client nonce");
             }
 
             try {
