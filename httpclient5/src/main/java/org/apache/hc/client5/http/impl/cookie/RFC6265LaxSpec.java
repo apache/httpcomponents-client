@@ -48,7 +48,8 @@ public class RFC6265LaxSpec extends RFC6265CookieSpecBase {
                 LaxMaxAgeHandler.INSTANCE,
                 BasicSecureHandler.INSTANCE,
                 BasicHttpOnlyHandler.INSTANCE,
-                LaxExpiresHandler.INSTANCE);
+                LaxExpiresHandler.INSTANCE,
+                BasicSameSiteHandler.INSTANCE);
     }
 
     RFC6265LaxSpec(final CommonCookieAttributeHandler... handlers) {
