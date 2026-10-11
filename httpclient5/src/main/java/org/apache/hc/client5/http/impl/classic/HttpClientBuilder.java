@@ -54,8 +54,10 @@ import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
+import org.apache.hc.client5.http.entity.compress.CompressionDictionaryStore;
 import org.apache.hc.client5.http.entity.compress.DecompressingEntity;
 import org.apache.hc.client5.http.impl.ChainElement;
+import org.apache.hc.client5.http.impl.CompressionDictionaryCookieStore;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
@@ -195,6 +197,7 @@ public class HttpClientBuilder {
     private Lookup<AuthSchemeFactory> authSchemeRegistry;
     private Lookup<CookieSpecFactory> cookieSpecRegistry;
     private LinkedHashMap<String, InputStreamFactory> contentDecoderMap;
+    private CompressionDictionaryStore compressionDictionaryStore;
     private CookieStore cookieStore;
     private CredentialsProvider credentialsProvider;
     private String userAgent;
@@ -689,12 +692,36 @@ public class HttpClientBuilder {
     /**
      * Sets a map of {@link org.apache.hc.client5.http.entity.InputStreamFactory}s
      * to be used for automatic content decompression.
+     * <p>
+     * The {@code dcb} and {@code dcz} content codings are reserved for Compression
+     * Dictionary Transport and must not be registered explicitly.
+     * </p>
      *
      * @return this instance.
      */
     public final HttpClientBuilder setContentDecoderRegistry(
             final LinkedHashMap<String, InputStreamFactory> contentDecoderMap) {
         this.contentDecoderMap = contentDecoderMap;
+        return this;
+    }
+
+    /**
+     * Sets the compression dictionary store used for Compression Dictionary
+     * Transport as defined by RFC 9842.
+     * <p>
+     * The managed cookie store is used as the privacy partition for stored
+     * dictionaries. A custom cookie store cannot be combined with dictionary
+     * transport because its clearing lifecycle cannot be observed.
+     * </p>
+     *
+     * @param compressionDictionaryStore the compression dictionary store,
+     *                                   or {@code null} to disable dictionary transport
+     * @return this instance.
+     * @since 5.7
+     */
+    public final HttpClientBuilder setCompressionDictionaryStore(
+            final CompressionDictionaryStore compressionDictionaryStore) {
+        this.compressionDictionaryStore = compressionDictionaryStore;
         return this;
     }
 
@@ -853,6 +880,14 @@ public class HttpClientBuilder {
     }
 
     public CloseableHttpClient build() {
+        if (cookieManagementDisabled && compressionDictionaryStore != null) {
+            throw new IllegalStateException(
+                    "Compression Dictionary Transport requires cookie management");
+        }
+        if (compressionDictionaryStore != null && cookieStore != null) {
+            throw new IllegalStateException(
+                    "Compression Dictionary Transport requires the managed cookie store");
+        }
         // Create main request executor
         // We copy the instance fields to avoid changing them, and rename to avoid accidental use of the wrong version
         HttpRequestExecutor requestExecCopy = this.requestExec;
@@ -982,13 +1017,13 @@ public class HttpClientBuilder {
                 final Registry<UnaryOperator<HttpEntity>> decoderRegistry = b2.build();
 
                 execChainDefinition.addFirst(
-                        new ContentCompressionExec(encodings, decoderRegistry),
+                        new ContentCompressionExec(encodings, decoderRegistry, compressionDictionaryStore),
                         ChainElement.COMPRESS.name());
 
             } else {
                 // Use the default decoders from ContentCodecRegistry
                 execChainDefinition.addFirst(
-                        new ContentCompressionExec(),
+                        new ContentCompressionExec(compressionDictionaryStore),
                         ChainElement.COMPRESS.name());
             }
         }
@@ -1091,6 +1126,10 @@ public class HttpClientBuilder {
         CookieStore defaultCookieStore = this.cookieStore;
         if (defaultCookieStore == null) {
             defaultCookieStore = new BasicCookieStore();
+            if (compressionDictionaryStore != null) {
+                defaultCookieStore = new CompressionDictionaryCookieStore(
+                        defaultCookieStore, compressionDictionaryStore);
+            }
         }
 
         CredentialsProvider defaultCredentialsProvider = this.credentialsProvider;
