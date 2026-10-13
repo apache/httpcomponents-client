@@ -65,7 +65,7 @@ final class TestScramScheme {
     private static final String SID = "sid-1";
 
     static String b64(final byte[] b) {
-        return Base64.getEncoder().withoutPadding().encodeToString(b);
+        return Base64.getEncoder().encodeToString(b);
     }
 
     static byte[] b64d(final String s) {
@@ -633,7 +633,7 @@ final class TestScramScheme {
     }
 
     @Test
-    void testEmptyPassword() throws Exception {
+    void testEmptyPasswordRejected() throws Exception {
         final ScramScheme scheme = new ScramScheme();
         final BasicCredentialsProvider creds = new BasicCredentialsProvider();
         creds.setCredentials(new AuthScope(HOST, REALM, scheme.getName()),
@@ -644,7 +644,9 @@ final class TestScramScheme {
                 new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
                         new BasicNameValuePair("realm", REALM)),
                 ctx);
-        assertTrue(scheme.isResponseReady(HOST, creds, ctx));
+        final AuthenticationException ex = assertThrows(AuthenticationException.class,
+                () -> scheme.isResponseReady(HOST, creds, ctx));
+        assertTrue(ex.getMessage().toLowerCase(Locale.ROOT).contains("empty"));
     }
 
     @Test
