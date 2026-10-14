@@ -104,8 +104,8 @@ final class RestContent {
             final Charset charset = ContentType.getCharset(type, StandardCharsets.UTF_8);
             return new String(bytes, charset);
         } else if (jsonNode != null) {
-            if (jsonNode.isTextual()) {
-                return jsonNode.textValue();
+            if (jsonNode.isString()) {
+                return jsonNode.stringValue();
             } else {
                 return objectMapper.writeValueAsString(jsonNode);
             }

@@ -112,7 +112,7 @@ class RestClientResponseTest {
             final JsonNode node = response.readEntity(JsonNode.class);
             assertThat(node).isNotNull();
             assertThat(node.isObject()).isTrue();
-            assertThat(node.get("id").asText()).isEqualTo("abc");
+            assertThat(node.get("id").stringValue()).isEqualTo("abc");
         }
     }
 
@@ -125,7 +125,7 @@ class RestClientResponseTest {
             final JsonNode second = response.readEntity(JsonNode.class);
 
             assertThat(pojo.id).isEqualTo("abc");
-            assertThat(first.get("id").asText()).isEqualTo("abc");
+            assertThat(first.get("id").stringValue()).isEqualTo("abc");
             assertThat(second).isSameAs(first);
         }
     }
