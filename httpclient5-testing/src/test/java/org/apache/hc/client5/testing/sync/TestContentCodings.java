@@ -41,7 +41,6 @@ import java.util.zip.Deflater;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
@@ -116,7 +115,7 @@ abstract class TestContentCodings extends AbstractIntegrationTestBase {
 
         final HttpGet request = new HttpGet("/some-resource");
         client.execute(target, request, response -> {
-            Assertions.assertEquals(entityText, EntityUtils.toString(response.getEntity()),
+            Assertions.assertEquals(entityText, EntityUtils.toString(response.getEntity(), 1000),
                     "The entity text is correctly transported");
             return null;
         });
@@ -141,7 +140,7 @@ abstract class TestContentCodings extends AbstractIntegrationTestBase {
 
         final HttpGet request = new HttpGet("/some-resource");
         client.execute(target, request, response -> {
-            Assertions.assertEquals(entityText, EntityUtils.toString(response.getEntity()),
+            Assertions.assertEquals(entityText, EntityUtils.toString(response.getEntity(), 1000),
                     "The entity text is correctly transported");
             return null;
         });
@@ -165,7 +164,7 @@ abstract class TestContentCodings extends AbstractIntegrationTestBase {
 
         final HttpGet request = new HttpGet("/some-resource");
         client.execute(target, request, response -> {
-            Assertions.assertEquals(entityText, EntityUtils.toString(response.getEntity()),
+            Assertions.assertEquals(entityText, EntityUtils.toString(response.getEntity(), 1000),
                     "The entity text is correctly transported");
             return null;
         });
@@ -280,7 +279,8 @@ abstract class TestContentCodings extends AbstractIntegrationTestBase {
         final TestClient client = client();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final String response = client.execute(target, request, new BasicHttpClientResponseHandler());
+        final String response = client.execute(target, request, message ->
+                EntityUtils.toString(message.getEntity(), 1000));
         Assertions.assertEquals(entityText, response, "The entity text is correctly transported");
     }
 
@@ -296,7 +296,8 @@ abstract class TestContentCodings extends AbstractIntegrationTestBase {
         final TestClient client = client();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final String response = client.execute(target, request, new BasicHttpClientResponseHandler());
+        final String response = client.execute(target, request, message ->
+                EntityUtils.toString(message.getEntity(), 1000));
         Assertions.assertEquals(entityText, response, "The entity text is correctly transported");
     }
 
@@ -441,7 +442,7 @@ abstract class TestContentCodings extends AbstractIntegrationTestBase {
                 startGate.await();
                 try {
                     text = client.execute(target, request, response ->
-                            EntityUtils.toString(response.getEntity()));
+                            EntityUtils.toString(response.getEntity(), 1000));
                 } catch (final Exception e) {
                     failed = true;
                 } finally {

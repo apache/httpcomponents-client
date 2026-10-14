@@ -50,8 +50,12 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
  * HttpClient may handle redirects (3xx responses) internally.
  * </p>
  *
+ * @deprecated Use a custom {@link org.apache.hc.core5.http.io.HttpClientResponseHandler}
+ * that represents response content as a value object.
+ *
  * @since 4.0
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class BasicHttpClientResponseHandler extends AbstractHttpClientResponseHandler<String> {
 

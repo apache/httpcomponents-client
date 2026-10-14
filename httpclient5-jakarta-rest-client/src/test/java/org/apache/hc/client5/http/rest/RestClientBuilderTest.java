@@ -383,7 +383,7 @@ class RestClientBuilderTest {
                 .register("/echobody",
                         (request, response, context) -> {
                             final byte[] body =
-                                    EntityUtils.toByteArray(request.getEntity());
+                                    EntityUtils.toByteArray(request.getEntity(), 1000);
                             response.setCode(200);
                             response.setEntity(new ByteArrayEntity(body,
                                     ContentType.APPLICATION_OCTET_STREAM));
@@ -409,7 +409,7 @@ class RestClientBuilderTest {
                 .register("/json",
                         (request, response, context) -> {
                             final String body =
-                                    EntityUtils.toString(request.getEntity());
+                                    EntityUtils.toString(request.getEntity(), 1000);
                             response.setCode(201);
                             response.setEntity(new StringEntity(
                                     body, ContentType.APPLICATION_JSON));

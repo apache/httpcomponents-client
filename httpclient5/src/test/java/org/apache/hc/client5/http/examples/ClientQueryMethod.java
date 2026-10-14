@@ -49,7 +49,7 @@ public class ClientQueryMethod {
             httpclient.execute(httpQuery, response -> {
                 System.out.println("----------------------------------------");
                 System.out.println(httpQuery + "->" + new StatusLine(response));
-                System.out.println(EntityUtils.toString(response.getEntity()));
+                System.out.println(EntityUtils.toString(response.getEntity(), 1000));
                 return null;
             });
         }

@@ -135,7 +135,7 @@ public abstract class TestClassicOverAsync extends AbstractClassicOverAsyncInteg
                             .build(),
                     response -> {
                         Assertions.assertEquals(200, response.getCode());
-                        final byte[] bytes = EntityUtils.toByteArray(response.getEntity());
+                        final byte[] bytes = EntityUtils.toByteArray(response.getEntity(), contentSize);
                         Assertions.assertNotNull(bytes);
                         Assertions.assertEquals(contentSize, bytes.length);
                         return null;
@@ -274,7 +274,7 @@ public abstract class TestClassicOverAsync extends AbstractClassicOverAsyncInteg
                     return client.execute(
                             request,
                             response -> {
-                                final byte[] bytes = EntityUtils.toByteArray(response.getEntity());
+                                final byte[] bytes = EntityUtils.toByteArray(response.getEntity(), contentSize);
                                 countDownLatch.countDown();
                                 return new Result<>(request, response, bytes);
                             });
@@ -318,7 +318,7 @@ public abstract class TestClassicOverAsync extends AbstractClassicOverAsyncInteg
                             .build(),
                     response -> {
                         Assertions.assertEquals(200, response.getCode());
-                        final byte[] bytes = EntityUtils.toByteArray(response.getEntity());
+                        final byte[] bytes = EntityUtils.toByteArray(response.getEntity(), contentSize);
                         Assertions.assertNotNull(bytes);
                         Assertions.assertArrayEquals(temp, bytes);
                         return null;
@@ -353,7 +353,7 @@ public abstract class TestClassicOverAsync extends AbstractClassicOverAsyncInteg
                     return client.execute(
                             request,
                             response -> {
-                                final byte[] bytes = EntityUtils.toByteArray(response.getEntity());
+                                final byte[] bytes = EntityUtils.toByteArray(response.getEntity(), contentSize);
                                 countDownLatch.countDown();
                                 return new Result<>(request, response, bytes);
                             });

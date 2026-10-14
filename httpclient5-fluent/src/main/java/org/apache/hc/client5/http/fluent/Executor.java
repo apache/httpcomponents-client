@@ -111,7 +111,6 @@ public class Executor {
                                         .build())
                                 .build())
                         .evictExpiredConnections()
-                        .evictIdleConnections(TimeValue.ofMinutes(1))
                         .build(), Timeout.ofMinutes(5));
             }
             return ASYNC_CLIENT;

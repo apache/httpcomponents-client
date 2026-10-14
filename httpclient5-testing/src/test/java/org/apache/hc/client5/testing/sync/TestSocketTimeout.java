@@ -30,7 +30,6 @@ package org.apache.hc.client5.testing.sync;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.testing.classic.RandomHandler;
 import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
@@ -38,6 +37,7 @@ import org.apache.hc.client5.testing.extension.sync.TestClient;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -87,12 +87,14 @@ abstract class AbstractTestSocketTimeout extends AbstractIntegrationTestBase {
         for (final boolean drip : new boolean[]{ false, true }) {
             for (final boolean reuseConnection : new boolean[]{ false, true }) {
                 if (reuseConnection) {
-                    client.execute(target, getRequest(5000, 0, false), new BasicHttpClientResponseHandler());
+                    client.execute(target, getRequest(5000, 0, false), response ->
+                            EntityUtils.toString(response.getEntity(), 1000));
                 }
                 final HttpGet request = getRequest(responseTimeout, 2500, drip);
 
                 assertThrows(SocketTimeoutException.class, () ->
-                    client.execute(target, request, new BasicHttpClientResponseHandler()),
+                    client.execute(target, request, response ->
+                            EntityUtils.toString(response.getEntity(), 1000)),
                     String.format("drip=%s, reuseConnection=%s", drip, reuseConnection));
             }
         }

@@ -71,7 +71,7 @@ class TestFluent {
                         final ContentType contentType = contentTypeStr == null ? ContentType.DEFAULT_TEXT : ContentType.parse(contentTypeStr);
                         if (ContentType.TEXT_PLAIN.getMimeType().equals(contentType.getMimeType())) {
                             responseEntity = new StringEntity(
-                                    EntityUtils.toString(requestEntity), ContentType.TEXT_PLAIN);
+                                    EntityUtils.toString(requestEntity, 1000), ContentType.TEXT_PLAIN);
                         }
                     }
                     if (responseEntity == null) {

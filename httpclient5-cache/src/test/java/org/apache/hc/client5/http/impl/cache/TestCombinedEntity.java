@@ -54,7 +54,7 @@ class TestCombinedEntity {
         Assertions.assertFalse(entity.isRepeatable());
         Assertions.assertTrue(entity.isStreaming());
 
-        Assertions.assertArrayEquals(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, EntityUtils.toByteArray(entity));
+        Assertions.assertArrayEquals(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, EntityUtils.toByteArray(entity, 1000));
 
         verify(httpEntity).getContent();
 

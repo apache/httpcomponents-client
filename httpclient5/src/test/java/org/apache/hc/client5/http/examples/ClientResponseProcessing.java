@@ -49,7 +49,7 @@ public class ClientResponseProcessing {
                 System.out.println("----------------------------------------");
                 System.out.println(httpget + "->" + new StatusLine(response));
                 // Process response message and convert it into a value object
-                return new Result(response.getCode(), EntityUtils.toString(response.getEntity()));
+                return new Result(response.getCode(), EntityUtils.toString(response.getEntity(), 1000));
             });
             System.out.println(result);
         }

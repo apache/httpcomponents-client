@@ -83,7 +83,7 @@ public class EchoHandler implements HttpRequestHandler {
             data = new byte [0];
             contentType = null;
         } else {
-            data = EntityUtils.toByteArray(entity);
+            data = EntityUtils.toByteArray(entity, Integer.MAX_VALUE);
             final String contentTypeStr = entity.getContentType();
             contentType = contentTypeStr == null ? null : ContentType.parse(contentTypeStr);
         }

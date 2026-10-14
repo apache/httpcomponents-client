@@ -53,7 +53,7 @@ class TestDecompressingEntity {
         final StringEntity wrapped = new StringEntity("1234567890", StandardCharsets.US_ASCII);
         final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
         Assertions.assertFalse(entity.isStreaming());
-        final String s = EntityUtils.toString(entity);
+        final String s = EntityUtils.toString(entity, 1000);
         Assertions.assertEquals("1234567890", s);
         Assertions.assertEquals(639479525L, crc32.getValue());
         final InputStream in1 = entity.getContent();
@@ -68,7 +68,7 @@ class TestDecompressingEntity {
         final InputStreamEntity wrapped = new InputStreamEntity(in, -1, ContentType.DEFAULT_TEXT);
         final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
         Assertions.assertTrue(entity.isStreaming());
-        final String s = EntityUtils.toString(entity);
+        final String s = EntityUtils.toString(entity, 1000);
         Assertions.assertEquals("1234567890", s);
         Assertions.assertEquals(639479525L, crc32.getValue());
         final InputStream in1 = entity.getContent();

@@ -32,11 +32,11 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -84,7 +84,8 @@ class TestConnectionTimeouts {
 
     private static void assertTimeout(final HttpUriRequestBase request, final CloseableHttpClient client) {
         final ConnectTimeoutException ex = assertThrows(ConnectTimeoutException.class,
-            () -> client.execute(request, new BasicHttpClientResponseHandler()));
+            () -> client.execute(request, response ->
+                    EntityUtils.toString(response.getEntity(), 1000)));
         // Capitalization (`connect` vs `Connect`) varies by Java version
         assertTrue(ex.getMessage().toLowerCase().contains("connect timed out"), ex.getMessage());
     }

@@ -105,7 +105,7 @@ class TestEntityBuilder {
         Assertions.assertEquals("application/json; charset=UTF-8", entity.getContentType());
         Assertions.assertNotNull(entity.getContentEncoding());
         Assertions.assertEquals("identity", entity.getContentEncoding());
-        Assertions.assertEquals("{\"stuff\"}", EntityUtils.toString(entity));
+        Assertions.assertEquals("{\"stuff\"}", EntityUtils.toString(entity, 1000));
     }
 
     @Test

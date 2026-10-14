@@ -1117,7 +1117,7 @@ class TestCachingExecChain {
 
         Assertions.assertThrows(SocketTimeoutException.class, () -> {
             final ClassicHttpResponse result1 = execute(req1);
-            EntityUtils.toString(result1.getEntity());
+            EntityUtils.toString(result1.getEntity(), 1000);
         });
     }
 

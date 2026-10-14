@@ -35,13 +35,13 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
-import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.testing.TestValidateAfterInactivity.TcpReset;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -184,7 +184,8 @@ class AbstractTestValidateAfterInactivity {
         final HttpHost target = new HttpHost("localhost", port);
         final URI requestUri = new URI("/ping");
 
-        final String response = client.execute(target, new HttpGet(requestUri), new BasicHttpClientResponseHandler());
+        final String response = client.execute(target, new HttpGet(requestUri), message ->
+                EntityUtils.toString(message.getEntity(), 1000));
 
         assertEquals("OK", response);
     }

@@ -30,10 +30,8 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * An example that performs GETs from multiple threads.
@@ -84,13 +82,11 @@ public class ClientMultiThreadedExecution {
     static class GetThread extends Thread {
 
         private final CloseableHttpClient httpClient;
-        private final HttpContext context;
         private final HttpGet httpget;
         private final int id;
 
         public GetThread(final CloseableHttpClient httpClient, final HttpGet httpget, final int id) {
             this.httpClient = httpClient;
-            this.context = HttpClientContext.create();
             this.httpget = httpget;
             this.id = id;
         }
@@ -107,7 +103,7 @@ public class ClientMultiThreadedExecution {
                     // get the response body as an array of bytes
                     final HttpEntity entity = response.getEntity();
                     if (entity != null) {
-                        final byte[] bytes = EntityUtils.toByteArray(entity);
+                        final byte[] bytes = EntityUtils.toByteArray(entity, Integer.MAX_VALUE);
                         System.out.println(id + " - " + bytes.length + " bytes read");
                     }
                     return null;

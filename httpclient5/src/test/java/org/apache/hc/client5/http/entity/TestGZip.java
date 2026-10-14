@@ -72,7 +72,7 @@ class TestGZip {
                     .decoder(ContentCoding.GZIP)
                     .apply(out);
             Assertions.assertEquals("some kind of text",
-                    EntityUtils.toString(gunzipe, StandardCharsets.US_ASCII));
+                    EntityUtils.toString(gunzipe, StandardCharsets.US_ASCII, 1000));
         }
     }
 
@@ -110,7 +110,7 @@ class TestGZip {
                 .apply(new InputStreamEntity(new ByteArrayInputStream(bytes),
                         ContentType.APPLICATION_OCTET_STREAM))) {
             Assertions.assertEquals("stream-1\nstream-2\n",
-                    EntityUtils.toString(entity, StandardCharsets.US_ASCII));
+                    EntityUtils.toString(entity, StandardCharsets.US_ASCII, 1000));
         }
     }
 
@@ -133,7 +133,7 @@ class TestGZip {
                 .apply(new ByteArrayEntity(buf.toByteArray(),
                         ContentType.APPLICATION_OCTET_STREAM));
 
-        Assertions.assertEquals(txt, EntityUtils.toString(ungzip, StandardCharsets.US_ASCII));
+        Assertions.assertEquals(txt, EntityUtils.toString(ungzip, StandardCharsets.US_ASCII, 1000));
     }
 
     @Test
@@ -151,7 +151,7 @@ class TestGZip {
 
         Assertions.assertNotNull(decodedEntity, "unwrap returned null");
         Assertions.assertEquals("unwrap check",
-                EntityUtils.toString(decodedEntity, StandardCharsets.US_ASCII));
+                EntityUtils.toString(decodedEntity, StandardCharsets.US_ASCII, 1000));
     }
 
 }

@@ -861,7 +861,7 @@ abstract class TestRedirects extends AbstractIntegrationTestBase {
 
         client.execute(target, httpQuery, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assertions.assertEquals("stuff", EntityUtils.toString(response.getEntity()));
+            Assertions.assertEquals("stuff", EntityUtils.toString(response.getEntity(), 1000));
             return null;
         });
         final HttpRequest reqWrapper = context.getRequest();

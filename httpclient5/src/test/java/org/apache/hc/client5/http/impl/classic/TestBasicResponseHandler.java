@@ -39,8 +39,11 @@ import org.mockito.Mockito;
 
 /**
  * Unit tests for {@link BasicHttpClientResponseHandler}.
+ *
+ * @deprecated Should no longer be used.
  */
 @SuppressWarnings("boxing") // test code
+@Deprecated
 class TestBasicResponseHandler {
 
     @Test

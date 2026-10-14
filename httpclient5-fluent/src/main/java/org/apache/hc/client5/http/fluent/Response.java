@@ -118,7 +118,7 @@ public class Response {
             return ClassicResponseBuilder.copy(response)
                     .setEntity(entity != null ?
                             new ByteArrayEntity(
-                                    EntityUtils.toByteArray(entity),
+                                    EntityUtils.toByteArray(entity, Integer.MAX_VALUE),
                                     ContentType.parse(entity.getContentType()))
                             : null)
                     .build();

@@ -61,7 +61,7 @@ class TestDeflate {
                 .decoder(ContentCoding.DEFLATE)
                 .apply(new ByteArrayEntity(compressed, 0, len, ContentType.APPLICATION_OCTET_STREAM));
 
-        Assertions.assertEquals(s, EntityUtils.toString(entity));
+        Assertions.assertEquals(s, EntityUtils.toString(entity, 1000));
     }
 
     @Test
@@ -82,7 +82,7 @@ class TestDeflate {
                 .decoder(ContentCoding.DEFLATE)
                 .apply(new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM));
 
-        Assertions.assertEquals(text, EntityUtils.toString(decoded, StandardCharsets.US_ASCII));
+        Assertions.assertEquals(text, EntityUtils.toString(decoded, StandardCharsets.US_ASCII, 1000));
     }
 
 

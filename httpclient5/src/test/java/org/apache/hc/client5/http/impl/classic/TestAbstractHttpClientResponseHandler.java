@@ -41,7 +41,10 @@ import org.mockito.Mockito;
 
 /**
  * Unit tests for {@link BasicHttpClientResponseHandler}.
+ *
+ * @deprecated Should no longer be used.
  */
+@Deprecated
 class TestAbstractHttpClientResponseHandler {
 
     @Test

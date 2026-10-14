@@ -111,7 +111,7 @@ public final class ClientServerCompressionExample {
 
             final String reply = client.execute(
                     post,
-                    rsp -> EntityUtils.toString(rsp.getEntity(), StandardCharsets.UTF_8));
+                    rsp -> EntityUtils.toString(rsp.getEntity(), StandardCharsets.UTF_8, 1000));
 
             System.out.println("Response: " + reply);
         } finally {

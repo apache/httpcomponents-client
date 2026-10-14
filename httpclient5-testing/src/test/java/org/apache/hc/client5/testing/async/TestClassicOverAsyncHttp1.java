@@ -72,7 +72,7 @@ public abstract class TestClassicOverAsyncHttp1 extends TestClassicOverAsync {
                             .build(),
                     response -> {
                         Assertions.assertEquals(200, response.getCode());
-                        final byte[] bytes = EntityUtils.toByteArray(response.getEntity());
+                        final byte[] bytes = EntityUtils.toByteArray(response.getEntity(), contentSize);
                         Assertions.assertNotNull(bytes);
                         Assertions.assertArrayEquals(temp, bytes);
                         return null;

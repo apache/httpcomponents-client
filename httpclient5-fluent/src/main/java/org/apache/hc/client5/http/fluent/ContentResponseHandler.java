@@ -54,7 +54,7 @@ public class ContentResponseHandler extends AbstractHttpClientResponseHandler<Co
     @Override
     public Content handleEntity(final HttpEntity entity) throws IOException {
         return entity != null ?
-                new Content(EntityUtils.toByteArray(entity), ContentType.parse(entity.getContentType())) :
+                new Content(EntityUtils.toByteArray(entity, Integer.MAX_VALUE), ContentType.parse(entity.getContentType())) :
                 Content.NO_CONTENT;
     }
 
@@ -76,6 +76,6 @@ public class ContentResponseHandler extends AbstractHttpClientResponseHandler<Co
         if (statusCode >= 300) {
             throw new HttpResponseException(statusCode, response.getReasonPhrase(), entity != null ? EntityUtils.toByteArray(entity, MAX_MESSAGE_LENGTH) : null, contentType);
         }
-        return new Content(entity != null ? EntityUtils.toByteArray(entity) : new byte[] {}, contentType);
+        return new Content(entity != null ? EntityUtils.toByteArray(entity, Integer.MAX_VALUE) : new byte[] {}, contentType);
     }
 }
