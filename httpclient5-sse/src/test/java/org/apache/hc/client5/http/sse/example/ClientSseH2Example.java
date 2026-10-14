@@ -44,6 +44,7 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
@@ -63,7 +64,7 @@ import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * HTTP/2 SSE demo.
@@ -151,6 +152,9 @@ public final class ClientSseH2Example {
                         .setDefaultTlsConfig(TlsConfig.custom()
                                 .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_2)
                                 .build())
+                        .setDefaultConnectionConfig(ConnectionConfig.custom()
+                                .setIdleTimeout(Timeout.ofMinutes(1))
+                                .build())
                         .build();
 
         final CloseableHttpAsyncClient httpClient = HttpAsyncClientBuilder.create()
@@ -161,7 +165,6 @@ public final class ClientSseH2Example {
                         .setMaxConcurrentStreams(Math.max(64, streamCount * 8))
                         .build())
                 .evictExpiredConnections()
-                .evictIdleConnections(TimeValue.ofMinutes(1))
                 .build();
 
         httpClient.start();

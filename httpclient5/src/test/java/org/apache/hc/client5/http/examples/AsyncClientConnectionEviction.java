@@ -34,6 +34,7 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -58,8 +59,11 @@ public class AsyncClientConnectionEviction {
 
         final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
                 .setIOReactorConfig(ioReactorConfig)
+                // Lazily evict expired connections every minute
                 .evictExpiredConnections()
-                .evictIdleConnections(TimeValue.ofSeconds(10))
+                .setDefaultRequestConfig(RequestConfig.custom()
+                        .setConnectionKeepAlive(TimeValue.ofSeconds(5))
+                        .build())
                 .build();
 
         client.start();

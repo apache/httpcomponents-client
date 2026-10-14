@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
 
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
@@ -50,7 +51,7 @@ import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Scaled SSE client harness with nano-time calibration and batched ramp-up.
@@ -97,6 +98,9 @@ public final class SsePerfClient {
                                 TlsConfig.custom()
                                         .setVersionPolicy(h2 ? HttpVersionPolicy.NEGOTIATE : HttpVersionPolicy.FORCE_HTTP_1)
                                         .build())
+                        .setDefaultConnectionConfig(ConnectionConfig.custom()
+                                .setIdleTimeout(Timeout.ofMinutes(1))
+                                .build())
                         .build();
 
         final CloseableHttpAsyncClient httpClient = HttpAsyncClientBuilder.create()
@@ -107,7 +111,6 @@ public final class SsePerfClient {
                         .setMaxConcurrentStreams(512)
                         .build())
                 .evictExpiredConnections()
-                .evictIdleConnections(TimeValue.ofMinutes(1))
                 .build();
 
         final ScheduledThreadPoolExecutor scheduler =

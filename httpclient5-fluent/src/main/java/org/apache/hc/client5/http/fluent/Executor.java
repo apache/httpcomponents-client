@@ -81,10 +81,10 @@ public class Executor {
                                 .setMaxConnTotal(200)
                                 .setDefaultConnectionConfig(ConnectionConfig.custom()
                                         .setValidateAfterInactivity(TimeValue.ofSeconds(10))
+                                        .setIdleTimeout(Timeout.ofMinutes(1))
                                         .build())
                                 .build())
                         .evictExpiredConnections()
-                        .evictIdleConnections(TimeValue.ofMinutes(1))
                         .build();
             }
             return CLIENT;

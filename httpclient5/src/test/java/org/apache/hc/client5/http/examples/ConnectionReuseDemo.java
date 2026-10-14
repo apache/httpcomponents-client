@@ -27,6 +27,17 @@
 
 package org.apache.hc.client5.http.examples;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.apache.logging.log4j.Level.DEBUG;
+import static org.apache.logging.log4j.Level.INFO;
+import static org.apache.logging.log4j.Level.WARN;
+
+import java.net.URI;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -54,17 +65,6 @@ import org.apache.logging.log4j.core.config.builder.api.AppenderComponentBuilder
 import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;
 import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilderFactory;
 import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;
-
-import java.net.URI;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.apache.logging.log4j.Level.DEBUG;
-import static org.apache.logging.log4j.Level.INFO;
-import static org.apache.logging.log4j.Level.WARN;
 
 /**
  * This example demonstrates connection reuse, with a specific focus on what happens when there are not enough requests
@@ -186,7 +186,7 @@ public class ConnectionReuseDemo {
 
     private static HttpAsyncClientBuilder getBuilder(final TimeValue evictIdleConnections) {
         if (evictIdleConnections != null) {
-            return HttpAsyncClientBuilder.create().evictIdleConnections(evictIdleConnections);
+            return HttpAsyncClientBuilder.create().evictExpiredConnections();
         }
         return HttpAsyncClientBuilder.create();
     }

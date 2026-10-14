@@ -34,6 +34,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
@@ -42,14 +43,14 @@ import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBu
 import org.apache.hc.client5.http.sse.EventSource;
 import org.apache.hc.client5.http.sse.EventSourceConfig;
 import org.apache.hc.client5.http.sse.EventSourceListener;
-import org.apache.hc.client5.http.sse.impl.ExponentialJitterBackoff;
 import org.apache.hc.client5.http.sse.SseExecutor;
+import org.apache.hc.client5.http.sse.impl.ExponentialJitterBackoff;
 import org.apache.hc.client5.http.sse.impl.SseParser;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 public final class ClientSseExample {
 
@@ -74,6 +75,9 @@ public final class ClientSseExample {
                                 TlsConfig.custom()
                                         .setVersionPolicy(HttpVersionPolicy.NEGOTIATE) // or FORCE_HTTP_2 / FORCE_HTTP_1
                                         .build())
+                        .setDefaultConnectionConfig(ConnectionConfig.custom()
+                                .setIdleTimeout(Timeout.ofMinutes(1))
+                                .build())
                         .build();
 
         final CloseableHttpAsyncClient httpClient = HttpAsyncClientBuilder.create()
@@ -84,7 +88,6 @@ public final class ClientSseExample {
                         .setMaxConcurrentStreams(256)
                         .build())
                 .evictExpiredConnections()
-                .evictIdleConnections(TimeValue.ofMinutes(1))
                 .build();
 
         // 2) Scheduler for reconnects (multithreaded; cancels are purged)

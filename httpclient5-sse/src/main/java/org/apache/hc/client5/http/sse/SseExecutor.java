@@ -35,6 +35,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
@@ -42,7 +43,7 @@ import org.apache.hc.client5.http.sse.impl.DefaultEventSource;
 import org.apache.hc.client5.http.sse.impl.SseParser;
 import org.apache.hc.core5.reactor.IOReactorStatus;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Entry point for creating and managing {@link EventSource} instances backed by an
@@ -106,9 +107,11 @@ public final class SseExecutor {
                                 .setMaxConnPerRoute(100)
                                 .setMaxConnTotal(200)
                                 .setMessageMultiplexing(true)
+                                .setDefaultConnectionConfig(ConnectionConfig.custom()
+                                        .setIdleTimeout(Timeout.ofMinutes(1))
+                                        .build())
                                 .build())
                         .evictExpiredConnections()
-                        .evictIdleConnections(TimeValue.ofMinutes(1))
                         .build();
                 c.start();
                 SHARED_CLIENT = c;
