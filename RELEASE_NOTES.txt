@@ -1,8 +1,8 @@
 Release 5.7 BETA1
 ------------------
 
-This is the first BETA release in the 5.7 release series. In this release the idle
-connection eviction gets deprecated in favor of connection expiration management
+This is the first BETA release in the 5.7 release series. In this release, idle
+connection eviction is deprecated in favor of connection expiration management
 and expired connection eviction. This release also introduces configuration
 improvements to HTTP/2 session pooling (HTTP/2 connection pool with message
 multiplexing) and SSE support improvements as well as HTTP header parsing
@@ -13,9 +13,9 @@ Notable changes and features included in the 5.7 series:
 
 * [Experimental] Server-Sent Events (SSE) client optimized to handle push event streams.
 
-* [Experimental] WebSocket protocol support (client and server side).
+* [Experimental] WebSocket protocol support (client-side and server-side).
 
-* [Experimental] Optional execution queue that enforces a max limit on the number of requests
+* [Experimental] Optional execution queue that enforces a limit on the number of requests
 executed concurrently by the same async client instance.
 
 * Caffeine-based cache backend.
@@ -24,7 +24,7 @@ executed concurrently by the same async client instance.
 
 * TLS-Required mode support.
 
-* Jakarta REST client, supporting a sub-set of jakarta.ws.rs APIs.
+* Jakarta REST client, supporting a subset of jakarta.ws.rs APIs.
 
 * QUERY method support / QUERY response caching support.
 
@@ -33,7 +33,7 @@ Compatibility notes:
 
 * Client and connection pool builders no longer make direct use of `http(s).protocols`,
 `http(s).proxyUser`, `http(s).proxyPassword`, `http.agent`, `http.keepAlive` and
-`http.auth.ntlm.domain`system properties. Please note some of those properties may still
+`http.auth.ntlm.domain` system properties. Please note that some of those properties may still
 be used by Authenticator#requestPasswordAuthentication internally.
 
 * Connection pool builders now respect JSSE system properties by default.
@@ -42,8 +42,8 @@ be used by Authenticator#requestPasswordAuthentication internally.
 connections by default.
 
 * IMPORTANT: This is likely the last release series with the Fluent Facade APIs. Users
-of the Fluent Facade are recommended to migrate to Jakarta REST client. Fluent Facade
-APIs should be considered deprecated and its support will be discontinued in
+of the Fluent Facade are encouraged to migrate to the Jakarta REST client. Fluent Facade
+APIs should be considered deprecated, and support for them will be discontinued in
 the 5.8 release.
 
 
@@ -54,14 +54,14 @@ Change Log
   as expired. Deprecated #evictIdleConnections should not be used.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* InternalH2ConnPool: support for ConnectionConfig connection life-cycle parameters
+* InternalH2ConnPool: support for ConnectionConfig connection life cycle parameters
   (validateAfterInactivity, idleTimeout, timeToLive).
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * Upgraded HttpCore to version 5.5-beta4.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* Require SCRAM server nonce to extend the client nonce.
+* Require the SCRAM server nonce to extend the client nonce.
   Contributed by Javid Khan <dxbjavid at gmail.com>
 
 * SSE: Handle request header names case-insensitively.
@@ -84,10 +84,10 @@ Change Log
   Contributed by Javid Khan <dxbjavid at gmail.com>
 
 * Disabled the keep-alive strategy for HTTP/2 connections as it contradicts RFC 9113,
-  section 8.2.2. "Connection-Specific Header Fields".
+  Section 8.2.2, "Connection-Specific Header Fields."
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* Async exchange handlers to support #outputAborted event.
+* Async exchange handlers to support the #outputAborted event.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * Auth challenge parsing improvements.
@@ -97,7 +97,7 @@ Change Log
   keep-alive management and expired connection eviction instead.
   Contributed by Arturo Bernal <abernal at apache.org>
 
-* Emit ALPN header on CONNECT tunnels (RFC 7639).
+* Emit an ALPN header on CONNECT tunnels (RFC 7639).
   Contributed by Arturo Bernal <abernal at apache.org>
 
 * Preserve idle timeout when copying connection configuration.
@@ -119,7 +119,7 @@ Change Log
 * Header parsing optimization in cookie, authentication and caching protocol code.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* Deprecated the never-cache-responses-with-query options and make them opt-in.
+* Deprecated the never-cache-responses-with-query options and made them opt-in.
   Contributed by Arturo Bernal <abernal at apache.org>
 
 * Verify the server authentication (rspauth) provided in the Digest Authentication-Info
