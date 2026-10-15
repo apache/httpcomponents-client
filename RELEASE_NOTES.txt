@@ -1,12 +1,12 @@
-Release 5.7 ALPHA1
+Release 5.7 BETA1
 ------------------
 
-This is the first ALPHA release in the 5.7 release series. It introduces several new
-modules with Server-Sent Events (SSE) client, WebSocket client and Jakarta REST client
-implementations that build upon the common foundation of the core and client modules.
-Please note the Jakarta REST client presently supports a sub-set of jakarta.ws.rs APIs
-only. This release series also introduces full support for QUERY method including QUERY
-response caching.
+This is the first BETA release in the 5.7 release series. In this release the idle
+connection eviction gets deprecated in favor of connection expiration management
+and expired connection eviction. This release also introduces configuration
+improvements to HTTP/2 session pooling (HTTP/2 connection pool with message
+multiplexing) and SSE support improvements as well as HTTP header parsing
+optimization.
 
 
 Notable changes and features included in the 5.7 series:
@@ -46,6 +46,96 @@ of the Fluent Facade are recommended to migrate to Jakarta REST client. Fluent F
 APIs should be considered deprecated and its support will be discontinued in
 the 5.8 release.
 
+
+Change Log
+----------
+
+* Expire idle connections based on connection or request configuration and then evict them
+  as expired. Deprecated #evictIdleConnections should not be used.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* InternalH2ConnPool: support for ConnectionConfig connection life-cycle parameters
+  (validateAfterInactivity, idleTimeout, timeToLive).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Upgraded HttpCore to version 5.5-beta4.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Require SCRAM server nonce to extend the client nonce.
+  Contributed by Javid Khan <dxbjavid at gmail.com>
+
+* SSE: Handle request header names case-insensitively.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* SSE: Update Last-Event-ID independently of event dispatch.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* SSE: Do not dispatch incomplete events at end of stream.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* HTTPCLIENT-2429: Improve support for custom transport layers. Expose supported custom
+  transport extension points for classic and async clients.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* SSE: Route the first non-BOM byte through the CR/LF handling in ByteSseEntityConsumer.
+  Contributed by Javid Khan <dxbjavid at gmail.com>
+
+* SSE: Treat a lone CR as an SSE line terminator.
+  Contributed by Javid Khan <dxbjavid at gmail.com>
+
+* Disabled the keep-alive strategy for HTTP/2 connections as it contradicts RFC 9113,
+  section 8.2.2. "Connection-Specific Header Fields".
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Async exchange handlers to support #outputAborted event.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Auth challenge parsing improvements.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2434: Deprecate idle connection eviction. Recommend connection
+  keep-alive management and expired connection eviction instead.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Emit ALPN header on CONNECT tunnels (RFC 7639).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Preserve idle timeout when copying connection configuration.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Simplification of the message exchange handling logic in the main async exec
+  interceptors.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Use Brotli4jLoader.isAvailable() instead of relying on class presence.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Added a model and parser for the Proxy-Status response field (RFC 9209).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Optional Cache-Status response header (RFC 9211).
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Header parsing optimization in cookie, authentication and caching protocol code.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Deprecated the never-cache-responses-with-query options and make them opt-in.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+* Verify the server authentication (rspauth) provided in the Digest Authentication-Info
+  response per RFC 7616.
+  Contributed by Arturo Bernal <abernal at apache.org>
+
+
+Release 5.7 ALPHA1
+------------------
+
+This is the first ALPHA release in the 5.7 release series. It introduces several new
+modules with Server-Sent Events (SSE) client, WebSocket client and Jakarta REST client
+implementations that build upon the common foundation of the core and client modules.
+Please note the Jakarta REST client presently supports a sub-set of jakarta.ws.rs APIs
+only. This release series also introduces full support for QUERY method including QUERY
+response caching.
 
 Change Log
 ----------
