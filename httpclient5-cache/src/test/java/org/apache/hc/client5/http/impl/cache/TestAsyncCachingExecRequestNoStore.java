@@ -58,7 +58,7 @@ class TestAsyncCachingExecRequestNoStore {
     @Test
     void testResponseToRequestWithNoStoreIsNotCached() throws Exception {
         final AtomicInteger originHits = new AtomicInteger(0);
-        final HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        final HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/", exchange -> handleOrigin(exchange, originHits));
         final ExecutorService executorService = Executors.newCachedThreadPool();
         server.setExecutor(executorService);

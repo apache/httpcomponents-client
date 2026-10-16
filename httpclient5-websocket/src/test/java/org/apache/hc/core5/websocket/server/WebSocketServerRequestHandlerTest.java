@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -316,7 +317,8 @@ class WebSocketServerRequestHandlerTest {
     }
 
     private static WebSocketServerConnection createConnection() throws IOException {
-        final ServerSocket server = new ServerSocket(0);
+        final ServerSocket server = new ServerSocket();
+        server.bind(new InetSocketAddress("127.0.0.1", 0));
         final Socket client = new Socket("127.0.0.1", server.getLocalPort());
         final Socket socket = server.accept();
         client.close();

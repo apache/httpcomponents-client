@@ -70,7 +70,7 @@ public class AsyncClientCacheRequestCollapsingSmokeTest {
         final CountDownLatch cancelLeaderRelease = new CountDownLatch(1);
 
         final ExecutorService executorService = Executors.newFixedThreadPool(REQUEST_COUNT);
-        final HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        final HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.setExecutor(executorService);
 
         server.createContext("/cacheable", exchange -> {

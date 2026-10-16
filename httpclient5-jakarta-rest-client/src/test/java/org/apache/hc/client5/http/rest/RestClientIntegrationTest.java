@@ -68,7 +68,7 @@ class RestClientIntegrationTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/books", this::handleBooks);
         server.start();
 

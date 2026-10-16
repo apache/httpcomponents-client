@@ -52,7 +52,7 @@ class TestAsyncCacheStatus {
 
     @Test
     void testCacheStatusMissThenHit() throws Exception {
-        final HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        final HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/", exchange -> {
             final byte[] body = "OK".getBytes(StandardCharsets.US_ASCII);
             exchange.getResponseHeaders().add("Cache-Control", "public, max-age=60");
