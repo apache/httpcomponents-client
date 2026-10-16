@@ -26,6 +26,9 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
@@ -34,6 +37,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -87,7 +91,7 @@ public final class ScramScheme implements AuthScheme {
     private static final String GS2_HEADER = "n,,";
     private static final String C_BIND_B64 = "biws"; // base64("n,,")
 
-    private static final Base64.Encoder B64 = Base64.getEncoder().withoutPadding();
+    private static final Base64.Encoder B64 = Base64.getEncoder();
     private static final Base64.Decoder B64D = Base64.getDecoder();
 
     private enum State {
@@ -112,7 +116,7 @@ public final class ScramScheme implements AuthScheme {
     private String sid;
 
     private String username;     // SASLprep (query)
-    private char[] password;     // SASLprep (stored), zeroed after use
+    private char[] password;     // printable US-ASCII fallback, zeroed after use
     private Principal principal;
 
     private String clientNonce;
@@ -235,8 +239,14 @@ public final class ScramScheme implements AuthScheme {
             }
             throw new MalformedChallengeException("Null SCRAM challenge");
         }
-
-        final Map<String, String> params = toParamMap(authChallenge.getParams());
+        final Map<String, String> params;
+        try {
+            params = toParamMap(authChallenge.getParams());
+        } catch (final MalformedChallengeException ex) {
+            zeroAndClearExpectedV();
+            this.state = State.FAILED;
+            throw ex;
+        }
 
         if (challenged) {
             // --- 401 path (WWW-Authenticate) ---
@@ -261,6 +271,11 @@ public final class ScramScheme implements AuthScheme {
                 this.state = State.FAILED;
                 throw new MalformedChallengeException("SCRAM server-first missing sid");
             }
+            if (!isToken(sid)) {
+                zeroAndClearExpectedV();
+                this.state = State.FAILED;
+                throw new MalformedChallengeException("SCRAM server-first invalid sid");
+            }
 
             // server-first (data present)
             final String decoded;
@@ -272,48 +287,46 @@ public final class ScramScheme implements AuthScheme {
                 throw ex;
             }
             this.serverFirstRaw = decoded;
-
             final Map<String, String> attrs;
             try {
                 attrs = parseAttrs(decoded);
+                validateServerFirstAttrs(attrs);
             } catch (final MalformedChallengeException ex) {
                 zeroAndClearExpectedV();
                 this.state = State.FAILED;
                 throw ex;
             }
-
             final String r = attrs.get("r");
             final String s = attrs.get("s");
             final String i = attrs.get("i");
-            if (r == null || r.isEmpty() || s == null || s.isEmpty() || i == null || i.isEmpty()) {
+            if (!isPrintableNonce(r)) {
                 this.state = State.FAILED;
-                throw new MalformedChallengeException("SCRAM server-first missing r/s/i");
+                throw new MalformedChallengeException("Invalid SCRAM server nonce syntax");
             }
             if (this.clientNonce == null || !r.startsWith(this.clientNonce)
                     || r.length() <= this.clientNonce.length()) {
                 this.state = State.FAILED;
                 throw new AuthenticationException("SCRAM server nonce does not extend client nonce");
             }
-
             try {
-                this.salt = B64D.decode(s);
+                this.salt = decodeCanonicalBase64(s, "salt");
                 if (this.salt.length == 0) {
-                    throw new IllegalArgumentException("empty salt");
+                    throw new MalformedChallengeException("Empty SCRAM salt");
                 }
-            } catch (final IllegalArgumentException e) {
+            } catch (final MalformedChallengeException ex) {
                 this.state = State.FAILED;
-                throw new MalformedChallengeException("Invalid base64 salt", e);
+                throw ex;
+            }
+            if (!isPositiveNumber(i)) {
+                this.state = State.FAILED;
+                throw new MalformedChallengeException("Invalid SCRAM iteration count");
             }
             try {
                 this.iterations = Integer.parseInt(i);
-                if (this.iterations <= 0) {
-                    throw new NumberFormatException("i<=0");
-                }
             } catch (final NumberFormatException e) {
                 this.state = State.FAILED;
-                throw new MalformedChallengeException("Invalid iteration count", e);
+                throw new MalformedChallengeException("SCRAM iteration count is too large", e);
             }
-
             if (this.minIterationsRequired > 0 && this.iterations < this.minIterationsRequired) {
                 this.state = State.FAILED;
                 throw new AuthenticationException(
@@ -349,6 +362,11 @@ public final class ScramScheme implements AuthScheme {
             this.state = State.FAILED;
             throw new MalformedChallengeException("SCRAM Authentication-Info missing sid");
         }
+        if (!isToken(sid)) {
+            zeroAndClearExpectedV();
+            this.state = State.FAILED;
+            throw new MalformedChallengeException("SCRAM Authentication-Info invalid sid");
+        }
         if (this.sid == null || !this.sid.equals(sid)) {
             zeroAndClearExpectedV();
             this.state = State.FAILED;
@@ -374,6 +392,7 @@ public final class ScramScheme implements AuthScheme {
         final Map<String, String> attrs;
         try {
             attrs = parseAttrs(decoded);
+            validateServerFinalAttrs(attrs);
         } catch (final MalformedChallengeException ex) {
             zeroAndClearExpectedV();
             this.state = State.FAILED;
@@ -381,35 +400,24 @@ public final class ScramScheme implements AuthScheme {
         }
         final String err = attrs.get("e");
         if (err != null) {
+            zeroAndClearExpectedV();
             this.state = State.FAILED;
-            if (err.isEmpty()) {
-                throw new MalformedChallengeException("SCRAM server error attribute 'e' is empty");
-            }
             throw new AuthenticationException("SCRAM server error: " + err);
         }
         final String vB64 = attrs.get("v");
-        if (vB64 == null) {
-            zeroAndClearExpectedV();
-            this.state = State.FAILED;
-            throw new MalformedChallengeException("SCRAM Authentication-Info missing v");
-        }
-
-        // compare 'v' in constant time; treat bad base64 for v as a signature mismatch (tests expect "signature")
         final byte[] expected = this.expectedV;
-        this.expectedV = null; // clear reference early
-
+        this.expectedV = null;
         byte[] vBytes = null;
         boolean match;
         try {
-            vBytes = B64D.decode(vB64);
+            vBytes = decodeCanonicalBase64(vB64, "server signature");
             match = expected != null && MessageDigest.isEqual(expected, vBytes);
-        } catch (final IllegalArgumentException e) {
-            match = false; // invalid base64 for v -> treat as mismatch
+        } catch (final MalformedChallengeException ex) {
+            match = false;
         } finally {
             zero(vBytes);
             zero(expected);
         }
-
         if (!match) {
             this.state = State.FAILED;
             throw new MalformedChallengeException("SCRAM server signature mismatch");
@@ -458,23 +466,37 @@ public final class ScramScheme implements AuthScheme {
         }
         final UsernamePasswordCredentials up = (UsernamePasswordCredentials) creds;
 
-        // SASLprep: username as query, password as stored
+        // RFC 5802 prepares the username with SASLprep. RFC 7804 defines password
+        // Normalize() using RFC 7613 OpaqueString and explicitly permits clients that do not
+        // implement OpaqueString to reject non-US-ASCII passwords.
         final String preppedUser;
         final char[] passChars = up.getUserPassword() != null ? up.getUserPassword().clone() : null;
         try {
             preppedUser = SaslPrep.INSTANCE.prepAsQueryString(up.getUserName());
-            final String preppedPassStr = SaslPrep.INSTANCE.prepAsStoredString(
-                    passChars != null ? new String(passChars) : null);
+            if (preppedUser == null || preppedUser.isEmpty()) {
+                throw new AuthenticationException("SCRAM username preparation produced an empty value");
+            }
+            if (passChars == null || passChars.length == 0) {
+                throw new AuthenticationException("SCRAM password is missing or empty");
+            }
+            for (final char ch : passChars) {
+                if (ch < 0x20 || ch > 0x7e) {
+                    throw new AuthenticationException(
+                            "SCRAM password contains characters outside printable US-ASCII; "
+                                    + "RFC 7613 OpaqueString is not implemented");
+                }
+            }
             this.username = preppedUser;
-            this.password = preppedPassStr != null ? preppedPassStr.toCharArray() : null;
+            this.password = passChars.clone();
+        } catch (final AuthenticationException ex) {
+            throw ex;
         } catch (final Exception e) {
-            throw new AuthenticationException("SASLprep failed", e);
+            throw new AuthenticationException("SASLprep failed for SCRAM username", e);
         } finally {
             if (passChars != null) {
                 Arrays.fill(passChars, '\0');
             }
         }
-
         this.principal = new SimplePrincipal(this.username);
 
         switch (this.state) {
@@ -574,7 +596,7 @@ public final class ScramScheme implements AuthScheme {
 
             final StringBuilder sb = new StringBuilder(64);
             sb.append(StandardAuthScheme.SCRAM_SHA_256).append(' ');
-            sb.append("sid=").append(quoteParam(this.sid)).append(", ");
+            sb.append("sid=").append(this.sid).append(", ");
             sb.append("data=").append(quoteParam(data)); // quoted
 
             this.state = State.CLIENT_FINAL_SENT;
@@ -611,55 +633,176 @@ public final class ScramScheme implements AuthScheme {
             this.expectedV = null;
         }
     }
-
-    private static Map<String, String> toParamMap(final List<NameValuePair> pairs) {
+    private static Map<String, String> toParamMap(final List<NameValuePair> pairs)
+            throws MalformedChallengeException {
         final Map<String, String> m = new HashMap<>();
         if (pairs != null) {
             for (final NameValuePair p : pairs) {
                 if (p != null && p.getName() != null) {
-                    m.put(p.getName().toLowerCase(Locale.ROOT), p.getValue());
+                    final String name = p.getName().toLowerCase(Locale.ROOT);
+                    if (m.putIfAbsent(name, p.getValue()) != null) {
+                        throw new MalformedChallengeException("Duplicate SCRAM auth-param: " + name);
+                    }
                 }
             }
         }
         return m;
     }
 
-    // Parse "k=v(,k=v)*" with RFC 5802 escapes: "=2C"/"=2c" -> ",", "=3D"/"=3d" -> "="
+    /** Generic SCRAM attribute parser. Message-specific order and semantics are validated separately. */
     private static Map<String, String> parseAttrs(final String s) throws MalformedChallengeException {
         final Map<String, String> out = new LinkedHashMap<>();
-        int i = 0;
-        while (i < s.length()) {
-            if (i + 2 > s.length() || s.charAt(i + 1) != '=') {
-                throw new MalformedChallengeException("Bad SCRAM attr at index " + i);
+        if (s == null || s.isEmpty()) {
+            throw new MalformedChallengeException("Empty SCRAM message");
+        }
+        final String[] parts = s.split(",", -1);
+        for (final String part : parts) {
+            if (part.length() < 2 || part.charAt(1) != '=' || !isAlpha(part.charAt(0))) {
+                throw new MalformedChallengeException("Bad SCRAM attribute: " + part);
             }
-            final String k = String.valueOf(s.charAt(i));
-            i += 2;
-            final StringBuilder v = new StringBuilder();
-            while (i < s.length()) {
-                final char c = s.charAt(i);
-                if (c == ',') {
-                    i++;
-                    break;
+            final String key = part.substring(0, 1);
+            final String value = part.substring(2);
+            for (int i = 0; i < value.length(); i++) {
+                if (value.charAt(i) == '\0') {
+                    throw new MalformedChallengeException("NUL is not permitted in SCRAM attribute values");
                 }
-                if (c == '=' && i + 2 < s.length()) {
-                    final String esc = s.substring(i, i + 3);
-                    if ("=2C".equalsIgnoreCase(esc)) {
-                        v.append(',');
-                        i += 3;
-                        continue;
-                    }
-                    if ("=3D".equalsIgnoreCase(esc)) {
-                        v.append('=');
-                        i += 3;
-                        continue;
-                    }
-                }
-                v.append(c);
-                i++;
             }
-            out.put(k, v.toString());
+            if (out.containsKey(key)) {
+                if (isReservedScramAttribute(key)) {
+                    throw new MalformedChallengeException("Duplicate SCRAM attribute: " + key);
+                }
+                if (value.isEmpty()) {
+                    throw new MalformedChallengeException("Empty SCRAM extension attribute: " + key);
+                }
+                continue;
+            }
+            out.put(key, value);
         }
         return out;
+    }
+
+    private static void validateServerFirstAttrs(final Map<String, String> attrs)
+            throws MalformedChallengeException {
+        if (attrs.containsKey("m")) {
+            throw new MalformedChallengeException("Unsupported mandatory SCRAM extension 'm'");
+        }
+        if (!attrs.containsKey("r") || !attrs.containsKey("s") || !attrs.containsKey("i")) {
+            throw new MalformedChallengeException("SCRAM server-first missing r/s/i");
+        }
+        final Iterator<String> it = attrs.keySet().iterator();
+        if (!it.hasNext() || !"r".equals(it.next())
+                || !it.hasNext() || !"s".equals(it.next())
+                || !it.hasNext() || !"i".equals(it.next())) {
+            throw new MalformedChallengeException("Invalid SCRAM server-first attribute order; expected r,s,i");
+        }
+        while (it.hasNext()) {
+            final String key = it.next();
+            if (isReservedScramAttribute(key)) {
+                throw new MalformedChallengeException("SCRAM attribute out of position: " + key);
+            }
+            if (attrs.get(key).isEmpty()) {
+                throw new MalformedChallengeException("Empty SCRAM extension attribute: " + key);
+            }
+        }
+        if (attrs.get("r").isEmpty() || attrs.get("s").isEmpty() || attrs.get("i").isEmpty()) {
+            throw new MalformedChallengeException("SCRAM server-first missing r/s/i value");
+        }
+    }
+
+    private static void validateServerFinalAttrs(final Map<String, String> attrs)
+            throws MalformedChallengeException {
+        if (attrs.containsKey("m")) {
+            throw new MalformedChallengeException("Unsupported mandatory SCRAM extension 'm'");
+        }
+        final Iterator<String> it = attrs.keySet().iterator();
+        if (!it.hasNext()) {
+            throw new MalformedChallengeException("Empty SCRAM server-final message");
+        }
+        final String first = it.next();
+        if (!"e".equals(first) && !"v".equals(first)) {
+            throw new MalformedChallengeException("SCRAM server-final must start with e or v");
+        }
+        if (attrs.get(first).isEmpty()) {
+            throw new MalformedChallengeException("Empty SCRAM server-final " + first + " value");
+        }
+        while (it.hasNext()) {
+            final String key = it.next();
+            if (isReservedScramAttribute(key)) {
+                throw new MalformedChallengeException("SCRAM attribute out of position: " + key);
+            }
+            if (attrs.get(key).isEmpty()) {
+                throw new MalformedChallengeException("Empty SCRAM extension attribute: " + key);
+            }
+        }
+    }
+
+    private static boolean isReservedScramAttribute(final String key) {
+        return "a".equals(key) || "c".equals(key) || "e".equals(key) || "i".equals(key)
+                || "m".equals(key) || "n".equals(key) || "p".equals(key) || "r".equals(key)
+                || "s".equals(key) || "v".equals(key);
+    }
+
+    private static boolean isAlpha(final char ch) {
+        return ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z';
+    }
+
+    private static boolean isPositiveNumber(final String value) {
+        if (value == null || value.isEmpty() || value.charAt(0) < '1' || value.charAt(0) > '9') {
+            return false;
+        }
+        for (int i = 1; i < value.length(); i++) {
+            final char ch = value.charAt(i);
+            if (ch < '0' || ch > '9') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isPrintableNonce(final String value) {
+        if (value == null || value.isEmpty()) {
+            return false;
+        }
+        for (int i = 0; i < value.length(); i++) {
+            final char ch = value.charAt(i);
+            if (ch < 0x21 || ch > 0x7e || ch == ',') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isToken(final String value) {
+        if (value == null || value.isEmpty()) {
+            return false;
+        }
+        for (int i = 0; i < value.length(); i++) {
+            final char ch = value.charAt(i);
+            final boolean alphaNum = ch >= '0' && ch <= '9' || ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z';
+            final boolean tchar = alphaNum || ch == '!' || ch == '#' || ch == '$' || ch == '%' || ch == '&'
+                    || ch == '\'' || ch == '*' || ch == '+' || ch == '-' || ch == '.' || ch == '^'
+                    || ch == '_' || ch == '`' || ch == '|' || ch == '~';
+            if (!tchar) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static byte[] decodeCanonicalBase64(final String value, final String what)
+            throws MalformedChallengeException {
+        if (value == null) {
+            throw new MalformedChallengeException("Missing SCRAM " + what);
+        }
+        try {
+            final byte[] decoded = B64D.decode(value);
+            if (!B64.encodeToString(decoded).equals(value)) {
+                throw new MalformedChallengeException("Non-canonical base64 SCRAM " + what);
+            }
+            return decoded;
+        } catch (final IllegalArgumentException ex) {
+            throw new MalformedChallengeException("Invalid base64 SCRAM " + what, ex);
+        }
     }
 
     private String genNonce() {
@@ -742,10 +885,15 @@ public final class ScramScheme implements AuthScheme {
     }
 
     private static String b64ToString(final String b64) throws MalformedChallengeException {
+        final byte[] decoded = decodeCanonicalBase64(b64, "data value");
         try {
-            return new String(B64D.decode(b64), StandardCharsets.UTF_8);
-        } catch (final IllegalArgumentException e) {
-            throw new MalformedChallengeException("Bad base64 'data' value", e);
+            return StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT)
+                    .decode(ByteBuffer.wrap(decoded))
+                    .toString();
+        } catch (final CharacterCodingException ex) {
+            throw new MalformedChallengeException("Invalid UTF-8 in SCRAM data value", ex);
         }
     }
 
