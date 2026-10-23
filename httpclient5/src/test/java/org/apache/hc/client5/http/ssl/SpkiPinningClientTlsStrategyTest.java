@@ -221,6 +221,19 @@ class SpkiPinningClientTlsStrategyTest {
         assertThrows(SSLException.class, () -> s.verifySession("\uDC00bad", session));
     }
 
+    @Test
+    void verifySessionEnforcesPinsForTrailingDotHost() throws Exception {
+        final SpkiPinningClientTlsStrategy strategy = SpkiPinningClientTlsStrategy
+                .newBuilder(SSLContext.getDefault())
+                .add("api.example.com", sha256Pin(new byte[]{8, 8, 8}))
+                .add("*.example.org", sha256Pin(new byte[]{8, 8, 8}))
+                .build();
+
+        final SSLSession session = new FakeSession(new X509WithKey(new byte[]{7, 7, 7}));
+        assertThrows(SSLException.class, () -> strategy.verifySession("api.example.com.", session));
+        assertThrows(SSLException.class, () -> strategy.verifySession("svc.example.org.", session));
+    }
+
     @SuppressWarnings("deprecation")
     private static final class X509WithKey extends X509Certificate {
         private final PublicKey key;

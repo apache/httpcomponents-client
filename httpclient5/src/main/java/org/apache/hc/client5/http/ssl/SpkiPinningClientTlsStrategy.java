@@ -135,9 +135,9 @@ public final class SpkiPinningClientTlsStrategy extends DefaultClientTlsStrategy
             if (pins == null || pins.isEmpty()) {
                 throw new IllegalArgumentException("At least one SPKI pin is required for " + pattern);
             }
-            this.pattern = norm;
+            this.pattern = stripRootDot(norm);
             this.wildcard = wc;
-            this.tail = wc ? norm.substring(1) : null; // ".example.com"
+            this.tail = wc ? this.pattern.substring(1) : null; // ".example.com"
             this.pins = Collections.unmodifiableSet(new HashSet<>(pins));
         }
 
@@ -180,7 +180,9 @@ public final class SpkiPinningClientTlsStrategy extends DefaultClientTlsStrategy
         final String host;
         try {
             // Canonicalize host: IDNA (Punycode) + lowercase for consistent matching.
-            host = IDN.toASCII(hostname == null ? "" : hostname).toLowerCase(Locale.ROOT);
+            // The absolute form "api.example.com." names the same host and passes the
+            // built-in hostname check, so it must be matched against the same rules.
+            host = stripRootDot(IDN.toASCII(hostname == null ? "" : hostname).toLowerCase(Locale.ROOT));
         } catch (final IllegalArgumentException e) {
             throw new SSLException("Invalid IDN host: " + hostname, e);
         }
@@ -285,6 +287,10 @@ public final class SpkiPinningClientTlsStrategy extends DefaultClientTlsStrategy
         }
     }
 
+
+    private static String stripRootDot(final String host) {
+        return host.length() > 1 && host.endsWith(".") ? host.substring(0, host.length() - 1) : host;
+    }
 
     private List<Rule> matchedRules(final String host) {
         final List<Rule> out = new ArrayList<>();
