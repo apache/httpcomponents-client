@@ -199,6 +199,12 @@ public class RFC6265CookieSpec implements CookieSpec {
             throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
+        if (containsControlChar(cookie.getName())) {
+            throw new MalformedCookieException("Cookie name contains control characters");
+        }
+        if (containsControlChar(cookie.getValue())) {
+            throw new MalformedCookieException("Cookie value contains control characters");
+        }
         for (final CookieAttributeHandler handler: this.attribHandlers) {
             handler.validate(cookie, origin);
         }
@@ -236,22 +242,29 @@ public class RFC6265CookieSpec implements CookieSpec {
                 buffer.append(PARAM_DELIMITER);
                 buffer.append(' ');
             }
-            buffer.append(cookie.getName());
-            final String s = cookie.getValue();
-            if (s != null) {
+            final String name = cookie.getName();
+            for (int i = 0; i < name.length(); i++) {
+                final char ch = name.charAt(i);
+                buffer.append(isControlChar(ch) ? '?' : ch);
+            }
+            final String value = cookie.getValue();
+            if (value != null) {
                 buffer.append(EQUAL_CHAR);
-                if (containsSpecialChar(s)) {
+                if (containsSpecialChar(value)) {
                     buffer.append(DQUOTE_CHAR);
-                    for (int i = 0; i < s.length(); i++) {
-                        final char ch = s.charAt(i);
+                    for (int i = 0; i < value.length(); i++) {
+                        final char ch = value.charAt(i);
                         if (ch == DQUOTE_CHAR || ch == ESCAPE_CHAR) {
                             buffer.append(ESCAPE_CHAR);
                         }
-                        buffer.append(ch);
+                        buffer.append(isControlChar(ch) ? '?' : ch);
                     }
                     buffer.append(DQUOTE_CHAR);
                 } else {
-                    buffer.append(s);
+                    for (int i = 0; i < value.length(); i++) {
+                        final char ch = value.charAt(i);
+                        buffer.append(isControlChar(ch) ? '?' : ch);
+                    }
                 }
             }
         }
@@ -276,6 +289,28 @@ public class RFC6265CookieSpec implements CookieSpec {
             }
         }
         return false;
+    }
+
+    /**
+     * Tests whether the given cookie name or value contains a control character
+     * ({@code %x00-1F} or {@code %x7F}). RFC 6265 permits neither in a cookie-name (a token)
+     * nor in a cookie-value (cookie-octet), and such characters must never be copied into
+     * a {@code Cookie} request header.
+     */
+    static boolean containsControlChar(final CharSequence s) {
+        if (s == null) {
+            return false;
+        }
+        for (int i = 0; i < s.length(); i++) {
+            if (isControlChar(s.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isControlChar(final char ch) {
+        return ch < 0x20 || ch == 0x7f;
     }
 
 }
