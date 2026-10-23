@@ -192,13 +192,14 @@ public final class ScramScheme implements AuthScheme {
     }
 
     /**
-     * SCRAM must inspect final responses to verify {@code v=} in {@code Authentication-Info}.
+     * SCRAM must inspect responses while an authentication exchange is in progress,
+     * including the final {@code Authentication-Info} carrying the server signature.
      *
      * @since 5.6
      */
     @Override
     public boolean isChallengeExpected() {
-        return true;
+        return this.state == State.CLIENT_FIRST_SENT || this.state == State.CLIENT_FINAL_SENT;
     }
 
     /**
@@ -257,7 +258,12 @@ public final class ScramScheme implements AuthScheme {
 
             final String data = params.get("data");
             if (data == null) {
-                // initial announce (no data)
+                // A fresh challenge can also follow a completed exchange or a
+                // preemptive client-first request.
+                if (this.state != State.INIT && this.state != State.COMPLETE
+                        && this.state != State.CLIENT_FIRST_SENT) {
+                    failOutOfSequence("SCRAM initial challenge");
+                }
                 this.realm = params.get("realm");
                 this.state = State.ANNOUNCED;
                 this.complete = false;
@@ -265,6 +271,9 @@ public final class ScramScheme implements AuthScheme {
                 return;
             }
 
+            if (this.state != State.CLIENT_FIRST_SENT) {
+                failOutOfSequence("SCRAM server-first");
+            }
             final String sid = params.get("sid");
             if (sid == null || sid.isEmpty()) {
                 zeroAndClearExpectedV();
@@ -486,6 +495,9 @@ public final class ScramScheme implements AuthScheme {
                                     + "RFC 7613 OpaqueString is not implemented");
                 }
             }
+            if (this.password != null) {
+                Arrays.fill(this.password, '\0');
+            }
             this.username = preppedUser;
             this.password = passChars.clone();
         } catch (final AuthenticationException ex) {
@@ -503,6 +515,7 @@ public final class ScramScheme implements AuthScheme {
             case INIT: // allow preemptive
             case ANNOUNCED:
             case SERVER_FIRST_RCVD:
+            case COMPLETE:
                 return true;
             default:
                 return false;
@@ -528,6 +541,15 @@ public final class ScramScheme implements AuthScheme {
                 return buildClientFirst();
             case ANNOUNCED:
                 return buildClientFirst();
+            case COMPLETE:
+                // AuthExchange retains successful non-connection-based schemes. A
+                // subsequent request needs fresh credentials and a new SCRAM exchange.
+                final CredentialsProvider credentialsProvider = HttpClientContext.cast(context).getCredentialsProvider();
+                if (credentialsProvider == null || !isResponseReady(host, credentialsProvider, context)) {
+                    this.state = State.FAILED;
+                    throw new AuthenticationException("SCRAM credentials are no longer available");
+                }
+                return buildClientFirst();
             case SERVER_FIRST_RCVD:
                 return buildClientFinalAndExpectV();
             default:
@@ -548,7 +570,21 @@ public final class ScramScheme implements AuthScheme {
 
     // ---------------- internals ----------------
 
+    private void failOutOfSequence(final String message) throws AuthenticationException {
+        final State previous = this.state;
+        zeroAndClearExpectedV();
+        this.state = State.FAILED;
+        throw new AuthenticationException(message + " out of sequence: " + previous);
+    }
+
     private String buildClientFirst() {
+        // A new exchange must not reuse data from the previous server challenge.
+        this.sid = null;
+        this.serverFirstRaw = null;
+        this.serverNonce = null;
+        zero(this.salt);
+        this.salt = null;
+        this.iterations = 0;
         this.clientNonce = genNonce();
         final String escUser = escapeUser(this.username);
         this.clientFirstBare = "n=" + escUser + ",r=" + this.clientNonce;

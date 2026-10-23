@@ -28,7 +28,9 @@ package org.apache.hc.client5.http.impl.auth;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -46,13 +48,18 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
+import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.junit.jupiter.api.Test;
 
@@ -536,9 +543,15 @@ final class TestScramScheme {
     }
 
     @Test
-    void strictScram_badBase64In401Data_isMalformed() {
+    void strictScram_badBase64In401Data_isMalformed() throws Exception {
         final ScramScheme scheme = new ScramScheme();
         final HttpClientContext ctx = HttpClientContext.create();
+        final BasicCredentialsProvider creds = credentials();
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("realm", REALM)), ctx);
+        assertTrue(scheme.isResponseReady(HOST, creds, ctx));
+        scheme.generateAuthResponse(HOST, null, ctx);
 
         final MalformedChallengeException ex = assertThrows(MalformedChallengeException.class, () ->
                 scheme.processChallenge(HOST, true,
@@ -551,9 +564,15 @@ final class TestScramScheme {
     }
 
     @Test
-    void strictScram_missingAttrsInServerFirst_isMalformed() {
+    void strictScram_missingAttrsInServerFirst_isMalformed() throws Exception {
         final ScramScheme scheme = new ScramScheme();
         final HttpClientContext ctx = HttpClientContext.create();
+        final BasicCredentialsProvider creds = credentials();
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("realm", REALM)), ctx);
+        assertTrue(scheme.isResponseReady(HOST, creds, ctx));
+        scheme.generateAuthResponse(HOST, null, ctx);
 
         final MalformedChallengeException ex = assertThrows(MalformedChallengeException.class, () ->
                 scheme.processChallenge(HOST, true,
@@ -677,8 +696,156 @@ final class TestScramScheme {
     }
 
     @Test
-    void testIsChallengeExpected() {
+    void testIsChallengeExpected() throws Exception {
         final ScramScheme scheme = new ScramScheme();
+        final HttpClientContext ctx = HttpClientContext.create();
+        assertFalse(scheme.isChallengeExpected());
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("realm", REALM)), ctx);
+        assertTrue(scheme.isResponseReady(HOST, credentials(), ctx));
+        assertFalse(scheme.isChallengeExpected());
+        scheme.generateAuthResponse(HOST, null, ctx);
         assertTrue(scheme.isChallengeExpected());
+    }
+
+    @Test
+    void testServerFirstOutOfSequence() throws Exception {
+        final ScramScheme scheme = new ScramScheme();
+        final String serverFirst = "r=nonce,s=" + b64("salt".getBytes(StandardCharsets.UTF_8)) + ",i=4096";
+        final AuthChallenge challenge = new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                new BasicNameValuePair("sid", SID),
+                new BasicNameValuePair("data", b64(serverFirst.getBytes(StandardCharsets.UTF_8))));
+        assertThrows(AuthenticationException.class,
+                () -> scheme.processChallenge(HOST, true, challenge, HttpClientContext.create()));
+        assertTrue(scheme.isChallengeComplete());
+    }
+
+    @Test
+    void testRepeatedServerFirstRejected() throws Exception {
+        final ScramScheme scheme = new ScramScheme();
+        final HttpClientContext ctx = HttpClientContext.create();
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("realm", REALM)), ctx);
+        assertTrue(scheme.isResponseReady(HOST, credentials(), ctx));
+        final String first = scheme.generateAuthResponse(HOST, null, ctx);
+        final String nonce = parseCsvAttrs(deb64s(splitHeader(first).get("data")).substring(3)).get("r");
+        final String serverFirst = "r=" + nonce + "server,s="
+                + b64("salt".getBytes(StandardCharsets.UTF_8)) + ",i=4096";
+        final AuthChallenge challenge = new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                new BasicNameValuePair("sid", SID),
+                new BasicNameValuePair("data", b64(serverFirst.getBytes(StandardCharsets.UTF_8))));
+        scheme.processChallenge(HOST, true, challenge, ctx);
+        assertThrows(AuthenticationException.class, () -> scheme.processChallenge(HOST, true, challenge, ctx));
+        assertTrue(scheme.isChallengeComplete());
+    }
+
+    @Test
+    void testNewChallengeAfterCompletedExchange() throws Exception {
+        final ScramScheme scheme = new ScramScheme();
+        final HttpClientContext ctx = HttpClientContext.create();
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("realm", REALM)), ctx);
+        assertTrue(scheme.isResponseReady(HOST, credentials(), ctx));
+        final String first = scheme.generateAuthResponse(HOST, null, ctx);
+        final String firstNonce = completeExchange(scheme, ctx, first, SID);
+
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("realm", REALM)), ctx);
+        assertTrue(scheme.isResponseReady(HOST, credentials(), ctx));
+        final String next = scheme.generateAuthResponse(HOST, null, ctx);
+        final String nextNonce = parseCsvAttrs(deb64s(splitHeader(next).get("data")).substring(3)).get("r");
+        assertNotEquals(firstNonce, nextNonce);
+        assertTrue(scheme.isChallengeExpected());
+    }
+
+    @Test
+    void testConsecutiveRequestsReauthenticate() throws Exception {
+        final ScramScheme scheme = new ScramScheme();
+        final HttpClientContext ctx = HttpClientContext.create();
+        ctx.setCredentialsProvider(credentials());
+        scheme.processChallenge(HOST, true,
+                new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                        new BasicNameValuePair("realm", REALM)), ctx);
+        assertTrue(scheme.isResponseReady(HOST, ctx.getCredentialsProvider(), ctx));
+        final String first = scheme.generateAuthResponse(HOST, null, ctx);
+        final String firstNonce = completeExchange(scheme, ctx, first, SID);
+        assertFalse(scheme.isChallengeExpected());
+
+        final AuthenticationHandler handler = new AuthenticationHandler();
+        final AuthExchange exchange = new AuthExchange();
+        exchange.select(scheme);
+        exchange.setState(AuthExchange.State.SUCCESS);
+
+        final BasicHttpRequest secondRequest = new BasicHttpRequest("GET", "/second");
+        handler.addAuthResponse(HOST, ChallengeType.TARGET, secondRequest, exchange, ctx);
+        assertNotNull(secondRequest.getFirstHeader(HttpHeaders.AUTHORIZATION));
+        final String secondFirst = secondRequest.getFirstHeader(HttpHeaders.AUTHORIZATION).getValue();
+        final String bare = deb64s(splitHeader(secondFirst).get("data")).substring(3);
+        final String secondNonce = parseCsvAttrs(bare).get("r");
+        assertNotEquals(firstNonce, secondNonce);
+        assertTrue(scheme.isChallengeExpected());
+
+        final String serverFirst = "r=" + secondNonce + "server,s="
+                + b64("salt-256".getBytes(StandardCharsets.UTF_8)) + ",i=4096";
+        final BasicHttpResponse challenged = new BasicHttpResponse(401);
+        challenged.setHeader(HttpHeaders.WWW_AUTHENTICATE, scheme.getName()
+                + " sid=sid-2, data=\"" + b64(serverFirst.getBytes(StandardCharsets.UTF_8)) + "\"");
+        assertTrue(handler.isChallenged(HOST, ChallengeType.TARGET, challenged, exchange, ctx));
+        assertTrue(handler.handleResponse(HOST, ChallengeType.TARGET, challenged,
+                DefaultAuthenticationStrategy.INSTANCE, exchange, ctx));
+        assertSame(scheme, exchange.getAuthScheme());
+        assertEquals(AuthExchange.State.HANDSHAKE, exchange.getState());
+
+        final BasicHttpRequest secondFinalRequest = new BasicHttpRequest("GET", "/second");
+        handler.addAuthResponse(HOST, ChallengeType.TARGET, secondFinalRequest, exchange, ctx);
+        final String secondFinal = secondFinalRequest.getFirstHeader(HttpHeaders.AUTHORIZATION).getValue();
+        assertEquals("sid-2", splitHeader(secondFinal).get("sid"));
+        final String signature = serverSignature(bare, serverFirst, secondFinal);
+
+        final BasicHttpResponse success = new BasicHttpResponse(200);
+        success.setHeader("Authentication-Info", "sid=sid-2, data=\""
+                + b64(("v=" + signature).getBytes(StandardCharsets.UTF_8)) + "\"");
+        assertFalse(handler.isChallenged(HOST, ChallengeType.TARGET, success, exchange, ctx));
+        assertFalse(handler.handleResponse(HOST, ChallengeType.TARGET, success,
+                DefaultAuthenticationStrategy.INSTANCE, exchange, ctx));
+        assertSame(scheme, exchange.getAuthScheme());
+        assertEquals(AuthExchange.State.SUCCESS, exchange.getState());
+        assertFalse(scheme.isChallengeExpected());
+    }
+
+    private static BasicCredentialsProvider credentials() {
+        final BasicCredentialsProvider creds = new BasicCredentialsProvider();
+        creds.setCredentials(new AuthScope(HOST, REALM, "SCRAM-SHA-256"),
+                new UsernamePasswordCredentials(USER, PASS.toCharArray()));
+        return creds;
+    }
+
+    private static String completeExchange(final ScramScheme scheme, final HttpClientContext ctx,
+            final String firstAuthorization, final String sessionId) throws Exception {
+        final String bare = deb64s(splitHeader(firstAuthorization).get("data")).substring(3);
+        final String nonce = parseCsvAttrs(bare).get("r");
+        final String serverFirst = "r=" + nonce + "server,s="
+                + b64("salt-256".getBytes(StandardCharsets.UTF_8)) + ",i=4096";
+        scheme.processChallenge(HOST, true, new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                new BasicNameValuePair("sid", sessionId),
+                new BasicNameValuePair("data", b64(serverFirst.getBytes(StandardCharsets.UTF_8)))), ctx);
+        final String clientFinal = scheme.generateAuthResponse(HOST, null, ctx);
+        final String signature = serverSignature(bare, serverFirst, clientFinal);
+        scheme.processChallenge(HOST, false, new AuthChallenge(ChallengeType.TARGET, scheme.getName(),
+                new BasicNameValuePair("sid", sessionId),
+                new BasicNameValuePair("data", b64(("v=" + signature).getBytes(StandardCharsets.UTF_8)))), ctx);
+        return nonce;
+    }
+
+    private static String serverSignature(final String bare, final String serverFirst,
+            final String finalAuthorization) throws GeneralSecurityException {
+        final Map<String, String> attrs = parseCsvAttrs(deb64s(splitHeader(finalAuthorization).get("data")));
+        final String withoutProof = "c=" + attrs.get("c") + ",r=" + attrs.get("r");
+        final byte[] salted = pbkdf2(PASS.toCharArray(), "salt-256".getBytes(StandardCharsets.UTF_8), 4096, 32);
+        return b64(hmac(hmac(salted, "Server Key"), bare + "," + serverFirst + "," + withoutProof));
     }
 }
