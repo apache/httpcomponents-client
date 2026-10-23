@@ -199,6 +199,12 @@ public class RFC6265CookieSpec implements CookieSpec {
             throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
+        if (containsControlChar(cookie.getName())) {
+            throw new MalformedCookieException("Cookie name contains control characters");
+        }
+        if (containsControlChar(cookie.getValue())) {
+            throw new MalformedCookieException("Cookie value contains control characters");
+        }
         for (final CookieAttributeHandler handler: this.attribHandlers) {
             handler.validate(cookie, origin);
         }
@@ -236,8 +242,11 @@ public class RFC6265CookieSpec implements CookieSpec {
                 buffer.append(PARAM_DELIMITER);
                 buffer.append(' ');
             }
-            buffer.append(cookie.getName());
+            final String name = cookie.getName();
+            Args.check(!containsControlChar(name), "Cookie name contains control characters");
+            buffer.append(name);
             final String s = cookie.getValue();
+            Args.check(!containsControlChar(s), "Cookie value contains control characters");
             if (s != null) {
                 buffer.append(EQUAL_CHAR);
                 if (containsSpecialChar(s)) {
@@ -272,6 +281,25 @@ public class RFC6265CookieSpec implements CookieSpec {
         for (int i = 0; i < s.length(); i++) {
             final char ch = s.charAt(i);
             if (chars.test(ch)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Tests whether the given cookie name or value contains a control character
+     * ({@code %x00-1F} or {@code %x7F}). RFC 6265 permits neither in a cookie-name (a token)
+     * nor in a cookie-value (cookie-octet), and such characters must never be copied into
+     * a {@code Cookie} request header.
+     */
+    static boolean containsControlChar(final CharSequence s) {
+        if (s == null) {
+            return false;
+        }
+        for (int i = 0; i < s.length(); i++) {
+            final char ch = s.charAt(i);
+            if (ch < 0x20 || ch == 0x7f) {
                 return true;
             }
         }
