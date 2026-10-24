@@ -242,11 +242,9 @@ public class RFC6265CookieSpec implements CookieSpec {
                 buffer.append(PARAM_DELIMITER);
                 buffer.append(' ');
             }
-            final String name = cookie.getName();
-            Args.check(!containsControlChar(name), "Cookie name contains control characters");
+            final String name = replaceControlChars(cookie.getName());
             buffer.append(name);
-            final String s = cookie.getValue();
-            Args.check(!containsControlChar(s), "Cookie value contains control characters");
+            final String s = replaceControlChars(cookie.getValue());
             if (s != null) {
                 buffer.append(EQUAL_CHAR);
                 if (containsSpecialChar(s)) {
@@ -304,6 +302,34 @@ public class RFC6265CookieSpec implements CookieSpec {
             }
         }
         return false;
+    }
+
+    /**
+     * Replaces every control character ({@code %x00-1F} or {@code %x7F}) in the given cookie
+     * name or value with {@code '?'}, mirroring the substitution the session output buffer
+     * already performs, so such characters can never be copied verbatim into a {@code Cookie}
+     * request header. Cookies carrying control characters are rejected by {@link #validate}
+     * before they reach the cookie store; this is a defensive fallback for a value that bypassed
+     * validation.
+     */
+    static String replaceControlChars(final CharSequence s) {
+        if (s == null) {
+            return null;
+        }
+        StringBuilder buf = null;
+        for (int i = 0; i < s.length(); i++) {
+            final char ch = s.charAt(i);
+            if (ch < 0x20 || ch == 0x7f) {
+                if (buf == null) {
+                    buf = new StringBuilder(s.length());
+                    buf.append(s, 0, i);
+                }
+                buf.append('?');
+            } else if (buf != null) {
+                buf.append(ch);
+            }
+        }
+        return buf != null ? buf.toString() : s.toString();
     }
 
 }

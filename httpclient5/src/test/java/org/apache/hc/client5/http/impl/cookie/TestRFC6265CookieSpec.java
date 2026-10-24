@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
+import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.jupiter.api.Assertions;
@@ -316,19 +317,25 @@ class TestRFC6265CookieSpec {
     }
 
     @Test
-    void testFormatCookiesRejectsControlCharsInName() {
+    void testFormatCookiesReplacesControlCharsInName() {
         final Cookie cookie = new BasicClientCookie("sid\r\nInjected: evil", "value");
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
-        Assertions.assertThrows(IllegalArgumentException.class, () ->
-                cookiespec.formatCookies(Collections.singletonList(cookie)));
+        final List<Header> headers = cookiespec.formatCookies(Collections.singletonList(cookie));
+        Assertions.assertEquals(1, headers.size());
+        final String wire = ((FormattedHeader) headers.get(0)).getBuffer().toString();
+        Assertions.assertFalse(wire.indexOf('\r') >= 0 || wire.indexOf('\n') >= 0);
+        Assertions.assertEquals("Cookie: sid??Injected: evil=value", wire);
     }
 
     @Test
-    void testFormatCookiesRejectsControlCharsInValue() {
+    void testFormatCookiesReplacesControlCharsInValue() {
         final Cookie cookie = new BasicClientCookie("sid", "abc\r\nInjected: evil");
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
-        Assertions.assertThrows(IllegalArgumentException.class, () ->
-                cookiespec.formatCookies(Collections.singletonList(cookie)));
+        final List<Header> headers = cookiespec.formatCookies(Collections.singletonList(cookie));
+        Assertions.assertEquals(1, headers.size());
+        final String wire = ((FormattedHeader) headers.get(0)).getBuffer().toString();
+        Assertions.assertFalse(wire.indexOf('\r') >= 0 || wire.indexOf('\n') >= 0);
+        Assertions.assertEquals("Cookie: sid=\"abc??Injected: evil\"", wire);
     }
 
     @Test
