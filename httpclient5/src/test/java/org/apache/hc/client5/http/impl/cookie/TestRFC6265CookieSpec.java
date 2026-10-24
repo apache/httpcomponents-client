@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
+import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.jupiter.api.Assertions;
@@ -223,6 +224,30 @@ class TestRFC6265CookieSpec {
     }
 
     @Test
+    void testValidateCookieRejectsControlCharsInName() {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
+        final BasicClientCookie cookie = new BasicClientCookie("sid\r\nInjected: evil", "value");
+        Assertions.assertThrows(MalformedCookieException.class, () ->
+                cookiespec.validate(cookie, origin));
+    }
+
+    @Test
+    void testValidateCookieRejectsControlCharsInValue() throws Exception {
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
+        // NUL is neither whitespace nor a delimiter, so it survives parsing and
+        // must be caught by validation before the cookie reaches the store.
+        final Header header = new BasicHeader("Set-Cookie", "sid=abc\u0000def");
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
+        Assertions.assertEquals(1, cookies.size());
+        final Cookie cookie = cookies.get(0);
+        Assertions.assertEquals("abc\u0000def", cookie.getValue());
+        Assertions.assertThrows(MalformedCookieException.class, () ->
+                cookiespec.validate(cookie, origin));
+    }
+
+    @Test
     void testMatchCookie() {
         final CommonCookieAttributeHandler h1 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h1.getAttributeName()).thenReturn("this");
@@ -289,6 +314,28 @@ class TestRFC6265CookieSpec {
         final Header header = headers.get(0);
         Assertions.assertEquals("Cookie", header.getName());
         Assertions.assertEquals("name1=value; name2=\"some value\"; name3=\"\\\"\\\\\\\"\"", header.getValue());
+    }
+
+    @Test
+    void testFormatCookiesReplacesControlCharsInName() {
+        final Cookie cookie = new BasicClientCookie("sid\r\nInjected: evil", "value");
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final List<Header> headers = cookiespec.formatCookies(Collections.singletonList(cookie));
+        Assertions.assertEquals(1, headers.size());
+        final String wire = ((FormattedHeader) headers.get(0)).getBuffer().toString();
+        Assertions.assertFalse(wire.indexOf('\r') >= 0 || wire.indexOf('\n') >= 0);
+        Assertions.assertEquals("Cookie: sid??Injected: evil=value", wire);
+    }
+
+    @Test
+    void testFormatCookiesReplacesControlCharsInValue() {
+        final Cookie cookie = new BasicClientCookie("sid", "abc\r\nInjected: evil");
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
+        final List<Header> headers = cookiespec.formatCookies(Collections.singletonList(cookie));
+        Assertions.assertEquals(1, headers.size());
+        final String wire = ((FormattedHeader) headers.get(0)).getBuffer().toString();
+        Assertions.assertFalse(wire.indexOf('\r') >= 0 || wire.indexOf('\n') >= 0);
+        Assertions.assertEquals("Cookie: sid=\"abc??Injected: evil\"", wire);
     }
 
     @Test
