@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cookie;
 
+import java.math.BigInteger;
 import java.time.Instant;
 
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
@@ -62,19 +63,19 @@ public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler implement
         if (value == null) {
             throw new MalformedCookieException("Missing value for 'max-age' attribute");
         }
-        final int age;
+        final BigInteger age;
         try {
-            age = Integer.parseInt(value);
+            age = new BigInteger(value);
         } catch (final NumberFormatException e) {
-            throw new MalformedCookieException ("Invalid 'max-age' attribute: "
-                    + value);
+            throw new MalformedCookieException("Invalid 'max-age' attribute: " + value);
         }
-        if (age <= 0) {
+        if (age.signum() <= 0) {
             // RFC 6265 user-agent processing: delta-seconds <= 0 means immediate expiry.
             cookie.setExpiryDate(Instant.EPOCH);
             return;
         }
-        cookie.setExpiryDate(Instant.now().plusSeconds(age));
+        final BigInteger maxSeconds = BigInteger.valueOf(CookieExpiryPolicy.MAX_LIFETIME.getSeconds());
+        cookie.setExpiryDate(Instant.now().plusSeconds(age.min(maxSeconds).longValueExact()));
     }
 
     @Override
