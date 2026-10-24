@@ -73,7 +73,7 @@
 
     <httpcore.version>5.5-beta4</httpcore.version>
     <log4j.version>2.26.1</log4j.version>
-    <brotli4j.version>1.23.0</brotli4j.version>
+    <brotli4j.version>1.24.0</brotli4j.version>
     <conscrypt.version>2.7.0</conscrypt.version>
     <ehcache.version>3.11.1</ehcache.version>
     <memcached.version>2.12.3</memcached.version>
