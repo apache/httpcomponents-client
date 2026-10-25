@@ -242,9 +242,8 @@ public class RFC6265CookieSpec implements CookieSpec {
                 buffer.append(PARAM_DELIMITER);
                 buffer.append(' ');
             }
-            final String name = replaceControlChars(cookie.getName());
-            buffer.append(name);
-            final String s = replaceControlChars(cookie.getValue());
+            appendReplacingControlChars(buffer, cookie.getName());
+            final String s = cookie.getValue();
             if (s != null) {
                 buffer.append(EQUAL_CHAR);
                 if (containsSpecialChar(s)) {
@@ -254,11 +253,11 @@ public class RFC6265CookieSpec implements CookieSpec {
                         if (ch == DQUOTE_CHAR || ch == ESCAPE_CHAR) {
                             buffer.append(ESCAPE_CHAR);
                         }
-                        buffer.append(ch);
+                        buffer.append(isControlChar(ch) ? '?' : ch);
                     }
                     buffer.append(DQUOTE_CHAR);
                 } else {
-                    buffer.append(s);
+                    appendReplacingControlChars(buffer, s);
                 }
             }
         }
@@ -296,8 +295,7 @@ public class RFC6265CookieSpec implements CookieSpec {
             return false;
         }
         for (int i = 0; i < s.length(); i++) {
-            final char ch = s.charAt(i);
-            if (ch < 0x20 || ch == 0x7f) {
+            if (isControlChar(s.charAt(i))) {
                 return true;
             }
         }
@@ -305,31 +303,25 @@ public class RFC6265CookieSpec implements CookieSpec {
     }
 
     /**
-     * Replaces every control character ({@code %x00-1F} or {@code %x7F}) in the given cookie
-     * name or value with {@code '?'}, mirroring the substitution the session output buffer
-     * already performs, so such characters can never be copied verbatim into a {@code Cookie}
-     * request header. Cookies carrying control characters are rejected by {@link #validate}
-     * before they reach the cookie store; this is a defensive fallback for a value that bypassed
-     * validation.
+     * Appends the given cookie name or value to the buffer, replacing every control character
+     * ({@code %x00-1F} or {@code %x7F}) with {@code '?'}, mirroring the substitution the session
+     * output buffer already performs, so such characters can never be copied verbatim into
+     * a {@code Cookie} request header. Cookies carrying control characters are rejected by
+     * {@link #validate} before they reach the cookie store; this is a defensive fallback for
+     * a value that bypassed validation.
      */
-    static String replaceControlChars(final CharSequence s) {
+    private static void appendReplacingControlChars(final CharArrayBuffer buffer, final CharSequence s) {
         if (s == null) {
-            return null;
+            return;
         }
-        StringBuilder buf = null;
         for (int i = 0; i < s.length(); i++) {
             final char ch = s.charAt(i);
-            if (ch < 0x20 || ch == 0x7f) {
-                if (buf == null) {
-                    buf = new StringBuilder(s.length());
-                    buf.append(s, 0, i);
-                }
-                buf.append('?');
-            } else if (buf != null) {
-                buf.append(ch);
-            }
+            buffer.append(isControlChar(ch) ? '?' : ch);
         }
-        return buf != null ? buf.toString() : s.toString();
+    }
+
+    private static boolean isControlChar(final char ch) {
+        return ch < 0x20 || ch == 0x7f;
     }
 
 }
