@@ -185,9 +185,11 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             final String host = b.getHost();
             if (host != null) {
                 b.setHost(host.toLowerCase(Locale.ROOT));
-            }
-            if (b.isPathEmpty()) {
-                b.setPathSegments("");
+                // Only an absolute URI gets an empty path replaced with "/". A relative reference
+                // with an empty path ("?query" or "#fragment") keeps the path of the base URI.
+                if (b.isPathEmpty()) {
+                    b.setPathSegments("");
+                }
             }
             return b.build();
         } catch (final URISyntaxException ex) {

@@ -164,6 +164,28 @@ class TestDefaultRedirectStrategy {
     }
 
     @Test
+    void testGetLocationUriRelativeQueryOnly() throws Exception {
+        final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+        final HttpClientContext context = HttpClientContext.create();
+        final HttpGet httpget = new HttpGet("http://localhost/stuff/index.html?a=1");
+        final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
+        response.addHeader("Location", "?b=2");
+        final URI uri = redirectStrategy.getLocationURI(httpget, response, context);
+        Assertions.assertEquals(URI.create("http://localhost/stuff/index.html?b=2"), uri);
+    }
+
+    @Test
+    void testGetLocationUriFragmentOnly() throws Exception {
+        final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+        final HttpClientContext context = HttpClientContext.create();
+        final HttpGet httpget = new HttpGet("http://localhost/stuff/index.html?a=1");
+        final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
+        response.addHeader("Location", "#fragment");
+        final URI uri = redirectStrategy.getLocationURI(httpget, response, context);
+        Assertions.assertEquals(URI.create("http://localhost/stuff/index.html?a=1#fragment"), uri);
+    }
+
+    @Test
     void testGetLocationUriRelativeWithFragment() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
