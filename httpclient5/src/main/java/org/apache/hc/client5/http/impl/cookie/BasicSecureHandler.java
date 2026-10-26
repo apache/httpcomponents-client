@@ -62,6 +62,17 @@ public class BasicSecureHandler extends AbstractCookieAttributeHandler implement
     }
 
     @Override
+    public void validate(final Cookie cookie, final CookieOrigin origin)
+            throws MalformedCookieException {
+        Args.notNull(cookie, "Cookie");
+        Args.notNull(origin, "Cookie origin");
+        if (cookie.isSecure() && !origin.isSecure()) {
+            throw new MalformedCookieException("Cookie '" + cookie.getName()
+                    + "' is marked secure but was received over a non-secure connection");
+        }
+    }
+
+    @Override
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");

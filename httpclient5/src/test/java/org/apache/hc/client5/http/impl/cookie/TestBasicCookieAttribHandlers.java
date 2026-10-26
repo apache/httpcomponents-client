@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.impl.cookie;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 
@@ -321,6 +322,75 @@ class TestBasicCookieAttribHandlers {
         Assertions.assertTrue(h.match(cookie, origin2));
         cookie.setSecure(true);
         Assertions.assertTrue(h.match(cookie, origin2));
+    }
+
+    @Test
+    void testBasicSecureValidate() {
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieAttributeHandler h = BasicSecureHandler.INSTANCE;
+
+        final CookieOrigin nonSecureOrigin = new CookieOrigin("somehost", 80, "/stuff", false);
+        final CookieOrigin secureOrigin = new CookieOrigin("somehost", 443, "/stuff", true);
+
+        // A secure cookie must not be accepted over a non-secure connection.
+        cookie.setSecure(true);
+        Assertions.assertThrows(MalformedCookieException.class, () -> h.validate(cookie, nonSecureOrigin));
+        Assertions.assertDoesNotThrow(() -> h.validate(cookie, secureOrigin));
+
+        // A non-secure cookie is unaffected by the origin's security.
+        cookie.setSecure(false);
+        Assertions.assertDoesNotThrow(() -> h.validate(cookie, nonSecureOrigin));
+    }
+
+    @Test
+    void testBasicSameSiteValidate() {
+        final CookieAttributeHandler h = BasicSameSiteHandler.INSTANCE;
+        final CookieOrigin origin = new CookieOrigin("somehost", 443, "/stuff", true);
+
+        final BasicClientCookie none = new BasicClientCookie("name", "value");
+        none.setAttribute(Cookie.SAME_SITE_ATTR, "None");
+        // SameSite=None without Secure is rejected.
+        Assertions.assertThrows(MalformedCookieException.class, () -> h.validate(none, origin));
+        // SameSite=None with Secure is accepted.
+        none.setSecure(true);
+        Assertions.assertDoesNotThrow(() -> h.validate(none, origin));
+
+        final BasicClientCookie lax = new BasicClientCookie("name", "value");
+        lax.setAttribute(Cookie.SAME_SITE_ATTR, "Lax");
+        Assertions.assertDoesNotThrow(() -> h.validate(lax, origin));
+    }
+
+    @Test
+    void testMaxAgeExpiryCappedAt400Days() throws Exception {
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final Instant before = Instant.now();
+        // A Max-Age of ~68 years must be capped to 400 days from now.
+        BasicMaxAgeHandler.INSTANCE.parse(cookie, Integer.toString(Integer.MAX_VALUE));
+        final Instant expiry = cookie.getExpiryInstant();
+        Assertions.assertNotNull(expiry);
+        Assertions.assertFalse(expiry.isAfter(before.plus(Duration.ofDays(400)).plusSeconds(5)));
+        Assertions.assertTrue(expiry.isAfter(before.plus(Duration.ofDays(399))));
+    }
+
+    @Test
+    void testMaxAgeLargerThanIntegerAcceptedAndCapped() throws Exception {
+        final Instant before = Instant.now();
+        final Instant upper = before.plus(Duration.ofDays(400)).plusSeconds(5);
+        final Instant lower = before.plus(Duration.ofDays(399));
+
+        // Just beyond Integer.MAX_VALUE: must be accepted, not rejected, then capped.
+        final BasicClientCookie c1 = new BasicClientCookie("name", "value");
+        BasicMaxAgeHandler.INSTANCE.parse(c1, "3000000000");
+        Assertions.assertNotNull(c1.getExpiryInstant());
+        Assertions.assertFalse(c1.getExpiryInstant().isAfter(upper));
+        Assertions.assertTrue(c1.getExpiryInstant().isAfter(lower));
+
+        // Far beyond Long.MAX_VALUE: still accepted and capped rather than overflowing.
+        final BasicClientCookie c2 = new BasicClientCookie("name", "value");
+        BasicMaxAgeHandler.INSTANCE.parse(c2, "99999999999999999999999999");
+        Assertions.assertNotNull(c2.getExpiryInstant());
+        Assertions.assertFalse(c2.getExpiryInstant().isAfter(upper));
+        Assertions.assertTrue(c2.getExpiryInstant().isAfter(lower));
     }
 
     @Test
