@@ -185,8 +185,9 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             final String host = b.getHost();
             if (host != null) {
                 b.setHost(host.toLowerCase(Locale.ROOT));
-                // Only an absolute URI gets an empty path replaced with "/". A relative reference
-                // with an empty path ("?query" or "#fragment") keeps the path of the base URI.
+                // Only a location with an authority (an absolute URI or "//host") gets an empty path
+                // replaced with "/". A relative reference with an empty path ("?query" or
+                // "#fragment") keeps the path of the base URI.
                 if (b.isPathEmpty()) {
                     b.setPathSegments("");
                 }
