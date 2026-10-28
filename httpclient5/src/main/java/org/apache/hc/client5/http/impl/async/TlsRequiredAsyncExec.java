@@ -56,6 +56,7 @@ final class TlsRequiredAsyncExec implements AsyncExecChainHandler {
         final HttpRoute route = scope.route;
         if (route != null && !route.isSecure()) {
             asyncExecCallback.failed(new UnsupportedSchemeException("Cleartext HTTP is disabled (TLS required)"));
+            return;
         }
         chain.proceed(request, entityProducer, scope, asyncExecCallback);
     }
