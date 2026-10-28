@@ -129,6 +129,8 @@ final class RestInvocationHandler implements InvocationHandler {
                 switch (param.getType()) {
                     case PATH:
                         Args.check(paramValue != null, "Path parameter '%s' must not be null", param.getName());
+                        Args.check(!".".equals(paramValue) && !"..".equals(paramValue),
+                                "Path parameter '%s' must not be a '.' or '..' segment", param.getName());
                         pathParams.put(paramName, paramValue);
                         break;
                     case QUERY:
