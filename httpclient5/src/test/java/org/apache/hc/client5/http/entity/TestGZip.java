@@ -83,11 +83,8 @@ class TestGZip {
         Mockito.doThrow(new IOException("Ooopsie")).when(in).writeTo(ArgumentMatchers.any());
         try (final GzipCompressingEntity gzipe = new GzipCompressingEntity(in)) {
             final OutputStream out = Mockito.mock(OutputStream.class);
-            try {
-                gzipe.writeTo(out);
-            } catch (final IOException ex) {
-                Mockito.verify(out, Mockito.never()).close();
-            }
+            Assertions.assertThrows(IOException.class, () -> gzipe.writeTo(out));
+            Mockito.verify(out, Mockito.never()).close();
         }
     }
 
