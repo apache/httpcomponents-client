@@ -154,7 +154,8 @@ class TestLinearBackoffManager {
     }
 
 
-    public void probeUpdatesRemainingAttemptsIndirectly() {
+    @Test
+    void probeUpdatesRemainingAttemptsIndirectly() {
         // Set initial max per route
         connPerRoute.setMaxPerRoute(route, 4);
 
@@ -173,9 +174,10 @@ class TestLinearBackoffManager {
         // Apply probe once
         impl.probe(route);
 
-        // Manipulate lastRouteProbes to simulate that enough time has passed for the cooldown period
+        // Manipulate lastRouteProbes and lastRouteBackoffs to simulate that the cooldown period has passed
         final Map<HttpRoute, Instant> lastRouteProbes = impl.getLastRouteProbes();
         lastRouteProbes.put(route, Instant.now().minusMillis(DEFAULT_COOL_DOWN_MS * 2));
+        lastRouteBackoffs.put(route, Instant.now().minusMillis(DEFAULT_COOL_DOWN_MS * 2));
 
         // Apply probe once more
         impl.probe(route);
