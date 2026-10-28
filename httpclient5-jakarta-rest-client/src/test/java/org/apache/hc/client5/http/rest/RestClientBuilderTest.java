@@ -722,6 +722,14 @@ class RestClientBuilderTest {
     }
 
     @Test
+    void testDotSegmentPathParamThrows() {
+        final EchoPathApi api = proxy(EchoPathApi.class);
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> api.echoPath(".."));
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> api.echoPath("."));
+        assertThat(api.echoPath("..a")).isEqualTo("..a");
+    }
+
+    @Test
     void testQueryParamSpaceEncodedAsPercent20() {
         final EchoApi api = proxy(EchoApi.class);
         final String result = api.echo("hello world");
