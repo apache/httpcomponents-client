@@ -49,6 +49,7 @@ import org.apache.hc.client5.http.observation.interceptors.IoByteCounterExec;
 import org.apache.hc.client5.http.observation.interceptors.TimerExec;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
+import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 
@@ -94,9 +95,37 @@ import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
  *       that surrounds each execution with a start/stop span.</li>
  *   <li>Metric interceptors according to {@link ObservingOptions.MetricSet}:
  *       BASIC (latency timer + response counter), IO (bytes in/out counters),
- *       and CONN_POOL (pool gauges; classic and async variants). Pool lease
- *       timing is available when using {@link #meteredConnectionManager} or
- *       {@link #meteredAsyncConnectionManager}.</li>
+ *       and CONN_POOL (pool gauges and pool lease metrics; classic and async
+ *       variants).</li>
+ * </ul>
+ *
+ * <p><strong>Connection pool metrics</strong></p>
+ * <p>When {@link ObservingOptions.MetricSet#CONN_POOL} is enabled, the
+ * {@code enable(...)} methods operate on the connection manager that is
+ * attached to the builder <em>at the time of the call</em>:</p>
+ * <ul>
+ *   <li>The connection manager is replaced with a metered wrapper (see
+ *       {@link #meteredConnectionManager} and
+ *       {@link #meteredAsyncConnectionManager}) that records the
+ *       {@code <prefix>.pool.lease} timer and the {@code <prefix>.pool.leases}
+ *       counter.</li>
+ *   <li>If the connection manager is a connection pool
+ *       ({@link ConnPoolControl}), the {@code <prefix>.pool.leased},
+ *       {@code <prefix>.pool.available} and {@code <prefix>.pool.pending}
+ *       gauges are bound to it.</li>
+ *   <li>If the connection manager is already a {@link MeteredConnectionManager}
+ *       or {@link MeteredAsyncConnectionManager} (for instance because it was
+ *       wrapped explicitly or {@code enable(...)} was called before), it is not
+ *       wrapped again. Lease metrics continue to be recorded by the existing
+ *       wrapper.</li>
+ *   <li>The connection manager shared flag
+ *       ({@code setConnectionManagerShared(boolean)}) is not changed. The
+ *       wrapper delegates {@code close} to the original connection manager.</li>
+ *   <li>If no connection manager is attached to the builder, no pool metrics
+ *       are installed. The connection manager that the builder creates by
+ *       default in {@code build()} is not instrumented. Set the connection
+ *       manager on the builder before calling {@code enable(...)} to get pool
+ *       metrics.</li>
  * </ul>
  *
  * <p><strong>Thread safety:</strong> This class is stateless. Methods may be
@@ -172,6 +201,10 @@ public final class HttpClientObservationSupport {
      *
      * <p>Installs interceptors at the <em>beginning</em> of the execution chain.</p>
      *
+     * <p>If {@link ObservingOptions.MetricSet#CONN_POOL} is enabled, the connection manager
+     * attached to the builder is wrapped with pool-lease metrics and the pool gauges are
+     * bound to it. See the class documentation for details.</p>
+     *
      * @param builder  client builder to instrument
      * @param obsReg   observation registry; if {@code null} no observations are installed
      * @param meterReg meter registry to register meters with (must not be {@code null})
@@ -204,7 +237,7 @@ public final class HttpClientObservationSupport {
             builder.addExecInterceptorFirst(IO_ID, new IoByteCounterExec(meterReg, o, config));
         }
         if (o.metricSets.contains(ObservingOptions.MetricSet.CONN_POOL)) {
-            ConnPoolMeters.bindTo(builder, meterReg, config);
+            bindConnPoolMetrics(builder, meterReg, o, config);
         }
     }
 
@@ -262,6 +295,10 @@ public final class HttpClientObservationSupport {
      * <p>Interceptors are installed <em>after</em> the caching element so that
      * metrics/observations reflect the actual exchange.</p>
      *
+     * <p>If {@link ObservingOptions.MetricSet#CONN_POOL} is enabled, the connection manager
+     * attached to the builder is wrapped with pool-lease metrics and the pool gauges are
+     * bound to it. See the class documentation for details.</p>
+     *
      * @param builder  caching client builder to instrument
      * @param obsReg   observation registry; if {@code null} no observations are installed
      * @param meterReg meter registry to register meters with (must not be {@code null})
@@ -295,7 +332,7 @@ public final class HttpClientObservationSupport {
             builder.addExecInterceptorAfter(ChainElement.CACHING.name(), IO_ID, new IoByteCounterExec(meterReg, o, config));
         }
         if (o.metricSets.contains(ObservingOptions.MetricSet.CONN_POOL)) {
-            ConnPoolMeters.bindTo(builder, meterReg, config);
+            bindConnPoolMetrics(builder, meterReg, o, config);
         }
     }
 
@@ -350,6 +387,10 @@ public final class HttpClientObservationSupport {
      * Enables observations and metrics on an async client builder using explicit
      * registries and {@link MetricConfig}.
      *
+     * <p>If {@link ObservingOptions.MetricSet#CONN_POOL} is enabled, the connection manager
+     * attached to the builder is wrapped with pool-lease metrics and the pool gauges are
+     * bound to it. See the class documentation for details.</p>
+     *
      * @param builder  async client builder to instrument
      * @param obsReg   observation registry; if {@code null} no observations are installed
      * @param meterReg meter registry to register meters with (must not be {@code null})
@@ -382,7 +423,7 @@ public final class HttpClientObservationSupport {
             builder.addExecInterceptorFirst(IO_ID, new AsyncIoByteCounterExec(meterReg, o, config));
         }
         if (o.metricSets.contains(ObservingOptions.MetricSet.CONN_POOL)) {
-            ConnPoolMetersAsync.bindTo(builder, meterReg, config);
+            bindConnPoolMetrics(builder, meterReg, o, config);
         }
     }
 
@@ -439,6 +480,10 @@ public final class HttpClientObservationSupport {
      *
      * <p>Interceptors are installed <em>after</em> the caching element.</p>
      *
+     * <p>If {@link ObservingOptions.MetricSet#CONN_POOL} is enabled, the connection manager
+     * attached to the builder is wrapped with pool-lease metrics and the pool gauges are
+     * bound to it. See the class documentation for details.</p>
+     *
      * @param builder  caching async client builder to instrument
      * @param obsReg   observation registry; if {@code null} no observations are installed
      * @param meterReg meter registry to register meters with (must not be {@code null})
@@ -472,7 +517,7 @@ public final class HttpClientObservationSupport {
             builder.addExecInterceptorAfter(ChainElement.CACHING.name(), IO_ID, new AsyncIoByteCounterExec(meterReg, o, config));
         }
         if (o.metricSets.contains(ObservingOptions.MetricSet.CONN_POOL)) {
-            ConnPoolMetersAsync.bindTo(builder, meterReg, config);
+            bindConnPoolMetrics(builder, meterReg, o, config);
         }
     }
 
@@ -576,6 +621,46 @@ public final class HttpClientObservationSupport {
             return delegate;
         }
         return new MeteredTlsStrategy(delegate, meterReg, config, o);
+    }
+
+    /**
+     * Wraps the classic connection manager of the builder with pool-lease metrics
+     * and binds the pool gauges to it.
+     */
+    private static void bindConnPoolMetrics(final HttpClientBuilder builder,
+                                            final MeterRegistry meterReg,
+                                            final ObservingOptions opts,
+                                            final MetricConfig config) {
+        final HttpClientConnectionManager cm = builder.getConnManager();
+        if (cm == null) {
+            return;
+        }
+        if (!(cm instanceof MeteredConnectionManager)) {
+            builder.setConnectionManager(meteredConnectionManager(cm, meterReg, opts, config));
+        }
+        if (cm instanceof ConnPoolControl) {
+            ConnPoolMeters.bindTo(builder, meterReg, config);
+        }
+    }
+
+    /**
+     * Wraps the async connection manager of the builder with pool-lease metrics
+     * and binds the pool gauges to it.
+     */
+    private static void bindConnPoolMetrics(final HttpAsyncClientBuilder builder,
+                                            final MeterRegistry meterReg,
+                                            final ObservingOptions opts,
+                                            final MetricConfig config) {
+        final AsyncClientConnectionManager cm = builder.getConnManager();
+        if (cm == null) {
+            return;
+        }
+        if (!(cm instanceof MeteredAsyncConnectionManager)) {
+            builder.setConnectionManager(meteredAsyncConnectionManager(cm, meterReg, opts, config));
+        }
+        if (cm instanceof ConnPoolControl) {
+            ConnPoolMetersAsync.bindTo(builder, meterReg, config);
+        }
     }
 
     /**
