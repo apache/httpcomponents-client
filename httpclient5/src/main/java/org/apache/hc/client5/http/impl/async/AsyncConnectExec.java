@@ -475,7 +475,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                     state.challenged = true;
                 } else {
                     state.challenged = false;
-                    if (status >= HttpStatus.SC_REDIRECTION) {
+                    if (status >= HttpStatus.SC_CLIENT_ERROR) {
                         state.tunnelRefused = true;
                         entityConsumerRef.set(asyncExecCallback.handleResponse(response, entityDetails));
                     } else if (status == HttpStatus.SC_OK) {

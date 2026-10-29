@@ -225,6 +225,53 @@ class TestConnectExec {
     }
 
     @Test
+    void testEstablishRouteViaProxyTunnelRedirectResponse() throws Exception {
+        final HttpRoute route = new HttpRoute(target, null, proxy, true);
+        final HttpClientContext context = HttpClientContext.create();
+        final ClassicHttpRequest request = new HttpGet("http://bar/test");
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(307, "Temporary Redirect");
+        response.setHeader(HttpHeaders.LOCATION, "http://foo/test");
+        response.setEntity(new StringEntity(""));
+
+        final ConnectionState connectionState = new ConnectionState();
+        Mockito.doAnswer(connectionState.connectAnswer()).when(execRuntime).connectEndpoint(Mockito.any());
+        Mockito.when(execRuntime.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
+        Mockito.when(execRuntime.execute(
+                Mockito.anyString(),
+                Mockito.any(),
+                Mockito.any())).thenReturn(response);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+        Assertions.assertThrows(HttpException.class, () ->
+                exec.execute(request, scope, execChain));
+        Mockito.verify(execRuntime, Mockito.atLeastOnce()).discardEndpoint();
+        Mockito.verify(execChain, Mockito.never()).proceed(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    void testEstablishRouteViaProxyTunnelNonOkSuccessResponse() throws Exception {
+        final HttpRoute route = new HttpRoute(target, null, proxy, true);
+        final HttpClientContext context = HttpClientContext.create();
+        final ClassicHttpRequest request = new HttpGet("http://bar/test");
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(203, "Non-Authoritative Information");
+        response.setEntity(new StringEntity("not from the target"));
+
+        final ConnectionState connectionState = new ConnectionState();
+        Mockito.doAnswer(connectionState.connectAnswer()).when(execRuntime).connectEndpoint(Mockito.any());
+        Mockito.when(execRuntime.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
+        Mockito.when(execRuntime.execute(
+                Mockito.anyString(),
+                Mockito.any(),
+                Mockito.any())).thenReturn(response);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+        Assertions.assertThrows(HttpException.class, () ->
+                exec.execute(request, scope, execChain));
+        Mockito.verify(execRuntime, Mockito.atLeastOnce()).discardEndpoint();
+        Mockito.verify(execChain, Mockito.never()).proceed(Mockito.any(), Mockito.any());
+    }
+
+    @Test
     void testEstablishRouteViaProxyTunnelRetryOnAuthChallengePersistentConnection() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = HttpClientContext.create();

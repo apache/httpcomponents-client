@@ -39,9 +39,12 @@ import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
@@ -77,15 +80,11 @@ class TestAsyncConnectExec {
     }
 
     /**
-     * Drives the connect exec through a secure proxy tunnel and returns the {@code CONNECT} request
-     * that the tunnelling exchange handler produces.
+     * Drives the connect exec through a secure proxy tunnel and returns the tunnelling exchange
+     * handler submitted for the {@code CONNECT} request.
      */
-    private HttpRequest tunnelConnectRequest(final AsyncConnectExec exec, final HttpRoute route,
-            final HttpVersionPolicy versionPolicy) throws Exception {
-        final HttpClientContext context = HttpClientContext.create();
-        if (versionPolicy != null) {
-            context.setHttpVersionPolicy(versionPolicy);
-        }
+    private AsyncClientExchangeHandler tunnelExchangeHandler(final AsyncConnectExec exec, final HttpRoute route,
+            final HttpClientContext context, final AsyncExecCallback callback) throws Exception {
         final HttpRequest request = BasicRequestBuilder.get("https://foo/test").build();
         final CancellableDependency dependency = Mockito.mock(CancellableDependency.class);
         final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(
@@ -109,10 +108,25 @@ class TestAsyncConnectExec {
             return Mockito.mock(Cancellable.class);
         }).when(execRuntime).execute(Mockito.anyString(), Mockito.any(), Mockito.any());
 
-        exec.execute(request, null, scope, chain, Mockito.mock(AsyncExecCallback.class));
+        exec.execute(request, null, scope, chain, callback);
 
         final AsyncClientExchangeHandler handler = handlerRef.get();
         Assertions.assertNotNull(handler, "CONNECT exchange handler must have been submitted for execution");
+        return handler;
+    }
+
+    /**
+     * Drives the connect exec through a secure proxy tunnel and returns the {@code CONNECT} request
+     * that the tunnelling exchange handler produces.
+     */
+    private HttpRequest tunnelConnectRequest(final AsyncConnectExec exec, final HttpRoute route,
+            final HttpVersionPolicy versionPolicy) throws Exception {
+        final HttpClientContext context = HttpClientContext.create();
+        if (versionPolicy != null) {
+            context.setHttpVersionPolicy(versionPolicy);
+        }
+        final AsyncClientExchangeHandler handler = tunnelExchangeHandler(exec, route, context,
+                Mockito.mock(AsyncExecCallback.class));
 
         final AtomicReference<HttpRequest> connectRef = new AtomicReference<>();
         final RequestChannel requestChannel = Mockito.mock(RequestChannel.class);
@@ -151,6 +165,24 @@ class TestAsyncConnectExec {
         final Header h = connect.getFirstHeader(HttpHeaders.ALPN);
         Assertions.assertNotNull(h, "ALPN header must be present");
         Assertions.assertEquals("http%2F1.1", h.getValue());
+    }
+
+    @Test
+    void testEstablishRouteViaProxyTunnelRedirectResponse() throws Exception {
+        // A redirect from the proxy must fail the exchange instead of being passed up the chain
+        // as the target's response, where the redirect exec would follow it.
+        final AsyncConnectExec exec = new AsyncConnectExec(proxyHttpProcessor, proxyAuthStrategy, null, true);
+        final HttpRoute route = new HttpRoute(target, null, proxy, true);
+        final HttpClientContext context = HttpClientContext.create();
+        final AsyncExecCallback callback = Mockito.mock(AsyncExecCallback.class);
+
+        final AsyncClientExchangeHandler handler = tunnelExchangeHandler(exec, route, context, callback);
+
+        final HttpResponse response = new BasicHttpResponse(307, "Temporary Redirect");
+        response.setHeader(HttpHeaders.LOCATION, "http://foo/test");
+        Assertions.assertThrows(HttpException.class, () ->
+                handler.consumeResponse(response, null, context));
+        Mockito.verify(callback, Mockito.never()).handleResponse(Mockito.any(), Mockito.any());
     }
 
 }
