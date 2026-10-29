@@ -282,6 +282,10 @@ public final class ConnectExec implements ExecChainHandler {
         final int status = response.getCode();
         if (status == HttpStatus.SC_OK) {
             context.setProtocolVersion(null);
+        } else if (status < HttpStatus.SC_CLIENT_ERROR) {
+            // Only a refusal is handed back. A redirect or other non-200 2xx from the proxy
+            // must not be taken for the target's response to the original request.
+            throw new HttpException("Unexpected response to CONNECT request: " + new StatusLine(response));
         } else {
             final HttpEntity entity = response.getEntity();
             if (entity != null) {
