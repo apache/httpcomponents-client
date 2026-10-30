@@ -30,6 +30,8 @@ package org.apache.hc.client5.testing.sync;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import javax.net.ssl.HostnameVerifier;
@@ -41,6 +43,8 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
+import org.apache.hc.client5.http.ssl.ConscryptClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
 import org.apache.hc.client5.http.ssl.HttpsSupport;
@@ -419,6 +423,55 @@ class TestDefaultClientTlsStrategy {
                     context);
             final SSLSession session = upgradedSocket.getSession();
             Assertions.assertTrue(Objects.toString(session.getPeerPrincipal()).startsWith("CN=localhost"));
+        }
+    }
+
+    @Test
+    void testHostnameVerificationClientWithoutVerifier() throws Exception {
+        // @formatter:off
+        this.server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
+                .setSslContext(SSLTestContexts.createServerSSLContext())
+                .setRequestRouter((r, c) -> null)
+                .create();
+        // @formatter:on
+        this.server.start();
+
+        final SSLContext sslContext = SSLTestContexts.createClientSSLContext();
+        final List<TlsSocketStrategy> tlsStrategies = Arrays.asList(
+                new DefaultClientTlsStrategy(sslContext, HostnameVerificationPolicy.CLIENT, null),
+                new ConscryptClientTlsStrategy(sslContext),
+                ClientTlsStrategyBuilder.create()
+                        .setSslContext(sslContext)
+                        .setHostVerificationPolicy(HostnameVerificationPolicy.CLIENT)
+                        .buildClassic());
+
+        final HttpHost target1 = new HttpHost("https", InetAddress.getLoopbackAddress(), "localhost", server.getLocalPort());
+        final HttpHost target2 = new HttpHost("https", InetAddress.getLoopbackAddress(), "some-other-host", server.getLocalPort());
+
+        for (final TlsSocketStrategy tlsStrategy : tlsStrategies) {
+            try (final Socket socket = new Socket(InetAddress.getLoopbackAddress(), server.getLocalPort())) {
+                final HttpClientContext context = HttpClientContext.create();
+                final SSLSocket upgradedSocket = tlsStrategy.upgrade(
+                        socket,
+                        target1.getHostName(),
+                        target1.getPort(),
+                        null,
+                        context);
+                final SSLSession session = upgradedSocket.getSession();
+                Assertions.assertTrue(Objects.toString(session.getPeerPrincipal()).startsWith("CN=localhost"));
+            }
+
+            try (final Socket socket = new Socket(InetAddress.getLoopbackAddress(), server.getLocalPort())) {
+                final HttpClientContext context = HttpClientContext.create();
+                Assertions.assertThrows(SSLPeerUnverifiedException.class, () ->
+                        tlsStrategy.upgrade(
+                                socket,
+                                target2.getHostName(),
+                                target2.getPort(),
+                                null,
+                                context));
+            }
         }
     }
 
