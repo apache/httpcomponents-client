@@ -27,23 +27,39 @@
 package org.apache.hc.client5.http.observation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.util.EnumSet;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.micrometer.observation.ObservationRegistry;
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.cache.CachingHttpAsyncClientBuilder;
+import org.apache.hc.client5.http.impl.cache.CachingHttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
@@ -238,5 +254,281 @@ class HttpClientObservationSupportTest {
         assertNotNull(meters.find(mc.prefix + ".pool.leased").gauge());
         assertNotNull(meters.find(mc.prefix + ".pool.available").gauge());
         assertNotNull(meters.find(mc.prefix + ".pool.pending").gauge());
+        assertInstanceOf(MeteredAsyncConnectionManager.class, builder.getConnManager());
+    }
+
+    private static final ObservingOptions CONN_POOL_ONLY = ObservingOptions.builder()
+            .metrics(EnumSet.of(ObservingOptions.MetricSet.CONN_POOL))
+            .build();
+
+    private static final MetricConfig POOL_MC = MetricConfig.builder().prefix("pool-it").build();
+
+    private static final class CloseTrackingPoolingConnectionManager extends PoolingHttpClientConnectionManager {
+        private final AtomicBoolean closed = new AtomicBoolean();
+
+        @Override
+        public void close() {
+            closed.set(true);
+            super.close();
+        }
+
+        @Override
+        public void close(final CloseMode closeMode) {
+            closed.set(true);
+            super.close(closeMode);
+        }
+    }
+
+    private static final class CloseTrackingPoolingAsyncConnectionManager extends PoolingAsyncClientConnectionManager {
+        private final AtomicBoolean closed = new AtomicBoolean();
+
+        @Override
+        public void close() {
+            closed.set(true);
+            super.close();
+        }
+
+        @Override
+        public void close(final CloseMode closeMode) {
+            closed.set(true);
+            super.close(closeMode);
+        }
+    }
+
+    private HttpHost startServer() throws Exception {
+        server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
+                .setListenerPort(0)
+                .register("localhost", "/get", (request, response, context) -> {
+                    response.setCode(HttpStatus.SC_OK);
+                    response.setEntity(new StringEntity("{\"ok\":true}", ContentType.APPLICATION_JSON));
+                })
+                .create();
+        server.start();
+        return new HttpHost("http", "localhost", server.getLocalPort());
+    }
+
+    private static void executeClassic(final HttpClientBuilder builder, final HttpHost target) throws Exception {
+        try (final CloseableHttpClient client = builder.build()) {
+            try (final ClassicHttpResponse resp = client.executeOpen(target, ClassicRequestBuilder.get("/get").build(), null)) {
+                assertEquals(200, resp.getCode());
+            }
+        }
+    }
+
+    private static void executeAsync(final HttpAsyncClientBuilder builder, final HttpHost target) throws Exception {
+        try (final CloseableHttpAsyncClient client = builder.build()) {
+            client.start();
+            final SimpleHttpResponse resp = client.execute(
+                    SimpleRequestBuilder.get().setHttpHost(target).setPath("/get").build(), null)
+                    .get(30, TimeUnit.SECONDS);
+            assertEquals(200, resp.getCode());
+        }
+    }
+
+    private static void assertPoolMetricsRecorded(final MeterRegistry meters, final long expectedLeases) {
+        final Timer lease = meters.find(POOL_MC.prefix + ".pool.lease").tag("result", "ok").timer();
+        assertNotNull(lease);
+        assertEquals(expectedLeases, lease.count());
+        final Counter leases = meters.find(POOL_MC.prefix + ".pool.leases").tag("result", "ok").counter();
+        assertNotNull(leases);
+        assertEquals(expectedLeases, (long) leases.count());
+        assertNotNull(meters.find(POOL_MC.prefix + ".pool.leased").gauge());
+        assertNotNull(meters.find(POOL_MC.prefix + ".pool.available").gauge());
+        assertNotNull(meters.find(POOL_MC.prefix + ".pool.pending").gauge());
+    }
+
+    private static void assertNoPoolMetrics(final MeterRegistry meters) {
+        assertNull(meters.find(POOL_MC.prefix + ".pool.lease").timer());
+        assertNull(meters.find(POOL_MC.prefix + ".pool.leases").counter());
+        assertNull(meters.find(POOL_MC.prefix + ".pool.leased").gauge());
+        assertNull(meters.find(POOL_MC.prefix + ".pool.available").gauge());
+        assertNull(meters.find(POOL_MC.prefix + ".pool.pending").gauge());
+    }
+
+    @Test
+    void classicEnableWrapsConnectionManagerAndRecordsPoolMetrics() throws Exception {
+        final HttpHost target = startServer();
+        final MeterRegistry meters = new SimpleMeterRegistry();
+        final HttpClientBuilder b = HttpClients.custom()
+                .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create().build());
+
+        HttpClientObservationSupport.enable(b, null, meters, CONN_POOL_ONLY, POOL_MC);
+
+        assertInstanceOf(MeteredConnectionManager.class, b.getConnManager());
+        executeClassic(b, target);
+        assertPoolMetricsRecorded(meters, 1);
+    }
+
+    @Test
+    void asyncEnableWrapsConnectionManagerAndRecordsPoolMetrics() throws Exception {
+        final HttpHost target = startServer();
+        final MeterRegistry meters = new SimpleMeterRegistry();
+        final HttpAsyncClientBuilder b = HttpAsyncClients.custom()
+                .setConnectionManager(PoolingAsyncClientConnectionManagerBuilder.create().build());
+
+        HttpClientObservationSupport.enable(b, null, meters, CONN_POOL_ONLY, POOL_MC);
+
+        assertInstanceOf(MeteredAsyncConnectionManager.class, b.getConnManager());
+        executeAsync(b, target);
+        assertPoolMetricsRecorded(meters, 1);
+    }
+
+    @Test
+    void cachingClassicEnableWrapsConnectionManager() {
+        final MeterRegistry meters = new SimpleMeterRegistry();
+        final CachingHttpClientBuilder b = CachingHttpClientBuilder.create();
+        b.setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create().build());
+
+        HttpClientObservationSupport.enable(b, null, meters, CONN_POOL_ONLY, POOL_MC);
+
+        assertInstanceOf(MeteredConnectionManager.class, b.getConnManager());
+        assertNotNull(meters.find(POOL_MC.prefix + ".pool.leased").gauge());
+    }
+
+    @Test
+    void classicEnableTwiceDoesNotDoubleWrap() throws Exception {
+        final HttpHost target = startServer();
+        final MeterRegistry meters = new SimpleMeterRegistry();
+        final HttpClientBuilder b = HttpClients.custom()
+                .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create().build());
+
+        HttpClientObservationSupport.enable(b, null, meters, CONN_POOL_ONLY, POOL_MC);
+        final HttpClientConnectionManager first = b.getConnManager();
+        HttpClientObservationSupport.enable(b, null, meters, CONN_POOL_ONLY, POOL_MC);
+
+        assertSame(first, b.getConnManager());
+        executeClassic(b, target);
+        assertPoolMetricsRecorded(meters, 1);
+    }
+
+    @Test
+    void asyncEnableTwiceDoesNotDoubleWrap() throws Exception {
+        final HttpHost target = startServer();
+        final MeterRegistry meters = new SimpleMeterRegistry();
+        final HttpAsyncClientBuilder b = HttpAsyncClients.custom()
+                .setConnectionManager(PoolingAsyncClientConnectionManagerBuilder.create().build());
+
+        HttpClientObservationSupport.enable(b, null, meters, CONN_POOL_ONLY, POOL_MC);
+        final AsyncClientConnectionManager first = b.getConnManager();
+        HttpClientObservationSupport.enable(b, null, meters, CONN_POOL_ONLY, POOL_MC);
+
+        assertSame(first, b.getConnManager());
+        executeAsync(b, target);
+        assertPoolMetricsRecorded(meters, 1);
+    }
+
+    @Test
+    void explicitlyMeteredConnectionManagersAreKept() {
+        final MeterRegistry meters = new SimpleMeterRegistry();
+
+        final HttpClientConnectionManager classic = HttpClientObservationSupport.meteredConnectionManager(
+                PoolingHttpClientConnectionManagerBuilder.create().build(), meters, CONN_POOL_ONLY, POOL_MC);
+        final HttpClientBuilder classicBuilder = HttpClients.custom().setConnectionManager(classic);
+        HttpClientObservationSupport.enable(classicBuilder, null, meters, CONN_POOL_ONLY, POOL_MC);
+        assertSame(classic, classicBuilder.getConnManager());
+
+        final AsyncClientConnectionManager async = HttpClientObservationSupport.meteredAsyncConnectionManager(
+                PoolingAsyncClientConnectionManagerBuilder.create().build(), meters, CONN_POOL_ONLY, POOL_MC);
+        final HttpAsyncClientBuilder asyncBuilder = HttpAsyncClients.custom().setConnectionManager(async);
+        HttpClientObservationSupport.enable(asyncBuilder, null, meters, CONN_POOL_ONLY, POOL_MC);
+        assertSame(async, asyncBuilder.getConnManager());
+
+        assertNotNull(meters.find(POOL_MC.prefix + ".pool.leased").gauge());
+    }
+
+    @Test
+    void enableWithoutConnectionManagerInstallsNoPoolMetrics() throws Exception {
+        final HttpHost target = startServer();
+        final MeterRegistry meters = new SimpleMeterRegistry();
+
+        final HttpClientBuilder classicBuilder = HttpClients.custom();
+        HttpClientObservationSupport.enable(classicBuilder, null, meters, CONN_POOL_ONLY, POOL_MC);
+        assertNull(classicBuilder.getConnManager());
+        executeClassic(classicBuilder, target);
+
+        final HttpAsyncClientBuilder asyncBuilder = HttpAsyncClients.custom();
+        HttpClientObservationSupport.enable(asyncBuilder, null, meters, CONN_POOL_ONLY, POOL_MC);
+        assertNull(asyncBuilder.getConnManager());
+        executeAsync(asyncBuilder, target);
+
+        assertNoPoolMetrics(meters);
+    }
+
+    @Test
+    void connPoolDisabledLeavesConnectionManagerUnchanged() throws Exception {
+        final HttpHost target = startServer();
+        final MeterRegistry meters = new SimpleMeterRegistry();
+        final ObservingOptions basicOnly = ObservingOptions.builder()
+                .metrics(EnumSet.of(ObservingOptions.MetricSet.BASIC))
+                .build();
+
+        final HttpClientConnectionManager classic = PoolingHttpClientConnectionManagerBuilder.create().build();
+        final HttpClientBuilder classicBuilder = HttpClients.custom().setConnectionManager(classic);
+        HttpClientObservationSupport.enable(classicBuilder, null, meters, basicOnly, POOL_MC);
+        assertSame(classic, classicBuilder.getConnManager());
+        executeClassic(classicBuilder, target);
+
+        final AsyncClientConnectionManager async = PoolingAsyncClientConnectionManagerBuilder.create().build();
+        final HttpAsyncClientBuilder asyncBuilder = HttpAsyncClients.custom().setConnectionManager(async);
+        HttpClientObservationSupport.enable(asyncBuilder, null, meters, basicOnly, POOL_MC);
+        assertSame(async, asyncBuilder.getConnManager());
+        executeAsync(asyncBuilder, target);
+
+        assertNoPoolMetrics(meters);
+    }
+
+    @Test
+    void nonPoolingConnectionManagerIsWrappedWithoutGauges() {
+        final MeterRegistry meters = new SimpleMeterRegistry();
+        final HttpClientBuilder b = HttpClients.custom()
+                .setConnectionManager(new BasicHttpClientConnectionManager());
+
+        HttpClientObservationSupport.enable(b, null, meters, CONN_POOL_ONLY, POOL_MC);
+
+        assertInstanceOf(MeteredConnectionManager.class, b.getConnManager());
+        assertNull(meters.find(POOL_MC.prefix + ".pool.leased").gauge());
+    }
+
+    @Test
+    void classicSharedConnectionManagerFlagIsPreserved() throws Exception {
+        final HttpHost target = startServer();
+        final MeterRegistry meters = new SimpleMeterRegistry();
+
+        final CloseTrackingPoolingConnectionManager shared = new CloseTrackingPoolingConnectionManager();
+        final HttpClientBuilder sharedBuilder = HttpClients.custom()
+                .setConnectionManager(shared)
+                .setConnectionManagerShared(true);
+        HttpClientObservationSupport.enable(sharedBuilder, null, meters, CONN_POOL_ONLY, POOL_MC);
+        executeClassic(sharedBuilder, target);
+        assertFalse(shared.closed.get());
+        shared.close();
+
+        final CloseTrackingPoolingConnectionManager owned = new CloseTrackingPoolingConnectionManager();
+        final HttpClientBuilder ownedBuilder = HttpClients.custom().setConnectionManager(owned);
+        HttpClientObservationSupport.enable(ownedBuilder, null, meters, CONN_POOL_ONLY, POOL_MC);
+        executeClassic(ownedBuilder, target);
+        assertTrue(owned.closed.get());
+    }
+
+    @Test
+    void asyncSharedConnectionManagerFlagIsPreserved() throws Exception {
+        final HttpHost target = startServer();
+        final MeterRegistry meters = new SimpleMeterRegistry();
+
+        final CloseTrackingPoolingAsyncConnectionManager shared = new CloseTrackingPoolingAsyncConnectionManager();
+        final HttpAsyncClientBuilder sharedBuilder = HttpAsyncClients.custom()
+                .setConnectionManager(shared)
+                .setConnectionManagerShared(true);
+        HttpClientObservationSupport.enable(sharedBuilder, null, meters, CONN_POOL_ONLY, POOL_MC);
+        executeAsync(sharedBuilder, target);
+        assertFalse(shared.closed.get());
+        shared.close();
+
+        final CloseTrackingPoolingAsyncConnectionManager owned = new CloseTrackingPoolingAsyncConnectionManager();
+        final HttpAsyncClientBuilder ownedBuilder = HttpAsyncClients.custom().setConnectionManager(owned);
+        HttpClientObservationSupport.enable(ownedBuilder, null, meters, CONN_POOL_ONLY, POOL_MC);
+        executeAsync(ownedBuilder, target);
+        assertTrue(owned.closed.get());
     }
 }
