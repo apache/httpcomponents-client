@@ -48,8 +48,25 @@ public final class ObservingOptions {
      * {@link org.apache.hc.client5.http.observation.HttpClientObservationSupport#meteredTlsStrategy}
      * and {@link org.apache.hc.client5.http.observation.HttpClientObservationSupport#meteredDnsResolver}
      * to wrap the underlying TLS strategy or DNS resolver.
+     * <p>
+     * {@link MetricSet#CONTENT_LENGTH} records the declared request and response
+     * entity lengths as distribution summaries. See
+     * {@link org.apache.hc.client5.http.observation.interceptors.ContentLengthExec}
+     * for details.
      */
-    public enum MetricSet { BASIC, IO, CONN_POOL, TLS, DNS }
+    public enum MetricSet {
+        BASIC,
+        IO,
+        CONN_POOL,
+        TLS,
+        DNS,
+        /**
+         * Distributions of the declared request and response entity lengths, in bytes.
+         *
+         * @since 5.7
+         */
+        CONTENT_LENGTH
+    }
 
     /**
      * How many tags each metric/trace should get.
