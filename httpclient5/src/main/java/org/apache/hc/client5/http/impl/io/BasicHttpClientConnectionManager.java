@@ -33,7 +33,6 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -46,6 +45,7 @@ import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.ConnectionHolder;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
+import org.apache.hc.client5.http.impl.PrefixedIncrementingId;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
@@ -100,7 +100,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     private static final Logger LOG = LoggerFactory.getLogger(BasicHttpClientConnectionManager.class);
 
-    private static final AtomicLong COUNT = new AtomicLong(0);
+    private static final PrefixedIncrementingId INCREMENTING_ID = new PrefixedIncrementingId("ep-");
 
     private final HttpClientConnectionOperator connectionOperator;
     private final HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
@@ -130,7 +130,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         super();
         this.connectionOperator = Args.notNull(httpClientConnectionOperator, "Connection operator");
         this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
-        this.id = String.format("ep-%010d", COUNT.getAndIncrement());
+        this.id = INCREMENTING_ID.getNextId();
         this.expiry = Long.MAX_VALUE;
         this.socketConfig = SocketConfig.DEFAULT;
         this.connectionConfig = ConnectionConfig.DEFAULT;
