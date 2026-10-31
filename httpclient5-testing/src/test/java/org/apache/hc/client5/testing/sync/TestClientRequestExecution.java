@@ -65,7 +65,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.TimeValue;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -316,7 +316,8 @@ abstract class TestClientRequestExecution extends AbstractIntegrationTestBase {
         Assertions.assertEquals(uri, location);
     }
 
-    @Test @Disabled("Fails intermittently with GitHub Actions")
+    @Tag("cancellation")
+    @Test
     void testRequestCancellation() throws Exception {
         startServer();
         final HttpHost target = startServer();

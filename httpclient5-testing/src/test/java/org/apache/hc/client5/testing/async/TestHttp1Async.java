@@ -46,6 +46,7 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -139,6 +140,7 @@ abstract class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest {
         Assertions.assertEquals(2048, body3.length());
     }
 
+    @Tag("cancellation")
     @Test
     void testRequestCancellation() throws Exception {
         configureServer(bootstrap -> bootstrap.register("/random/*", AsyncRandomHandler::new));
