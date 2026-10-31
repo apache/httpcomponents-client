@@ -26,14 +26,16 @@
  */
 package org.apache.hc.client5.http.impl;
 
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.net.PathSegmentCodec;
 import org.apache.hc.core5.net.PercentCodec;
-import org.apache.hc.core5.net.URIBuilder;
 
 /**
  * Protocol support methods. For internal use only.
@@ -43,30 +45,94 @@ import org.apache.hc.core5.net.URIBuilder;
 @Internal
 public final class RequestSupport {
 
-    public static String extractPathPrefix(final HttpRequest request) {
-        final String path = request.getPath();
-        try {
-            final URIBuilder uriBuilder = new URIBuilder(path);
-            uriBuilder.setFragment(null);
-            uriBuilder.clearParameters();
-            uriBuilder.optimize();
-            final List<String> pathSegments = uriBuilder.getPathSegments();
+    static final BitSet UNRESERVED = new BitSet(256);
 
-            if (!pathSegments.isEmpty()) {
-                pathSegments.remove(pathSegments.size() - 1);
+    static {
+        for (int i = 'a'; i <= 'z'; i++) {
+            UNRESERVED.set(i);
+        }
+        for (int i = 'A'; i <= 'Z'; i++) {
+            UNRESERVED.set(i);
+        }
+        // numeric characters
+        for (int i = '0'; i <= '9'; i++) {
+            UNRESERVED.set(i);
+        }
+        UNRESERVED.set('-');
+        UNRESERVED.set('.');
+        UNRESERVED.set('_');
+        UNRESERVED.set('~');
+    }
+
+    /**
+     * TODO To be replaced by method from core
+     */
+    static List<String> optimizePathSegments(final List<String> inputSegments) {
+        if (!inputSegments.isEmpty()) {
+            final LinkedList<String> outputSegments = new LinkedList<>();
+            for (final String inputSegment : inputSegments) {
+                if (!inputSegment.isEmpty() && !".".equals(inputSegment)) {
+                    if ("..".equals(inputSegment)) {
+                        if (!outputSegments.isEmpty()) {
+                            outputSegments.removeLast();
+                        }
+                    } else {
+                        outputSegments.addLast(inputSegment);
+                    }
+                }
             }
-            if (pathSegments.isEmpty()) {
+            if (!inputSegments.isEmpty()) {
+                final String lastSegment = inputSegments.get(inputSegments.size() - 1);
+                if (lastSegment.isEmpty() || lastSegment.equals("..") || lastSegment.equals(".")) {
+                    outputSegments.addLast("");
+                }
+            }
+            return outputSegments;
+        } else {
+            return Collections.singletonList("");
+        }
+    }
+
+    public static String extractPathPrefix(final HttpRequest request) {
+        String path = request.getPath();
+        boolean hasSegments = false;
+        boolean requiresOptimization = false;
+        char previous = 0;
+        for (int i = 0; i < path.length(); i++) {
+            final char ch = path.charAt(i);
+            if (ch == '?' || ch == '#') {
+                path = path.substring(0, i);
+                break;
+            }
+            if (ch == '/') {
+                hasSegments = true;
+                if (previous == '/') {
+                    requiresOptimization = true;
+                }
+            }
+            if (ch == '.' || ch != '/' && !UNRESERVED.get(ch)) {
+                requiresOptimization = true;
+            }
+            previous = ch;
+        }
+        if (!requiresOptimization) {
+            return hasSegments ? path.substring(0, path.lastIndexOf('/') + 1) : path;
+        } else {
+            final List<String> inputSegments = PathSegmentCodec.parsePathSegments(path, StandardCharsets.UTF_8);
+            final List<String> outputSegments = optimizePathSegments(inputSegments);
+            if (!outputSegments.isEmpty()) {
+                outputSegments.remove(outputSegments.size() - 1);
+            }
+            if (outputSegments.isEmpty()) {
                 return "/";
             }
             final StringBuilder buf = new StringBuilder();
             buf.append('/');
-            for (final String pathSegment : pathSegments) {
-                PercentCodec.encode(buf, pathSegment, StandardCharsets.US_ASCII);
+            for (final String pathSegment : outputSegments) {
+                PercentCodec.encode(buf, pathSegment, StandardCharsets.UTF_8);
                 buf.append('/');
             }
             return buf.toString();
-        } catch (final URISyntaxException ex) {
-            return path;
         }
     }
 
