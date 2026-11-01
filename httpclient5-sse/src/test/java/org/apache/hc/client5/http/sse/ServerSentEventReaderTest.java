@@ -28,8 +28,10 @@ package org.apache.hc.client5.http.sse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.apache.hc.client5.http.sse.impl.ServerSentEventReader;
+import org.apache.hc.core5.http.MessageConstraintException;
 import org.junit.jupiter.api.Test;
 
 class ServerSentEventReaderTest {
@@ -63,7 +65,7 @@ class ServerSentEventReaderTest {
     }
 
     @Test
-    void parsesMultiLineEventWithDefaults() {
+    void parsesMultiLineEventWithDefaults() throws Exception {
         final Capt c = new Capt();
         final ServerSentEventReader r = new ServerSentEventReader(c);
 
@@ -78,7 +80,7 @@ class ServerSentEventReaderTest {
     }
 
     @Test
-    void parsesEventTypeAndCommentAndRetry() {
+    void parsesEventTypeAndCommentAndRetry() throws Exception {
         final Capt c = new Capt();
         final ServerSentEventReader r = new ServerSentEventReader(c);
 
@@ -96,7 +98,7 @@ class ServerSentEventReaderTest {
     }
 
     @Test
-    void ignoresIdWithNul() {
+    void ignoresIdWithNul() throws Exception {
         final Capt c = new Capt();
         final ServerSentEventReader r = new ServerSentEventReader(c);
 
@@ -109,7 +111,7 @@ class ServerSentEventReaderTest {
     }
 
     @Test
-    void updatesLastEventIdOnBlankLineWithoutDispatchingEvent() {
+    void updatesLastEventIdOnBlankLineWithoutDispatchingEvent() throws Exception {
         final Capt c = new Capt();
         final ServerSentEventReader r = new ServerSentEventReader(c);
 
@@ -124,7 +126,7 @@ class ServerSentEventReaderTest {
     }
 
     @Test
-    void resetsLastEventIdOnBlankLineWithoutDispatchingEvent() {
+    void resetsLastEventIdOnBlankLineWithoutDispatchingEvent() throws Exception {
         final Capt c = new Capt();
         final ServerSentEventReader r = new ServerSentEventReader(c);
 
@@ -138,5 +140,27 @@ class ServerSentEventReaderTest {
 
         assertEquals("", c.lastEventId);
         assertNull(c.data);
+    }
+
+    @Test
+    void failsWhenDataExceedsMaxEventSize() throws Exception {
+        final Capt c = new Capt();
+        final ServerSentEventReader r = new ServerSentEventReader(c, 16);
+
+        r.line("data: 01234567");
+        assertThrows(MessageConstraintException.class, () -> r.line("data: 01234567"));
+        assertNull(c.data);
+    }
+
+    @Test
+    void acceptsEventExactlyAtMaxEventSize() throws Exception {
+        final Capt c = new Capt();
+        final ServerSentEventReader r = new ServerSentEventReader(c, 16);
+
+        r.line("data: 0123456");
+        r.line("data: 012345");
+        r.line("");
+
+        assertEquals("0123456\n012345", c.data);
     }
 }

@@ -30,10 +30,13 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+import org.apache.hc.client5.http.sse.EventSourceConfig;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.MessageConstraintException;
 import org.apache.hc.core5.http.nio.entity.AbstractBinAsyncEntityConsumer;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Low-allocation binary consumer for Server-Sent Events (SSE).
@@ -52,6 +55,8 @@ import org.apache.hc.core5.http.nio.entity.AbstractBinAsyncEntityConsumer;
  *   <li>Implements WHATWG SSE fields: {@code data}, {@code id}, {@code event}, {@code retry}.
  *       Unknown fields and malformed {@code retry} values are ignored.</li>
  *  <li>At end of stream, discards any incomplete line or event.</li>
+ *  <li>Fails the stream with {@link MessageConstraintException} if a line exceeds the maximum
+ *      line length in bytes or an event accumulates more than the maximum event size.</li>
  * </ul>
  *
  * <h3>Thread-safety</h3>
@@ -71,6 +76,8 @@ public final class ByteSseEntityConsumer extends AbstractBinAsyncEntityConsumer<
     private static final byte SPACE = (byte) ' ';
 
     private final SseCallbacks cb;
+    private final int maxLineLength;
+    private final int maxEventSize;
 
     // line accumulator
     private byte[] lineBuf = new byte[256];
@@ -88,7 +95,13 @@ public final class ByteSseEntityConsumer extends AbstractBinAsyncEntityConsumer<
     private boolean bomDone = false; // once true, no further BOM detection
 
     public ByteSseEntityConsumer(final SseCallbacks callbacks) {
+        this(callbacks, EventSourceConfig.DEFAULT_MAX_LINE_LENGTH, EventSourceConfig.DEFAULT_MAX_EVENT_SIZE);
+    }
+
+    public ByteSseEntityConsumer(final SseCallbacks callbacks, final int maxLineLength, final int maxEventSize) {
         this.cb = callbacks;
+        this.maxLineLength = Args.positive(maxLineLength, "Max line length");
+        this.maxEventSize = Args.positive(maxEventSize, "Max event size");
     }
 
     @Override
@@ -101,7 +114,16 @@ public final class ByteSseEntityConsumer extends AbstractBinAsyncEntityConsumer<
     }
 
     @Override
-    protected void data(final ByteBuffer src, final boolean endOfStream) {
+    protected void data(final ByteBuffer src, final boolean endOfStream) throws IOException {
+        try {
+            consumeBytes(src, endOfStream);
+        } catch (final MessageConstraintException ex) {
+            releaseResources();
+            throw ex;
+        }
+    }
+
+    private void consumeBytes(final ByteBuffer src, final boolean endOfStream) throws IOException {
         if (!bomDone) {
             while (src.hasRemaining() && bomMatched < 3) {
                 final int expected = (bomMatched == 0) ? 0xEF : (bomMatched == 1 ? 0xBB : 0xBF);
@@ -142,7 +164,7 @@ public final class ByteSseEntityConsumer extends AbstractBinAsyncEntityConsumer<
         }
     }
 
-    private void processByte(final byte b) {
+    private void processByte(final byte b) throws IOException {
         if (b == LF) {
             if (pendingCr) {
                 // LF completing a CRLF pair; the line was already emitted on the CR.
@@ -168,7 +190,10 @@ public final class ByteSseEntityConsumer extends AbstractBinAsyncEntityConsumer<
         type = null;
     }
 
-    private void appendByte(final byte b) {
+    private void appendByte(final byte b) throws MessageConstraintException {
+        if (lineLen >= maxLineLength) {
+            throw new MessageConstraintException("Maximum line length exceeded: " + maxLineLength);
+        }
         ensureCapacity(lineLen + 1);
         lineBuf[lineLen++] = b;
     }
@@ -189,13 +214,14 @@ public final class ByteSseEntityConsumer extends AbstractBinAsyncEntityConsumer<
         lineLen = 0;
         pendingCr = false;
         data.setLength(0);
+        data.trimToSize();
         id = null;
         type = null;
         bomMatched = 0;
         bomDone = false;
     }
 
-    private void handleLine(final byte[] buf, final int len) {
+    private void handleLine(final byte[] buf, final int len) throws IOException {
         if (len == 0) {
             dispatch();
             return;
@@ -222,6 +248,9 @@ public final class ByteSseEntityConsumer extends AbstractBinAsyncEntityConsumer<
         // Compare ASCII field name without allocations
         if (fLen == 4 && buf[0] == 'd' && buf[1] == 'a' && buf[2] == 't' && buf[3] == 'a') {
             final String v = new String(buf, vStart, len - vStart, StandardCharsets.UTF_8);
+            if ((long) data.length() + v.length() + 1 > maxEventSize) {
+                throw new MessageConstraintException("Maximum event size exceeded: " + maxEventSize);
+            }
             data.append(v).append('\n');
         } else if (fLen == 5 && buf[0] == 'e' && buf[1] == 'v' && buf[2] == 'e' && buf[3] == 'n' && buf[4] == 't') {
             type = new String(buf, vStart, len - vStart, StandardCharsets.UTF_8);

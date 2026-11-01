@@ -89,6 +89,9 @@
  *   <li><b>Backoff:</b> Provide a {@link org.apache.hc.client5.http.sse.BackoffStrategy} via
  *       {@link org.apache.hc.client5.http.sse.EventSourceConfig}. Server {@code retry:} lines and
  *       HTTP {@code Retry-After} headers are honored when present.</li>
+ *   <li><b>Limits:</b> {@link org.apache.hc.client5.http.sse.EventSourceConfig} bounds the line length
+ *       (default 1 MiB) and the data accumulated for one event (default 8 MiB). A stream that exceeds
+ *       either limit is failed and the connection is closed.</li>
  *   <li><b>Headers:</b> Add defaults on the {@link org.apache.hc.client5.http.sse.SseExecutorBuilder}
  *       or per-connection using {@link org.apache.hc.client5.http.sse.EventSource#setHeader(String, String)}.</li>
  *   <li><b>Parser:</b> {@link org.apache.hc.client5.http.sse.impl.SseParser#CHAR} (default) is spec-compliant;

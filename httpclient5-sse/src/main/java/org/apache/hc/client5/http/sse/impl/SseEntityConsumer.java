@@ -32,10 +32,13 @@ import java.io.IOException;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 
+import org.apache.hc.client5.http.sse.EventSourceConfig;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.MessageConstraintException;
 import org.apache.hc.core5.http.nio.entity.AbstractCharAsyncEntityConsumer;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Internal char-level SSE consumer that converts decoded UTF-8 characters
@@ -53,6 +56,9 @@ import org.apache.hc.core5.http.nio.entity.AbstractCharAsyncEntityConsumer;
  *       through {@link SseCallbacks}.</li>
  * </ul>
  *
+ * <p>A line longer than the maximum line length, or an event accumulating more than the
+ * maximum event size, fails the stream with {@link MessageConstraintException}.</p>
+ *
  * <p><strong>Thread-safety:</strong> Not thread-safe. One instance is expected to be
  * used by a single decoding flow on an I/O thread.</p>
  *
@@ -63,13 +69,21 @@ public final class SseEntityConsumer extends AbstractCharAsyncEntityConsumer<Voi
         implements ServerSentEventReader.Callback {
 
     private final SseCallbacks cb;
+    private final int maxLineLength;
+    private final int maxEventSize;
     private final StringBuilder partial = new StringBuilder(256);
     private ServerSentEventReader reader;
     private boolean firstChunk = true;
     private boolean pendingCr = false;
 
     public SseEntityConsumer(final SseCallbacks callbacks) {
+        this(callbacks, EventSourceConfig.DEFAULT_MAX_LINE_LENGTH, EventSourceConfig.DEFAULT_MAX_EVENT_SIZE);
+    }
+
+    public SseEntityConsumer(final SseCallbacks callbacks, final int maxLineLength, final int maxEventSize) {
         this.cb = callbacks;
+        this.maxLineLength = Args.positive(maxLineLength, "Max line length");
+        this.maxEventSize = Args.positive(maxEventSize, "Max event size");
     }
 
     @Override
@@ -79,12 +93,12 @@ public final class SseEntityConsumer extends AbstractCharAsyncEntityConsumer<Voi
             throw new HttpException("Unexpected Content-Type: " + mt);
         }
         setCharset(StandardCharsets.UTF_8);
-        reader = new ServerSentEventReader(this);
+        reader = new ServerSentEventReader(this, maxEventSize);
         cb.onOpen();
     }
 
     @Override
-    public void data(final CharBuffer src, final boolean endOfStream) {
+    public void data(final CharBuffer src, final boolean endOfStream) throws IOException {
         if (firstChunk) {
             firstChunk = false;
             // Strip UTF-8 BOM if present.
@@ -92,6 +106,18 @@ public final class SseEntityConsumer extends AbstractCharAsyncEntityConsumer<Voi
                 src.position(src.position() + 1);
             }
         }
+        try {
+            consumeChars(src);
+        } catch (final MessageConstraintException ex) {
+            releaseResources();
+            throw ex;
+        }
+        if (endOfStream) {
+            partial.setLength(0);
+        }
+    }
+
+    private void consumeChars(final CharBuffer src) throws IOException {
         while (src.hasRemaining()) {
             final char c = src.get();
             if (c == '\n') {
@@ -109,11 +135,11 @@ public final class SseEntityConsumer extends AbstractCharAsyncEntityConsumer<Voi
                 partial.setLength(0);
             } else {
                 pendingCr = false;
+                if (partial.length() >= maxLineLength) {
+                    throw new MessageConstraintException("Maximum line length exceeded: " + maxLineLength);
+                }
                 partial.append(c);
             }
-        }
-        if (endOfStream) {
-            partial.setLength(0);
         }
     }
 
@@ -130,6 +156,7 @@ public final class SseEntityConsumer extends AbstractCharAsyncEntityConsumer<Voi
     @Override
     public void releaseResources() {
         partial.setLength(0);
+        partial.trimToSize();
         pendingCr = false;
         reader = null;
     }

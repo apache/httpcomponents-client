@@ -119,6 +119,8 @@ public final class DefaultEventSource implements EventSource {
     private final Executor callbackExecutor;
     private final BackoffStrategy backoff;
     private final int maxReconnects;
+    private final int maxLineLength;
+    private final int maxEventSize;
     private final SseParser parser;
 
     private final AtomicBoolean started = new AtomicBoolean(false);
@@ -195,6 +197,8 @@ public final class DefaultEventSource implements EventSource {
         final EventSourceConfig cfg = (config != null) ? config : EventSourceConfig.DEFAULT;
         this.backoff = cfg.backoff;
         this.maxReconnects = cfg.maxReconnects;
+        this.maxLineLength = cfg.maxLineLength;
+        this.maxEventSize = cfg.maxEventSize;
         this.parser = parser != null ? parser : SseParser.CHAR;
     }
 
@@ -414,8 +418,8 @@ public final class DefaultEventSource implements EventSource {
         };
 
         final AsyncEntityConsumer<Void> entity =
-                (parser == SseParser.BYTE) ? new ByteSseEntityConsumer(cbs)
-                        : new SseEntityConsumer(cbs);
+                (parser == SseParser.BYTE) ? new ByteSseEntityConsumer(cbs, maxLineLength, maxEventSize)
+                        : new SseEntityConsumer(cbs, maxLineLength, maxEventSize);
 
         return new SseResponseConsumer(entity, ms -> retryAfterHintMs = Math.max(0L, ms));
     }

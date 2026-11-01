@@ -26,7 +26,12 @@
  */
 package org.apache.hc.client5.http.sse.impl;
 
+import java.io.IOException;
+
+import org.apache.hc.client5.http.sse.EventSourceConfig;
 import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.http.MessageConstraintException;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Minimal-allocation SSE line parser.
@@ -54,15 +59,27 @@ public final class ServerSentEventReader {
     }
 
     private final Callback cb;
+    private final int maxEventSize;
     private final StringBuilder data = new StringBuilder(128);
     private String type; // defaults to "message"
     private String id;
 
     public ServerSentEventReader(final Callback cb) {
-        this.cb = cb;
+        this(cb, EventSourceConfig.DEFAULT_MAX_EVENT_SIZE);
     }
 
-    public void line(final String line) {
+    public ServerSentEventReader(final Callback cb, final int maxEventSize) {
+        this.cb = cb;
+        this.maxEventSize = Args.positive(maxEventSize, "Max event size");
+    }
+
+    /**
+     * Processes one line without its terminator.
+     *
+     * @throws MessageConstraintException if the data accumulated for the current event
+     *                                    exceeds the maximum event size
+     */
+    public void line(final String line) throws IOException {
         // Trim possible trailing CR without reallocating
         final int L0 = line.length();
         int end = L0;
@@ -114,6 +131,11 @@ public final class ServerSentEventReader {
 
             // data: <value> (append newline; removed on dispatch)
             if (vStart <= end) {
+                if ((long) data.length() + (end - vStart) + 1 > maxEventSize) {
+                    data.setLength(0);
+                    data.trimToSize();
+                    throw new MessageConstraintException("Maximum event size exceeded: " + maxEventSize);
+                }
                 data.append(line, vStart, end).append('\n');
             }
 

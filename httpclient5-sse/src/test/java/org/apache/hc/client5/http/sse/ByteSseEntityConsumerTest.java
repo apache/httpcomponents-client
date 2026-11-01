@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.sse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.ByteBuffer;
@@ -36,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import org.apache.hc.client5.http.sse.impl.ByteSseEntityConsumer;
 import org.apache.hc.client5.http.sse.impl.SseCallbacks;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.MessageConstraintException;
 import org.junit.jupiter.api.Test;
 
 class ByteSseEntityConsumerTest {
@@ -211,5 +213,56 @@ class ByteSseEntityConsumerTest {
 
         assertEquals("", cb.lastEventId);
         assertNull(cb.data);
+    }
+
+    private static ByteBuffer bytes(final String s) {
+        return ByteBuffer.wrap(s.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void failsOnUnterminatedLineLongerThanLimit() throws Exception {
+        final Cb cb = new Cb();
+        final ByteSseEntityConsumer c = new ByteSseEntityConsumer(cb, 32, 1024);
+        c.streamStart(ContentType.parse("text/event-stream"));
+
+        c.consume(bytes("data: 0123456789012345678901234"));
+        assertThrows(MessageConstraintException.class, () -> c.consume(bytes("0123456789")));
+        assertNull(cb.data);
+    }
+
+    @Test
+    void failsOnManyDataLinesWithoutDispatch() throws Exception {
+        final Cb cb = new Cb();
+        final ByteSseEntityConsumer c = new ByteSseEntityConsumer(cb, 64, 100);
+        c.streamStart(ContentType.parse("text/event-stream"));
+
+        assertThrows(MessageConstraintException.class, () -> {
+            for (int i = 0; i < 1000; i++) {
+                c.consume(bytes("data: 0123456789\n"));
+            }
+        });
+        assertNull(cb.data);
+    }
+
+    @Test
+    void acceptsLineExactlyAtLimit() throws Exception {
+        final Cb cb = new Cb();
+        final ByteSseEntityConsumer c = new ByteSseEntityConsumer(cb, 16, 1024);
+        c.streamStart(ContentType.parse("text/event-stream"));
+
+        c.consume(bytes("data: 0123456789\n\n"));
+
+        assertEquals("0123456789", cb.data);
+    }
+
+    @Test
+    void acceptsMultiLineEventUnderLimits() throws Exception {
+        final Cb cb = new Cb();
+        final ByteSseEntityConsumer c = new ByteSseEntityConsumer(cb, 32, 64);
+        c.streamStart(ContentType.parse("text/event-stream"));
+
+        c.consume(bytes("data: line0\ndata: line1\ndata: line2\n\n"));
+
+        assertEquals("line0\nline1\nline2", cb.data);
     }
 }
