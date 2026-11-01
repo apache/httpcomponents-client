@@ -101,7 +101,8 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
             final SSLBufferMode sslBufferManagement,
             final HostnameVerifier hostnameVerifier,
             final Factory<SSLEngine, TlsDetails> tlsDetailsFactory) {
-        super(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, HostnameVerificationPolicy.CLIENT, hostnameVerifier);
+        super(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement,
+                hostnameVerifier != null ? HostnameVerificationPolicy.CLIENT : HostnameVerificationPolicy.BUILTIN, hostnameVerifier);
         this.tlsDetailsFactory = tlsDetailsFactory;
     }
 
