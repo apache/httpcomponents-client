@@ -523,7 +523,8 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 connectionInitiator,
                 firstHop,
                 unixDomainSocket,
-                route.getTargetName(),
+                // The target name applies to the target only, never to an intermediate proxy
+                route.getProxyHost() != null ? null : route.getTargetName(),
                 route.getLocalSocketAddress(),
                 connectTimeout,
                 connectAttachment,
