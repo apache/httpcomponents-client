@@ -53,6 +53,7 @@ import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.pool.PoolEntry;
 import org.apache.hc.core5.pool.StrictConnPool;
@@ -407,5 +408,52 @@ class TestPoolingHttpClientConnectionManager {
         Assertions.assertTrue(mgr.isClosed(), "Connection manager should be shutdown after concurrent calls to shutdown.");
     }
 
+    @Test
+    void testHttpsProxyVerifiedAgainstProxyNotTargetName() throws Exception {
+        final HttpHost target = new HttpHost("https", "somehost", 443);
+        final URIAuthority targetName = new URIAuthority("virtualhost", 443);
+        final HttpHost proxy = new HttpHost("https", "someproxy", 8443);
+        final InetAddress remote = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
+        final HttpRoute route = new HttpRoute(target, targetName, null, proxy, true);
+        Assertions.assertTrue(route.isTunnelled());
+
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECOND);
+        entry.assignConnection(conn);
+
+        Mockito.when(conn.isOpen()).thenReturn(false);
+        Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
+        Mockito.when(pool.lease(
+                Mockito.eq(route),
+                Mockito.eq(null),
+                Mockito.any(),
+                Mockito.eq(null)))
+                .thenReturn(future);
+
+        final LeaseRequest connRequest = mgr.lease("some-id", route, null);
+        final ConnectionEndpoint endpoint = connRequest.get(Timeout.ofSeconds(1));
+        Assertions.assertNotNull(endpoint);
+
+        final HttpClientContext context = HttpClientContext.create();
+        final TlsConfig tlsConfig = TlsConfig.custom().build();
+        mgr.setDefaultTlsConfig(tlsConfig);
+
+        Mockito.when(dnsResolver.resolve("someproxy", 8443)).thenReturn(Collections.singletonList(new InetSocketAddress(remote, 8443)));
+        Mockito.when(schemePortResolver.resolve(proxy.getSchemeName(), proxy)).thenReturn(8443);
+        Mockito.when(tlsSocketStrategyLookup.lookup("https")).thenReturn(tlsSocketStrategy);
+        Mockito.when(detachedSocketFactory.create(Mockito.any(), Mockito.any())).thenReturn(socket);
+        Mockito.when(tlsSocketStrategy.upgrade(
+                Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any())).thenReturn(upgradedSocket);
+
+        mgr.connect(endpoint, null, context);
+
+        Mockito.verify(tlsSocketStrategy).upgrade(socket, "someproxy", 8443, null, context);
+
+        Mockito.when(conn.isOpen()).thenReturn(true);
+        Mockito.when(conn.getSocket()).thenReturn(socket);
+
+        mgr.upgrade(endpoint, context);
+
+        Mockito.verify(tlsSocketStrategy).upgrade(socket, "virtualhost", 443, tlsConfig, context);
+    }
 
 }

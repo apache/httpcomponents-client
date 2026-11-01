@@ -565,7 +565,8 @@ public class PoolingHttpClientConnectionManager
         this.connectionOperator.connect(
                 conn,
                 firstHop,
-                route.getTargetName(),
+                // The target name applies to the target only, never to an intermediate proxy
+                route.getProxyHost() != null ? null : route.getTargetName(),
                 unixDomainSocket,
                 route.getLocalSocketAddress(),
                 connectTimeout,

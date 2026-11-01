@@ -491,7 +491,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             this.connectionOperator.connect(
                     connection,
                     firstHop,
-                    route.getTargetName(),
+                    // The target name applies to the target only, never to an intermediate proxy
+                    route.getProxyHost() != null ? null : route.getTargetName(),
                     route.getLocalSocketAddress(),
                     connectTimeout,
                     socketConfig,
