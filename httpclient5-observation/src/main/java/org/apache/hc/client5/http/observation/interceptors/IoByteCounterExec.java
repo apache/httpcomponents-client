@@ -37,6 +37,7 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.observation.MetricConfig;
 import org.apache.hc.client5.http.observation.ObservingOptions;
+import org.apache.hc.client5.http.observation.impl.SafeUri;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
@@ -94,7 +95,7 @@ public final class IoByteCounterExec implements ExecChainHandler {
             final int status = response != null ? response.getCode() : 599;
             final String protocol = scope.route.getTargetHost().getSchemeName();
             final String target = scope.route.getTargetHost().getHostName();
-            final String uri = request.getRequestUri();
+            final String uri = SafeUri.of(request.getRequestUri());
 
             final List<Tag> tags = buildTags(request.getMethod(), status, protocol, target, uri);
 
