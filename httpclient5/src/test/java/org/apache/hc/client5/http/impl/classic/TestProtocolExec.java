@@ -34,6 +34,7 @@ import java.util.Collections;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
@@ -43,6 +44,7 @@ import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.EntityBuilder;
+import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -58,6 +60,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -294,5 +297,106 @@ class TestProtocolExec {
 
         final AuthExchange authExchange = context.getAuthExchange(target);
         Assertions.assertEquals("/blah/", authExchange.getPathPrefix());
+    }
+
+    @Test
+    void testProxyChallengeThroughTunnelIsReturnedToCaller() throws Exception {
+        final HttpHost httpsTarget = new HttpHost("https", "foo", 443);
+        final HttpHost proxy = new HttpHost("http", "proxy", 8080);
+        final HttpRoute route = new HttpRoute(httpsTarget, null, proxy, true,
+                RouteInfo.TunnelType.TUNNELLED, RouteInfo.LayerType.LAYERED);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(new AuthScope(proxy), "proxyuser", "proxypass".toCharArray())
+                .build());
+        final ClassicHttpRequest request = new HttpGet("https://foo/test");
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(407, "Huh?");
+        response.setHeader(HttpHeaders.PROXY_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
+
+        Mockito.when(chain.proceed(Mockito.same(request), Mockito.any())).thenReturn(response);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+        final ClassicHttpResponse finalResponse = protocolExec.execute(request, scope, chain);
+        Assertions.assertEquals(407, finalResponse.getCode());
+        Mockito.verify(chain, Mockito.times(1)).proceed(request, scope);
+        Mockito.verifyNoInteractions(proxyAuthStrategy);
+        Assertions.assertNull(context.getAuthExchange(proxy).getAuthScheme());
+    }
+
+    @Test
+    void testProxyChallengeWithoutProxyIsReturnedToCaller() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(new AuthScope(target), "user", "pass".toCharArray())
+                .build());
+        final ClassicHttpRequest request = new HttpGet("http://foo/test");
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(407, "Huh?");
+        response.setHeader(HttpHeaders.PROXY_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
+
+        Mockito.when(chain.proceed(Mockito.same(request), Mockito.any())).thenReturn(response);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+        final ClassicHttpResponse finalResponse = protocolExec.execute(request, scope, chain);
+        Assertions.assertEquals(407, finalResponse.getCode());
+        Mockito.verify(chain, Mockito.times(1)).proceed(request, scope);
+        Mockito.verifyNoInteractions(proxyAuthStrategy);
+    }
+
+    @Test
+    void testProxyChallengeThroughTunnelWithAuthCacheIsReturnedToCaller() throws Exception {
+        final ProtocolExec cachingExec = new ProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, false);
+        final HttpHost httpsTarget = new HttpHost("https", "foo", 443);
+        final HttpHost proxy = new HttpHost("http", "proxy", 8080);
+        final HttpRoute route = new HttpRoute(httpsTarget, null, proxy, true,
+                RouteInfo.TunnelType.TUNNELLED, RouteInfo.LayerType.LAYERED);
+        final BasicAuthCache authCache = new BasicAuthCache();
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAuthCache(authCache);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(new AuthScope(proxy), "proxyuser", "proxypass".toCharArray())
+                .build());
+        final ClassicHttpRequest request = new HttpGet("https://foo/test");
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(407, "Huh?");
+        response.setHeader(HttpHeaders.PROXY_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
+
+        Mockito.when(chain.proceed(Mockito.same(request), Mockito.any())).thenReturn(response);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+        final ClassicHttpResponse finalResponse = cachingExec.execute(request, scope, chain);
+        Assertions.assertSame(response, finalResponse);
+        Mockito.verify(chain, Mockito.times(1)).proceed(request, scope);
+        Mockito.verifyNoInteractions(proxyAuthStrategy);
+        Assertions.assertNull(request.getFirstHeader(HttpHeaders.PROXY_AUTHORIZATION));
+        Assertions.assertEquals(AuthExchange.State.UNCHALLENGED, context.getAuthExchange(proxy).getState());
+        Assertions.assertNull(authCache.get(proxy));
+    }
+
+    @Test
+    void testProxyChallengeOnPlainRouteStillAuthenticates() throws Exception {
+        final HttpHost proxy = new HttpHost("http", "proxy", 8080);
+        final HttpRoute route = new HttpRoute(target, null, proxy, false);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(new AuthScope(proxy), "proxyuser", "proxypass".toCharArray())
+                .build());
+        final ClassicHttpRequest request = new HttpGet("http://foo/test");
+        final ClassicHttpResponse response1 = new BasicClassicHttpResponse(407, "Huh?");
+        response1.setHeader(HttpHeaders.PROXY_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
+        final ClassicHttpResponse response2 = new BasicClassicHttpResponse(200, "OK");
+
+        Mockito.when(chain.proceed(Mockito.any(), Mockito.any())).thenReturn(response1, response2);
+        Mockito.when(proxyAuthStrategy.select(
+                Mockito.eq(ChallengeType.PROXY),
+                Mockito.any(),
+                Mockito.<HttpClientContext>any())).thenReturn(Collections.singletonList(new BasicScheme()));
+        Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+        final ClassicHttpResponse finalResponse = protocolExec.execute(request, scope, chain);
+        Assertions.assertEquals(200, finalResponse.getCode());
+        final ArgumentCaptor<ClassicHttpRequest> captor = ArgumentCaptor.forClass(ClassicHttpRequest.class);
+        Mockito.verify(chain, Mockito.times(2)).proceed(captor.capture(), Mockito.same(scope));
+        Assertions.assertNotNull(captor.getAllValues().get(1).getFirstHeader(HttpHeaders.PROXY_AUTHORIZATION));
     }
 }
