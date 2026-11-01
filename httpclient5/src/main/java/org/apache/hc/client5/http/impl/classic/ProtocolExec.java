@@ -207,7 +207,8 @@ public final class ProtocolExec implements ExecChainHandler {
                 if (needAuthentication(
                         targetAuthExchange,
                         proxyAuthExchange,
-                        proxy != null ? proxy : target,
+                        // A 407 received through a tunnel comes from the origin, not from the proxy
+                        route.isTunnelled() ? null : proxy,
                         target,
                         pathPrefix,
                         response,
@@ -280,11 +281,11 @@ public final class ProtocolExec implements ExecChainHandler {
                 }
             }
 
-            final boolean proxyAuthRequested = authenticator.isChallenged(
+            final boolean proxyAuthRequested = proxy != null && authenticator.isChallenged(
                     proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
-            final boolean proxyMutualAuthRequired = authenticator.isChallengeExpected(proxyAuthExchange);
+            final boolean proxyMutualAuthRequired = proxy != null && authenticator.isChallengeExpected(proxyAuthExchange);
 
-            if (authCacheKeeper != null) {
+            if (proxy != null && authCacheKeeper != null) {
                 if (proxyAuthRequested) {
                     authCacheKeeper.updateOnChallenge(proxy, null, proxyAuthExchange, context);
                 } else {
