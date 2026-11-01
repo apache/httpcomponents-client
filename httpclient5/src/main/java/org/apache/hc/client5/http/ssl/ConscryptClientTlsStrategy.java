@@ -69,7 +69,8 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
             final String[] supportedCipherSuites,
             final SSLBufferMode sslBufferManagement,
             final HostnameVerifier hostnameVerifier) {
-        this(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, HostnameVerificationPolicy.CLIENT, hostnameVerifier);
+        this(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement,
+                hostnameVerifier != null ? HostnameVerificationPolicy.CLIENT : HostnameVerificationPolicy.BUILTIN, hostnameVerifier);
     }
 
     /**

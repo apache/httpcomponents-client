@@ -27,17 +27,21 @@
 
 package org.apache.hc.client5.http.ssl;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.security.cert.X509Certificate;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSession;
 import javax.security.auth.x500.X500Principal;
 
+import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.ssl.SSLContexts;
@@ -108,6 +112,32 @@ class AbstractClientTlsStrategyTest {
         // Test the verifySession method
         tlsStrategy.verifySession("localhost", mockSession, null);
 
+    }
+
+    @Test
+    void testClientPolicyRequiresHostnameVerifier() {
+        assertThrows(IllegalArgumentException.class, () -> new DefaultClientTlsStrategy(
+                SSLContexts.createDefault(), HostnameVerificationPolicy.CLIENT, null));
+        assertThrows(IllegalArgumentException.class, () -> new DefaultClientTlsStrategy(
+                SSLContexts.createDefault(), HostnameVerificationPolicy.BOTH, null));
+    }
+
+    @Test
+    void testBuilderClientPolicyRequiresHostnameVerifier() {
+        final ClientTlsStrategyBuilder builder = ClientTlsStrategyBuilder.create()
+                .setSslContext(SSLContexts.createDefault())
+                .setHostVerificationPolicy(HostnameVerificationPolicy.CLIENT);
+        assertThrows(IllegalArgumentException.class, builder::buildClassic);
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void testNullHostnameVerifierDefaultsToBuiltinPolicy() {
+        assertDoesNotThrow(() -> new DefaultClientTlsStrategy(
+                SSLContexts.createDefault(), null, null, SSLBufferMode.STATIC,
+                (HostnameVerifier) null, (Factory<SSLEngine, TlsDetails>) null));
+        assertDoesNotThrow(() -> new DefaultClientTlsStrategy(SSLContexts.createDefault()));
+        assertDoesNotThrow(() -> new ConscryptClientTlsStrategy(SSLContexts.createDefault()));
     }
 
 
