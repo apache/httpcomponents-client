@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.sse;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -36,6 +37,7 @@ import java.nio.CharBuffer;
 import org.apache.hc.client5.http.sse.impl.SseCallbacks;
 import org.apache.hc.client5.http.sse.impl.SseEntityConsumer;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.MessageConstraintException;
 import org.junit.jupiter.api.Test;
 
 class SseEntityConsumerTest {
@@ -175,5 +177,56 @@ class SseEntityConsumerTest {
 
         assertEquals("", cb.lastEventId);
         assertNull(cb.data);
+    }
+
+    @Test
+    void failsOnUnterminatedLineLongerThanLimit() throws Exception {
+        final Cb cb = new Cb();
+        final SseEntityConsumer c = new SseEntityConsumer(cb, 32, 1024);
+        c.streamStart(ContentType.parse("text/event-stream"));
+
+        c.data(CharBuffer.wrap("data: 0123456789012345678901234"), false);
+        assertThrows(MessageConstraintException.class,
+                () -> c.data(CharBuffer.wrap("0123456789"), false));
+        assertNull(cb.data);
+    }
+
+    @Test
+    void failsOnManyDataLinesWithoutDispatch() throws Exception {
+        final Cb cb = new Cb();
+        final SseEntityConsumer c = new SseEntityConsumer(cb, 64, 100);
+        c.streamStart(ContentType.parse("text/event-stream"));
+
+        assertThrows(MessageConstraintException.class, () -> {
+            for (int i = 0; i < 1000; i++) {
+                c.data(CharBuffer.wrap("data: 0123456789\n"), false);
+            }
+        });
+        assertNull(cb.data);
+    }
+
+    @Test
+    void acceptsLineExactlyAtLimit() throws Exception {
+        final Cb cb = new Cb();
+        final SseEntityConsumer c = new SseEntityConsumer(cb, 16, 1024);
+        c.streamStart(ContentType.parse("text/event-stream"));
+
+        c.data(CharBuffer.wrap("data: 0123456789\n\n"), false);
+
+        assertEquals("0123456789", cb.data);
+    }
+
+    @Test
+    void acceptsMultiLineEventUnderLimits() throws Exception {
+        final Cb cb = new Cb();
+        final SseEntityConsumer c = new SseEntityConsumer(cb, 32, 64);
+        c.streamStart(ContentType.parse("text/event-stream"));
+
+        for (int i = 0; i < 3; i++) {
+            c.data(CharBuffer.wrap("data: line" + i + "\n"), false);
+        }
+        c.data(CharBuffer.wrap("\n"), false);
+
+        assertEquals("line0\nline1\nline2", cb.data);
     }
 }
