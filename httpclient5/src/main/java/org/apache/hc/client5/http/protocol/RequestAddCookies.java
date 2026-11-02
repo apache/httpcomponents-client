@@ -108,22 +108,19 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
+        final HttpClientContext clientContext = HttpClientContext.cast(context);
+        final String exchangeId = clientContext.getExchangeId();
+
+        // Discard the CookieSpec and CookieOrigin of a previous exchange executed with
+        // this context so the response interceptor never processes Set-Cookie headers
+        // against the origin of another request
+        clientContext.setCookieSpec(null);
+        clientContext.setCookieOrigin(null);
+
         final String method = request.getMethod();
         if (Method.CONNECT.isSame(method) || Method.TRACE.isSame(method)) {
             return;
         }
-
-        // Check if a Cookie header is already present
-        if (request.containsHeader(HttpHeaders.COOKIE)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Skipping cookie addition, Cookie header already present in the request");
-            }
-            // Skip adding cookies if the Cookie header is already present
-            return;
-        }
-
-        final HttpClientContext clientContext = HttpClientContext.cast(context);
-        final String exchangeId = clientContext.getExchangeId();
 
         // Obtain cookie store
         final CookieStore cookieStore = clientContext.getCookieStore();
@@ -184,6 +181,21 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             return;
         }
         final CookieSpec cookieSpec = factory.create(clientContext);
+
+        // Stick the CookieSpec and CookieOrigin instances to the HTTP context
+        // so they could be obtained by the response interceptor
+        clientContext.setCookieSpec(cookieSpec);
+        clientContext.setCookieOrigin(cookieOrigin);
+
+        // Check if a Cookie header is already present
+        if (request.containsHeader(HttpHeaders.COOKIE)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Skipping cookie addition, Cookie header already present in the request", exchangeId);
+            }
+            // Skip adding cookies if the Cookie header is already present
+            return;
+        }
+
         // Get all cookies available in the HTTP state
         final List<Cookie> cookies = cookieStore.getCookies();
         // Find cookies matching the given origin
@@ -218,11 +230,6 @@ public class RequestAddCookies implements HttpRequestInterceptor {
                 request.addHeader(header);
             }
         }
-
-        // Stick the CookieSpec and CookieOrigin instances to the HTTP context
-        // so they could be obtained by the response interceptor
-        clientContext.setCookieSpec(cookieSpec);
-        clientContext.setCookieOrigin(cookieOrigin);
     }
 
 }
