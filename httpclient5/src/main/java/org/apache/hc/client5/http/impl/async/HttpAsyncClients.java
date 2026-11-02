@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.impl.async;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
@@ -41,7 +42,6 @@ import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.function.Supplier;
-import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.impl.routing.RequestRouter;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
@@ -172,7 +172,7 @@ public final class HttpAsyncClients {
                         (request, context) -> pushConsumerRegistry.get(request),
                         h2Config,
                         h1Config,
-                        CharCodingConfig.DEFAULT,
+                        ConfigDefaults.CHAR_CODING,
                         DefaultClientConnectionReuseStrategy.INSTANCE,
                         LoggingExceptionCallback.INSTANCE),
                 pushConsumerRegistry,
@@ -201,7 +201,7 @@ public final class HttpAsyncClients {
                         (request, context) -> pushConsumerRegistry.get(request),
                         h2Config,
                         h1Config,
-                        CharCodingConfig.DEFAULT,
+                        ConfigDefaults.CHAR_CODING,
                         DefaultClientConnectionReuseStrategy.INSTANCE,
                         LoggingExceptionCallback.INSTANCE),
                 pushConsumerRegistry,
@@ -247,7 +247,7 @@ public final class HttpAsyncClients {
      * functionality.
      */
     public static MinimalHttpAsyncClient createMinimal(final H2Config h2Config, final Http1Config h1Config) {
-        return createMinimal(HttpVersionPolicy.NEGOTIATE, h2Config, h1Config, IOReactorConfig.DEFAULT);
+        return createMinimal(HttpVersionPolicy.NEGOTIATE, h2Config, h1Config, ConfigDefaults.IO_REACTOR);
     }
 
     /**
@@ -256,7 +256,7 @@ public final class HttpAsyncClients {
      * functionality.
      */
     public static MinimalHttpAsyncClient createMinimal() {
-        return createMinimal(H2Config.DEFAULT, Http1Config.DEFAULT);
+        return createMinimal(ConfigDefaults.H2, ConfigDefaults.HTTP1);
     }
 
     /**
@@ -267,9 +267,9 @@ public final class HttpAsyncClients {
     public static MinimalHttpAsyncClient createMinimal(final AsyncClientConnectionManager connManager) {
         return createMinimal(
                 HttpVersionPolicy.NEGOTIATE,
-                H2Config.DEFAULT,
-                Http1Config.DEFAULT,
-                IOReactorConfig.DEFAULT,
+                ConfigDefaults.H2,
+                ConfigDefaults.HTTP1,
+                ConfigDefaults.IO_REACTOR,
                 connManager);
     }
 
@@ -304,7 +304,7 @@ public final class HttpAsyncClients {
                         createMinimalProtocolProcessor(),
                         (request, context) -> pushConsumerRegistry.get(request),
                         h2Config,
-                        CharCodingConfig.DEFAULT,
+                        ConfigDefaults.CHAR_CODING,
                         LoggingExceptionCallback.INSTANCE),
                 pushConsumerRegistry,
                 ioReactorConfig,
@@ -338,7 +338,7 @@ public final class HttpAsyncClients {
      * transport without advanced HTTP protocol functionality.
      */
     public static MinimalH2AsyncClient createHttp2Minimal(final H2Config h2Config) {
-        return createHttp2Minimal(h2Config, IOReactorConfig.DEFAULT);
+        return createHttp2Minimal(h2Config, ConfigDefaults.IO_REACTOR);
     }
 
     /**
@@ -346,7 +346,7 @@ public final class HttpAsyncClients {
      * transport without advanced HTTP protocol functionality.
      */
     public static MinimalH2AsyncClient createHttp2Minimal() {
-        return createHttp2Minimal(H2Config.DEFAULT);
+        return createHttp2Minimal(ConfigDefaults.H2);
     }
 
     /**

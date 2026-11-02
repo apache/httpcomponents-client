@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.examples;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -75,7 +76,7 @@ public class ClientConnectionConfig {
                                 .setHandshakeTimeout(Timeout.ofSeconds(10))
                                 .build();
                     }
-                    return TlsConfig.DEFAULT;
+                    return ConfigDefaults.TLS;
                 })
                 .build();
         try (CloseableHttpClient httpclient = HttpClients.custom()

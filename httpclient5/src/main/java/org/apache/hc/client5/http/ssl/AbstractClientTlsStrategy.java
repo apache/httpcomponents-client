@@ -49,6 +49,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.security.auth.x500.X500Principal;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -131,7 +132,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
             final FutureCallback<TransportSecurityLayer> callback) {
         tlsSession.startTls(sslContext, endpoint, sslBufferManagement, (e, sslEngine) -> {
 
-            final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
+            final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : ConfigDefaults.TLS;
             final HttpVersionPolicy versionPolicy = tlsConfig.getHttpVersionPolicy();
 
             final SSLParameters sslParameters = sslEngine.getSSLParameters();

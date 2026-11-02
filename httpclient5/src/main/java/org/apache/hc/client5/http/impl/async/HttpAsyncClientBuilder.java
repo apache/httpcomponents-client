@@ -41,6 +41,7 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.EarlyHintsListener;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
@@ -1209,14 +1210,14 @@ public class HttpAsyncClientBuilder {
         final IOEventHandlerFactory ioEventHandlerFactory = new HttpAsyncClientProtocolNegotiationStarter(
                 HttpProcessorBuilder.create().build(),
                 (request, context) -> pushConsumerRegistry.get(request),
-                h2Config != null ? h2Config : H2Config.DEFAULT,
-                h1Config != null ? h1Config : Http1Config.DEFAULT,
-                charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT,
+                h2Config != null ? h2Config : ConfigDefaults.H2,
+                h1Config != null ? h1Config : ConfigDefaults.HTTP1,
+                charCodingConfig != null ? charCodingConfig : ConfigDefaults.CHAR_CODING,
                 reuseStrategyCopy,
                 ioReactorExceptionCallback != null ? ioReactorExceptionCallback : LoggingExceptionCallback.INSTANCE);
         final DefaultConnectingIOReactor ioReactor = new DefaultConnectingIOReactor(
                 ioEventHandlerFactory,
-                ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,
+                ioReactorConfig != null ? ioReactorConfig : ConfigDefaults.IO_REACTOR,
                 threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-dispatch", true),
                 ioSessionDecorator != null ? ioSessionDecorator : LoggingIOSessionDecorator.INSTANCE,
                 ioReactorExceptionCallback != null ? ioReactorExceptionCallback : LoggingExceptionCallback.INSTANCE,

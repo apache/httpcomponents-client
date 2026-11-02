@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpConnection;
@@ -71,8 +72,8 @@ class H2AsyncClientProtocolStarter implements IOEventHandlerFactory {
             final Callback<Exception> exceptionCallback) {
         this.httpProcessor = Args.notNull(httpProcessor, "HTTP processor");
         this.exchangeHandlerFactory = exchangeHandlerFactory;
-        this.h2Config = h2Config != null ? h2Config : H2Config.DEFAULT;
-        this.charCodingConfig = charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT;
+        this.h2Config = h2Config != null ? h2Config : ConfigDefaults.H2;
+        this.charCodingConfig = charCodingConfig != null ? charCodingConfig : ConfigDefaults.CHAR_CODING;
         this.exceptionCallback = exceptionCallback;
     }
 

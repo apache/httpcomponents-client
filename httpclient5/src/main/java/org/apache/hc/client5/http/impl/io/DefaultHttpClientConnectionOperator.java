@@ -38,6 +38,8 @@ import java.util.List;
 
 import javax.net.ssl.SSLSocket;
 
+import jdk.net.ExtendedSocketOptions;
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.ConnectExceptionSupport;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -67,8 +69,6 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import jdk.net.ExtendedSocketOptions;
 
 /**
  * Default implementation of {@link HttpClientConnectionOperator} used as default in Http client,
@@ -253,7 +253,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} {} upgrading to TLS", ConnPoolSupport.getId(conn), tlsName);
         }
-        final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
+        final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : ConfigDefaults.TLS;
         final int soTimeout = socket.getSoTimeout();
         final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout() != null ? tlsConfig.getHandshakeTimeout() : connectTimeout;
         if (handshakeTimeout != null) {

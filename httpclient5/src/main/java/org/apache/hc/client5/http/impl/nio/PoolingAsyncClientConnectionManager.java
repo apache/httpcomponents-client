@@ -36,6 +36,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.client5.http.HttpRoute;
@@ -266,14 +267,14 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
     private ConnectionConfig resolveConnectionConfig(final HttpRoute route) {
         final Resolver<HttpRoute, ConnectionConfig> resolver = this.connectionConfigResolver;
         final ConnectionConfig connectionConfig = resolver != null ? resolver.resolve(route) : null;
-        return connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
+        return connectionConfig != null ? connectionConfig : ConfigDefaults.CONNECTION;
     }
 
     private TlsConfig resolveTlsConfig(final HttpHost host) {
         final Resolver<HttpHost, TlsConfig> resolver = this.tlsConfigResolver;
         TlsConfig tlsConfig = resolver != null ? resolver.resolve(host) : null;
         if (tlsConfig == null) {
-            tlsConfig = TlsConfig.DEFAULT;
+            tlsConfig = ConfigDefaults.TLS;
         }
         if (URIScheme.HTTP.same(host.getSchemeName())
                 && tlsConfig.getHttpVersionPolicy() == HttpVersionPolicy.NEGOTIATE) {
@@ -727,7 +728,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
      */
     @Deprecated
     public TimeValue getValidateAfterInactivity() {
-        return ConnectionConfig.DEFAULT.getValidateAfterInactivity();
+        return ConfigDefaults.CONNECTION.getValidateAfterInactivity();
     }
 
     /**

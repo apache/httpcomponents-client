@@ -34,6 +34,7 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.concurrent.Future;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
@@ -137,7 +138,7 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
         } else {
             remoteAddress = createUnixSocketAddress(unixDomainSocket);
         }
-        final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
+        final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : ConfigDefaults.TLS;
 
         onBeforeSocketConnect(context, endpointHost);
         if (LOG.isDebugEnabled()) {

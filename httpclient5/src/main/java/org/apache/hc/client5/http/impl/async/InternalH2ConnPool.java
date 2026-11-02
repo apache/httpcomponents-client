@@ -30,6 +30,7 @@ import java.net.InetSocketAddress;
 import java.time.Clock;
 import java.util.concurrent.Future;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.core5.concurrent.CallbackContribution;
@@ -198,7 +199,7 @@ class InternalH2ConnPool implements ModalCloseable {
             final HttpHost target = route.getTargetHost();
             final Resolver<HttpHost, ConnectionConfig> localResolver = connectionConfigResolver;
             final ConnectionConfig connectionConfig = localResolver != null ? localResolver.resolve(target) : null;
-            return connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
+            return connectionConfig != null ? connectionConfig : ConfigDefaults.CONNECTION;
         }
 
         @Override

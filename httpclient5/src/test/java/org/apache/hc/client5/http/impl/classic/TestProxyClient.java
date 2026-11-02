@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.Socket;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -67,7 +68,7 @@ class TestProxyClient {
             fail("Shouldn't fail");
         }
 
-        final RequestConfig requestConfig = RequestConfig.DEFAULT;
+        final RequestConfig requestConfig = ConfigDefaults.REQUEST;
 
         final ProxyClient client = new ProxyClient(connFactory, null, null, requestConfig);
 
@@ -97,7 +98,7 @@ class TestProxyClient {
         final Socket mockSocket = mock(Socket.class);
         when(managedConnection.getSocket()).thenReturn(mockSocket);
 
-        final RequestConfig requestConfig = RequestConfig.DEFAULT;
+        final RequestConfig requestConfig = ConfigDefaults.REQUEST;
 
         final ProxyClient client = new ProxyClient(connFactory, null, null, requestConfig);
 

@@ -35,6 +35,7 @@ import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -81,8 +82,8 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
             final ContentLengthStrategy incomingContentStrategy,
             final ContentLengthStrategy outgoingContentStrategy,
             final ResponseOutOfOrderStrategy responseOutOfOrderStrategy) {
-        this.h1Config = h1Config != null ? h1Config : Http1Config.DEFAULT;
-        this.charCodingConfig = charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT;
+        this.h1Config = h1Config != null ? h1Config : ConfigDefaults.HTTP1;
+        this.charCodingConfig = charCodingConfig != null ? charCodingConfig : ConfigDefaults.CHAR_CODING;
         this.requestWriterFactory = requestWriterFactory != null ? requestWriterFactory :
                 new DefaultHttpRequestWriterFactory(this.h1Config);
         this.responseParserFactory = responseParserFactory != null ? responseParserFactory :

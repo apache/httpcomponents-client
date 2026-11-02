@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.client5.http.HttpRoute;
@@ -132,9 +133,9 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
         this.id = INCREMENTING_ID.getNextId();
         this.expiry = Long.MAX_VALUE;
-        this.socketConfig = SocketConfig.DEFAULT;
-        this.connectionConfig = ConnectionConfig.DEFAULT;
-        this.tlsConfig = TlsConfig.DEFAULT;
+        this.socketConfig = ConfigDefaults.SOCKET;
+        this.connectionConfig = ConfigDefaults.CONNECTION;
+        this.tlsConfig = ConfigDefaults.TLS;
         this.closed = new AtomicBoolean(false);
         this.lock = new ReentrantLock();
     }
@@ -243,7 +244,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     public void setSocketConfig(final SocketConfig socketConfig) {
         lock.lock();
         try {
-            this.socketConfig = socketConfig != null ? socketConfig : SocketConfig.DEFAULT;
+            this.socketConfig = socketConfig != null ? socketConfig : ConfigDefaults.SOCKET;
         } finally {
             lock.unlock();
         }
@@ -268,7 +269,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     public void setConnectionConfig(final ConnectionConfig connectionConfig) {
         lock.lock();
         try {
-            this.connectionConfig = connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
+            this.connectionConfig = connectionConfig != null ? connectionConfig : ConfigDefaults.CONNECTION;
         } finally {
             lock.unlock();
         }
@@ -292,7 +293,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     public void setTlsConfig(final TlsConfig tlsConfig) {
         lock.lock();
         try {
-            this.tlsConfig = tlsConfig != null ? tlsConfig : TlsConfig.DEFAULT;
+            this.tlsConfig = tlsConfig != null ? tlsConfig : ConfigDefaults.TLS;
         } finally {
             lock.unlock();
         }

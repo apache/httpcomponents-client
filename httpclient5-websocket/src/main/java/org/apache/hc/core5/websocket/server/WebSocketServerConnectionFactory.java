@@ -31,6 +31,7 @@ import java.net.Socket;
 
 import javax.net.ssl.SSLSocket;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentLengthStrategy;
@@ -64,7 +65,7 @@ class WebSocketServerConnectionFactory implements HttpConnectionFactory<WebSocke
             final HttpMessageWriterFactory<ClassicHttpResponse> responseWriterFactory) {
         this.scheme = scheme;
         this.http1Config = http1Config != null ? http1Config : Http1Config.DEFAULT;
-        this.charCodingConfig = charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT;
+        this.charCodingConfig = charCodingConfig != null ? charCodingConfig : ConfigDefaults.CHAR_CODING;
         this.incomingContentStrategy = incomingContentStrategy;
         this.outgoingContentStrategy = outgoingContentStrategy;
         this.requestParserFactory = requestParserFactory != null ? requestParserFactory :

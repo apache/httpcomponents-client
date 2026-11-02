@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.impl.io;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -63,7 +64,7 @@ public class DefaultHttpResponseParserFactory implements HttpMessageParserFactor
             final LineParser lineParser,
             final HttpResponseFactory<ClassicHttpResponse> responseFactory) {
         super();
-        this.h1Config = h1Config != null ? h1Config : Http1Config.DEFAULT;
+        this.h1Config = h1Config != null ? h1Config : ConfigDefaults.HTTP1;
         this.lineParser = lineParser != null ? lineParser : BasicLineParser.INSTANCE;
         this.responseFactory = responseFactory != null ? responseFactory : DefaultClassicHttpResponseFactory.INSTANCE;
     }

@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.websocket.client;
 
 import java.util.concurrent.ThreadFactory;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.client5.http.websocket.api.WebSocketClientConfig;
 import org.apache.hc.client5.http.websocket.client.impl.DefaultWebSocketClient;
@@ -432,7 +433,7 @@ public final class WebSocketClientBuilder {
 
         final HttpProcessor proc = httpProcessor != null ? httpProcessor : HttpProcessors.client();
         final Http1Config h1 = http1Config != null ? http1Config : Http1Config.DEFAULT;
-        final CharCodingConfig coding = charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT;
+        final CharCodingConfig coding = charCodingConfig != null ? charCodingConfig : ConfigDefaults.CHAR_CODING;
         final ConnectionReuseStrategy reuseStrategyCopy = connStrategy != null ? connStrategy : new DefaultClientConnectionReuseStrategy();
 
         final TlsStrategy tls = tlsStrategy != null ? tlsStrategy : new BasicClientTlsStrategy();
@@ -440,7 +441,7 @@ public final class WebSocketClientBuilder {
         final IOReactorMetricsListener metricsListener = reactorMetricsListener != null ? reactorMetricsListener : null;
 
         final HttpAsyncRequester requester = AsyncRequesterBootstrap.bootstrap()
-                .setIOReactorConfig(ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT)
+                .setIOReactorConfig(ioReactorConfig != null ? ioReactorConfig : ConfigDefaults.IO_REACTOR)
                 .setHttpProcessor(proc)
                 .setHttp1Config(h1)
                 .setCharCodingConfig(coding)
@@ -462,7 +463,7 @@ public final class WebSocketClientBuilder {
                 .create();
 
         final H2MultiplexingRequester h2Requester = H2MultiplexingRequesterBootstrap.bootstrap()
-                .setIOReactorConfig(ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT)
+                .setIOReactorConfig(ioReactorConfig != null ? ioReactorConfig : ConfigDefaults.IO_REACTOR)
                 .setHttpProcessor(h2HttpProcessor != null ? h2HttpProcessor : H2Processors.client())
                 .setH2Config(h2Config != null ? h2Config : H2Config.DEFAULT)
                 .setTlsStrategy(tls)

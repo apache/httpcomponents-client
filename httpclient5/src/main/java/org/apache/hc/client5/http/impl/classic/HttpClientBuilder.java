@@ -39,6 +39,7 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -1132,7 +1133,7 @@ public class HttpClientBuilder {
                 defaultCookieStore,
                 defaultCredentialsProvider,
                 contextAdaptor(),
-                defaultRequestConfig != null ? defaultRequestConfig : RequestConfig.DEFAULT,
+                defaultRequestConfig != null ? defaultRequestConfig : ConfigDefaults.REQUEST,
                 closeablesCopy);
     }
 

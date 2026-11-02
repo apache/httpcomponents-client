@@ -32,6 +32,7 @@ import java.util.Map;
 
 import javax.net.ssl.SSLSession;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthCache;
@@ -443,7 +444,7 @@ public class HttpClientContext extends HttpCoreContext {
      */
     public final RequestConfig getRequestConfigOrDefault() {
         final RequestConfig requestConfig = getRequestConfig();
-        return requestConfig != null ? requestConfig : RequestConfig.DEFAULT;
+        return requestConfig != null ? requestConfig : ConfigDefaults.REQUEST;
     }
 
     public void setRequestConfig(final RequestConfig requestConfig) {

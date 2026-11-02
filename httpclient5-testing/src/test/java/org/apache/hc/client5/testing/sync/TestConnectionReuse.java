@@ -35,9 +35,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.testing.classic.RandomHandler;
@@ -386,7 +386,7 @@ public class TestConnectionReuse {
             final URI requestUri = new URI("/random/2000");
             final HttpGet udsRequest = new HttpGet(requestUri);
             final HttpGet tcpRequest = new HttpGet(requestUri);
-            tcpRequest.setConfig(RequestConfig.DEFAULT);
+            tcpRequest.setConfig(ConfigDefaults.REQUEST);
 
             final HttpClientResponseHandler<Object> consumer = response -> {
                 EntityUtils.consume(response.getEntity());

@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
@@ -98,9 +99,9 @@ class HttpAsyncClientProtocolNegotiationStarter implements IOEventHandlerFactory
             final Callback<Exception> exceptionCallback) {
         this.httpProcessor = Args.notNull(httpProcessor, "HTTP processor");
         this.exchangeHandlerFactory = exchangeHandlerFactory;
-        this.h2Config = h2Config != null ? h2Config : H2Config.DEFAULT;
-        this.h1Config = h1Config != null ? h1Config : Http1Config.DEFAULT;
-        this.charCodingConfig = charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT;
+        this.h2Config = h2Config != null ? h2Config : ConfigDefaults.H2;
+        this.h1Config = h1Config != null ? h1Config : ConfigDefaults.HTTP1;
+        this.charCodingConfig = charCodingConfig != null ? charCodingConfig : ConfigDefaults.CHAR_CODING;
         this.http1ConnectionReuseStrategy = connectionReuseStrategy != null ? connectionReuseStrategy : DefaultClientConnectionReuseStrategy.INSTANCE;
         this.http1ResponseParserFactory = new DefaultHttpResponseParserFactory(h1Config);
         this.http1RequestWriterFactory = DefaultHttpRequestWriterFactory.INSTANCE;

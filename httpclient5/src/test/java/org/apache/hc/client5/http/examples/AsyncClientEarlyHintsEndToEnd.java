@@ -35,11 +35,11 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.EarlyHintsListener;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
-import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
@@ -158,7 +158,7 @@ public class AsyncClientEarlyHintsEndToEnd {
         try (final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
                 .setConnectionManager(
                         PoolingAsyncClientConnectionManagerBuilder.create()
-                                .setDefaultTlsConfig(TlsConfig.DEFAULT) // plain HTTP here; keep TLS config for real targets
+                                .setDefaultTlsConfig(ConfigDefaults.TLS) // plain HTTP here; keep TLS config for real targets
                                 .build())
                 .setEarlyHintsListener(hintsListener)
                 .build()) {

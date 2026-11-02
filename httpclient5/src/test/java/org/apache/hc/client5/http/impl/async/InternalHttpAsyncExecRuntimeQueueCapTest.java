@@ -46,11 +46,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -88,7 +88,7 @@ public class InternalHttpAsyncExecRuntimeQueueCapTest {
                 manager,
                 new NoopInitiator(),
                 new NoopPushFactory(),
-                TlsConfig.DEFAULT,
+                ConfigDefaults.TLS,
                 new SharedRequestExecutionQueue(2));
 
         final HttpClientContext ctx = HttpClientContext.create();
@@ -128,7 +128,7 @@ public class InternalHttpAsyncExecRuntimeQueueCapTest {
                 manager,
                 new NoopInitiator(),
                 new NoopPushFactory(),
-                TlsConfig.DEFAULT,
+                ConfigDefaults.TLS,
                 new SharedRequestExecutionQueue(1));
 
         final HttpClientContext ctx = HttpClientContext.create();
@@ -164,7 +164,7 @@ public class InternalHttpAsyncExecRuntimeQueueCapTest {
                 manager,
                 new NoopInitiator(),
                 new NoopPushFactory(),
-                TlsConfig.DEFAULT,
+                ConfigDefaults.TLS,
                 null);
 
         final HttpClientContext ctx = HttpClientContext.create();
@@ -188,7 +188,7 @@ public class InternalHttpAsyncExecRuntimeQueueCapTest {
                 manager,
                 new NoopInitiator(),
                 new NoopPushFactory(),
-                TlsConfig.DEFAULT,
+                ConfigDefaults.TLS,
                 new SharedRequestExecutionQueue(1));
 
         final HttpClientContext ctx = HttpClientContext.create();

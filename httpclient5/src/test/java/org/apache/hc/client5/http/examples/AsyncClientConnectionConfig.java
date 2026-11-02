@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.examples;
 
 import java.util.concurrent.Future;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
@@ -81,7 +82,7 @@ public class AsyncClientConnectionConfig {
                                 .setHandshakeTimeout(Timeout.ofSeconds(10))
                                 .build();
                     }
-                    return TlsConfig.DEFAULT;
+                    return ConfigDefaults.TLS;
                 })
                 .build();
         try (final CloseableHttpAsyncClient client = HttpAsyncClients.custom()

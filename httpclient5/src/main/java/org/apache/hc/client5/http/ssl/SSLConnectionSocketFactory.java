@@ -52,6 +52,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.security.auth.x500.X500Principal;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -303,7 +304,7 @@ public class SSLConnectionSocketFactory implements org.apache.hc.client5.http.so
             final String target,
             final Object attachment,
             final HttpContext context) throws IOException {
-        final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
+        final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : ConfigDefaults.TLS;
         if (supportedProtocols != null) {
             sslsock.setEnabledProtocols(supportedProtocols);
         } else {

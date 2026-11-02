@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.client5.http.HttpRoute;
@@ -337,19 +338,19 @@ public class PoolingHttpClientConnectionManager
     private SocketConfig resolveSocketConfig(final HttpRoute route) {
         final Resolver<HttpRoute, SocketConfig> resolver = this.socketConfigResolver;
         final SocketConfig socketConfig = resolver != null ? resolver.resolve(route) : null;
-        return socketConfig != null ? socketConfig : SocketConfig.DEFAULT;
+        return socketConfig != null ? socketConfig : ConfigDefaults.SOCKET;
     }
 
     private ConnectionConfig resolveConnectionConfig(final HttpRoute route) {
         final Resolver<HttpRoute, ConnectionConfig> resolver = this.connectionConfigResolver;
         final ConnectionConfig connectionConfig = resolver != null ? resolver.resolve(route) : null;
-        return connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
+        return connectionConfig != null ? connectionConfig : ConfigDefaults.CONNECTION;
     }
 
     private TlsConfig resolveTlsConfig(final HttpHost host) {
         final Resolver<HttpHost, TlsConfig> resolver = this.tlsConfigResolver;
         final TlsConfig tlsConfig = resolver != null ? resolver.resolve(host) : null;
-        return tlsConfig != null ? tlsConfig : TlsConfig.DEFAULT;
+        return tlsConfig != null ? tlsConfig : ConfigDefaults.TLS;
     }
 
     private TimeValue resolveValidateAfterInactivity(final ConnectionConfig connectionConfig) {
@@ -736,7 +737,7 @@ public class PoolingHttpClientConnectionManager
      */
     @Deprecated
     public SocketConfig getDefaultSocketConfig() {
-        return SocketConfig.DEFAULT;
+        return ConfigDefaults.SOCKET;
     }
 
     /**
@@ -746,7 +747,7 @@ public class PoolingHttpClientConnectionManager
      */
     @Deprecated
     public TimeValue getValidateAfterInactivity() {
-        return ConnectionConfig.DEFAULT.getValidateAfterInactivity();
+        return ConfigDefaults.CONNECTION.getValidateAfterInactivity();
     }
 
     /**

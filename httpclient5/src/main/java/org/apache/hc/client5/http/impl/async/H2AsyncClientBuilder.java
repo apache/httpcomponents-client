@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.concurrent.ThreadFactory;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -922,12 +923,12 @@ public class H2AsyncClientBuilder {
         final IOEventHandlerFactory ioEventHandlerFactory = new H2AsyncClientProtocolStarter(
                 HttpProcessorBuilder.create().build(),
                 (request, context) -> pushConsumerRegistry.get(request),
-                h2Config != null ? h2Config : H2Config.DEFAULT,
-                charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT,
+                h2Config != null ? h2Config : ConfigDefaults.H2,
+                charCodingConfig != null ? charCodingConfig : ConfigDefaults.CHAR_CODING,
                 ioReactorExceptionCallback != null ? ioReactorExceptionCallback : LoggingExceptionCallback.INSTANCE);
         final DefaultConnectingIOReactor ioReactor = new DefaultConnectingIOReactor(
                 ioEventHandlerFactory,
-                ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,
+                ioReactorConfig != null ? ioReactorConfig : ConfigDefaults.IO_REACTOR,
                 threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-dispatch", true),
                 ioSessionDecorator != null ? ioSessionDecorator : LoggingIOSessionDecorator.INSTANCE,
                 ioReactorExceptionCallback != null ? ioReactorExceptionCallback : LoggingExceptionCallback.INSTANCE,

@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
+import org.apache.hc.client5.http.ConfigDefaults;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo.LayerType;
 import org.apache.hc.client5.http.RouteInfo.TunnelType;
@@ -105,7 +106,7 @@ public class ProxyClient {
                 .http1Config(h1Config)
                 .charCodingConfig(charCodingConfig)
                 .build();
-        this.requestConfig = requestConfig != null ? requestConfig : RequestConfig.DEFAULT;
+        this.requestConfig = requestConfig != null ? requestConfig : ConfigDefaults.REQUEST;
         this.httpProcessor = new DefaultHttpProcessor(
                 new RequestTargetHost(), new RequestClientConnControl(), new RequestUserAgent());
         this.requestExec = new HttpRequestExecutor();
