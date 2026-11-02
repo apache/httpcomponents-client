@@ -37,12 +37,14 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -95,6 +97,16 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 requestorType);
     }
 
+    private static boolean isRequestTarget(final AuthScope authScope, final HttpClientContext context) {
+        final HttpRequest request = context != null ? context.getRequest() : null;
+        final URIAuthority authority = request != null ? request.getAuthority() : null;
+        if (authority == null) {
+            return false;
+        }
+        return authority.getHostName().equalsIgnoreCase(authScope.getHost())
+                && DefaultSchemePortResolver.INSTANCE.resolve(request.getScheme(), authority) == authScope.getPort();
+    }
+
     @Override
     public Credentials getCredentials(final AuthScope authScope, final HttpContext context) {
         Args.notNull(authScope, "Auth scope");
@@ -110,9 +122,12 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
             if (serverCreds != null) {
                 return new UsernamePasswordCredentials(serverCreds.getUserName(), serverCreds.getPassword());
             }
-            final PasswordAuthentication proxyCreds = getSystemCreds(protocol, authScope, Authenticator.RequestorType.PROXY, clientContext);
-            if (proxyCreds != null) {
-                return new UsernamePasswordCredentials(proxyCreds.getUserName(), proxyCreds.getPassword());
+            // Proxy credentials must never be handed to the origin server the request is addressed to
+            if (!isRequestTarget(authScope, clientContext)) {
+                final PasswordAuthentication proxyCreds = getSystemCreds(protocol, authScope, Authenticator.RequestorType.PROXY, clientContext);
+                if (proxyCreds != null) {
+                    return new UsernamePasswordCredentials(proxyCreds.getUserName(), proxyCreds.getPassword());
+                }
             }
         }
         return null;
