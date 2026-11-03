@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.sse.impl;
 import static org.apache.hc.core5.http.ContentType.TEXT_EVENT_STREAM;
 
 import java.io.InterruptedIOException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.util.Map;
 import java.util.Objects;
@@ -60,6 +61,7 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.RequestNotExecutedException;
 import org.apache.hc.core5.http.nio.AsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
+import org.apache.hc.core5.http2.H2StreamTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -513,6 +515,8 @@ public final class DefaultEventSource implements EventSource {
 
     /**
      * Returns {@code true} for failure types that are expected during cancel/close.
+     * Socket, connect and HTTP/2 stream timeouts are network failures and are never benign,
+     * even though they extend {@link InterruptedIOException}.
      *
      * @param ex the exception to inspect
      * @return {@code true} if the exception represents a benign cancellation
@@ -521,6 +525,8 @@ public final class DefaultEventSource implements EventSource {
         return ex instanceof RequestNotExecutedException
                 || ex instanceof ConnectionClosedException
                 || ex instanceof CancellationException
-                || ex instanceof InterruptedIOException;
+                || ex instanceof InterruptedIOException
+                && !(ex instanceof SocketTimeoutException)
+                && !(ex instanceof H2StreamTimeoutException);
     }
 }
