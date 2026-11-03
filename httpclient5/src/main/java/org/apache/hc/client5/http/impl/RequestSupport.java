@@ -113,7 +113,8 @@ public final class RequestSupport {
                         requiresOptimization = true;
                     }
                 }
-                if (ch == '.' || ch != '/' && !UNRESERVED.get(ch)) {
+                // Only a dot at the start of a segment can begin a dot segment
+                if (ch == '.' && previous == '/' || ch != '/' && !UNRESERVED.get(ch)) {
                     requiresOptimization = true;
                 }
                 previous = ch;
