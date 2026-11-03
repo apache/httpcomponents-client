@@ -74,7 +74,7 @@
     <httpcore.version>5.5-beta4</httpcore.version>
     <log4j.version>2.26.1</log4j.version>
     <brotli4j.version>1.24.0</brotli4j.version>
-    <conscrypt.version>2.7.0</conscrypt.version>
+    <conscrypt.version>2.8.0</conscrypt.version>
     <ehcache.version>3.11.1</ehcache.version>
     <memcached.version>2.12.3</memcached.version>
     <slf4j.version>1.7.36</slf4j.version>
@@ -85,10 +85,10 @@
     <testcontainers.version>2.0.5</testcontainers.version>
     <junixsocket.version>2.11.1</junixsocket.version>
     <commons.compress.version>1.28.0</commons.compress.version>
-    <zstd.jni.version>1.5.7-22</zstd.jni.version>
-    <micrometer.version>1.17.1</micrometer.version>
-    <micrometer.tracing.version>1.7.1</micrometer.tracing.version>
-    <otel.version>1.66.0</otel.version>     <!-- already used elsewhere -->
+    <zstd.jni.version>1.5.7-25</zstd.jni.version>
+    <micrometer.version>1.17.2</micrometer.version>
+    <micrometer.tracing.version>1.7.2</micrometer.tracing.version>
+    <otel.version>1.67.0</otel.version>     <!-- already used elsewhere -->
     <commons-compress.version>1.26.2</commons-compress.version>
     <caffeine.version>2.9.3</caffeine.version>  <!-- java 8. current version 3.2.3 -->
     <jakarta.ws.rs.version>4.0.0</jakarta.ws.rs.version>
