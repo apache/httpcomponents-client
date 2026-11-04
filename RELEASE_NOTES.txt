@@ -2228,7 +2228,7 @@ Release 4.5
 -------------------
 
 HttpClient 4.5 (GA) is a minor feature release that includes several incremental enhancements
-to the exisitng functionality such as support for private domains in the Mozilla Public Suffix List.
+to the existing functionality such as support for private domains in the Mozilla Public Suffix List.
 
 Changelog:
 -------------------
