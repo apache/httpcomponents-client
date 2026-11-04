@@ -97,23 +97,27 @@ public final class RequestSupport {
         String path = request.getPath();
         boolean hasSegments = false;
         boolean requiresOptimization = false;
-        char previous = 0;
-        for (int i = 0; i < path.length(); i++) {
-            final char ch = path.charAt(i);
-            if (ch == '?' || ch == '#') {
-                path = path.substring(0, i);
-                break;
-            }
-            if (ch == '/') {
-                hasSegments = true;
-                if (previous == '/') {
+        if (!path.startsWith("/")) {
+            requiresOptimization = true;
+        } else {
+            char previous = 0;
+            for (int i = 0; i < path.length(); i++) {
+                final char ch = path.charAt(i);
+                if (ch == '?' || ch == '#') {
+                    path = path.substring(0, i);
+                    break;
+                }
+                if (ch == '/') {
+                    hasSegments = true;
+                    if (previous == '/') {
+                        requiresOptimization = true;
+                    }
+                }
+                if (ch == '.' || ch != '/' && !UNRESERVED.get(ch)) {
                     requiresOptimization = true;
                 }
+                previous = ch;
             }
-            if (ch == '.' || ch != '/' && !UNRESERVED.get(ch)) {
-                requiresOptimization = true;
-            }
-            previous = ch;
         }
         if (!requiresOptimization) {
             return hasSegments ? path.substring(0, path.lastIndexOf('/') + 1) : path;

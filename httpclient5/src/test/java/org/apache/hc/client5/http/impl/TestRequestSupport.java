@@ -47,6 +47,9 @@ class TestRequestSupport {
         Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa//bbbb")));
         Assertions.assertEquals("/aa%2Faa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aa%2faa/bbbb")));
         Assertions.assertEquals("/aa%2Faa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/a%61%2fa%61/bbbb")));
+        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "aaaa/bbbb")));
+        Assertions.assertEquals("/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "aaaa")));
+        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "aaaa/bbbb")));
         Assertions.assertEquals("/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/")));
         Assertions.assertEquals("/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa")));
         Assertions.assertEquals("/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "")));
