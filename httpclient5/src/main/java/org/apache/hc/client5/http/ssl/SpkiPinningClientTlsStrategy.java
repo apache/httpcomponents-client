@@ -121,23 +121,25 @@ public final class SpkiPinningClientTlsStrategy extends DefaultClientTlsStrategy
             }
             final String norm;
             try {
-                norm = IDN.toASCII(pattern).toLowerCase(Locale.ROOT);
+                // Normalize before validating so that "*.com." is rejected like "*.com".
+                norm = stripRootDot(IDN.toASCII(pattern).toLowerCase(Locale.ROOT));
             } catch (final IllegalArgumentException e) {
                 throw new IllegalArgumentException("Invalid IDN host pattern: " + pattern, e);
             }
             if (norm.isEmpty()) {
                 throw new IllegalArgumentException("Empty host pattern");
             }
-            final boolean wc = norm.startsWith("*.");
-            if (wc && norm.indexOf('.', 2) < 0) { // require "*.<label>"
+            final boolean wc = norm.startsWith("*");
+            if (wc && (norm.length() < 2 || norm.charAt(1) != '.' || norm.indexOf('.', 2) < 0)) {
+                // require "*.<label>.<label>"; also catches "*." and "*.com." after normalization
                 throw new IllegalArgumentException("Wildcard must be single-label: *.example.com");
             }
             if (pins == null || pins.isEmpty()) {
                 throw new IllegalArgumentException("At least one SPKI pin is required for " + pattern);
             }
-            this.pattern = stripRootDot(norm);
+            this.pattern = norm;
             this.wildcard = wc;
-            this.tail = wc ? this.pattern.substring(1) : null; // ".example.com"
+            this.tail = wc ? norm.substring(1) : null; // ".example.com"
             this.pins = Collections.unmodifiableSet(new HashSet<>(pins));
         }
 

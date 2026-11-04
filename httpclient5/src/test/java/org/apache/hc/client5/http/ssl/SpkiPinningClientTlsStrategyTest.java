@@ -234,6 +234,75 @@ class SpkiPinningClientTlsStrategyTest {
         assertThrows(SSLException.class, () -> strategy.verifySession("svc.example.org.", session));
     }
 
+    @Test
+    void verifySessionAcceptsValidPinForTrailingDotHost() throws Exception {
+        final byte[] spki = new byte[]{3, 1, 4, 1};
+        final String pin = sha256Pin(spki);
+
+        final SpkiPinningClientTlsStrategy strategy = SpkiPinningClientTlsStrategy
+                .newBuilder(SSLContext.getDefault())
+                .add("api.example.com", pin)
+                .add("*.example.org", pin)
+                .build();
+
+        final SSLSession session = new FakeSession(new X509WithKey(spki));
+        assertDoesNotThrow(() -> strategy.verifySession("api.example.com.", session));
+        assertDoesNotThrow(() -> strategy.verifySession("svc.example.org.", session));
+    }
+
+    @Test
+    void trailingDotRulePatternsMatchPlainHost() throws Exception {
+        final byte[] spki = new byte[]{2, 7, 1, 8};
+        final String wrongPin = sha256Pin(new byte[]{6, 6, 6});
+
+        final SpkiPinningClientTlsStrategy strategy = SpkiPinningClientTlsStrategy
+                .newBuilder(SSLContext.getDefault())
+                .add("api.example.com.", wrongPin)
+                .add("*.example.org.", wrongPin)
+                .build();
+
+        // Rules configured in absolute form must still be enforced for the plain host.
+        final SSLSession session = new FakeSession(new X509WithKey(spki));
+        assertThrows(SSLException.class, () -> strategy.enforcePins("api.example.com", session));
+        assertThrows(SSLException.class, () -> strategy.enforcePins("svc.example.org", session));
+        assertThrows(SSLException.class, () -> strategy.verifySession("api.example.com.", session));
+        assertThrows(SSLException.class, () -> strategy.verifySession("svc.example.org.", session));
+    }
+
+    @Test
+    void trailingDotWildcardRuleIsStillSingleLabel() throws Exception {
+        final byte[] spki = new byte[]{1, 6, 1, 8};
+        final String pin = sha256Pin(spki);
+
+        final SpkiPinningClientTlsStrategy strategy = SpkiPinningClientTlsStrategy
+                .newBuilder(SSLContext.getDefault())
+                .add("*.example.com.", pin)
+                .build();
+
+        final SSLSession session = new FakeSession(new X509WithKey(spki));
+        assertDoesNotThrow(() -> strategy.verifySession("svc.example.com", session));
+        assertDoesNotThrow(() -> strategy.verifySession("svc.example.com.", session));
+
+        // a.b.example.com must not match the single-label wildcard -> no pinning enforced
+        final SSLSession other = new FakeSession(new X509WithKey(new byte[]{9, 9, 9}));
+        assertDoesNotThrow(() -> strategy.enforcePins("a.b.example.com", other));
+        // the bare suffix must not match either
+        assertDoesNotThrow(() -> strategy.enforcePins("example.com", other));
+    }
+
+    @Test
+    void trailingDotWildcardPatternValidatedAfterNormalization() {
+        final String pin = "sha256/" + Base64.getEncoder().encodeToString(new byte[32]);
+        // "*.com." normalizes to "*.com", which is not a valid single-label wildcard
+        assertThrows(IllegalArgumentException.class, () -> SpkiPinningClientTlsStrategy
+                .newBuilder(SSLContext.getDefault())
+                .add("*.com.", pin));
+        // a bare "*" must not be accepted as an exact host either
+        assertThrows(IllegalArgumentException.class, () -> SpkiPinningClientTlsStrategy
+                .newBuilder(SSLContext.getDefault())
+                .add("*", pin));
+    }
+
     @SuppressWarnings("deprecation")
     private static final class X509WithKey extends X509Certificate {
         private final PublicKey key;
