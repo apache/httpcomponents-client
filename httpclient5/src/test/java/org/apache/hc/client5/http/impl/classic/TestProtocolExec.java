@@ -31,35 +31,45 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo;
+import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.EntityBuilder;
+import org.apache.hc.client5.http.impl.RequestSupport;
 import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.function.Factory;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.io.support.ClassicResponseBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -75,17 +85,189 @@ class TestProtocolExec {
     @Mock
     private AuthenticationStrategy proxyAuthStrategy;
     @Mock
+    private AuthCache authCache;
+    @Mock
     private ExecChain chain;
     @Mock
     private ExecRuntime execRuntime;
 
+    private AtomicBoolean pathPrefixExtracted;
+    private Factory<HttpRequest, Supplier<String>> prefixExtractorFactory;
     private ProtocolExec protocolExec;
     private HttpHost target;
 
     @BeforeEach
     void setup() {
-        protocolExec = new ProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, true);
+        pathPrefixExtracted = new AtomicBoolean();
+        prefixExtractorFactory = request -> () -> {
+            pathPrefixExtracted.set(true);
+            return RequestSupport.extractPathPrefix(request.getPath());
+        };
+        protocolExec = new ProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, prefixExtractorFactory, false);
         target = new HttpHost("foo", 80);
+    }
+
+    @Test
+    void testNoAuthChallengeNoAuthCache() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+        final ClassicHttpRequest request = new HttpGet("/aaaa/bbbb");
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAuthCache(null);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+
+        Mockito.when(chain.proceed(
+                Mockito.same(request),
+                Mockito.any())).thenReturn(new BasicClassicHttpResponse(200));
+
+        final ClassicHttpResponse finalResponse = protocolExec.execute(request, scope, chain);
+
+        Assertions.assertNotNull(finalResponse);
+
+        final AuthExchange authExchange = context.getAuthExchange(target);
+        Assertions.assertNotNull(authExchange);
+        Assertions.assertEquals(AuthExchange.State.UNCHALLENGED, authExchange.getState());
+        Assertions.assertNull(authExchange.getPathPrefix());
+
+        final AuthCache authCache = context.getAuthCache();
+        Assertions.assertNull(authCache);
+        Assertions.assertFalse(pathPrefixExtracted.get());
+    }
+
+    @ParameterizedTest(name = "{index}: auth caching enabled: {0}")
+    @CsvSource({"true", "false"})
+    void testNoAuthChallenge(final boolean authCacheEnabled) throws Exception {
+        if (!authCacheEnabled) {
+            protocolExec = new ProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, prefixExtractorFactory, true);
+        }
+        final HttpRoute route = new HttpRoute(target);
+        final ClassicHttpRequest request = new HttpGet("/aaaa/bbbb");
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAuthCache(authCache);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+
+        Mockito.when(chain.proceed(
+                Mockito.same(request),
+                Mockito.any())).thenReturn(new BasicClassicHttpResponse(200));
+
+        final ClassicHttpResponse finalResponse = protocolExec.execute(request, scope, chain);
+
+        Assertions.assertNotNull(finalResponse);
+
+        final AuthExchange authExchange = context.getAuthExchange(target);
+        Assertions.assertNotNull(authExchange);
+        Assertions.assertEquals(AuthExchange.State.UNCHALLENGED, authExchange.getState());
+        Assertions.assertNull(authExchange.getPathPrefix());
+
+        if (authCacheEnabled) {
+            Mockito.verify(authCache).get(target, "/aaaa/");
+            Mockito.verify(authCache).get(target, null);
+            Mockito.verifyNoMoreInteractions(authCache);
+        } else {
+            Mockito.verifyNoInteractions(authCache);
+            Assertions.assertFalse(pathPrefixExtracted.get());
+        }
+    }
+
+    @ParameterizedTest(name = "{index}: auth caching enabled: {0}")
+    @CsvSource({"true", "false"})
+    void testAuthChallengeFailure(final boolean authCacheEnabled) throws Exception {
+        if (!authCacheEnabled) {
+            protocolExec = new ProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, prefixExtractorFactory,true);
+        }
+        final HttpRoute route = new HttpRoute(target);
+        final ClassicHttpRequest request = new HttpGet("/aaaa/bbbb");
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAuthCache(authCache);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(target, new UsernamePasswordCredentials("test", "banana".toCharArray()))
+                .build());
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+
+        Mockito.when(chain.proceed(
+                Mockito.same(request),
+                Mockito.any())).thenReturn(ClassicResponseBuilder.create(401)
+                .addHeader(HttpHeaders.WWW_AUTHENTICATE, "BASIC realm=test")
+                .build());
+
+        final BasicScheme basicScheme = new BasicScheme();
+        Mockito.when(targetAuthStrategy.select(
+                Mockito.eq(ChallengeType.TARGET),
+                Mockito.any(),
+                Mockito.<HttpClientContext>any())).thenReturn(Collections.singletonList(basicScheme));
+
+        final ClassicHttpResponse finalResponse = protocolExec.execute(request, scope, chain);
+
+        Assertions.assertNotNull(finalResponse);
+
+        final AuthExchange authExchange = context.getAuthExchange(target);
+        Assertions.assertNotNull(authExchange);
+        Assertions.assertEquals(AuthExchange.State.FAILURE, authExchange.getState());
+        Assertions.assertEquals("/aaaa/", authExchange.getPathPrefix());
+
+        if (authCacheEnabled) {
+            Mockito.verify(authCache).get(target, "/aaaa/");
+            Mockito.verify(authCache).get(target, null);
+            Mockito.verify(authCache, Mockito.atLeastOnce()).remove(target, "/aaaa/");
+            Mockito.verifyNoMoreInteractions(authCache);
+        } else {
+            Mockito.verifyNoInteractions(authCache);
+            Assertions.assertTrue(pathPrefixExtracted.get());
+        }
+    }
+
+    @ParameterizedTest(name = "{index}: auth caching enabled: {0}")
+    @CsvSource({"true", "false"})
+    void testAuthChallengeSuccess(final boolean authCacheEnabled) throws Exception {
+        if (!authCacheEnabled) {
+            protocolExec = new ProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, prefixExtractorFactory,true);
+        }
+        final HttpRoute route = new HttpRoute(target);
+        final ClassicHttpRequest request = new HttpGet("/aaaa/bbbb");
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAuthCache(authCache);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(target, new UsernamePasswordCredentials("test", "test".toCharArray()))
+                .build());
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
+
+        Mockito.when(chain.proceed(
+                Mockito.same(request),
+                Mockito.any())).thenReturn(
+                ClassicResponseBuilder.create(401)
+                        .addHeader(HttpHeaders.WWW_AUTHENTICATE, "BASIC realm=test")
+                        .build(),
+                ClassicResponseBuilder.create(200)
+                        .build());
+
+        final BasicScheme basicScheme = new BasicScheme();
+        Mockito.when(targetAuthStrategy.select(
+                Mockito.eq(ChallengeType.TARGET),
+                Mockito.any(),
+                Mockito.<HttpClientContext>any())).thenReturn(Collections.singletonList(basicScheme));
+
+        final ClassicHttpResponse finalResponse = protocolExec.execute(request, scope, chain);
+
+        Assertions.assertNotNull(finalResponse);
+
+        if (authCacheEnabled) {
+            Mockito.verify(authCache).get(target, "/aaaa/");
+            Mockito.verify(authCache).get(target, null);
+            Mockito.verify(authCache, Mockito.atLeastOnce()).remove(target, "/aaaa/");
+            Mockito.verify(authCache).put(target, "/aaaa/", basicScheme);
+            Mockito.verifyNoMoreInteractions(authCache);
+        } else {
+            Mockito.verifyNoInteractions(authCache);
+            Assertions.assertTrue(pathPrefixExtracted.get());
+        }
+
+        final AuthExchange authExchange = context.getAuthExchange(target);
+        Assertions.assertNotNull(authExchange);
+        Assertions.assertEquals(AuthExchange.State.SUCCESS, authExchange.getState());
+        Assertions.assertEquals("/aaaa/", authExchange.getPathPrefix());
     }
 
     @Test
@@ -399,4 +581,5 @@ class TestProtocolExec {
         Mockito.verify(chain, Mockito.times(2)).proceed(captor.capture(), Mockito.same(scope));
         Assertions.assertNotNull(captor.getAllValues().get(1).getFirstHeader(HttpHeaders.PROXY_AUTHORIZATION));
     }
+
 }

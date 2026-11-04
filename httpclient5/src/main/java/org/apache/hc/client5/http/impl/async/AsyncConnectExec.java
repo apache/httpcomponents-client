@@ -395,7 +395,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         final AuthExchange proxyAuthExchange = proxy != null ? clientContext.getAuthExchange(proxy) : new AuthExchange();
 
         if (authCacheKeeper != null) {
-            authCacheKeeper.loadPreemptively(proxy, null, proxyAuthExchange, clientContext);
+            authCacheKeeper.loadPreemptivelyFromCache(proxy, null, proxyAuthExchange, clientContext);
         }
 
         final AsyncClientExchangeHandler internalExchangeHandler = new AsyncClientExchangeHandler() {
@@ -539,9 +539,9 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
             if (authCacheKeeper != null) {
                 if (proxyAuthRequested) {
-                    authCacheKeeper.updateOnChallenge(proxy, null, proxyAuthExchange, context);
+                    authCacheKeeper.updateCacheOnChallenge(proxy, null, proxyAuthExchange, context);
                 } else {
-                    authCacheKeeper.updateOnNoChallenge(proxy, null, proxyAuthExchange, context);
+                    authCacheKeeper.updateCacheOnNoChallenge(proxy, null, proxyAuthExchange, context);
                 }
             }
 
@@ -550,7 +550,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                         proxyAuthStrategy, proxyAuthExchange, context);
 
                 if (authCacheKeeper != null) {
-                    authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);
+                    authCacheKeeper.updateCacheOnResponse(proxy, null, proxyAuthExchange, context);
                 }
 
                 return updated;

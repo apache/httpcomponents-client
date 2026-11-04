@@ -50,6 +50,8 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.function.Factory;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -84,22 +86,36 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(AsyncProtocolExec.class);
 
+    private static final Factory<HttpRequest, Supplier<String>> DEFAULT_PREFIX_EXTRACTOR_FACTORY = r ->
+            RequestSupport.pathPrefixSupplier(r.getPath());
+
     private final AuthenticationStrategy targetAuthStrategy;
     private final AuthenticationStrategy proxyAuthStrategy;
     private final AuthenticationHandler authenticator;
     private final SchemePortResolver schemePortResolver;
+    private final Factory<HttpRequest, Supplier<String>> prefixExtractorFactory;
     private final AuthCacheKeeper authCacheKeeper;
 
     AsyncProtocolExec(
             final AuthenticationStrategy targetAuthStrategy,
             final AuthenticationStrategy proxyAuthStrategy,
             final SchemePortResolver schemePortResolver,
+            final Factory<HttpRequest, Supplier<String>> prefixExtractorFactory,
             final boolean authCachingDisabled) {
         this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
         this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         this.authenticator = new AuthenticationHandler();
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
+        this.prefixExtractorFactory = prefixExtractorFactory != null ? prefixExtractorFactory : DEFAULT_PREFIX_EXTRACTOR_FACTORY;
         this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(this.schemePortResolver);
+    }
+
+    public AsyncProtocolExec(
+            final AuthenticationStrategy targetAuthStrategy,
+            final AuthenticationStrategy proxyAuthStrategy,
+            final SchemePortResolver schemePortResolver,
+            final boolean authCachingDisabled) {
+        this(targetAuthStrategy, proxyAuthStrategy, schemePortResolver, DEFAULT_PREFIX_EXTRACTOR_FACTORY, authCachingDisabled);
     }
 
     @Override
@@ -148,33 +164,33 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                 request.getScheme(),
                 authority.getHostName(),
                 schemePortResolver.resolve(request.getScheme(), authority));
-        final String pathPrefix = RequestSupport.extractPathPrefix(request);
+        final Supplier<String> pathPrefixSupplier = prefixExtractorFactory.create(request);
         final AuthExchange targetAuthExchange = clientContext.getAuthExchange(target);
         final AuthExchange proxyAuthExchange = proxy != null ? clientContext.getAuthExchange(proxy) : new AuthExchange();
 
         if (!targetAuthExchange.isConnectionBased() &&
                 targetAuthExchange.getPathPrefix() != null &&
-                !pathPrefix.startsWith(targetAuthExchange.getPathPrefix())) {
+                !pathPrefixSupplier.get().startsWith(targetAuthExchange.getPathPrefix())) {
             // force re-authentication if the current path prefix does not match
             // that of the previous authentication exchange.
             targetAuthExchange.reset();
         }
 
         if (authCacheKeeper != null) {
-            authCacheKeeper.loadPreemptively(target, pathPrefix, targetAuthExchange, clientContext);
+            authCacheKeeper.loadPreemptivelyFromCache(target, pathPrefixSupplier, targetAuthExchange, clientContext);
             if (proxy != null) {
-                authCacheKeeper.loadPreemptively(proxy, null, proxyAuthExchange, clientContext);
+                authCacheKeeper.loadPreemptivelyFromCache(proxy, null, proxyAuthExchange, clientContext);
             }
         }
 
         final AtomicBoolean challenged = new AtomicBoolean(false);
-        internalExecute(target, pathPrefix, targetAuthExchange, proxyAuthExchange,
+        internalExecute(target, pathPrefixSupplier, targetAuthExchange, proxyAuthExchange,
                 challenged, request, entityProducer, scope, chain, asyncExecCallback);
     }
 
     private void internalExecute(
             final HttpHost target,
-            final String pathPrefix,
+            final Supplier<String> pathPrefixSupplier,
             final AuthExchange targetAuthExchange,
             final AuthExchange proxyAuthExchange,
             final AtomicBoolean challenged,
@@ -220,7 +236,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                         // A 407 received through a tunnel comes from the origin, not from the proxy
                         route.isTunnelled() ? null : proxy,
                         target,
-                        pathPrefix,
+                        pathPrefixSupplier,
                         response,
                         clientContext)) {
                     challenged.set(true);
@@ -272,7 +288,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                             if (entityProducer != null) {
                                 entityProducer.releaseResources();
                             }
-                            internalExecute(target, pathPrefix, targetAuthExchange, proxyAuthExchange,
+                            internalExecute(target, pathPrefixSupplier, targetAuthExchange, proxyAuthExchange,
                                     challenged, request, entityProducer, scope, chain, asyncExecCallback);
                         } catch (final HttpException | IOException ex) {
                             asyncExecCallback.failed(ex);
@@ -303,7 +319,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
             final AuthExchange proxyAuthExchange,
             final HttpHost proxy,
             final HttpHost target,
-            final String pathPrefix,
+            final Supplier<String> pathPrefixSupplier,
             final HttpResponse response,
             final HttpClientContext context) throws AuthenticationException, MalformedChallengeException {
         final RequestConfig config = context.getRequestConfigOrDefault();
@@ -314,9 +330,9 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
             if (authCacheKeeper != null) {
                 if (targetAuthRequested) {
-                    authCacheKeeper.updateOnChallenge(target, pathPrefix, targetAuthExchange, context);
+                    authCacheKeeper.updateCacheOnChallenge(target, pathPrefixSupplier, targetAuthExchange, context);
                 } else {
-                    authCacheKeeper.updateOnNoChallenge(target, pathPrefix, targetAuthExchange, context);
+                    authCacheKeeper.updateCacheOnNoChallenge(target, pathPrefixSupplier, targetAuthExchange, context);
                 }
             }
 
@@ -326,9 +342,9 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
             if (proxy != null && authCacheKeeper != null) {
                 if (proxyAuthRequested) {
-                    authCacheKeeper.updateOnChallenge(proxy, null, proxyAuthExchange, context);
+                    authCacheKeeper.updateCacheOnChallenge(proxy, null, proxyAuthExchange, context);
                 } else {
-                    authCacheKeeper.updateOnNoChallenge(proxy, null, proxyAuthExchange, context);
+                    authCacheKeeper.updateCacheOnNoChallenge(proxy, null, proxyAuthExchange, context);
                 }
             }
 
@@ -339,10 +355,10 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                         targetAuthStrategy, targetAuthExchange, context);
 
                 if (!targetAuthExchange.isConnectionBased() && targetAuthExchange.getPathPrefix() == null) {
-                    targetAuthExchange.setPathPrefix(pathPrefix);
+                    targetAuthExchange.setPathPrefix(pathPrefixSupplier.get());
                 }
                 if (authCacheKeeper != null) {
-                    authCacheKeeper.updateOnResponse(target, pathPrefix, targetAuthExchange, context);
+                    authCacheKeeper.updateCacheOnResponse(target, pathPrefixSupplier, targetAuthExchange, context);
                 }
             }
             if (proxyAuthRequested || proxyMutualAuthRequired) {
@@ -350,7 +366,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                         proxyAuthStrategy, proxyAuthExchange, context);
 
                 if (authCacheKeeper != null) {
-                    authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);
+                    authCacheKeeper.updateCacheOnResponse(proxy, null, proxyAuthExchange, context);
                 }
             }
             return targetNeedsAuth || proxyNeedsAuth;
