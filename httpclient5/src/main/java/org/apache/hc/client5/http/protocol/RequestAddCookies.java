@@ -122,6 +122,16 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             return;
         }
 
+        // Check if a Cookie header is already present. The header was not generated
+        // by this interceptor, so leave the CookieSpec and CookieOrigin unset and let
+        // the response interceptor skip Set-Cookie processing for this exchange
+        if (request.containsHeader(HttpHeaders.COOKIE)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Skipping cookie addition, Cookie header already present in the request", exchangeId);
+            }
+            return;
+        }
+
         // Obtain cookie store
         final CookieStore cookieStore = clientContext.getCookieStore();
         if (cookieStore == null) {
@@ -181,21 +191,6 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             return;
         }
         final CookieSpec cookieSpec = factory.create(clientContext);
-
-        // Stick the CookieSpec and CookieOrigin instances to the HTTP context
-        // so they could be obtained by the response interceptor
-        clientContext.setCookieSpec(cookieSpec);
-        clientContext.setCookieOrigin(cookieOrigin);
-
-        // Check if a Cookie header is already present
-        if (request.containsHeader(HttpHeaders.COOKIE)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} Skipping cookie addition, Cookie header already present in the request", exchangeId);
-            }
-            // Skip adding cookies if the Cookie header is already present
-            return;
-        }
-
         // Get all cookies available in the HTTP state
         final List<Cookie> cookies = cookieStore.getCookies();
         // Find cookies matching the given origin
@@ -230,6 +225,11 @@ public class RequestAddCookies implements HttpRequestInterceptor {
                 request.addHeader(header);
             }
         }
+
+        // Stick the CookieSpec and CookieOrigin instances to the HTTP context
+        // so they could be obtained by the response interceptor
+        clientContext.setCookieSpec(cookieSpec);
+        clientContext.setCookieOrigin(cookieOrigin);
     }
 
 }

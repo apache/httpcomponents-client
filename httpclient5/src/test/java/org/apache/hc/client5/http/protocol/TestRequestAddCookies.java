@@ -490,7 +490,7 @@ class TestRequestAddCookies {
     }
 
     @Test
-    void testCookieOriginUpdatedWhenCookieHeaderPresent() throws Exception {
+    void testCookieOriginResetWhenCookieHeaderPresent() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         context.setCookieStore(this.cookieStore);
         context.setCookieSpecRegistry(this.cookieSpecRegistry);
@@ -514,13 +514,10 @@ class TestRequestAddCookies {
         Assertions.assertEquals(1, headers.length);
         Assertions.assertEquals("existingCookie=existingValue", headers[0].getValue());
 
-        // The cookie origin must describe the request being executed, not the previous one
-        final CookieOrigin cookieOrigin = context.getCookieOrigin();
-        Assertions.assertNotNull(cookieOrigin);
-        Assertions.assertEquals("other.local", cookieOrigin.getHost());
-        Assertions.assertEquals(80, cookieOrigin.getPort());
-        Assertions.assertEquals("/stuff/", cookieOrigin.getPath());
-        Assertions.assertNotNull(context.getCookieSpec());
+        // The Cookie header was set by the caller: no CookieSpec / CookieOrigin, and nothing
+        // left over from the previous exchange for the response interceptor to act on
+        Assertions.assertNull(context.getCookieOrigin());
+        Assertions.assertNull(context.getCookieSpec());
     }
 
     @Test
