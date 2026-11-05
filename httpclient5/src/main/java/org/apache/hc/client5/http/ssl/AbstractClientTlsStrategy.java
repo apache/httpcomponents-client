@@ -220,14 +220,21 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy, TlsSocketStrate
             final SSLSocket upgradedSocket,
             final String target,
             final Object attachment) throws IOException {
+        final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
         final SSLParameters sslParameters = upgradedSocket.getSSLParameters();
+        final String[] supportedProtocols = tlsConfig.getSupportedProtocols();
         if (supportedProtocols != null) {
             sslParameters.setProtocols(supportedProtocols);
+        } else if (this.supportedProtocols != null) {
+            sslParameters.setProtocols(this.supportedProtocols);
         } else {
             sslParameters.setProtocols(TLS.excludeWeak(upgradedSocket.getEnabledProtocols()));
         }
+        final String[] supportedCipherSuites = tlsConfig.getSupportedCipherSuites();
         if (supportedCipherSuites != null) {
             sslParameters.setCipherSuites(supportedCipherSuites);
+        } else if (this.supportedCipherSuites != null) {
+            sslParameters.setCipherSuites(this.supportedCipherSuites);
         } else {
             sslParameters.setCipherSuites(TlsCiphers.excludeWeak(upgradedSocket.getEnabledCipherSuites()));
         }
