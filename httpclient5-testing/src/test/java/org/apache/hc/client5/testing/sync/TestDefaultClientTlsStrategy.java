@@ -40,6 +40,7 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
@@ -50,6 +51,7 @@ import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
+import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
@@ -356,6 +358,52 @@ class TestDefaultClientTlsStrategy {
                     target.getPort(),
                     null,
                     context);
+        }
+    }
+
+    @Test
+    void testTlsConfigSupportedProtocolsAndCipherSuites() throws Exception {
+        // @formatter:off
+        this.server = ServerBootstrap.bootstrap()
+                .setLocalAddress(InetAddress.getLoopbackAddress())
+                .setSslContext(SSLTestContexts.createServerSSLContext())
+                .setSslSetupHandler(sslParameters -> sslParameters.setProtocols(new String[] {"TLSv1.2"}))
+                .setRequestRouter((r, c) -> null)
+                .create();
+        // @formatter:on
+        this.server.start();
+
+        final HttpClientContext context = HttpClientContext.create();
+        final TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(
+                SSLTestContexts.createClientSSLContext());
+        final HttpHost target = new HttpHost("https", "localhost", server.getLocalPort());
+
+        final TlsConfig tls13Only = TlsConfig.custom()
+                .setSupportedProtocols(TLS.V_1_3)
+                .build();
+        try (final Socket socket = new Socket(target.getHostName(), target.getPort())) {
+            Assertions.assertThrows(IOException.class, () ->
+                    tlsStrategy.upgrade(
+                            socket,
+                            target.getHostName(),
+                            target.getPort(),
+                            tls13Only,
+                            context));
+        }
+
+        final String cipherSuite = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256";
+        final TlsConfig singleCipherSuite = TlsConfig.custom()
+                .setSupportedCipherSuites(cipherSuite)
+                .build();
+        try (final Socket socket = new Socket(target.getHostName(), target.getPort())) {
+            try (final SSLSocket sslSocket = tlsStrategy.upgrade(
+                    socket,
+                    target.getHostName(),
+                    target.getPort(),
+                    singleCipherSuite,
+                    context)) {
+                Assertions.assertEquals(cipherSuite, sslSocket.getSession().getCipherSuite());
+            }
         }
     }
 

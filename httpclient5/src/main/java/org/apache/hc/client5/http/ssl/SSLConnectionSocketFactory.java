@@ -304,13 +304,19 @@ public class SSLConnectionSocketFactory implements org.apache.hc.client5.http.so
             final Object attachment,
             final HttpContext context) throws IOException {
         final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
+        final String[] supportedProtocols = tlsConfig.getSupportedProtocols();
         if (supportedProtocols != null) {
             sslsock.setEnabledProtocols(supportedProtocols);
+        } else if (this.supportedProtocols != null) {
+            sslsock.setEnabledProtocols(this.supportedProtocols);
         } else {
             sslsock.setEnabledProtocols(TLS.excludeWeak(sslsock.getEnabledProtocols()));
         }
+        final String[] supportedCipherSuites = tlsConfig.getSupportedCipherSuites();
         if (supportedCipherSuites != null) {
             sslsock.setEnabledCipherSuites(supportedCipherSuites);
+        } else if (this.supportedCipherSuites != null) {
+            sslsock.setEnabledCipherSuites(this.supportedCipherSuites);
         } else {
             sslsock.setEnabledCipherSuites(TlsCiphers.excludeWeak(sslsock.getEnabledCipherSuites()));
         }
