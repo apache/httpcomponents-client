@@ -488,6 +488,59 @@ class TestRequestAddCookies {
         Assertions.assertEquals(1, headers.length);
         Assertions.assertEquals("existingCookie=existingValue", headers[0].getValue());
     }
+
+    @Test
+    void testCookieOriginResetWhenCookieHeaderPresent() throws Exception {
+        final HttpClientContext context = HttpClientContext.create();
+        context.setCookieStore(this.cookieStore);
+        context.setCookieSpecRegistry(this.cookieSpecRegistry);
+
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
+
+        // First exchange on this context: cookies are matched for localhost.local
+        final HttpRequest request1 = new BasicHttpRequest("GET", this.target, "/");
+        context.setRoute(new HttpRoute(this.target, null, false));
+        interceptor.process(request1, null, context);
+        Assertions.assertEquals("localhost.local", context.getCookieOrigin().getHost());
+
+        // Second exchange on the same context to a different host with an explicit Cookie header
+        final HttpHost otherHost = new HttpHost("other.local", 80);
+        final HttpRequest request2 = new BasicHttpRequest("GET", otherHost, "/stuff/");
+        request2.addHeader("Cookie", "existingCookie=existingValue");
+        context.setRoute(new HttpRoute(otherHost, null, false));
+        interceptor.process(request2, null, context);
+
+        final Header[] headers = request2.getHeaders("Cookie");
+        Assertions.assertEquals(1, headers.length);
+        Assertions.assertEquals("existingCookie=existingValue", headers[0].getValue());
+
+        // The Cookie header was set by the caller: no CookieSpec / CookieOrigin, and nothing
+        // left over from the previous exchange for the response interceptor to act on
+        Assertions.assertNull(context.getCookieOrigin());
+        Assertions.assertNull(context.getCookieSpec());
+    }
+
+    @Test
+    void testCookieOriginResetForTraceRequest() throws Exception {
+        final HttpClientContext context = HttpClientContext.create();
+        context.setCookieStore(this.cookieStore);
+        context.setCookieSpecRegistry(this.cookieSpecRegistry);
+
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
+
+        final HttpRequest request1 = new BasicHttpRequest("GET", this.target, "/");
+        context.setRoute(new HttpRoute(this.target, null, false));
+        interceptor.process(request1, null, context);
+        Assertions.assertNotNull(context.getCookieOrigin());
+
+        final HttpHost otherHost = new HttpHost("other.local", 80);
+        final HttpRequest request2 = new BasicHttpRequest("TRACE", otherHost, "/");
+        context.setRoute(new HttpRoute(otherHost, null, false));
+        interceptor.process(request2, null, context);
+
+        Assertions.assertNull(context.getCookieOrigin());
+        Assertions.assertNull(context.getCookieSpec());
+    }
     @Test
     void testAddCookiesWithRequestPathContainingQuery() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/stuff?foo=bar");
