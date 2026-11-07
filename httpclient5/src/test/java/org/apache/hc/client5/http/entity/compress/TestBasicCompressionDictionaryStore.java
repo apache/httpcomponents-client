@@ -1,0 +1,286 @@
+/*
+ * ====================================================================
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ * ====================================================================
+ *
+ * This software consists of voluntary contributions made by many
+ * individuals on behalf of the Apache Software Foundation.  For more
+ * information on the Apache Software Foundation, please see
+ * <http://www.apache.org/>.
+ *
+ */
+package org.apache.hc.client5.http.entity.compress;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.net.URI;
+import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.apache.hc.client5.http.cookie.BasicCookieStore;
+import org.apache.hc.client5.http.cookie.CookieStore;
+import org.junit.jupiter.api.Test;
+
+class TestBasicCompressionDictionaryStore {
+
+    private static final Instant STORED_AT = Instant.parse("2020-01-01T00:00:00Z");
+    private static final Instant VALID_UNTIL = Instant.parse("2030-01-01T00:00:00Z");
+    private final CookieStore partition = new BasicCookieStore();
+
+    private static CompressionDictionary dictionary(final byte[] content, final URI source) {
+        return new CompressionDictionary(content, source, "/path", "id", STORED_AT, VALID_UNTIL);
+    }
+
+    private static CompressionDictionary dictionary(final int n) {
+        return dictionary(new byte[]{(byte) n}, URI.create("https://example.com/"));
+    }
+
+    @Test
+    void addNullThrows() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        assertThrows(NullPointerException.class, () -> store.add(null, dictionary(1)));
+        assertThrows(NullPointerException.class, () -> store.add(partition, null));
+    }
+
+    @Test
+    void getByHashNullThrows() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        assertThrows(NullPointerException.class,
+                () -> store.getByHash(null, URI.create("https://example.com/"), new byte[32]));
+        assertThrows(NullPointerException.class,
+                () -> store.getByHash(partition, null, new byte[32]));
+        assertThrows(NullPointerException.class,
+                () -> store.getByHash(partition, URI.create("https://example.com/"), null));
+    }
+
+    @Test
+    void getByOriginNullThrows() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        assertThrows(NullPointerException.class,
+                () -> store.getByOrigin(null, URI.create("https://example.com/")));
+        assertThrows(NullPointerException.class, () -> store.getByOrigin(partition, null));
+    }
+
+    @Test
+    void nonPositiveMaxEntriesThrows() {
+        assertThrows(IllegalArgumentException.class, () -> new BasicCompressionDictionaryStore(0));
+        assertThrows(IllegalArgumentException.class, () -> new BasicCompressionDictionaryStore(-1));
+        assertThrows(IllegalArgumentException.class, () -> new BasicCompressionDictionaryStore(1, 0));
+        assertThrows(IllegalArgumentException.class, () -> new BasicCompressionDictionaryStore(1, -1));
+    }
+
+    @Test
+    void defaultConstructorWorks() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary dict = dictionary(1);
+        store.add(partition, dict);
+        assertSame(dict, store.getByHash(partition, URI.create("https://example.com/"), dict.getSha256()));
+    }
+
+    @Test
+    void addThenGetByHashReturnsDictionary() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary dict = dictionary(42);
+        store.add(partition, dict);
+        assertSame(dict, store.getByHash(partition, URI.create("https://example.com/"), dict.getSha256()));
+    }
+
+    @Test
+    void getByHashUnknownReturnsNull() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        store.add(partition, dictionary(1));
+        final CompressionDictionary other = dictionary(99);
+        assertNull(store.getByHash(partition, URI.create("https://example.com/"), other.getSha256()));
+    }
+
+    @Test
+    void sameHashTwiceKeepsSingleEntry() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final URI source = URI.create("https://example.com/");
+        final CompressionDictionary first = dictionary(new byte[]{7}, source);
+        final CompressionDictionary second = dictionary(new byte[]{7}, source);
+        store.add(partition, first);
+        store.add(partition, second);
+        assertSame(second, store.getByHash(partition, URI.create("https://example.com/"), first.getSha256()));
+        assertEquals(1, store.getByOrigin(partition, source).size());
+    }
+
+    @Test
+    void evictionRemovesOldest() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore(2);
+        final CompressionDictionary first = dictionary(1);
+        final CompressionDictionary second = dictionary(2);
+        final CompressionDictionary third = dictionary(3);
+        store.add(partition, first);
+        store.add(partition, second);
+        store.add(partition, third);
+        assertNull(store.getByHash(partition, URI.create("https://example.com/"), first.getSha256()));
+        assertSame(second, store.getByHash(partition, URI.create("https://example.com/"), second.getSha256()));
+        assertSame(third, store.getByHash(partition, URI.create("https://example.com/"), third.getSha256()));
+    }
+
+    @Test
+    void byteLimitEvictsOldest() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore(10, 4);
+        final CompressionDictionary first = dictionary(
+                new byte[]{1, 2, 3}, URI.create("https://example.com/"));
+        final CompressionDictionary second = dictionary(
+                new byte[]{4, 5, 6}, URI.create("https://example.com/"));
+
+        store.add(partition, first);
+        store.add(partition, second);
+
+        assertNull(store.getByHash(partition, first.getSource(), first.getSha256()));
+        assertSame(second, store.getByHash(partition, second.getSource(), second.getSha256()));
+    }
+
+    @Test
+    void dictionaryLargerThanByteLimitIsNotStored() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore(10, 2);
+        final CompressionDictionary dictionary = dictionary(
+                new byte[]{1, 2, 3}, URI.create("https://example.com/"));
+
+        store.add(partition, dictionary);
+        assertTrue(store.getByOrigin(partition, dictionary.getSource()).isEmpty());
+    }
+
+    @Test
+    void getByOriginFiltersByHost() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary a = dictionary(new byte[]{1}, URI.create("https://a.example.com/"));
+        final CompressionDictionary b = dictionary(new byte[]{2}, URI.create("https://b.example.com/"));
+        store.add(partition, a);
+        store.add(partition, b);
+        final List<CompressionDictionary> result = store.getByOrigin(partition, URI.create("https://b.example.com/"));
+        assertEquals(1, result.size());
+        assertSame(b, result.get(0));
+    }
+
+    @Test
+    void getByOriginTreatsHttpsDefaultPortAsEqual() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary implicit = dictionary(new byte[]{1}, URI.create("https://example.com/"));
+        store.add(partition, implicit);
+        final List<CompressionDictionary> result = store.getByOrigin(partition, URI.create("https://example.com:443/"));
+        assertEquals(1, result.size());
+        assertSame(implicit, result.get(0));
+    }
+
+    @Test
+    void getByOriginDistinguishesNonDefaultPort() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary def = dictionary(new byte[]{1}, URI.create("https://example.com/"));
+        final CompressionDictionary alt = dictionary(new byte[]{2}, URI.create("https://example.com:8443/"));
+        store.add(partition, def);
+        store.add(partition, alt);
+        assertEquals(1, store.getByOrigin(partition, URI.create("https://example.com:8443/")).size());
+        assertSame(alt, store.getByOrigin(partition, URI.create("https://example.com:8443/")).get(0));
+        assertSame(def, store.getByOrigin(partition, URI.create("https://example.com/")).get(0));
+    }
+
+    @Test
+    void getByOriginNoMatchReturnsEmpty() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        store.add(partition, dictionary(new byte[]{1}, URI.create("https://example.com/")));
+        final List<CompressionDictionary> result =
+                store.getByOrigin(partition, URI.create("https://other.example.com/"));
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void clearEmptiesStore() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary dict = dictionary(1);
+        store.add(partition, dict);
+        store.clear();
+        assertNull(store.getByHash(partition, URI.create("https://example.com/"), dict.getSha256()));
+        assertTrue(store.getByOrigin(partition, URI.create("https://example.com/")).isEmpty());
+    }
+
+    @Test
+    void partitionsAreIsolatedAndCanBeClearedIndependently() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CookieStore otherPartition = new BasicCookieStore();
+        final CompressionDictionary first = dictionary(1);
+        final CompressionDictionary second = dictionary(2);
+        store.add(partition, first);
+        store.add(otherPartition, second);
+
+        assertSame(first, store.getByHash(partition, first.getSource(), first.getSha256()));
+        assertNull(store.getByHash(otherPartition, first.getSource(), first.getSha256()));
+        assertSame(second, store.getByHash(otherPartition, second.getSource(), second.getSha256()));
+
+        store.clear(partition);
+        assertTrue(store.getByOrigin(partition, first.getSource()).isEmpty());
+        assertSame(second, store.getByHash(otherPartition, second.getSource(), second.getSha256()));
+    }
+
+    @Test
+    void concurrentAddsStayWithinMaxEntries() throws InterruptedException {
+        final int maxEntries = 16;
+        final int threads = 32;
+        final int perThread = 50;
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore(maxEntries);
+        final ExecutorService executor = Executors.newFixedThreadPool(threads);
+        final CountDownLatch start = new CountDownLatch(1);
+        final CountDownLatch done = new CountDownLatch(threads);
+        final AtomicReference<Throwable> failure = new AtomicReference<>();
+        try {
+            for (int t = 0; t < threads; t++) {
+                final int base = t;
+                executor.execute(() -> {
+                    try {
+                        start.await();
+                        for (int i = 0; i < perThread; i++) {
+                            final byte[] content = new byte[]{(byte) base, (byte) i};
+                            store.add(partition, dictionary(content, URI.create("https://example.com/")));
+                        }
+                    } catch (final Throwable ex) {
+                        failure.compareAndSet(null, ex);
+                    } finally {
+                        done.countDown();
+                    }
+                });
+            }
+            start.countDown();
+            assertTrue(done.await(30, TimeUnit.SECONDS), "threads did not finish in time");
+        } finally {
+            executor.shutdownNow();
+        }
+        assertNull(failure.get(), "concurrent add threw: " + failure.get());
+        assertTrue(store.getByOrigin(partition, URI.create("https://example.com/")).size() <= maxEntries);
+    }
+
+    @Test
+    void getByHashReturnsNonNullAfterAdd() {
+        final BasicCompressionDictionaryStore store = new BasicCompressionDictionaryStore();
+        final CompressionDictionary dict = dictionary(5);
+        store.add(partition, dict);
+        assertNotNull(store.getByHash(partition, URI.create("https://example.com/"), dict.getSha256()));
+    }
+}
