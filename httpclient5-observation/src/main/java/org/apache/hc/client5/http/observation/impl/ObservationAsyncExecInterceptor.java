@@ -79,7 +79,7 @@ public final class ObservationAsyncExecInterceptor implements AsyncExecChainHand
 
         final Observation observation = Observation
                 .createNotStarted("http.client.request", () -> observationContext, registry)
-                .contextualName(request.getMethod() + " " + request.getRequestUri())
+                .contextualName(request.getMethod() + " " + SafeUri.of(request.getRequestUri()))
                 .lowCardinalityKeyValue("http.method", request.getMethod())
                 .lowCardinalityKeyValue("net.peer.name", scope.route.getTargetHost().getHostName())
                 .start();

@@ -40,6 +40,7 @@ import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.observation.MetricConfig;
 import org.apache.hc.client5.http.observation.ObservingOptions;
+import org.apache.hc.client5.http.observation.impl.SafeUri;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
@@ -141,7 +142,7 @@ public final class AsyncIoByteCounterExec implements AsyncExecChainHandler {
 
                 final String protocol = scope.route.getTargetHost().getSchemeName();
                 final String target = scope.route.getTargetHost().getHostName();
-                final String uri = request.getRequestUri();
+                final String uri = SafeUri.of(request.getRequestUri());
 
                 final List<Tag> tags = buildTags(request.getMethod(), status, protocol, target, uri);
 

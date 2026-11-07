@@ -109,9 +109,9 @@ public final class ObservationClassicExecInterceptor implements ExecChainHandler
 
     private static String safeUriForName(final ClassicHttpRequest req) {
         try {
-            return req.getUri().toString();
+            return SafeUri.of(req.getUri().toString());
         } catch (final URISyntaxException e) {
-            return req.getRequestUri();
+            return SafeUri.of(req.getRequestUri());
         }
     }
 
