@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
@@ -38,15 +39,22 @@ import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
+import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.RequestSupport;
 import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.CancellableDependency;
+import org.apache.hc.core5.function.Factory;
+import org.apache.hc.core5.function.Supplier;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -60,6 +68,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -72,17 +82,186 @@ class TestAsyncProtocolExec {
     @Mock
     private AuthenticationStrategy proxyAuthStrategy;
     @Mock
+    private AuthCache authCache;
+    @Mock
     private AsyncExecChain chain;
     @Mock
     private AsyncExecRuntime execRuntime;
 
+    private AtomicBoolean pathPrefixExtracted;
+    private Factory<HttpRequest, Supplier<String>> prefixExtractorFactory;
     private AsyncProtocolExec protocolExec;
     private HttpHost target;
 
     @BeforeEach
     void setup() {
-        protocolExec = new AsyncProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, true);
+        pathPrefixExtracted = new AtomicBoolean();
+        prefixExtractorFactory = request -> () -> {
+            pathPrefixExtracted.set(true);
+            return RequestSupport.extractPathPrefix(request.getPath());
+        };
+        protocolExec = new AsyncProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, prefixExtractorFactory, false);
         target = new HttpHost("http", "foo", 80);
+    }
+
+    @Test
+    void testNoAuthChallengeNoAuthCache() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+        final ClassicHttpRequest request = new HttpGet("/aaaa/bbbb");
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAuthCache(null);
+
+        final AsyncExecChain.Scope scope = new AsyncExecChain.Scope("test", route, request,
+                Mockito.mock(CancellableDependency.class), context, execRuntime, null, new AtomicInteger(1));
+
+        final AtomicInteger proceedCount = new AtomicInteger(0);
+        final List<HttpRequest> requests = new ArrayList<>();
+        stubChain(proceedCount, requests, 200);
+
+        final RecordingCallback callback = new RecordingCallback();
+
+        protocolExec.execute(request, (AsyncEntityProducer) null, scope, chain, callback);
+
+        final AuthExchange authExchange = context.getAuthExchange(target);
+        Assertions.assertNotNull(authExchange);
+        Assertions.assertEquals(AuthExchange.State.UNCHALLENGED, authExchange.getState());
+        Assertions.assertNull(authExchange.getPathPrefix());
+
+        final AuthCache authCache = context.getAuthCache();
+        Assertions.assertNull(authCache);
+        Assertions.assertFalse(pathPrefixExtracted.get());
+    }
+
+    @ParameterizedTest(name = "{index}: auth caching enabled: {0}")
+    @CsvSource({"true", "false"})
+    void testNoAuthChallenge(final boolean authCacheEnabled) throws Exception {
+        if (!authCacheEnabled) {
+            protocolExec = new AsyncProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, prefixExtractorFactory, true);
+        }
+        final HttpRoute route = new HttpRoute(target);
+        final ClassicHttpRequest request = new HttpGet("/aaaa/bbbb");
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAuthCache(authCache);
+
+        final AsyncExecChain.Scope scope = new AsyncExecChain.Scope("test", route, request,
+                Mockito.mock(CancellableDependency.class), context, execRuntime, null, new AtomicInteger(1));
+
+        final AtomicInteger proceedCount = new AtomicInteger(0);
+        final List<HttpRequest> requests = new ArrayList<>();
+        stubChain(proceedCount, requests, 200);
+
+        final RecordingCallback callback = new RecordingCallback();
+
+        protocolExec.execute(request, (AsyncEntityProducer) null, scope, chain, callback);
+
+        final AuthExchange authExchange = context.getAuthExchange(target);
+        Assertions.assertNotNull(authExchange);
+        Assertions.assertEquals(AuthExchange.State.UNCHALLENGED, authExchange.getState());
+        Assertions.assertNull(authExchange.getPathPrefix());
+
+        if (authCacheEnabled) {
+            Mockito.verify(authCache).get(target, "/aaaa/");
+            Mockito.verify(authCache).get(target, null);
+            Mockito.verifyNoMoreInteractions(authCache);
+        } else {
+            Mockito.verifyNoInteractions(authCache);
+            Assertions.assertFalse(pathPrefixExtracted.get());
+        }
+    }
+
+    @ParameterizedTest(name = "{index}: auth caching enabled: {0}")
+    @CsvSource({"true", "false"})
+    void testAuthChallengeFailure(final boolean authCacheEnabled) throws Exception {
+        if (!authCacheEnabled) {
+            protocolExec = new AsyncProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, prefixExtractorFactory,true);
+        }
+        final HttpRoute route = new HttpRoute(target);
+        final ClassicHttpRequest request = new HttpGet("/aaaa/bbbb");
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAuthCache(authCache);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(target, new UsernamePasswordCredentials("test", "banana".toCharArray()))
+                .build());
+
+        final AsyncExecChain.Scope scope = new AsyncExecChain.Scope("test", route, request,
+                Mockito.mock(CancellableDependency.class), context, execRuntime, null, new AtomicInteger(1));
+
+        final AtomicInteger proceedCount = new AtomicInteger(0);
+        final List<HttpRequest> requests = new ArrayList<>();
+        stubChain(proceedCount, requests, 401);
+
+        final BasicScheme basicScheme = new BasicScheme();
+        Mockito.when(targetAuthStrategy.select(
+                Mockito.eq(ChallengeType.TARGET),
+                Mockito.any(),
+                Mockito.<HttpClientContext>any())).thenReturn(Collections.singletonList(basicScheme));
+
+        final RecordingCallback callback = new RecordingCallback();
+
+        protocolExec.execute(request, (AsyncEntityProducer) null, scope, chain, callback);
+
+        final AuthExchange authExchange = context.getAuthExchange(target);
+        Assertions.assertNotNull(authExchange);
+        Assertions.assertEquals(AuthExchange.State.FAILURE, authExchange.getState());
+        Assertions.assertEquals("/aaaa/", authExchange.getPathPrefix());
+
+        if (authCacheEnabled) {
+            Mockito.verify(authCache).get(target, "/aaaa/");
+            Mockito.verify(authCache).get(target, null);
+            Mockito.verify(authCache, Mockito.atLeastOnce()).remove(target, "/aaaa/");
+            Mockito.verifyNoMoreInteractions(authCache);
+        } else {
+            Mockito.verifyNoInteractions(authCache);
+            Assertions.assertTrue(pathPrefixExtracted.get());
+        }
+    }
+
+    @ParameterizedTest(name = "{index}: auth caching enabled: {0}")
+    @CsvSource({"true", "false"})
+    void testAuthChallengeSuccess(final boolean authCacheEnabled) throws Exception {
+        if (!authCacheEnabled) {
+            protocolExec = new AsyncProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, prefixExtractorFactory,true);
+        }
+        final HttpRoute route = new HttpRoute(target);
+        final ClassicHttpRequest request = new HttpGet("/aaaa/bbbb");
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAuthCache(authCache);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(target, new UsernamePasswordCredentials("test", "test".toCharArray()))
+                .build());
+
+        final AsyncExecChain.Scope scope = new AsyncExecChain.Scope("test", route, request,
+                Mockito.mock(CancellableDependency.class), context, execRuntime, null, new AtomicInteger(1));
+
+        final AtomicInteger proceedCount = new AtomicInteger(0);
+        final List<HttpRequest> requests = new ArrayList<>();
+        stubChain(proceedCount, requests, 401, 200);
+
+        final BasicScheme basicScheme = new BasicScheme();
+        Mockito.when(targetAuthStrategy.select(
+                Mockito.eq(ChallengeType.TARGET),
+                Mockito.any(),
+                Mockito.<HttpClientContext>any())).thenReturn(Collections.singletonList(basicScheme));
+
+        final RecordingCallback callback = new RecordingCallback();
+
+        protocolExec.execute(request, (AsyncEntityProducer) null, scope, chain, callback);
+
+        if (authCacheEnabled) {
+            Mockito.verify(authCache).get(target, "/aaaa/");
+            Mockito.verify(authCache).get(target, null);
+            Mockito.verify(authCache, Mockito.atLeastOnce()).remove(target, "/aaaa/");
+            Mockito.verify(authCache).put(target, "/aaaa/", basicScheme);
+            Mockito.verifyNoMoreInteractions(authCache);
+        } else {
+            Mockito.verifyNoInteractions(authCache);
+            Assertions.assertTrue(pathPrefixExtracted.get());
+        }
+
+        final AuthExchange authExchange = context.getAuthExchange(target);
+        Assertions.assertNotNull(authExchange);
+        Assertions.assertEquals(AuthExchange.State.SUCCESS, authExchange.getState());
+        Assertions.assertEquals("/aaaa/", authExchange.getPathPrefix());
     }
 
     @Test
@@ -196,6 +375,9 @@ class TestAsyncProtocolExec {
             final AsyncExecCallback cb = invocation.getArgument(3, AsyncExecCallback.class);
             final int code = codes[Math.min(proceedCount.getAndIncrement(), codes.length - 1)];
             final HttpResponse resp = new BasicHttpResponse(code, "Huh?");
+            if (code == 401) {
+                resp.setHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
+            }
             if (code == 407) {
                 resp.setHeader(HttpHeaders.PROXY_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
             }
@@ -268,4 +450,5 @@ class TestAsyncProtocolExec {
         Assertions.assertEquals(Collections.singletonList(200), callback.codes);
         Assertions.assertNotNull(requests.get(1).getFirstHeader(HttpHeaders.PROXY_AUTHORIZATION));
     }
+
 }

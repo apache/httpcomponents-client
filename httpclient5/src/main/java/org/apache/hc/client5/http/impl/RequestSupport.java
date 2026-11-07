@@ -33,6 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.net.PathSegmentCodec;
 import org.apache.hc.core5.net.PercentCodec;
@@ -93,8 +94,45 @@ public final class RequestSupport {
         }
     }
 
+    /**
+     * @since 5.7
+     */
+    public static Supplier<String> pathPrefixSupplier(final String path) {
+        return new Supplier<String>() {
+
+            private volatile String cached;
+
+            @Override
+            public String get() {
+                // This is racy but the class is not meant to be used
+                // concurrently by multiple threads
+                String value = cached;
+                if (value == null) {
+                    value = extractPathPrefix(path);
+                    cached = value;
+                }
+                return value;
+            }
+
+        };
+    }
+
+    /**
+     * @deprecated Do not use.
+     */
+    @Deprecated
     public static String extractPathPrefix(final HttpRequest request) {
-        String path = request.getPath();
+        return extractPathPrefix(request.getPath());
+    }
+
+    /**
+     * @since 5.7
+     */
+    public static String extractPathPrefix(final String requestPath) {
+        if (requestPath.isEmpty()) {
+            return "/";
+        }
+        String path = requestPath;
         boolean hasSegments = false;
         boolean requiresOptimization = false;
         if (!path.startsWith("/")) {

@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl;
 
-import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.function.Supplier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -37,36 +37,45 @@ class TestRequestSupport {
 
     @Test
     void testPathPrefixExtraction() {
-        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/bbbb")));
-        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/")));
-        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/../aaaa/")));
-        Assertions.assertEquals("/aaaa/bbbb/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/bbbb/cccc")));
-        Assertions.assertEquals("/aaaa/bbbb/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/bbbb/")));
-        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/bbbb/..")));
-        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/bbbb?////")));
-        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa//bbbb")));
-        Assertions.assertEquals("/aa%2Faa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aa%2faa/bbbb")));
-        Assertions.assertEquals("/aa%2Faa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/a%61%2fa%61/bbbb")));
-        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "aaaa/bbbb")));
-        Assertions.assertEquals("/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "aaaa")));
-        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "aaaa/bbbb")));
-        Assertions.assertEquals("/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/")));
-        Assertions.assertEquals("/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa")));
-        Assertions.assertEquals("/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "")));
+        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix("/aaaa/bbbb"));
+        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix("/aaaa/"));
+        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix("/aaaa/../aaaa/"));
+        Assertions.assertEquals("/aaaa/bbbb/", RequestSupport.extractPathPrefix("/aaaa/bbbb/cccc"));
+        Assertions.assertEquals("/aaaa/bbbb/", RequestSupport.extractPathPrefix("/aaaa/bbbb/"));
+        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix("/aaaa/bbbb/.."));
+        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix("/aaaa/bbbb?////"));
+        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix("/aaaa//bbbb"));
+        Assertions.assertEquals("/aa%2Faa/", RequestSupport.extractPathPrefix("/aa%2faa/bbbb"));
+        Assertions.assertEquals("/aa%2Faa/", RequestSupport.extractPathPrefix("/a%61%2fa%61/bbbb"));
+        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix("aaaa/bbbb"));
+        Assertions.assertEquals("/", RequestSupport.extractPathPrefix("aaaa"));
+        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix("aaaa/bbbb"));
+        Assertions.assertEquals("/", RequestSupport.extractPathPrefix("/"));
+        Assertions.assertEquals("/", RequestSupport.extractPathPrefix("/aaaa"));
+        Assertions.assertEquals("/", RequestSupport.extractPathPrefix(""));
     }
 
     @Test
     void testPathPrefixExtractionDots() {
-        Assertions.assertEquals("/aaaa/b.b/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/b.b/cccc")));
-        Assertions.assertEquals("/aaaa/bbbb/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/bbbb/cc.cc")));
-        Assertions.assertEquals("/a.a/b..b/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/a.a/b..b/c.")));
-        Assertions.assertEquals("/aaaa/.bbbb/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/.bbbb/cccc")));
-        Assertions.assertEquals("/aaaa/.../", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/.../cccc")));
-        Assertions.assertEquals("/aaaa/bbbb/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/./bbbb/cccc")));
-        Assertions.assertEquals("/aaaa/bbbb/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/bbbb/.")));
-        Assertions.assertEquals("/cccc/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "/aaaa/%2E%2E/cccc/dddd")));
-        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "../aaaa/bbbb")));
-        Assertions.assertEquals("/foo.bar/", RequestSupport.extractPathPrefix(new BasicHttpRequest("GET", "foo.bar/baz")));
+        Assertions.assertEquals("/aaaa/b.b/", RequestSupport.extractPathPrefix("/aaaa/b.b/cccc"));
+        Assertions.assertEquals("/aaaa/bbbb/", RequestSupport.extractPathPrefix("/aaaa/bbbb/cc.cc"));
+        Assertions.assertEquals("/a.a/b..b/", RequestSupport.extractPathPrefix("/a.a/b..b/c."));
+        Assertions.assertEquals("/aaaa/.bbbb/", RequestSupport.extractPathPrefix("/aaaa/.bbbb/cccc"));
+        Assertions.assertEquals("/aaaa/.../", RequestSupport.extractPathPrefix("/aaaa/.../cccc"));
+        Assertions.assertEquals("/aaaa/bbbb/", RequestSupport.extractPathPrefix("/aaaa/./bbbb/cccc"));
+        Assertions.assertEquals("/aaaa/bbbb/", RequestSupport.extractPathPrefix("/aaaa/bbbb/."));
+        Assertions.assertEquals("/cccc/", RequestSupport.extractPathPrefix("/aaaa/%2E%2E/cccc/dddd"));
+        Assertions.assertEquals("/aaaa/", RequestSupport.extractPathPrefix("../aaaa/bbbb"));
+        Assertions.assertEquals("/foo.bar/", RequestSupport.extractPathPrefix("foo.bar/baz"));
+    }
+
+    @Test
+    void testPathPrefixExtractor() {
+        final Supplier<String> pathPrefixExtractor = RequestSupport.pathPrefixSupplier("/aaaa/bbbb");
+        final String pathPrefix = pathPrefixExtractor.get();
+        Assertions.assertEquals("/aaaa/", pathPrefix);
+        Assertions.assertSame(pathPrefix, pathPrefixExtractor.get());
+        Assertions.assertSame(pathPrefix, pathPrefixExtractor.get());
     }
 
 }
