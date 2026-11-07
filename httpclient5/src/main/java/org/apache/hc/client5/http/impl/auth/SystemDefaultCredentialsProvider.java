@@ -34,6 +34,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -106,13 +107,18 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
         if (host != null) {
             final HttpClientContext clientContext = context != null ? HttpClientContext.cast(context) : null;
             final String protocol = authScope.getProtocol() != null ? authScope.getProtocol() : (authScope.getPort() == 443 ? URIScheme.HTTPS.id : URIScheme.HTTP.id);
-            final PasswordAuthentication serverCreds = getSystemCreds(protocol, authScope, Authenticator.RequestorType.SERVER, clientContext);
-            if (serverCreds != null) {
-                return new UsernamePasswordCredentials(serverCreds.getUserName(), serverCreds.getPassword());
+            final ChallengeType challengeType = authScope.getChallengeType();
+            if (challengeType != ChallengeType.PROXY) {
+                final PasswordAuthentication serverCreds = getSystemCreds(protocol, authScope, Authenticator.RequestorType.SERVER, clientContext);
+                if (serverCreds != null) {
+                    return new UsernamePasswordCredentials(serverCreds.getUserName(), serverCreds.getPassword());
+                }
             }
-            final PasswordAuthentication proxyCreds = getSystemCreds(protocol, authScope, Authenticator.RequestorType.PROXY, clientContext);
-            if (proxyCreds != null) {
-                return new UsernamePasswordCredentials(proxyCreds.getUserName(), proxyCreds.getPassword());
+            if (challengeType != ChallengeType.TARGET) {
+                final PasswordAuthentication proxyCreds = getSystemCreds(protocol, authScope, Authenticator.RequestorType.PROXY, clientContext);
+                if (proxyCreds != null) {
+                    return new UsernamePasswordCredentials(proxyCreds.getUserName(), proxyCreds.getPassword());
+                }
             }
         }
         return null;

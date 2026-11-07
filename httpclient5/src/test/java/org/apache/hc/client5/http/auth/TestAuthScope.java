@@ -117,6 +117,21 @@ class TestAuthScope {
     }
 
     @Test
+    void testChallengeType() {
+        final AuthScope target = new AuthScope("http", "somehost", 80, "somerealm", "somescheme", ChallengeType.TARGET);
+        final AuthScope proxy = new AuthScope("http", "somehost", 80, "somerealm", "somescheme", ChallengeType.PROXY);
+        final AuthScope any = new AuthScope("http", "somehost", 80, "somerealm", "somescheme");
+        Assertions.assertEquals(ChallengeType.TARGET, target.getChallengeType());
+        Assertions.assertEquals(ChallengeType.PROXY, new AuthScope(proxy).getChallengeType());
+        Assertions.assertNull(any.getChallengeType());
+        Assertions.assertEquals(ChallengeType.PROXY,
+                new AuthScope(new HttpHost("http", "somehost", 80), "somerealm", "somescheme", ChallengeType.PROXY).getChallengeType());
+        Assertions.assertEquals(any, target);
+        Assertions.assertEquals(any.hashCode(), target.hashCode());
+        Assertions.assertEquals(any.match(any), target.match(any));
+    }
+
+    @Test
     void testEquals() {
         final AuthScope authscope1 = new AuthScope("http", "somehost", 80, "somerealm", "somescheme");
         final AuthScope authscope2 = new AuthScope("http", "someotherhost", 80, "somerealm", "somescheme");

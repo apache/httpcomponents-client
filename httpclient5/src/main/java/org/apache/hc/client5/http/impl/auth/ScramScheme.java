@@ -52,6 +52,7 @@ import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
+import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
@@ -113,6 +114,7 @@ public final class ScramScheme implements AuthScheme {
     private boolean complete;
 
     private String realm;
+    private ChallengeType challengeType;
     private String sid;
 
     private String username;     // SASLprep (query)
@@ -240,6 +242,7 @@ public final class ScramScheme implements AuthScheme {
             }
             throw new MalformedChallengeException("Null SCRAM challenge");
         }
+        this.challengeType = authChallenge.getChallengeType();
         final Map<String, String> params;
         try {
             params = toParamMap(authChallenge.getParams());
@@ -468,7 +471,7 @@ public final class ScramScheme implements AuthScheme {
         Args.notNull(credentialsProvider, "Credentials provider");
 
         final HttpClientContext clientContext = HttpClientContext.cast(context);
-        final AuthScope scope = new AuthScope(host, this.realm, getName());
+        final AuthScope scope = new AuthScope(host, this.realm, getName(), this.challengeType);
         final Credentials creds = credentialsProvider.getCredentials(scope, clientContext);
         if (!(creds instanceof UsernamePasswordCredentials)) {
             return false;

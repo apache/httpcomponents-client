@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.auth;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
@@ -42,6 +43,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.CharArrayBuffer;
 import org.junit.jupiter.api.Assertions;
@@ -95,6 +97,26 @@ class TestBasicScheme {
         Assertions.assertEquals("test", authscheme.getRealm());
         Assertions.assertTrue(authscheme.isChallengeComplete());
         Assertions.assertFalse(authscheme.isConnectionBased());
+    }
+
+    @Test
+    void testBasicAuthenticationScopeChallengeType() throws Exception {
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AtomicReference<AuthScope> requested = new AtomicReference<>();
+        final CredentialsProvider credentialsProvider = (authScope, context) -> {
+            requested.set(authScope);
+            return new UsernamePasswordCredentials("testuser", "testpass".toCharArray());
+        };
+
+        final BasicScheme authscheme = new BasicScheme();
+        authscheme.processChallenge(parse("Basic realm=\"test\""), null);
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        Assertions.assertEquals(ChallengeType.TARGET, requested.get().getChallengeType());
+
+        authscheme.processChallenge(new AuthChallenge(ChallengeType.PROXY, StandardAuthScheme.BASIC,
+                new BasicNameValuePair("realm", "test")), null);
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        Assertions.assertEquals(ChallengeType.PROXY, requested.get().getChallengeType());
     }
 
     static final String TEST_UTF8_PASSWORD = "123\u00A3";
