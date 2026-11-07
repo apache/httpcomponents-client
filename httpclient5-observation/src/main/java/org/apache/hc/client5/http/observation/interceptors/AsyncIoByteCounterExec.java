@@ -68,23 +68,13 @@ public final class AsyncIoByteCounterExec implements AsyncExecChainHandler {
     private final ObservingOptions opts;
     private final MetricConfig mc;
 
-    private final Counter.Builder reqBuilder;
-    private final Counter.Builder respBuilder;
-
     public AsyncIoByteCounterExec(final MeterRegistry meterRegistry,
                                   final ObservingOptions opts,
                                   final MetricConfig mc) {
         this.meterRegistry = Args.notNull(meterRegistry, "meterRegistry");
         this.opts = Args.notNull(opts, "observingOptions");
         this.mc = Args.notNull(mc, "metricConfig");
-
-        this.reqBuilder = Counter.builder(mc.prefix + ".request.bytes")
-                .description("HTTP request payload size")
-                .baseUnit("bytes");
-
-        this.respBuilder = Counter.builder(mc.prefix + ".response.bytes")
-                .description("HTTP response payload size")
-                .baseUnit("bytes");
+        // builders are created per request to avoid tag accumulation
     }
 
     @Override
@@ -146,11 +136,23 @@ public final class AsyncIoByteCounterExec implements AsyncExecChainHandler {
                 final List<Tag> tags = buildTags(request.getMethod(), status, protocol, target, uri);
 
                 if (reqBytes >= 0) {
-                    reqBuilder.tags(tags).tags(mc.commonTags).register(meterRegistry).increment(reqBytes);
+                    Counter.builder(mc.prefix + ".request.bytes")
+                            .description("HTTP request payload size")
+                            .baseUnit("bytes")
+                            .tags(tags)
+                            .tags(mc.commonTags)
+                            .register(meterRegistry)
+                            .increment(reqBytes);
                 }
                 final long rb = respLen.get();
                 if (rb >= 0) {
-                    respBuilder.tags(tags).tags(mc.commonTags).register(meterRegistry).increment(rb);
+                    Counter.builder(mc.prefix + ".response.bytes")
+                            .description("HTTP response payload size")
+                            .baseUnit("bytes")
+                            .tags(tags)
+                            .tags(mc.commonTags)
+                            .register(meterRegistry)
+                            .increment(rb);
                 }
             }
         };
