@@ -40,6 +40,7 @@ import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthStateCacheable;
 import org.apache.hc.client5.http.auth.AuthenticationException;
+import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
@@ -74,6 +75,7 @@ public class BasicScheme implements AuthScheme, StateHolder<BasicScheme.State>, 
     private transient ByteArrayBuilder buffer;
     private transient Base64 base64codec;
     private boolean complete;
+    private ChallengeType challengeType;
 
     private UsernamePasswordCredentials credentials;
 
@@ -130,6 +132,7 @@ public class BasicScheme implements AuthScheme, StateHolder<BasicScheme.State>, 
             final AuthChallenge authChallenge,
             final HttpContext context) throws MalformedChallengeException {
         this.paramMap.clear();
+        this.challengeType = authChallenge.getChallengeType();
         final List<NameValuePair> params = authChallenge.getParams();
         if (params != null) {
             for (final NameValuePair param: params) {
@@ -153,7 +156,7 @@ public class BasicScheme implements AuthScheme, StateHolder<BasicScheme.State>, 
         Args.notNull(host, "Auth host");
         Args.notNull(credentialsProvider, "CredentialsProvider");
 
-        final AuthScope authScope = new AuthScope(host, getRealm(), getName());
+        final AuthScope authScope = new AuthScope(host, getRealm(), getName(), challengeType);
         final Credentials credentials = credentialsProvider.getCredentials(
                 authScope, context);
         if (credentials instanceof UsernamePasswordCredentials) {

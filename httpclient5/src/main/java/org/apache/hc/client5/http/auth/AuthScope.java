@@ -37,8 +37,9 @@ import org.apache.hc.core5.util.LangUtils;
 
 /**
  * {@code AuthScope} represents an authentication scope consisting of
- * an application protocol, a host name, a port number, a realm name
- * and an authentication scheme name.
+ * an application protocol, a host name, a port number, a realm name,
+ * an authentication scheme name and optionally a challenge type
+ * (target or proxy).
  *
  * @since 4.0
  */
@@ -50,6 +51,7 @@ public class AuthScope {
     private final int port;
     private final String realm;
     private final String schemeName;
+    private final ChallengeType challengeType;
 
     /**
      * Defines auth scope with the given {@code protocol}, {@code host}, {@code port},
@@ -72,11 +74,41 @@ public class AuthScope {
             final int port,
             final String realm,
             final String schemeName) {
+        this(protocol, host, port, realm, schemeName, null);
+    }
+
+    /**
+     * Defines auth scope with the given {@code protocol}, {@code host}, {@code port},
+     * {@code realm}, {@code schemeName} and {@code challengeType}.
+     *
+     * @param protocol application protocol. May be {@code null} if applies
+     *   to any protocol.
+     * @param host authentication host. May be {@code null} if applies
+     *   to any host.
+     * @param port authentication port. May be {@code -1} if applies
+     *   to any port of the host.
+     * @param realm authentication realm. May be {@code null} if applies
+     *   to any realm on the host.
+     * @param schemeName authentication scheme name. May be {@code null} if applies
+     *   to any auth scheme supported by the host.
+     * @param challengeType challenge type (target or proxy). May be {@code null} if applies
+     *   to both.
+     *
+     * @since 5.7
+     */
+    public AuthScope(
+            final String protocol,
+            final String host,
+            final int port,
+            final String realm,
+            final String schemeName,
+            final ChallengeType challengeType) {
         this.protocol = protocol != null ? protocol.toLowerCase(Locale.ROOT) : null;
         this.host = host != null ? host.toLowerCase(Locale.ROOT) : null;
         this.port = port >= 0 ? port : -1;
         this.realm = realm;
         this.schemeName = schemeName != null ? schemeName.toUpperCase(Locale.ROOT) : null;
+        this.challengeType = challengeType;
     }
 
     /**
@@ -94,12 +126,34 @@ public class AuthScope {
             final HttpHost origin,
             final String realm,
             final String schemeName) {
+        this(origin, realm, schemeName, null);
+    }
+
+    /**
+     * Defines auth scope for a specific host of origin and challenge type.
+     *
+     * @param origin host of origin
+     * @param realm authentication realm. May be {@code null} if applies
+     *   to any realm on the host.
+     * @param schemeName authentication scheme name. May be {@code null} if applies
+     *   to any auth scheme supported by the host.
+     * @param challengeType challenge type (target or proxy). May be {@code null} if applies
+     *   to both.
+     *
+     * @since 5.7
+     */
+    public AuthScope(
+            final HttpHost origin,
+            final String realm,
+            final String schemeName,
+            final ChallengeType challengeType) {
         Args.notNull(origin, "Host");
         this.protocol = origin.getSchemeName().toLowerCase(Locale.ROOT);
         this.host = origin.getHostName().toLowerCase(Locale.ROOT);
         this.port = origin.getPort() >= 0 ? origin.getPort() : -1;
         this.realm = realm;
         this.schemeName = schemeName != null ? schemeName.toUpperCase(Locale.ROOT) : null;
+        this.challengeType = challengeType;
     }
 
     /**
@@ -136,6 +190,7 @@ public class AuthScope {
         this.port = authScope.getPort();
         this.realm = authScope.getRealm();
         this.schemeName = authScope.getSchemeName();
+        this.challengeType = authScope.getChallengeType();
     }
 
     public String getProtocol() {
@@ -156,6 +211,17 @@ public class AuthScope {
 
     public String getSchemeName() {
         return this.schemeName;
+    }
+
+    /**
+     * Returns the challenge type (target or proxy) or {@code null} if the scope
+     * applies to both. The challenge type is not taken into account by
+     * {@link #match(AuthScope)}, {@link #equals(Object)} and {@link #hashCode()}.
+     *
+     * @since 5.7
+     */
+    public ChallengeType getChallengeType() {
+        return this.challengeType;
     }
 
     /**
