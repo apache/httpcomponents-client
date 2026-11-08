@@ -190,8 +190,9 @@ class TestAuthenticationHandler {
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"1234\""));
 
         final Credentials credentials = new UsernamePasswordCredentials("user", "pass".toCharArray());
-        Mockito.when(this.credentialsProvider.getCredentials(Mockito.eq(new AuthScope(host, "test", StandardAuthScheme.BASIC)),
-                                                             Mockito.any())).thenReturn(credentials);
+        Mockito.when(this.credentialsProvider.getCredentials(
+                Mockito.eq(new AuthScope(host, "test", StandardAuthScheme.BASIC,ChallengeType.TARGET)), Mockito.any()))
+                .thenReturn(credentials);
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
@@ -324,8 +325,9 @@ class TestAuthenticationHandler {
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "whatever realm=\"realm1\", stuff=\"1234\""));
 
         final Credentials credentials = new UsernamePasswordCredentials("user", "pass".toCharArray());
-        Mockito.when(this.credentialsProvider.getCredentials(Mockito.eq(new AuthScope(host, "realm1", StandardAuthScheme.DIGEST)),
-                                                             Mockito.any())).thenReturn(credentials);
+        Mockito.when(this.credentialsProvider.getCredentials(
+                Mockito.eq(new AuthScope(host, "realm1",StandardAuthScheme.DIGEST, ChallengeType.TARGET)), Mockito.any()))
+                .thenReturn(credentials);
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 

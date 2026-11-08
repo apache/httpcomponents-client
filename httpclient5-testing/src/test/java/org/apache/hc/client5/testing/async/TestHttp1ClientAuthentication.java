@@ -32,6 +32,7 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -87,7 +88,7 @@ abstract class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuth
         Assertions.assertNotNull(response);
         Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
         Mockito.verify(credsProvider).getCredentials(
-                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
+                Mockito.eq(new AuthScope(target, "test realm", "basic", ChallengeType.TARGET)), Mockito.any());
     }
 
 }

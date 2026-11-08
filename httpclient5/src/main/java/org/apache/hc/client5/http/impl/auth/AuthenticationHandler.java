@@ -352,7 +352,7 @@ public class AuthenticationHandler {
                 final String schemeName = authScheme.getName();
                 final AuthChallenge challenge = challengeMap.get(schemeName.toLowerCase(Locale.ROOT));
                 authScheme.processChallenge(host, challenged, challenge, clientContext);
-                if (authScheme.isResponseReady(host, credsProvider, clientContext)) {
+                if (authScheme.isResponseReady(host, challengeType, credsProvider, clientContext)) {
                     authOptions.add(authScheme);
                 }
             } catch (final AuthenticationException | MalformedChallengeException ex) {

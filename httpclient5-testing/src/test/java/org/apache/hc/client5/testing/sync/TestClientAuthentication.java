@@ -47,6 +47,7 @@ import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.BearerToken;
+import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -137,7 +138,8 @@ abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
             return null;
         });
         Mockito.verify(credsProvider).getCredentials(
-                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
+                Mockito.eq(new AuthScope(target, "test realm", "basic", ChallengeType.TARGET)),
+                Mockito.any());
     }
 
     @Test
@@ -163,7 +165,8 @@ abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
             return null;
         });
         Mockito.verify(credsProvider).getCredentials(
-                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
+                Mockito.eq(new AuthScope(target, "test realm", "basic", ChallengeType.TARGET)),
+                Mockito.any());
     }
 
     @Test
@@ -188,7 +191,8 @@ abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
             return null;
         });
         Mockito.verify(credsProvider).getCredentials(
-                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
+                Mockito.eq(new AuthScope(target, "test realm", "basic", ChallengeType.TARGET)),
+                Mockito.any());
     }
 
     @Test
@@ -278,7 +282,8 @@ abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
             return null;
         });
         Mockito.verify(credsProvider).getCredentials(
-                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
+                Mockito.eq(new AuthScope(target, "test realm", "basic", ChallengeType.TARGET)),
+                Mockito.any());
     }
 
     @Test
@@ -754,7 +759,8 @@ abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
             return null;
         });
         Mockito.verify(credsProvider).getCredentials(
-                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
+                Mockito.eq(new AuthScope(target, "test realm", "basic", ChallengeType.TARGET)),
+                Mockito.any());
     }
 
     private final static String CHARS = "0123456789abcdef";
@@ -794,7 +800,8 @@ abstract class TestClientAuthentication extends AbstractIntegrationTestBase {
             return null;
         });
         Mockito.verify(credsProvider).getCredentials(
-                Mockito.eq(new AuthScope(target, "test realm", "bearer")), Mockito.any());
+                Mockito.eq(new AuthScope(target, "test realm", "bearer", ChallengeType.TARGET)),
+                Mockito.any());
 
         final HttpClientContext context2 = HttpClientContext.create();
         Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))

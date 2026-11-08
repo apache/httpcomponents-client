@@ -39,6 +39,7 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthStateCacheable;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.BearerToken;
+import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
@@ -129,11 +130,20 @@ public class BearerScheme implements AuthScheme, StateHolder<BearerScheme.State>
             final HttpHost host,
             final CredentialsProvider credentialsProvider,
             final HttpContext context) throws AuthenticationException {
+        return isResponseReady(host, null, credentialsProvider, context);
+    }
+
+    @Override
+    public boolean isResponseReady(
+            final HttpHost host,
+            final ChallengeType challengeType,
+            final CredentialsProvider credentialsProvider,
+            final HttpContext context) throws AuthenticationException {
 
         Args.notNull(host, "Auth host");
         Args.notNull(credentialsProvider, "Credentials provider");
 
-        final AuthScope authScope = new AuthScope(host, getRealm(), getName());
+        final AuthScope authScope = new AuthScope(host, getRealm(), getName(), challengeType);
         final Credentials credentials = credentialsProvider.getCredentials(authScope, context);
         if (credentials instanceof BearerToken) {
             this.bearerToken = (BearerToken) credentials;

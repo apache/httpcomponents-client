@@ -50,6 +50,7 @@ public class AuthScope {
     private final int port;
     private final String realm;
     private final String schemeName;
+    private final ChallengeType challengeType;
 
     /**
      * Defines auth scope with the given {@code protocol}, {@code host}, {@code port},
@@ -65,18 +66,38 @@ public class AuthScope {
      *   to any realm on the host.
      * @param schemeName authentication scheme name. May be {@code null} if applies
      *   to any auth scheme supported by the host.
+     *
+     * @since 5.7
      */
     public AuthScope(
             final String protocol,
             final String host,
             final int port,
             final String realm,
-            final String schemeName) {
+            final String schemeName,
+            final ChallengeType challengeType) {
         this.protocol = protocol != null ? protocol.toLowerCase(Locale.ROOT) : null;
         this.host = host != null ? host.toLowerCase(Locale.ROOT) : null;
         this.port = port >= 0 ? port : -1;
         this.realm = realm;
         this.schemeName = schemeName != null ? schemeName.toUpperCase(Locale.ROOT) : null;
+        this.challengeType = challengeType;
+    }
+
+    public AuthScope(
+            final String protocol,
+            final String host,
+            final int port,
+            final String realm,
+            final String schemeName) {
+        this(protocol, host, port, realm, schemeName, null);
+    }
+
+    public AuthScope(
+            final HttpHost origin,
+            final String realm,
+            final String schemeName) {
+        this(origin, realm, schemeName, null);
     }
 
     /**
@@ -88,18 +109,20 @@ public class AuthScope {
      * @param schemeName authentication scheme name. May be {@code null} if applies
      *   to any auth scheme supported by the host.
      *
-     * @since 4.2
+     * @since 5.7
      */
     public AuthScope(
             final HttpHost origin,
             final String realm,
-            final String schemeName) {
+            final String schemeName,
+            final ChallengeType challengeType) {
         Args.notNull(origin, "Host");
         this.protocol = origin.getSchemeName().toLowerCase(Locale.ROOT);
         this.host = origin.getHostName().toLowerCase(Locale.ROOT);
         this.port = origin.getPort() >= 0 ? origin.getPort() : -1;
         this.realm = realm;
         this.schemeName = schemeName != null ? schemeName.toUpperCase(Locale.ROOT) : null;
+        this.challengeType = challengeType;
     }
 
     /**
@@ -122,7 +145,7 @@ public class AuthScope {
      *   to any port of the host.
      */
     public AuthScope(final String host, final int port) {
-        this(null, host, port, null, null);
+        this(null, host, port, null, null, null);
     }
 
     /**
@@ -136,6 +159,7 @@ public class AuthScope {
         this.port = authScope.getPort();
         this.realm = authScope.getRealm();
         this.schemeName = authScope.getSchemeName();
+        this.challengeType = authScope.getChallengeType();
     }
 
     public String getProtocol() {
@@ -159,6 +183,13 @@ public class AuthScope {
     }
 
     /**
+     * @since 5.7
+     */
+    public ChallengeType getChallengeType() {
+        return challengeType;
+    }
+
+    /**
      * Tests if the authentication scopes match.
      *
      * @return the match factor. Negative value signifies no match.
@@ -167,36 +198,43 @@ public class AuthScope {
      */
     public int match(final AuthScope that) {
         int factor = 0;
-        if (Objects.equals(this.schemeName, that.schemeName)) {
+        if (Objects.equals(this.challengeType, that.challengeType)) {
             factor += 1;
+        } else {
+            if (this.challengeType != null && that.challengeType != null) {
+                return -1;
+            }
+        }
+        if (Objects.equals(this.schemeName, that.schemeName)) {
+            factor += 2;
         } else {
             if (this.schemeName != null && that.schemeName != null) {
                 return -1;
             }
         }
         if (Objects.equals(this.realm, that.realm)) {
-            factor += 2;
+            factor += 4;
         } else {
             if (this.realm != null && that.realm != null) {
                 return -1;
             }
         }
         if (this.port == that.port) {
-            factor += 4;
+            factor += 8;
         } else {
             if (this.port != -1 && that.port != -1) {
                 return -1;
             }
         }
         if (Objects.equals(this.protocol, that.protocol)) {
-            factor += 8;
+            factor += 16;
         } else {
             if (this.protocol != null && that.protocol != null) {
                 return -1;
             }
         }
         if (Objects.equals(this.host, that.host)) {
-            factor += 16;
+            factor += 32;
         } else {
             if (this.host != null && that.host != null) {
                 return -1;
@@ -216,7 +254,8 @@ public class AuthScope {
                     && Objects.equals(this.host, that.host)
                     && this.port == that.port
                     && Objects.equals(this.realm, that.realm)
-                    && Objects.equals(this.schemeName, that.schemeName);
+                    && Objects.equals(this.schemeName, that.schemeName)
+                    && Objects.equals(this.challengeType, that.challengeType);
         }
         return false;
     }
@@ -229,6 +268,7 @@ public class AuthScope {
         hash = LangUtils.hashCode(hash, this.port);
         hash = LangUtils.hashCode(hash, this.realm);
         hash = LangUtils.hashCode(hash, this.schemeName);
+        hash = LangUtils.hashCode(hash, this.challengeType);
         return hash;
     }
 
@@ -265,6 +305,12 @@ public class AuthScope {
             buffer.append(this.port);
         } else {
             buffer.append("<any port>");
+        }
+        buffer.append(' ');
+        if (this.challengeType != null) {
+            buffer.append(this.challengeType);
+        } else {
+            buffer.append("<any challenge type>");
         }
         return buffer.toString();
     }
