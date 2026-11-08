@@ -215,6 +215,32 @@ public interface AuthScheme {
             HttpContext context) throws AuthenticationException;
 
     /**
+     * Determines whether or not an authorization response can be generated based on
+     * the actual authentication state. Generally the outcome of this method will depend
+     * upon availability of user credentials necessary to produce an authorization
+     * response.
+     *
+     * @param host The opposite endpoint
+     * @param challengeType the challenge type
+     * @param credentialsProvider The credentials to be used for authentication
+     * @param context HTTP context
+     * @throws AuthenticationException if authorization string cannot
+     *   be generated due to an authentication failure
+     *
+     * @return {@code true} if an authorization response can be generated and
+     * the authentication handshake can proceed, {@code false} otherwise.
+     *
+     * @since 5.7
+     */
+    default boolean isResponseReady(
+            final HttpHost host,
+            final ChallengeType challengeType,
+            final CredentialsProvider credentialsProvider,
+            final HttpContext context) throws AuthenticationException {
+        return isResponseReady(host, credentialsProvider, context);
+    }
+
+    /**
      * Returns {@link Principal} whose credentials are used to generate
      * an authentication response. Connection based schemes are required
      * to return a user {@link Principal} if authorization applies to

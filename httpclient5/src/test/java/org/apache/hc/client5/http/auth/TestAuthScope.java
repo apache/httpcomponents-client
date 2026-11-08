@@ -37,13 +37,13 @@ class TestAuthScope {
 
     @Test
     void testBasics() {
-        final AuthScope authscope = new AuthScope("http", "somehost", 80, "somerealm", "SomeScheme");
+        final AuthScope authscope = new AuthScope("http", "somehost", 80, "somerealm", "SomeScheme", ChallengeType.TARGET);
         Assertions.assertEquals("SOMESCHEME", authscope.getSchemeName());
         Assertions.assertEquals("http", authscope.getProtocol());
         Assertions.assertEquals("somehost", authscope.getHost());
         Assertions.assertEquals(80, authscope.getPort());
         Assertions.assertEquals("somerealm", authscope.getRealm());
-        Assertions.assertEquals("SOMESCHEME 'somerealm' http://somehost:80", authscope.toString());
+        Assertions.assertEquals("SOMESCHEME 'somerealm' http://somehost:80 TARGET", authscope.toString());
     }
 
     @Test
@@ -55,7 +55,7 @@ class TestAuthScope {
         Assertions.assertEquals(8080, authscope.getPort());
         Assertions.assertNull(authscope.getRealm());
         Assertions.assertEquals("http", authscope.getProtocol());
-        Assertions.assertEquals("<any auth scheme> <any realm> http://somehost:8080", authscope.toString());
+        Assertions.assertEquals("<any auth scheme> <any realm> http://somehost:8080 <any challenge type>", authscope.toString());
     }
 
     @Test
@@ -65,7 +65,7 @@ class TestAuthScope {
         Assertions.assertEquals("somehost", authscope.getHost());
         Assertions.assertEquals(80, authscope.getPort());
         Assertions.assertNull(authscope.getRealm());
-        Assertions.assertEquals("<any auth scheme> <any realm> <any protocol>://somehost:80", authscope.toString());
+        Assertions.assertEquals("<any auth scheme> <any realm> <any protocol>://somehost:80 <any challenge type>", authscope.toString());
     }
 
     @Test
@@ -82,13 +82,13 @@ class TestAuthScope {
         Assertions.assertNull(authscope.getHost());
         Assertions.assertEquals(-1, authscope.getPort());
         Assertions.assertNull(authscope.getRealm());
-        Assertions.assertEquals("<any auth scheme> <any realm> <any protocol>://<any host>:<any port>", authscope.toString());
+        Assertions.assertEquals("<any auth scheme> <any realm> <any protocol>://<any host>:<any port> <any challenge type>", authscope.toString());
     }
 
     @Test
     void testScopeMatching() {
-        final AuthScope authscope1 = new AuthScope("http", "somehost", 80, "somerealm", "somescheme");
-        final AuthScope authscope2 = new AuthScope("http", "someotherhost", 80, "somerealm", "somescheme");
+        final AuthScope authscope1 = new AuthScope("http", "somehost", 80, "somerealm", "somescheme", ChallengeType.TARGET);
+        final AuthScope authscope2 = new AuthScope("http", "someotherhost", 80, "somerealm", "somescheme", ChallengeType.TARGET);
         Assertions.assertTrue(authscope1.match(authscope2) < 0);
 
         int m1 = authscope1.match(new AuthScope(null, null, -1, null, "somescheme"));
@@ -113,6 +113,10 @@ class TestAuthScope {
 
         m1 = authscope1.match(new AuthScope(null, null, -1, null, null));
         m2 = authscope1.match(new AuthScope(null, null, -1, null, "somescheme"));
+        Assertions.assertTrue(m2 > m1);
+
+        m1 = authscope1.match(new AuthScope(null, null, -1, null, "somescheme", null));
+        m2 = authscope1.match(new AuthScope(null, null, -1, null, "somescheme", ChallengeType.TARGET));
         Assertions.assertTrue(m2 > m1);
     }
 

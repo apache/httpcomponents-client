@@ -52,6 +52,7 @@ import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
+import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
@@ -435,22 +436,33 @@ public final class ScramScheme implements AuthScheme {
         return this.realm;
     }
 
+    @Override
+    public boolean isResponseReady(
+            final HttpHost host,
+            final CredentialsProvider credentialsProvider,
+            final HttpContext context) throws AuthenticationException {
+        return isResponseReady(host, null, credentialsProvider, context);
+    }
+
     /**
      * Allow response when:
      * - INIT  (preemptive client-first) — only if creds have been prepared
      * - ANNOUNCED (401 without data)
      * - SERVER_FIRST_RCVD (ready to send client-final)
+     *
+     * @since 5.7
      */
     @Override
     public boolean isResponseReady(
             final HttpHost host,
+            final ChallengeType challengeType,
             final CredentialsProvider credentialsProvider,
             final HttpContext context) throws AuthenticationException {
 
         Args.notNull(credentialsProvider, "Credentials provider");
 
         final HttpClientContext clientContext = HttpClientContext.cast(context);
-        final AuthScope scope = new AuthScope(host, this.realm, getName());
+        final AuthScope scope = new AuthScope(host, this.realm, getName(), challengeType);
         final Credentials creds = credentialsProvider.getCredentials(scope, clientContext);
         if (!(creds instanceof UsernamePasswordCredentials)) {
             return false;
