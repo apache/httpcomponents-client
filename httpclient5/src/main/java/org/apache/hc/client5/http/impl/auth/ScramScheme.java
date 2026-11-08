@@ -132,8 +132,6 @@ public final class ScramScheme implements AuthScheme {
 
     /**
      * Default policy: warn if {@code i < 4096}, no hard enforcement; SHA-256 only.
-     *
-     * @since 5.6
      */
     public ScramScheme() {
         this(DEFAULT_WARN_MIN_ITERATIONS, 0, DEFAULT_MAX_ITERATIONS_ALLOWED, null);
@@ -145,7 +143,6 @@ public final class ScramScheme implements AuthScheme {
      * @param warnMinIterations     warn if iteration count is lower than this (0 disables warnings)
      * @param minIterationsRequired fail if iteration count is lower than this (0 disables enforcement)
      * @param rnd                   optional secure random source (null uses system default)
-     * @since 5.6
      */
     public ScramScheme(final int warnMinIterations, final int minIterationsRequired, final SecureRandom rnd) {
         this(warnMinIterations, minIterationsRequired, DEFAULT_MAX_ITERATIONS_ALLOWED, rnd);
@@ -158,7 +155,6 @@ public final class ScramScheme implements AuthScheme {
      * @param minIterationsRequired fail if iteration count is lower than this (0 disables enforcement)
      * @param maxIterationsAllowed  fail if iteration count is greater than this (must be positive)
      * @param rnd                   optional secure random source (null uses system default)
-     * @since 5.6
      */
     public ScramScheme(
             final int warnMinIterations,
@@ -173,8 +169,6 @@ public final class ScramScheme implements AuthScheme {
 
     /**
      * Returns textual designation of the scheme.
-     *
-     * @since 5.6
      */
     @Override
     public String getName() {
@@ -183,8 +177,6 @@ public final class ScramScheme implements AuthScheme {
 
     /**
      * SCRAM is per-request (no connection binding).
-     *
-     * @since 5.6
      */
     @Override
     public boolean isConnectionBased() {
@@ -194,8 +186,6 @@ public final class ScramScheme implements AuthScheme {
     /**
      * SCRAM must inspect responses while an authentication exchange is in progress,
      * including the final {@code Authentication-Info} carrying the server signature.
-     *
-     * @since 5.6
      */
     @Override
     public boolean isChallengeExpected() {
@@ -204,8 +194,6 @@ public final class ScramScheme implements AuthScheme {
 
     /**
      * Legacy entry point: wraps {@link AuthenticationException} as {@link MalformedChallengeException}.
-     *
-     * @since 5.6
      */
     @Override
     public void processChallenge(final AuthChallenge authChallenge, final HttpContext context)
@@ -220,8 +208,6 @@ public final class ScramScheme implements AuthScheme {
     /**
      * Handles 401 challenges (with/without {@code data}) and final responses carrying
      * {@code Authentication-Info} (any status code).
-     *
-     * @since 5.6
      */
     @Override
     public void processChallenge(
@@ -436,7 +422,6 @@ public final class ScramScheme implements AuthScheme {
     }
 
     /**
-     * @since 5.6
      */
     @Override
     public boolean isChallengeComplete() {
@@ -444,7 +429,6 @@ public final class ScramScheme implements AuthScheme {
     }
 
     /**
-     * @since 5.6
      */
     @Override
     public String getRealm() {
@@ -456,8 +440,6 @@ public final class ScramScheme implements AuthScheme {
      * - INIT  (preemptive client-first) — only if creds have been prepared
      * - ANNOUNCED (401 without data)
      * - SERVER_FIRST_RCVD (ready to send client-final)
-     *
-     * @since 5.6
      */
     @Override
     public boolean isResponseReady(
@@ -523,7 +505,6 @@ public final class ScramScheme implements AuthScheme {
     }
 
     /**
-     * @since 5.6
      */
     @Override
     public String generateAuthResponse(
@@ -560,8 +541,6 @@ public final class ScramScheme implements AuthScheme {
 
     /**
      * Returns {@link Principal} whose credentials are used.
-     *
-     * @since 5.6
      */
     @Override
     public Principal getPrincipal() {
