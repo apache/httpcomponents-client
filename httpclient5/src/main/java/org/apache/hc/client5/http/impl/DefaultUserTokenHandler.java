@@ -31,10 +31,12 @@ import java.security.Principal;
 import javax.net.ssl.SSLSession;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
@@ -64,6 +66,28 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
      */
     public static final DefaultUserTokenHandler INSTANCE = new DefaultUserTokenHandler();
 
+    private final SchemePortResolver schemePortResolver;
+
+    /**
+     * Creates a new {@code DefaultUserTokenHandler} using the given {@link SchemePortResolver}.
+     * If {@code schemePortResolver} is {@code null}, this will default to
+     * {@link DefaultSchemePortResolver#INSTANCE}.
+     *
+     * @param schemePortResolver the resolver to use for determining default ports
+     * @since 5.7
+     */
+    public DefaultUserTokenHandler(final SchemePortResolver schemePortResolver) {
+        this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
+    }
+
+    /**
+     * Creates a new {@code DefaultUserTokenHandler} with the default
+     * {@link DefaultSchemePortResolver#INSTANCE}.
+     */
+    public DefaultUserTokenHandler() {
+        this(null);
+    }
+
     @Override
     public Object getUserToken(final HttpRoute route, final HttpContext context) {
         return getUserToken(route, null, context);
@@ -74,7 +98,10 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
 
         final HttpClientContext clientContext = HttpClientContext.cast(context);
 
-        final HttpHost target = request != null ? new HttpHost(request.getScheme(), request.getAuthority()) : route.getTargetHost();
+        // Auth exchanges are keyed by the target with its port resolved (see ProtocolExec)
+        final HttpHost target = request != null
+                ? RoutingSupport.normalize(new HttpHost(request.getScheme(), request.getAuthority()), schemePortResolver)
+                : route.getTargetHost();
 
         final AuthExchange targetAuthExchange = clientContext.getAuthExchange(target);
         if (targetAuthExchange != null) {
