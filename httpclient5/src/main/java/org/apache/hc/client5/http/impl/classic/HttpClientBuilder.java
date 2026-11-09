@@ -887,7 +887,7 @@ public class HttpClientBuilder {
         UserTokenHandler userTokenHandlerCopy = this.userTokenHandler;
         if (userTokenHandlerCopy == null) {
             if (!connectionStateDisabled) {
-                userTokenHandlerCopy = DefaultUserTokenHandler.INSTANCE;
+                userTokenHandlerCopy = schemePortResolver != null ? new DefaultUserTokenHandler(schemePortResolver) : DefaultUserTokenHandler.INSTANCE;
             } else {
                 userTokenHandlerCopy = NoopUserTokenHandler.INSTANCE;
             }
