@@ -58,6 +58,7 @@ import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,9 +84,21 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
             final Lookup<TlsStrategy> tlsStrategyLookup,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
+        this(tlsStrategyLookup, schemePortResolver, dnsResolver, false, null);
+    }
+
+    /**
+     * @since 5.7
+     */
+    protected DefaultAsyncClientConnectionOperator(
+            final Lookup<TlsStrategy> tlsStrategyLookup,
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver,
+            final boolean happyEyeballsEnabled,
+            final TimeValue connectionAttemptDelay) {
         this.tlsStrategyLookup = Args.notNull(tlsStrategyLookup, "TLS strategy lookup");
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
-        this.sessionRequester = new MultihomeIOSessionRequester(dnsResolver);
+        this.sessionRequester = new MultihomeIOSessionRequester(dnsResolver, happyEyeballsEnabled, connectionAttemptDelay);
     }
 
     @Override

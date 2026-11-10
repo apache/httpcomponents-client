@@ -57,6 +57,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     private TlsStrategy tlsStrategy;
     private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
+    private boolean happyEyeballsEnabled;
+    private TimeValue connectionAttemptDelay;
     private PoolConcurrencyPolicy poolConcurrencyPolicy;
     private PoolReusePolicy poolReusePolicy;
 
@@ -96,6 +98,37 @@ public class PoolingAsyncClientConnectionManagerBuilder {
      */
     public final PoolingAsyncClientConnectionManagerBuilder setDnsResolver(final DnsResolver dnsResolver) {
         this.dnsResolver = dnsResolver;
+        return this;
+    }
+
+    /**
+     * Enables RFC 8305 (Happy Eyeballs v2) connection racing for hosts that resolve to more
+     * than one address: the first address is tried immediately, and each subsequent one after
+     * {@link #setConnectionAttemptDelay(TimeValue)} unless an outstanding attempt fails first.
+     * The first successful connection wins; every other attempt is cancelled. Disabled
+     * ({@code false}) by default, in which case addresses continue to be tried sequentially.
+     *
+     * @param happyEyeballsEnabled whether to race connection attempts.
+     * @return this instance.
+     * @since 5.7
+     */
+    public final PoolingAsyncClientConnectionManagerBuilder setHappyEyeballsEnabled(final boolean happyEyeballsEnabled) {
+        this.happyEyeballsEnabled = happyEyeballsEnabled;
+        return this;
+    }
+
+    /**
+     * Sets the delay between the start of successive connection attempts when
+     * {@link #setHappyEyeballsEnabled(boolean)} is enabled. RFC 8305 Section 8 recommends
+     * 250ms and requires at least 10ms. Has no effect unless Happy Eyeballs racing is enabled.
+     *
+     * @param connectionAttemptDelay the delay, or {@code null} to use the RFC 8305
+     *                               recommended default of 250ms.
+     * @return this instance.
+     * @since 5.7
+     */
+    public final PoolingAsyncClientConnectionManagerBuilder setConnectionAttemptDelay(final TimeValue connectionAttemptDelay) {
+        this.connectionAttemptDelay = connectionAttemptDelay;
         return this;
     }
 
@@ -267,12 +300,27 @@ public class PoolingAsyncClientConnectionManagerBuilder {
             final TlsStrategy tlsStrategy,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
+        return createConnectionOperator(tlsStrategy, schemePortResolver, dnsResolver, false, null);
+    }
+
+    /**
+     * @since 5.7
+     */
+    @Internal
+    protected AsyncClientConnectionOperator createConnectionOperator(
+            final TlsStrategy tlsStrategy,
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver,
+            final boolean happyEyeballsEnabled,
+            final TimeValue connectionAttemptDelay) {
         return new DefaultAsyncClientConnectionOperator(
                 RegistryBuilder.<TlsStrategy>create()
                         .register(URIScheme.HTTPS.getId(), tlsStrategy)
                         .build(),
                 schemePortResolver,
-                dnsResolver);
+                dnsResolver,
+                happyEyeballsEnabled,
+                connectionAttemptDelay);
     }
 
     public PoolingAsyncClientConnectionManager build() {
@@ -287,7 +335,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
             }
         }
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
-                createConnectionOperator(tlsStrategyCopy, schemePortResolver, dnsResolver),
+                createConnectionOperator(tlsStrategyCopy, schemePortResolver, dnsResolver,
+                        happyEyeballsEnabled, connectionAttemptDelay),
                 poolConcurrencyPolicy,
                 poolReusePolicy,
                 null,

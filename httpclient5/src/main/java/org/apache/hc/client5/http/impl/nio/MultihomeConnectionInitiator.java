@@ -38,6 +38,7 @@ import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
 /**
@@ -56,6 +57,36 @@ public final class MultihomeConnectionInitiator implements ConnectionInitiator {
             final DnsResolver dnsResolver) {
         this.connectionInitiator = Args.notNull(connectionInitiator, "Connection initiator");
         this.sessionRequester = new MultihomeIOSessionRequester(dnsResolver);
+    }
+
+    /**
+     * Creates a multi-home connection initiator that, for hosts resolving to more than one
+     * address, optionally races connection attempts per RFC 8305 (Happy Eyeballs v2) instead
+     * of trying each address sequentially: the first address is tried immediately, and each
+     * subsequent one after {@code connectionAttemptDelay} unless an outstanding attempt fails
+     * first. The first successful connection wins; every other attempt is cancelled, and a
+     * connection that completes after a winner was already decided is closed rather than kept
+     * open. When {@code happyEyeballsEnabled} is {@code false}, behavior is identical to
+     * {@link #MultihomeConnectionInitiator(ConnectionInitiator, DnsResolver)}.
+     *
+     * @param connectionInitiator the connection initiator.
+     * @param dnsResolver the DNS resolver to use.
+     * @param happyEyeballsEnabled whether to race connection attempts instead of trying them
+     *                             sequentially.
+     * @param connectionAttemptDelay delay between the start of successive connection attempts
+     *                               (RFC 8305 Section 8 recommends 250ms; must be at least
+     *                               10ms). Ignored when {@code happyEyeballsEnabled} is
+     *                               {@code false}. May be {@code null} to use the RFC 8305
+     *                               recommended default.
+     * @since 5.7
+     */
+    public MultihomeConnectionInitiator(
+            final ConnectionInitiator connectionInitiator,
+            final DnsResolver dnsResolver,
+            final boolean happyEyeballsEnabled,
+            final TimeValue connectionAttemptDelay) {
+        this.connectionInitiator = Args.notNull(connectionInitiator, "Connection initiator");
+        this.sessionRequester = new MultihomeIOSessionRequester(dnsResolver, happyEyeballsEnabled, connectionAttemptDelay);
     }
 
     @Override
