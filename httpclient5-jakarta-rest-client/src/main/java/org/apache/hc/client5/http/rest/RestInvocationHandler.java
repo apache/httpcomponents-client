@@ -157,7 +157,18 @@ final class RestInvocationHandler implements InvocationHandler {
                     pathSegments.add(pathTemplate.getSegment());
                 }
             }
-            uriBuilder.appendPathSegments(pathSegments);
+            if (!pathSegments.isEmpty()) {
+                // A base URI ending in '/' (as many are written) has an empty last path
+                // segment. Appending after it would produce '//'; drop it first, exactly
+                // as ResourceIfaceScanner#join already does when joining a resource class's
+                // path with its method's path.
+                final List<String> baseSegments = uriBuilder.getPathSegments();
+                if (!baseSegments.isEmpty() && baseSegments.get(baseSegments.size() - 1).isEmpty()) {
+                    baseSegments.remove(baseSegments.size() - 1);
+                }
+                baseSegments.addAll(pathSegments);
+                uriBuilder.setPathSegments(baseSegments);
+            }
             uriBuilder.addParameters(queryParams);
             requestUri = uriBuilder.build();
         } catch (final URISyntaxException ex) {

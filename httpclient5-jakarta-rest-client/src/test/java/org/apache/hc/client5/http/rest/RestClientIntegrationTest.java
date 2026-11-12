@@ -161,6 +161,24 @@ class RestClientIntegrationTest {
     }
 
     @Test
+    void getBook_withTrailingSlashBaseUri_doesNotProduceDoubleSlash() throws Exception {
+        // A base URI ending in '/', as many are written, must not combine with the resource
+        // path to produce '//books/...': the server only has a context registered at
+        // "/books", so a leading double slash would not match it and the call would fail.
+        final URI trailingSlashBaseUri = new URI(baseUri.toString() + "/");
+        final BookResource client = RestClientBuilder.newBuilder()
+                .baseUri(trailingSlashBaseUri)
+                .httpClient(httpClient)
+                .build(BookResource.class);
+
+        final Book fetched = client.getBook("abc-123", "en", "token-1");
+
+        assertThat(fetched).isNotNull();
+        assertThat(fetched.id).isEqualTo("abc-123");
+        assertThat(fetched.lang).isEqualTo("en");
+    }
+
+    @Test
     void rejectsNonFormResponseForNameValuePairReturnType() {
         final BookResource client = RestClientBuilder.newBuilder()
                 .baseUri(baseUri)
