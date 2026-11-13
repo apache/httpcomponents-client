@@ -34,6 +34,7 @@ import java.net.URL;
 import java.util.Locale;
 
 import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -127,6 +128,66 @@ class TestSystemDefaultCredentialsProvider {
                 RequestorType.SERVER);
         Assertions.assertNotNull(receivedCredentials);
         Assertions.assertEquals(AUTH1.getUserName(), receivedCredentials.getUserPrincipal().getName());
+    }
+
+    @Test
+    void testSystemCredentialsProviderNoProxyCredentialsForTarget() {
+
+        final AuthenticatorDelegate authenticatorDelegate = installProxyAuthenticator(AUTH1);
+
+        final AuthScope authScope = new AuthScope(TARGET_SCHEME1, TARGET_HOST1, TARGET_PORT1, PROMPT1,
+                StandardAuthScheme.BASIC, ChallengeType.TARGET);
+
+        final Credentials receivedCredentials =
+            new SystemDefaultCredentialsProvider().getCredentials(authScope, HttpClientContext.create());
+
+        Mockito.verify(authenticatorDelegate, Mockito.never()).getPasswordAuthentication(ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.anyInt(), ArgumentMatchers.any(), ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.eq(RequestorType.PROXY));
+        Assertions.assertNull(receivedCredentials);
+    }
+
+    @Test
+    void testSystemCredentialsProviderProxyCredentialsForProxy() {
+
+        final AuthenticatorDelegate authenticatorDelegate = installProxyAuthenticator(AUTH1);
+
+        final AuthScope authScope = new AuthScope(PROXY_PROTOCOL1, PROXY_HOST1, PROXY_PORT1, PROMPT1,
+                StandardAuthScheme.BASIC, ChallengeType.PROXY);
+
+        final Credentials receivedCredentials =
+            new SystemDefaultCredentialsProvider().getCredentials(authScope, HttpClientContext.create());
+
+        Mockito.verify(authenticatorDelegate, Mockito.never()).getPasswordAuthentication(ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.anyInt(), ArgumentMatchers.any(), ArgumentMatchers.any(),
+                ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.eq(RequestorType.SERVER));
+        Assertions.assertNotNull(receivedCredentials);
+        Assertions.assertEquals(AUTH1.getUserName(), receivedCredentials.getUserPrincipal().getName());
+    }
+
+    @Test
+    void testSystemCredentialsProviderProxyCredentialsForUntypedScope() {
+
+        installProxyAuthenticator(AUTH1);
+
+        final AuthScope authScope = new AuthScope(PROXY_PROTOCOL1, PROXY_HOST1, PROXY_PORT1, PROMPT1, StandardAuthScheme.BASIC);
+
+        final Credentials receivedCredentials =
+            new SystemDefaultCredentialsProvider().getCredentials(authScope, HttpClientContext.create());
+
+        Assertions.assertNotNull(receivedCredentials);
+        Assertions.assertEquals(AUTH1.getUserName(), receivedCredentials.getUserPrincipal().getName());
+    }
+
+    private AuthenticatorDelegate installProxyAuthenticator(final PasswordAuthentication proxyAuthentication) {
+        final AuthenticatorDelegate authenticatorDelegate = Mockito.mock(AuthenticatorDelegate.class);
+        Mockito.when(authenticatorDelegate.getPasswordAuthentication(ArgumentMatchers.any(),
+                                                                     ArgumentMatchers.any(), ArgumentMatchers.anyInt(),
+                                                                     ArgumentMatchers.any(), ArgumentMatchers.any(),
+                                                                     ArgumentMatchers.any(), ArgumentMatchers.any(),
+                                                                     ArgumentMatchers.eq(RequestorType.PROXY))).thenReturn(proxyAuthentication);
+        Authenticator.setDefault(new DelegatedAuthenticator(authenticatorDelegate));
+        return authenticatorDelegate;
     }
 
     private AuthenticatorDelegate installAuthenticator(final PasswordAuthentication returedAuthentication) {
