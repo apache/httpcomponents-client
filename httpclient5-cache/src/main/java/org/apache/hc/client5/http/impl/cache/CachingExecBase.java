@@ -29,10 +29,13 @@ package org.apache.hc.client5.http.impl.cache;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -116,6 +119,17 @@ public class CachingExecBase {
      */
     public long getCacheUpdates() {
         return cacheUpdates.get();
+    }
+
+    /**
+     * Determines whether the protocol layer below the cache authenticated the request
+     * to the route target. The {@code Authorization} header generated from the
+     * credentials provider or the auth cache is added to the request instance
+     * executed by the protocol layer and is not visible to the cache.
+     */
+    static boolean isTargetAuthenticated(final HttpClientContext context, final HttpRoute route) {
+        final AuthExchange authExchange = context.getAuthExchanges().get(route.getTargetHost());
+        return authExchange != null && authExchange.getState() == AuthExchange.State.SUCCESS;
     }
 
     SimpleHttpResponse generateCachedResponse(

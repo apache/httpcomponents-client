@@ -91,6 +91,19 @@ class ResponseCachingPolicy {
      * @return {@code true} if response is cacheable
      */
     public boolean isResponseCacheable(final RequestCacheControl requestCacheControl, final ResponseCacheControl cacheControl, final HttpRequest request, final HttpResponse response) {
+        return isResponseCacheable(requestCacheControl, cacheControl, request, response, false);
+    }
+
+    /**
+     * Determine if the {@link HttpResponse} gotten from the origin is a
+     * cacheable response.
+     *
+     * @param requestCacheControl the cache control directives of the request
+     * @param authenticated {@code true} if the request was authenticated by the protocol
+     *                      layer with credentials not present in the given request
+     * @return {@code true} if response is cacheable
+     */
+    boolean isResponseCacheable(final RequestCacheControl requestCacheControl, final ResponseCacheControl cacheControl, final HttpRequest request, final HttpResponse response, final boolean authenticated) {
         if (requestCacheControl.isNoStore()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Response is not cacheable as the request enforced no-store");
@@ -149,7 +162,7 @@ class ResponseCachingPolicy {
         }
 
         if (sharedCache) {
-            if (request.containsHeader(HttpHeaders.AUTHORIZATION) &&
+            if ((authenticated || request.containsHeader(HttpHeaders.AUTHORIZATION)) &&
                     cacheControl.getSharedMaxAge() == -1 &&
                     !(cacheControl.isPublic() || cacheControl.isMustRevalidate())) {
                 LOG.debug("Request contains private credentials");
