@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.ssl;
 
 import java.net.IDN;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
@@ -53,7 +54,9 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  * <p>This strategy enforces one or more {@code sha256/<base64(SPKI)>} pins for a given
  * host or single-label wildcard (e.g. {@code *.example.com}) <em>after</em> the standard
  * trust manager and hostname verification succeed. Pins are matched against the
- * {@code SubjectPublicKeyInfo} (SPKI) of any certificate in the peer chain.</p>
+ * {@code SubjectPublicKeyInfo} (SPKI) of the peer's end-entity certificate and of the
+ * certificates in the peer chain that sign it; other certificates sent by the peer are
+ * ignored.</p>
  *
  * <p>Host matching is performed on the IDNA ASCII (Punycode) lowercase form.
  * Wildcards are <em>single-label only</em> (e.g. {@code *.example.com} matches
@@ -175,7 +178,7 @@ public final class SpkiPinningClientTlsStrategy extends DefaultClientTlsStrategy
 
     /**
      * Invoked after the default trust and hostname checks. If one or more rules match the
-     * {@code hostname}, at least one pin must match any SPKI in the peer chain.
+     * {@code hostname}, at least one pin must match an SPKI in the peer's signing chain.
      */
     @Override
     protected void verifySession(final String hostname, final SSLSession sslSession) throws SSLException {
@@ -306,16 +309,13 @@ public final class SpkiPinningClientTlsStrategy extends DefaultClientTlsStrategy
     }
 
     private static byte[][] chainSpkiSha256(final SSLSession session) throws SSLException {
-        final Certificate[] chain = session.getPeerCertificates();
+        final List<X509Certificate> chain = signingChain(session.getPeerCertificates());
         try {
             final MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-            final List<byte[]> out = new ArrayList<>(chain.length);
-            for (int i = 0; i < chain.length; i++) {
-                final Certificate c = chain[i];
-                if (c instanceof X509Certificate) {
-                    final byte[] spki = ((X509Certificate) c).getPublicKey().getEncoded();
-                    out.add(sha256.digest(spki));
-                }
+            final List<byte[]> out = new ArrayList<>(chain.size());
+            for (int i = 0; i < chain.size(); i++) {
+                final byte[] spki = chain.get(i).getPublicKey().getEncoded();
+                out.add(sha256.digest(spki));
             }
             if (out.isEmpty()) {
                 throw new SSLException("No X509Certificate in peer chain");
@@ -326,6 +326,51 @@ public final class SpkiPinningClientTlsStrategy extends DefaultClientTlsStrategy
         } catch (final Exception e) {
             throw new SSLException("Cannot compute SPKI sha256", e);
         }
+    }
+
+    /**
+     * Returns the peer's end-entity certificate followed by the certificates from the peer
+     * chain that sign it, in signing order. The chain is taken as sent by the peer and may
+     * contain certificates that the trust manager did not use to validate it; those must
+     * not satisfy a pin.
+     */
+    private static List<X509Certificate> signingChain(final Certificate[] peerCertificates) {
+        final List<X509Certificate> chain = new ArrayList<>(peerCertificates.length);
+        if (peerCertificates.length == 0 || !(peerCertificates[0] instanceof X509Certificate)) {
+            return chain;
+        }
+        final List<X509Certificate> candidates = new ArrayList<>(peerCertificates.length);
+        for (int i = 1; i < peerCertificates.length; i++) {
+            if (peerCertificates[i] instanceof X509Certificate) {
+                candidates.add((X509Certificate) peerCertificates[i]);
+            }
+        }
+        X509Certificate current = (X509Certificate) peerCertificates[0];
+        chain.add(current);
+        while (!candidates.isEmpty()) {
+            final X509Certificate signer = findSigner(current, candidates);
+            if (signer == null) {
+                break;
+            }
+            candidates.remove(signer);
+            chain.add(signer);
+            current = signer;
+        }
+        return chain;
+    }
+
+    private static X509Certificate findSigner(final X509Certificate cert, final List<X509Certificate> candidates) {
+        for (final X509Certificate candidate : candidates) {
+            if (cert.getIssuerX500Principal().equals(candidate.getSubjectX500Principal())) {
+                try {
+                    cert.verify(candidate.getPublicKey());
+                    return candidate;
+                } catch (final GeneralSecurityException ignore) {
+                    // not signed by this candidate
+                }
+            }
+        }
+        return null;
     }
 
     private static String configuredPinsFor(final List<Rule> rules) {
