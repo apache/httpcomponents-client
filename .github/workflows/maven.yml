@@ -35,7 +35,7 @@ jobs:
         # windows-latest is not used due to intermittent network failures
         os: [ubuntu-latest, macos-latest]
         # All LTS versions plus the current version
-        java: [ 11, 17, 21 ]
+        java: [ 11, 17, 21, 25 ]
         include:
           - java: 8
             os: ubuntu-latest
