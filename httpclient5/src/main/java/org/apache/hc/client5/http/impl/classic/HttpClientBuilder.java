@@ -211,7 +211,6 @@ public class HttpClientBuilder {
     private boolean cookieManagementDisabled;
     private boolean authCachingDisabled;
     private boolean connectionStateDisabled;
-    private boolean defaultUserAgentDisabled;
     private ProxySelector proxySelector;
 
     private boolean tlsRequired;
@@ -777,13 +776,14 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Disables the default user agent set by this builder if none has been provided by the user.
+     * Ignored.
      *
      * @return this instance.
      * @since 4.5.7
+     * @deprecated This method has no effect and calls to it can be removed.
      */
+    @Deprecated
     public final HttpClientBuilder disableDefaultUserAgent() {
-        this.defaultUserAgentDisabled = true;
         return this;
     }
 
