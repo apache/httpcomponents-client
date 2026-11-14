@@ -299,6 +299,7 @@
   </dependencyManagement>
 
   <modules>
+    <module>httpclient5-bom</module>
     <module>httpclient5</module>
     <module>httpclient5-sse</module>
     <module>httpclient5-observation</module>
