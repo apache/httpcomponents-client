@@ -27,14 +27,19 @@
 package org.apache.hc.client5.http.observation.interceptors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -108,5 +113,57 @@ public class AsyncIoByteCounterExecTest {
 
         assertNotNull(meters.find(mc.prefix + ".response.bytes").counter());
         assertTrue(meters.find(mc.prefix + ".response.bytes").counter().count() > 0.0);
+    }
+
+    @Test
+    void doesNotCarryTagsOverToLaterRequests() throws Exception {
+        server = ServerBootstrap.bootstrap()
+                .setListenerPort(0)
+                .register("localhost", "/a", (request, response, context) -> {
+                    response.setCode(HttpStatus.SC_OK);
+                    response.setEntity(new StringEntity("AAAA", ContentType.TEXT_PLAIN));
+                })
+                .register("localhost", "/b", (request, response, context) -> {
+                    response.setCode(HttpStatus.SC_NOT_FOUND);
+                    response.setEntity(new StringEntity("BB", ContentType.TEXT_PLAIN));
+                })
+                .create();
+        server.start();
+        final int port = server.getLocalPort();
+
+        final MeterRegistry meters = new SimpleMeterRegistry();
+        final MetricConfig mc = MetricConfig.builder().prefix("test").build();
+        // adds a tag for /a only
+        final ObservingOptions opts = ObservingOptions.builder()
+                .metrics(EnumSet.of(ObservingOptions.MetricSet.IO))
+                .tagCustomizer((tags, method, status, protocol, target, uri) -> {
+                    final List<Tag> out = new ArrayList<>(tags);
+                    if (uri.startsWith("/a")) {
+                        out.add(Tag.of("only_for_a", "yes"));
+                    }
+                    return out;
+                })
+                .build();
+
+        final HttpAsyncClientBuilder b = HttpAsyncClients.custom();
+        b.addExecInterceptorFirst("io", new AsyncIoByteCounterExec(meters, opts, mc));
+
+        try (final CloseableHttpAsyncClient client = b.build()) {
+            client.start();
+            client.execute(SimpleRequestBuilder.get("http://localhost:" + port + "/a").build(), null)
+                    .get(20, TimeUnit.SECONDS);
+            client.execute(SimpleRequestBuilder.get("http://localhost:" + port + "/b").build(), null)
+                    .get(20, TimeUnit.SECONDS);
+        } finally {
+            server.stop();
+        }
+
+        final Counter a = meters.find(mc.prefix + ".response.bytes").tag("status", "200").counter();
+        final Counter b404 = meters.find(mc.prefix + ".response.bytes").tag("status", "404").counter();
+        assertNotNull(a);
+        assertNotNull(b404);
+        assertEquals("yes", a.getId().getTag("only_for_a"));
+        assertFalse(b404.getId().getTags().stream().anyMatch(t -> t.getKey().equals("only_for_a")),
+                "tags of /b: " + b404.getId().getTags());
     }
 }
