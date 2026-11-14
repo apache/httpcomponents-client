@@ -89,11 +89,24 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
 
     static final DetachedSocketFactory PLAIN_SOCKET_FACTORY = socksProxy -> socksProxy == null ? new Socket() : new Socket(socksProxy);
 
+    /**
+     * RFC 8305, Section 8: "When a reasonable value is unknown, implementations SHOULD use a
+     * Connection Attempt Delay of 250 milliseconds".
+     */
+    static final TimeValue DEFAULT_CONNECTION_ATTEMPT_DELAY = TimeValue.ofMilliseconds(250);
+
+    /**
+     * RFC 8305, Section 8: "this value SHOULD NOT be below 10 ms".
+     */
+    private static final long MIN_CONNECTION_ATTEMPT_DELAY_MS = 10;
+
     private final DetachedSocketFactory detachedSocketFactory;
     private final UnixDomainSocketFactory unixDomainSocketFactory = UnixDomainSocketFactory.getSocketFactory();
     private final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup;
     private final SchemePortResolver schemePortResolver;
     private final DnsResolver dnsResolver;
+    private final boolean happyEyeballsEnabled;
+    private final TimeValue connectionAttemptDelay;
 
     /**
      * @deprecated Provided for backward compatibility
@@ -115,6 +128,19 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
             final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup) {
+        this(detachedSocketFactory, schemePortResolver, dnsResolver, tlsSocketStrategyLookup, false, null);
+    }
+
+    /**
+     * @since 5.7
+     */
+    public DefaultHttpClientConnectionOperator(
+            final DetachedSocketFactory detachedSocketFactory,
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver,
+            final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup,
+            final boolean happyEyeballsEnabled,
+            final TimeValue connectionAttemptDelay) {
         super();
         this.detachedSocketFactory = Args.notNull(detachedSocketFactory, "Plain socket factory");
         this.tlsSocketStrategyLookup = Args.notNull(tlsSocketStrategyLookup, "Socket factory registry");
@@ -122,6 +148,13 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 DefaultSchemePortResolver.INSTANCE;
         this.dnsResolver = dnsResolver != null ? dnsResolver :
                 SystemDefaultDnsResolver.INSTANCE;
+        this.happyEyeballsEnabled = happyEyeballsEnabled;
+        final TimeValue delay = connectionAttemptDelay != null ? connectionAttemptDelay : DEFAULT_CONNECTION_ATTEMPT_DELAY;
+        if (happyEyeballsEnabled) {
+            Args.check(delay.toMilliseconds() >= MIN_CONNECTION_ATTEMPT_DELAY_MS,
+                    "Connection attempt delay must be at least %s ms (RFC 8305, Section 8)", MIN_CONNECTION_ATTEMPT_DELAY_MS);
+        }
+        this.connectionAttemptDelay = delay;
     }
 
     /**
@@ -200,6 +233,51 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final int port = this.schemePortResolver.resolve(endpointHost.getSchemeName(), endpointHost);
             remoteAddresses = this.dnsResolver.resolve(endpointHost.getHostName(), port);
         }
+
+        // A specific, non-ephemeral local port can only ever be bound by one socket at a
+        // time; racing would bind several attempts to it concurrently, and the OS would
+        // reject all but one with a bind conflict instead of a real connect failure. Fall
+        // back to the existing sequential path in that case, exactly as before this feature,
+        // since only one attempt is ever in flight there.
+        final boolean canRace = localAddress == null || localAddress.getPort() == 0;
+        if (happyEyeballsEnabled && canRace && remoteAddresses.size() > 1) {
+            onBeforeSocketConnect(context, endpointHost);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} racing connection attempts across {} ({})", endpointHost, remoteAddresses, connectTimeout);
+            }
+            final HappyEyeballsSocketConnector connector = new HappyEyeballsSocketConnector(connectionAttemptDelay);
+            final Socket socket = connector.connect(endpointHost, remoteAddresses, (remoteAddress, socketConsumer) -> {
+                final Socket attemptSocket = detachedSocketFactory.create(endpointHost.getSchemeName(), socksProxy);
+                socketConsumer.accept(attemptSocket);
+                try {
+                    if (localAddress != null) {
+                        attemptSocket.bind(localAddress);
+                    }
+                    configureSocket(attemptSocket, socketConfig, true);
+                    attemptSocket.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisecondsIntBound() : 0);
+                    return attemptSocket;
+                } catch (final IOException | RuntimeException ex) {
+                    Closer.closeQuietly(attemptSocket);
+                    throw ex;
+                }
+            });
+            try {
+                conn.bind(socket);
+                onAfterSocketConnect(context, endpointHost);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} {} connected {}->{}", ConnPoolSupport.getId(conn), endpointHost, conn.getLocalAddress(), conn.getRemoteAddress());
+                }
+                final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(endpointHost.getSchemeName()) : null;
+                if (tlsSocketStrategy != null) {
+                    upgradeToTls(conn, endpointHost, endpointName, connectTimeout, attachment, context, tlsSocketStrategy, socket);
+                }
+            } catch (final IOException | RuntimeException ex) {
+                Closer.closeQuietly(socket);
+                throw ex;
+            }
+            return;
+        }
+
         for (int i = 0; i < remoteAddresses.size(); i++) {
             final InetSocketAddress remoteAddress = remoteAddresses.get(i);
             final boolean last = i == remoteAddresses.size() - 1;

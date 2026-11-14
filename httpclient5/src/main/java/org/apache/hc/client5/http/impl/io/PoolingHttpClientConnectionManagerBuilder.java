@@ -65,6 +65,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
     private TlsSocketStrategy tlsSocketStrategy;
     private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
+    private boolean happyEyeballsEnabled;
+    private TimeValue connectionAttemptDelay;
     private PoolConcurrencyPolicy poolConcurrencyPolicy;
     private PoolReusePolicy poolReusePolicy;
     private Resolver<HttpRoute, SocketConfig> socketConfigResolver;
@@ -142,6 +144,38 @@ public class PoolingHttpClientConnectionManagerBuilder {
      */
     public final PoolingHttpClientConnectionManagerBuilder setDnsResolver(final DnsResolver dnsResolver) {
         this.dnsResolver = dnsResolver;
+        return this;
+    }
+
+    /**
+     * Enables RFC 8305 (Happy Eyeballs v2) connection racing for hosts that resolve to more
+     * than one address: the first address is tried immediately, on its own thread, and each
+     * subsequent one on its own thread after {@link #setConnectionAttemptDelay(TimeValue)}
+     * unless an outstanding attempt fails first. The first successful connection wins; every
+     * other attempt's socket is closed. Disabled ({@code false}) by default, in which case
+     * addresses continue to be tried sequentially on the calling thread.
+     *
+     * @param happyEyeballsEnabled whether to race connection attempts.
+     * @return this instance.
+     * @since 5.7
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setHappyEyeballsEnabled(final boolean happyEyeballsEnabled) {
+        this.happyEyeballsEnabled = happyEyeballsEnabled;
+        return this;
+    }
+
+    /**
+     * Sets the delay between the start of successive connection attempts when
+     * {@link #setHappyEyeballsEnabled(boolean)} is enabled. RFC 8305 Section 8 recommends
+     * 250ms and requires at least 10ms. Has no effect unless Happy Eyeballs racing is enabled.
+     *
+     * @param connectionAttemptDelay the delay, or {@code null} to use the RFC 8305
+     *                               recommended default of 250ms.
+     * @return this instance.
+     * @since 5.7
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setConnectionAttemptDelay(final TimeValue connectionAttemptDelay) {
+        this.connectionAttemptDelay = connectionAttemptDelay;
         return this;
     }
 
@@ -346,7 +380,9 @@ public class PoolingHttpClientConnectionManagerBuilder {
                 dnsResolver,
                 RegistryBuilder.<TlsSocketStrategy>create()
                         .register(URIScheme.HTTPS.id, tlsSocketStrategy)
-                        .build());
+                        .build(),
+                happyEyeballsEnabled,
+                connectionAttemptDelay);
     }
 
     public PoolingHttpClientConnectionManager build() {
