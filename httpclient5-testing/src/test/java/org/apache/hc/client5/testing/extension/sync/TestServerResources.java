@@ -43,16 +43,14 @@ public class TestServerResources implements AfterEachCallback {
     private static final Logger LOG = LoggerFactory.getLogger(TestServerResources.class);
 
     private final URIScheme scheme;
-    private final Timeout timeout;
     private final TestServerBootstrap serverBootstrap;
 
     private TestServer server;
 
     public TestServerResources(final URIScheme scheme, final Timeout timeout) {
         this.scheme = scheme != null ? scheme : URIScheme.HTTP;
-        this.timeout = timeout;
         this.serverBootstrap = new TestServerBootstrap(this.scheme)
-                .setTimeout(this.timeout);
+                .setTimeout(timeout);
     }
 
     @Override
