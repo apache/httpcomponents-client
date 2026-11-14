@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.testing.extension.async;
+package org.apache.hc.client5.testing.caching.async;
 
 import java.io.IOException;
 import java.io.OutputStream;
