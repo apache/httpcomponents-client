@@ -752,7 +752,8 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final ResponseCacheControl responseCacheControl = CacheControlHeaderParser.INSTANCE.parse(backendResponse);
             context.setResponseCacheControl(responseCacheControl);
             final boolean cacheable = responseCachingPolicy.isResponseCacheable(
-                    requestCacheControl, responseCacheControl, request, backendResponse);
+                    requestCacheControl, responseCacheControl, request, backendResponse,
+                    isTargetAuthenticated(context, scope.route));
             if (cacheable) {
                 storeRequestIfModifiedSinceFor304Response(request, backendResponse);
                 if (LOG.isDebugEnabled()) {
