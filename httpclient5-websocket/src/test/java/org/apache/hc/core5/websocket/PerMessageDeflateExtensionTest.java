@@ -29,10 +29,12 @@ package org.apache.hc.core5.websocket;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.zip.Deflater;
 
@@ -94,6 +96,19 @@ class PerMessageDeflateExtensionTest {
         final ByteBuffer out = ext.decode(WebSocketFrameType.BINARY, true, ByteBuffer.wrap(compressed), 0L);
 
         assertArrayEquals(plain, toBytes(out));
+    }
+
+    @Test
+    void decodesMessagesEndingWithBfinalBlock() {
+        // RFC 7692 section 7.2.3.4: "Hello" compressed using a DEFLATE block with BFINAL set to 1.
+        final byte[] compressed = {(byte) 0xf3, 0x48, (byte) 0xcd, (byte) 0xc9, (byte) 0xc9, 0x07, 0x00, 0x00};
+        final byte[] plain = "Hello".getBytes(StandardCharsets.UTF_8);
+
+        final PerMessageDeflateExtension ext = new PerMessageDeflateExtension();
+        assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+            assertArrayEquals(plain, toBytes(ext.decode(WebSocketFrameType.TEXT, true, ByteBuffer.wrap(compressed))));
+            assertArrayEquals(plain, toBytes(ext.decode(WebSocketFrameType.TEXT, true, ByteBuffer.wrap(compressed))));
+        });
     }
 
     @Test
