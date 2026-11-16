@@ -125,9 +125,15 @@ public class CachingExecBase {
      * Determines whether the protocol layer below the cache authenticated the request
      * to the route target. The {@code Authorization} header generated from the
      * credentials provider or the auth cache is added to the request instance
-     * executed by the protocol layer and is not visible to the cache.
+     * executed by the protocol layer and is not visible to the cache, so check the
+     * request last sent to the backend. A connection-based scheme does not resend
+     * the header once the exchange has succeeded, so check the exchange state as well.
      */
     static boolean isTargetAuthenticated(final HttpClientContext context, final HttpRoute route) {
+        final HttpRequest sentRequest = context.getRequest();
+        if (sentRequest != null && sentRequest.containsHeader(HttpHeaders.AUTHORIZATION)) {
+            return true;
+        }
         final AuthExchange authExchange = context.getAuthExchanges().get(route.getTargetHost());
         return authExchange != null && authExchange.getState() == AuthExchange.State.SUCCESS;
     }
