@@ -58,6 +58,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
+import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
@@ -153,7 +154,13 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} acquiring connection with route {}", exchangeId, route);
             }
-            cancellableDependency.setDependency(execRuntime.acquireEndpoint(
+            // The lease may complete synchronously, in which case the callback below registers
+            // the next operation (connect or execute) with the cancellable dependency before
+            // acquireEndpoint returns. Register the lease through a holder installed up front,
+            // so its (already completed) cancellable cannot replace that later operation.
+            final ComplexCancellable leaseCancellable = new ComplexCancellable();
+            cancellableDependency.setDependency(leaseCancellable);
+            leaseCancellable.setDependency(execRuntime.acquireEndpoint(
                     exchangeId, route, userToken, clientContext, new FutureCallback<AsyncExecRuntime>() {
 
                         @Override
