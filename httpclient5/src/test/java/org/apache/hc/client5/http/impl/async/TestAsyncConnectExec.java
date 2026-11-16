@@ -37,6 +37,7 @@ import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.CancellableDependency;
+import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -183,6 +184,35 @@ class TestAsyncConnectExec {
         Assertions.assertThrows(HttpException.class, () ->
                 handler.consumeResponse(response, null, context));
         Mockito.verify(callback, Mockito.never()).handleResponse(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    void testCancellationReachesConnectAfterSynchronousLease() throws Exception {
+        // The pool hands out the endpoint synchronously, so the lease callback starts the connect
+        // before acquireEndpoint returns. Cancelling the request must still cancel that connect.
+        final AsyncConnectExec exec = new AsyncConnectExec(proxyHttpProcessor, proxyAuthStrategy, null, true);
+        final HttpRoute route = new HttpRoute(target);
+        final HttpRequest request = BasicRequestBuilder.get("https://foo/test").build();
+        final ComplexFuture<Object> requestFuture = new ComplexFuture<>(null);
+        final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(
+                "test", route, request, requestFuture, HttpClientContext.create(), execRuntime, null, new AtomicInteger(1));
+
+        final Cancellable leaseCancellable = Mockito.mock(Cancellable.class);
+        final Cancellable connectCancellable = Mockito.mock(Cancellable.class);
+        Mockito.when(execRuntime.isEndpointAcquired()).thenReturn(false);
+        Mockito.when(execRuntime.isEndpointConnected()).thenReturn(false);
+        Mockito.doAnswer(invocation -> {
+            invocation.getArgument(4, FutureCallback.class).completed(execRuntime);
+            return leaseCancellable;
+        }).when(execRuntime).acquireEndpoint(
+                Mockito.anyString(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.when(execRuntime.connectEndpoint(Mockito.any(), Mockito.any())).thenReturn(connectCancellable);
+
+        exec.execute(request, null, scope, chain, Mockito.mock(AsyncExecCallback.class));
+        Mockito.verify(execRuntime).connectEndpoint(Mockito.any(), Mockito.any());
+
+        requestFuture.cancel(true);
+        Mockito.verify(connectCancellable).cancel();
     }
 
 }
