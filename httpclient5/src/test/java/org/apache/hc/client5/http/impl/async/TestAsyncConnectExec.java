@@ -55,6 +55,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -213,6 +214,27 @@ class TestAsyncConnectExec {
 
         requestFuture.cancel(true);
         Mockito.verify(connectCancellable).cancel();
+    }
+
+    @Test
+    void testEstablishRouteViaProxyTunnelRefusedConnectionNotReusable() throws Exception {
+        // A refused tunnel leaves a plain connection to the proxy. It must not be released to the
+        // pool under the tunnelled route with reuse state left over from an earlier exchange.
+        final AsyncConnectExec exec = new AsyncConnectExec(proxyHttpProcessor, proxyAuthStrategy, null, true);
+        final HttpRoute route = new HttpRoute(target, null, proxy, true);
+        final HttpClientContext context = HttpClientContext.create();
+        final AsyncExecCallback callback = Mockito.mock(AsyncExecCallback.class);
+
+        final AsyncClientExchangeHandler handler = tunnelExchangeHandler(exec, route, context, callback);
+
+        final HttpResponse response = new BasicHttpResponse(403, "Forbidden");
+        handler.consumeResponse(response, null, context);
+        handler.streamEnd(null);
+
+        final InOrder inOrder = Mockito.inOrder(execRuntime, callback);
+        inOrder.verify(callback).handleResponse(response, null);
+        inOrder.verify(execRuntime).markConnectionNonReusable();
+        inOrder.verify(callback).completed();
     }
 
 }

@@ -317,6 +317,9 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                                 if (LOG.isDebugEnabled()) {
                                     LOG.debug("{} tunnel refused", exchangeId);
                                 }
+                                // The connection carries no tunnel to the target and must never be
+                                // released back to the pool under the tunnelled route
+                                execRuntime.markConnectionNonReusable();
                                 asyncExecCallback.completed();
                             } else {
                                 if (LOG.isDebugEnabled()) {
