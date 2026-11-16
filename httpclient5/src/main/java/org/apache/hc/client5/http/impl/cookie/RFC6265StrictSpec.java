@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.impl.cookie;
 
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
+import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -44,7 +45,8 @@ public class RFC6265StrictSpec extends RFC6265CookieSpecBase {
 
     public RFC6265StrictSpec() {
         super(BasicPathHandler.INSTANCE,
-                BasicDomainHandler.INSTANCE,
+                PublicSuffixDomainFilter.decorate(
+                        BasicDomainHandler.INSTANCE, PublicSuffixMatcherLoader.getDefault()),
                 BasicMaxAgeHandler.INSTANCE,
                 BasicSecureHandler.INSTANCE,
                 BasicHttpOnlyHandler.INSTANCE,
