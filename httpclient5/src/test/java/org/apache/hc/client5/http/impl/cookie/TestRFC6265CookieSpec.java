@@ -34,6 +34,7 @@ import java.util.List;
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
+import org.apache.hc.client5.http.cookie.CookieSpec;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
@@ -44,6 +45,25 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 class TestRFC6265CookieSpec {
+
+    @Test
+    void testNoArgSpecsUsePublicSuffixMatcher() throws Exception {
+        final CookieOrigin publicSuffixOrigin = new CookieOrigin("foo.com", 80, "/", false);
+        final CookieOrigin exampleOrigin = new CookieOrigin("foo.example.com", 80, "/", false);
+        final CookieOrigin exampleSibling = new CookieOrigin("bar.example.com", 80, "/", false);
+        final CookieOrigin publicSuffixSibling = new CookieOrigin("bar.com", 80, "/", false);
+        final List<CookieSpec> cookieSpecs = Arrays.asList(new RFC6265LaxSpec(), new RFC6265StrictSpec());
+
+        for (final CookieSpec cookieSpec : cookieSpecs) {
+            final Cookie publicSuffixCookie = cookieSpec.parse(
+                    new BasicHeader("Set-Cookie", "name=value; Domain=com"), publicSuffixOrigin).get(0);
+            Assertions.assertFalse(cookieSpec.match(publicSuffixCookie, publicSuffixSibling));
+
+            final Cookie exampleCookie = cookieSpec.parse(
+                    new BasicHeader("Set-Cookie", "name=value; Domain=example.com"), exampleOrigin).get(0);
+            Assertions.assertTrue(cookieSpec.match(exampleCookie, exampleSibling));
+        }
+    }
 
     @Test
     void testParseCookieBasics() throws Exception {
