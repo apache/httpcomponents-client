@@ -26,16 +26,23 @@
  */
 package org.apache.hc.client5.testing.async;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.RedirectException;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
+import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
@@ -57,8 +64,12 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.URIScheme;
+import org.apache.hc.core5.http.nio.AsyncEntityProducer;
+import org.apache.hc.core5.http.nio.entity.AsyncEntityProducers;
+import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.TimeValue;
@@ -409,6 +420,55 @@ abstract class AbstractHttpAsyncRedirectsTest extends AbstractIntegrationTestBas
         Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assertions.assertEquals("/echo/stuff", request.getRequestUri());
         Assertions.assertEquals("GET", request.getMethod());
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(ints = {
+            HttpStatus.SC_MOVED_PERMANENTLY,
+            HttpStatus.SC_MOVED_TEMPORARILY,
+            HttpStatus.SC_SEE_OTHER,
+            HttpStatus.SC_TEMPORARY_REDIRECT,
+            HttpStatus.SC_PERMANENT_REDIRECT})
+    void testPostRedirectNonRepeatableEntity(final int statusCode) throws Exception {
+        final AtomicInteger redirectedRequests = new AtomicInteger();
+        configureServer(bootstrap -> bootstrap
+                .register("/echo/*", () -> {
+                    redirectedRequests.incrementAndGet();
+                    return new AsyncEchoHandler();
+                })
+                .setExchangeHandlerDecorator(exchangeHandler -> new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/echo", statusCode))));
+        final HttpHost target = startServer();
+
+        final TestAsyncClient client = startClient();
+
+        final AtomicInteger bodyWrites = new AtomicInteger();
+        final AsyncEntityProducer entityProducer = AsyncEntityProducers.createBinary(channel -> {
+            bodyWrites.incrementAndGet();
+            try {
+                channel.write(ByteBuffer.wrap("stuff".getBytes(StandardCharsets.US_ASCII)));
+                channel.endStream();
+            } catch (final IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
+        }, ContentType.TEXT_PLAIN);
+        Assertions.assertFalse(entityProducer.isRepeatable());
+
+        final HttpClientContext context = HttpClientContext.create();
+        final Future<SimpleHttpResponse> future = client.execute(
+                new BasicRequestProducer(Method.POST, target, "/oldlocation/stuff", entityProducer),
+                SimpleResponseConsumer.create(), context, null);
+        final HttpResponse response = future.get(10, TimeUnit.SECONDS);
+        Assertions.assertNotNull(response);
+
+        final HttpRequest request = context.getRequest();
+
+        Assertions.assertEquals(statusCode, response.getCode());
+        Assertions.assertEquals("/oldlocation/stuff", request.getRequestUri());
+        Assertions.assertEquals("POST", request.getMethod());
+        Assertions.assertEquals(1, bodyWrites.get());
+        Assertions.assertEquals(0, redirectedRequests.get());
     }
 
     @Test
