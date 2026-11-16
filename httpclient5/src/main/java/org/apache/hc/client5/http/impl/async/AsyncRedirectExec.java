@@ -119,6 +119,12 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                 state.redirectURI = null;
                 final RequestConfig config = clientContext.getRequestConfigOrDefault();
                 if (config.isRedirectsEnabled() && redirectStrategy.isRedirected(request, response, clientContext)) {
+                    if (entityProducer != null && !entityProducer.isRepeatable()) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} cannot redirect non-repeatable request", exchangeId);
+                        }
+                        return asyncExecCallback.handleResponse(response, entityDetails);
+                    }
                     if (state.redirectCount >= state.maxRedirects) {
                         throw new RedirectException("Maximum redirects (" + state.maxRedirects + ") exceeded");
                     }
@@ -238,20 +244,13 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                     if (entityProducer != null) {
                         entityProducer.releaseResources();
                     }
-                    if (entityProducer != null && !entityProducer.isRepeatable()) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("{} cannot redirect non-repeatable request", exchangeId);
+                    try {
+                        if (state.reroute) {
+                            scope.execRuntime.releaseEndpoint();
                         }
-                        asyncExecCallback.completed();
-                    } else {
-                        try {
-                            if (state.reroute) {
-                                scope.execRuntime.releaseEndpoint();
-                            }
-                            internalExecute(state, chain, asyncExecCallback);
-                        } catch (final IOException | HttpException ex) {
-                            asyncExecCallback.failed(ex);
-                        }
+                        internalExecute(state, chain, asyncExecCallback);
+                    } catch (final IOException | HttpException ex) {
+                        asyncExecCallback.failed(ex);
                     }
                 }
             }
