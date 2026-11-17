@@ -324,6 +324,24 @@ class TestBasicCookieAttribHandlers {
     }
 
     @Test
+    void testBasicSecureValidate() throws Exception {
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieAttributeHandler h = BasicSecureHandler.INSTANCE;
+
+        final CookieOrigin insecureOrigin = new CookieOrigin("somehost", 80, "/stuff", false);
+        cookie.setSecure(false);
+        h.validate(cookie, insecureOrigin);
+        cookie.setSecure(true);
+        Assertions.assertThrows(MalformedCookieException.class, () -> h.validate(cookie, insecureOrigin));
+
+        final CookieOrigin secureOrigin = new CookieOrigin("somehost", 443, "/stuff", true);
+        cookie.setSecure(false);
+        h.validate(cookie, secureOrigin);
+        cookie.setSecure(true);
+        h.validate(cookie, secureOrigin);
+    }
+
+    @Test
     void testBasicSecureInvalidInput() {
         final CookieAttributeHandler h = new BasicSecureHandler();
         Assertions.assertThrows(NullPointerException.class, () -> h.parse(null, null));
