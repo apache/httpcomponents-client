@@ -51,6 +51,7 @@ import org.apache.hc.core5.http.message.BufferedHeader;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.CharArrayBuffer;
+import org.apache.hc.core5.util.TextUtils;
 import org.apache.hc.core5.util.Tokenizer;
 
 /**
@@ -184,7 +185,9 @@ public class RFC6265CookieSpec implements CookieSpec {
                     }
                 }
             }
-            attribMap.put(paramName, paramValue);
+            if (!Cookie.DOMAIN_ATTR.equals(paramName) || !TextUtils.isBlank(paramValue)) {
+                attribMap.put(paramName, paramValue);
+            }
         }
         // Ignore 'Expires' if 'Max-Age' is present
         if (attribMap.containsKey(Cookie.MAX_AGE_ATTR)) {
