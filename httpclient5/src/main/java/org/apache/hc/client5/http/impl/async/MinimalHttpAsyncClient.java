@@ -137,6 +137,11 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
         final ComplexFuture<AsyncConnectionEndpoint> resultFuture = new ComplexFuture<>(callback);
         final String exchangeId = ExecSupport.getNextExchangeId();
         clientContext.setExchangeId(exchangeId);
+        // The lease may complete synchronously, in which case the callback below registers the
+        // connect with the result future before lease returns. Register the lease through a holder
+        // installed up front, so its (already completed) future cannot replace the connect.
+        final ComplexCancellable leaseCancellable = new ComplexCancellable();
+        resultFuture.setDependency(leaseCancellable);
         final Future<AsyncConnectionEndpoint> leaseFuture = manager.lease(
                 exchangeId,
                 route,
@@ -198,7 +203,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                     }
 
                 });
-        resultFuture.setDependency(leaseFuture);
+        leaseCancellable.setDependency(() -> leaseFuture.cancel(true));
         return resultFuture;
     }
 
