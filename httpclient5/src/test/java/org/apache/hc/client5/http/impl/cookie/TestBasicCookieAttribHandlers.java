@@ -242,7 +242,7 @@ class TestBasicCookieAttribHandlers {
         final CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false);
         final CookieAttributeHandler h = BasicPathHandler.INSTANCE;
         cookie.setPath("/stuff/");
-        Assertions.assertTrue(h.match(cookie, origin));
+        Assertions.assertFalse(h.match(cookie, origin));
     }
 
     @Test

@@ -66,6 +66,30 @@ class TestRFC6265CookieSpec {
     }
 
     @Test
+    void testPathMatchingWithTrailingSlash() throws Exception {
+        final CookieSpec cookieSpec = new RFC6265StrictSpec();
+        final String host = "example.com";
+        final CookieOrigin setOrigin = new CookieOrigin(host, 80, "/set", false);
+
+        final Cookie trailingSlashCookie = cookieSpec.parse(
+                new BasicHeader("Set-Cookie", "a=b; Path=/foo/"), setOrigin).get(0);
+        Assertions.assertFalse(cookieSpec.match(trailingSlashCookie, new CookieOrigin(host, 80, "/foo", false)));
+        Assertions.assertTrue(cookieSpec.match(trailingSlashCookie, new CookieOrigin(host, 80, "/foo/", false)));
+        Assertions.assertTrue(cookieSpec.match(trailingSlashCookie, new CookieOrigin(host, 80, "/foo/bar", false)));
+
+        final Cookie pathCookie = cookieSpec.parse(
+                new BasicHeader("Set-Cookie", "a=b; Path=/foo"), setOrigin).get(0);
+        Assertions.assertTrue(cookieSpec.match(pathCookie, new CookieOrigin(host, 80, "/foo", false)));
+        Assertions.assertTrue(cookieSpec.match(pathCookie, new CookieOrigin(host, 80, "/foo/", false)));
+        Assertions.assertTrue(cookieSpec.match(pathCookie, new CookieOrigin(host, 80, "/foo/bar", false)));
+        Assertions.assertFalse(cookieSpec.match(pathCookie, new CookieOrigin(host, 80, "/foobar", false)));
+
+        final Cookie rootPathCookie = cookieSpec.parse(
+                new BasicHeader("Set-Cookie", "a=b; Path=/"), setOrigin).get(0);
+        Assertions.assertTrue(cookieSpec.match(rootPathCookie, new CookieOrigin(host, 80, "/elsewhere", false)));
+    }
+
+    @Test
     void testParseCookieBasics() throws Exception {
         final CommonCookieAttributeHandler h1 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h1.getAttributeName()).thenReturn("this");

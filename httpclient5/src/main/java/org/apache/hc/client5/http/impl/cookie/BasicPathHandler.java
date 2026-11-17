@@ -68,15 +68,9 @@ public class BasicPathHandler implements CommonCookieAttributeHandler {
     }
 
     static boolean pathMatch(final String uriPath, final String cookiePath) {
-        String normalizedCookiePath = cookiePath;
-        if (normalizedCookiePath == null) {
-            normalizedCookiePath = "/";
-        }
-        if (normalizedCookiePath.length() > 1 && normalizedCookiePath.endsWith("/")) {
-            normalizedCookiePath = normalizedCookiePath.substring(0, normalizedCookiePath.length() - 1);
-        }
+        final String normalizedCookiePath = cookiePath != null ? cookiePath : "/";
         if (uriPath.startsWith(normalizedCookiePath)) {
-            if (normalizedCookiePath.equals("/")) {
+            if (normalizedCookiePath.endsWith("/")) {
                 return true;
             }
             if (uriPath.length() == normalizedCookiePath.length()) {
