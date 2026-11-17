@@ -45,6 +45,7 @@ import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
 import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.CallbackContribution;
+import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.concurrent.FutureContribution;
@@ -53,6 +54,7 @@ import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.IOSession;
@@ -144,6 +146,10 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
             LOG.debug("{} connecting {}->{} ({})", endpointHost, localAddress, remoteAddress, connectTimeout);
         }
 
+        // The session request may complete before connect returns, and its callback can register the
+        // TLS handshake with the future. Install a holder first so the session request cannot replace it.
+        final ComplexCancellable sessionCancellable = new ComplexCancellable();
+        future.setDependency(sessionCancellable);
         final Future<IOSession> sessionFuture = sessionRequester.connect(
                 connectionInitiator,
                 remoteEndpoint,
@@ -167,6 +173,12 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
                                 final Timeout socketTimeout = connection.getSocketTimeout();
                                 final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout() != null ? tlsConfig.getHandshakeTimeout() : connectTimeout;
                                 final NamedEndpoint tlsName = endpointName != null ? endpointName : endpointHost;
+                                // The session request is already done, so cancelling it would not stop
+                                // the handshake. Close the connection instead.
+                                future.setDependency(() -> {
+                                    connection.close(CloseMode.IMMEDIATE);
+                                    return true;
+                                });
                                 onBeforeTlsHandshake(context, endpointHost);
                                 if (LOG.isDebugEnabled()) {
                                     LOG.debug("{} {} upgrading to TLS", ConnPoolSupport.getId(connection), tlsName);
@@ -208,7 +220,7 @@ public class DefaultAsyncClientConnectionOperator implements AsyncClientConnecti
                     }
 
                 });
-        future.setDependency(sessionFuture);
+        sessionCancellable.setDependency(() -> sessionFuture.cancel(true));
         return future;
     }
 
