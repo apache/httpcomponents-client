@@ -34,6 +34,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -73,36 +74,55 @@ public final class DateUtils {
 
     /**
      * Date format pattern used to parse HTTP date headers in RFC 1036 format.
+     *
+     * @deprecated use {@link #FORMATTER_RFC1036}. This pattern reads a two-digit year
+     * from 70 to 99 as 2070 to 2099.
      */
+    @Deprecated
     public static final String PATTERN_RFC1036 = "EEE, dd-MMM-yy HH:mm:ss zzz";
 
     /**
      * Date formatter used to parse HTTP date headers in RFC 1036 format.
+     * <p>
+     * A two-digit year from 70 to 99 is read as 1970 to 1999, and a two-digit
+     * year from 00 to 69 as 2000 to 2069, as RFC 6265 section 5.1.1 requires.
+     * </p>
      *
      * @since 5.2
      */
     public static final DateTimeFormatter FORMATTER_RFC1036 = new DateTimeFormatterBuilder()
             .parseLenient()
             .parseCaseInsensitive()
-            .appendPattern(PATTERN_RFC1036)
+            .appendPattern("EEE, dd-MMM-")
+            .appendValueReduced(ChronoField.YEAR_OF_ERA, 2, 2, 1970)
+            .appendPattern(" HH:mm:ss zzz")
             .toFormatter(Locale.ENGLISH);
 
     /**
      * Date format pattern used to parse HTTP date headers in ANSI C
      * {@code asctime()} format.
+     *
+     * @deprecated use {@link #FORMATTER_ASCTIME}. This pattern has no time zone
+     * and does not accept a space-padded day of month.
      */
+    @Deprecated
     public static final String PATTERN_ASCTIME = "EEE MMM d HH:mm:ss yyyy";
 
     /**
-     * Date formatter used to parse HTTP date headers in in ANSI C {@code asctime()} format.
+     * Date formatter used to parse HTTP date headers in ANSI C {@code asctime()} format.
+     * <p>
+     * This format has no time zone. Values are read as UTC, as RFC 9110 section 5.6.7 requires.
+     * A day of month below 10 may be padded with a space ({@code Nov  6}).
+     * </p>
      *
      * @since 5.2
      */
     public static final DateTimeFormatter FORMATTER_ASCTIME = new DateTimeFormatterBuilder()
             .parseLenient()
             .parseCaseInsensitive()
-            .appendPattern(PATTERN_ASCTIME)
-            .toFormatter(Locale.ENGLISH);
+            .appendPattern("EEE MMM ppd HH:mm:ss yyyy")
+            .toFormatter(Locale.ENGLISH)
+            .withZone(ZoneOffset.UTC);
 
     /**
      * Standard date formatters: {@link #FORMATTER_RFC1123}, {@link #FORMATTER_RFC1036}, {@link #FORMATTER_ASCTIME}.
@@ -192,8 +212,8 @@ public final class DateUtils {
     }
 
     /**
-     * Parses the instant value using the standard date/time formats ({@link #PATTERN_RFC1123},
-     * {@link #PATTERN_RFC1036}, {@link #PATTERN_ASCTIME}).
+     * Parses the instant value using the standard date/time formats ({@link #FORMATTER_RFC1123},
+     * {@link #FORMATTER_RFC1036}, {@link #FORMATTER_ASCTIME}).
      *
      * @param dateValue the instant value to parse
      *
