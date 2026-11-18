@@ -121,6 +121,34 @@ class TestDateUtils {
     }
 
     @Test
+    void testTwoDigitYearBefore2000DateParse() {
+        Assertions.assertEquals(createInstant(1970, Month.JANUARY, 1),
+                DateUtils.parseDate("Thursday, 01-Jan-70 00:00:00 GMT", DateUtils.FORMATTER_RFC1036));
+        Assertions.assertEquals(createInstant(1994, Month.NOVEMBER, 6).plus(8, ChronoUnit.HOURS)
+                        .plus(49, ChronoUnit.MINUTES).plus(37, ChronoUnit.SECONDS),
+                DateUtils.parseStandardDate("Sunday, 06-Nov-94 08:49:37 GMT"));
+        Assertions.assertEquals(createInstant(2069, Month.DECEMBER, 31),
+                DateUtils.parseStandardDate("Tuesday, 31-Dec-69 00:00:00 GMT"));
+        Assertions.assertEquals(createInstant(1999, Month.DECEMBER, 31),
+                DateUtils.parseStandardDate("Friday, 31-Dec-99 00:00:00 GMT"));
+        Assertions.assertEquals(createInstant(2000, Month.JANUARY, 1),
+                DateUtils.parseStandardDate("Saturday, 01-Jan-00 00:00:00 GMT"));
+    }
+
+    @Test
+    void testAsctimeDateParse() {
+        Assertions.assertEquals(createInstant(1994, Month.NOVEMBER, 6).plus(8, ChronoUnit.HOURS)
+                        .plus(49, ChronoUnit.MINUTES).plus(37, ChronoUnit.SECONDS),
+                DateUtils.parseDate("Sun Nov  6 08:49:37 1994", DateUtils.FORMATTER_ASCTIME));
+        Assertions.assertEquals(createInstant(1994, Month.NOVEMBER, 6).plus(8, ChronoUnit.HOURS)
+                        .plus(49, ChronoUnit.MINUTES).plus(37, ChronoUnit.SECONDS),
+                DateUtils.parseDate("Sun Nov 6 08:49:37 1994", DateUtils.FORMATTER_ASCTIME));
+        Assertions.assertEquals(createInstant(2024, Month.FEBRUARY, 22).plus(17, ChronoUnit.HOURS)
+                        .plus(20, ChronoUnit.MINUTES).plus(18, ChronoUnit.SECONDS),
+                DateUtils.parseStandardDate("Thu Feb 22 17:20:18 2024"));
+    }
+
+    @Test
     void testParseQuotedDate() {
         Assertions.assertEquals(createInstant(2005, Month.OCTOBER, 14),
                 DateUtils.parseDate("'Fri, 14 Oct 2005 00:00:00 GMT'", DateUtils.FORMATTER_RFC1123));
@@ -133,6 +161,8 @@ class TestDateUtils {
         Assertions.assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatDate(instant, DateUtils.FORMATTER_RFC1123));
         Assertions.assertEquals("Fri, 14-Oct-05 00:00:00 GMT", DateUtils.formatDate(instant, DateUtils.FORMATTER_RFC1036));
         Assertions.assertEquals("Fri Oct 14 00:00:00 2005", DateUtils.formatDate(instant, DateUtils.FORMATTER_ASCTIME));
+        Assertions.assertEquals("Sun Nov  6 00:00:00 1994",
+                DateUtils.formatDate(createInstant(1994, Month.NOVEMBER, 6), DateUtils.FORMATTER_ASCTIME));
     }
 
 }
