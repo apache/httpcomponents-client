@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.impl.cookie;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +36,10 @@ import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookieSpec;
+import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
+import org.apache.hc.client5.http.cookie.StandardCookieSpec;
+import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
@@ -111,6 +115,42 @@ class TestRFC6265CookieSpec {
         final Cookie rootPathCookie = cookieSpec.parse(
                 new BasicHeader("Set-Cookie", "a=b; Path=/"), setOrigin).get(0);
         Assertions.assertTrue(cookieSpec.match(rootPathCookie, new CookieOrigin(host, 80, "/elsewhere", false)));
+    }
+
+    @Test
+    void testExpiresIgnoresMismatchedDayOfWeekInRelaxedMode() throws Exception {
+        final CookieOrigin origin = new CookieOrigin("example.com", 80, "/", false);
+        final Instant expiry = Instant.parse("2030-01-01T00:00:00Z");
+        final CookieSpecFactory strictFactory = CookieSpecSupport.createDefaultBuilder()
+                .build().lookup(StandardCookieSpec.STRICT);
+        final CookieSpecFactory relaxedFactory = CookieSpecSupport.createDefaultBuilder()
+                .build().lookup(StandardCookieSpec.RELAXED);
+        final List<CookieSpec> strictCookieSpecs = Arrays.asList(
+                new RFC6265StrictSpec(),
+                strictFactory.create(null),
+                new RFC6265CookieSpecFactory(RFC6265CookieSpecFactory.CompatibilityLevel.IE_MEDIUM_SECURITY, null)
+                        .create(null));
+
+        for (final CookieSpec cookieSpec : strictCookieSpecs) {
+            Assertions.assertThrows(MalformedCookieException.class, () -> cookieSpec.parse(new BasicHeader(
+                    "Set-Cookie", "a=b; Expires=Mon, 01 Jan 2030 00:00:00 GMT"), origin));
+            final Cookie rightWeekday = cookieSpec.parse(new BasicHeader(
+                    "Set-Cookie", "a=b; Expires=Tue, 01 Jan 2030 00:00:00 GMT"), origin).get(0);
+            Assertions.assertEquals(expiry, rightWeekday.getExpiryInstant());
+            for (final String invalidDate : Arrays.asList(
+                    "Mon, 31 Feb 2030 00:00:00 GMT", "Tue, 30 Feb 2030 00:00:00 GMT")) {
+                Assertions.assertThrows(MalformedCookieException.class, () -> cookieSpec.parse(new BasicHeader(
+                        "Set-Cookie", "a=b; Expires=" + invalidDate), origin));
+            }
+        }
+
+        final CookieSpec relaxedSpec = relaxedFactory.create(null);
+        final Cookie wrongWeekday = relaxedSpec.parse(new BasicHeader(
+                "Set-Cookie", "a=b; Expires=Mon, 01 Jan 2030 00:00:00 GMT"), origin).get(0);
+        Assertions.assertEquals(expiry, wrongWeekday.getExpiryInstant());
+        final Cookie rightWeekday = relaxedSpec.parse(new BasicHeader(
+                "Set-Cookie", "a=b; Expires=Tue, 01 Jan 2030 00:00:00 GMT"), origin).get(0);
+        Assertions.assertEquals(expiry, rightWeekday.getExpiryInstant());
     }
 
     @Test

@@ -342,6 +342,22 @@ class TestBasicCookieAttribHandlers {
     }
 
     @Test
+    void testBasicExpiresRejectsMismatchedDayOfWeek() throws Exception {
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieAttributeHandler h = new BasicExpiresHandler(DateUtils.STANDARD_PATTERNS);
+        final Instant expiry = Instant.parse("2030-01-01T00:00:00Z");
+
+        Assertions.assertThrows(MalformedCookieException.class, () ->
+                h.parse(cookie, "Mon, 01 Jan 2030 00:00:00 GMT"));
+        h.parse(cookie, "Tue, 01 Jan 2030 00:00:00 GMT");
+        Assertions.assertEquals(expiry, cookie.getExpiryInstant());
+        Assertions.assertThrows(MalformedCookieException.class, () ->
+                h.parse(cookie, "Mon, 31 Feb 2030 00:00:00 GMT"));
+        Assertions.assertThrows(MalformedCookieException.class, () ->
+                h.parse(cookie, "Tue, 30 Feb 2030 00:00:00 GMT"));
+    }
+
+    @Test
     void testBasicExpiresParseInvalid() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = new BasicExpiresHandler(DateUtils.FORMATTER_RFC1123);
