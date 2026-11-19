@@ -259,6 +259,7 @@ public class Executor {
         if (credentialsStoreSnapshot != null) {
             credentialsStoreSnapshot.clear();
         }
+        this.authCache.clear();
         return this;
     }
 
