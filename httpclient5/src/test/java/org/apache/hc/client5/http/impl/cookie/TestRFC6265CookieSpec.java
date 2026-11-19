@@ -34,7 +34,10 @@ import java.util.List;
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
+import org.apache.hc.client5.http.cookie.CookieSpec;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
+import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
+import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.jupiter.api.Assertions;
@@ -43,6 +46,41 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 class TestRFC6265CookieSpec {
+
+    /**
+     * xn--9tfky.id (ᬩᬮᬶ.id) is a real Mozilla Public Suffix List entry whose
+     * Unicode label is unassigned under the Unicode 3.2 repertoire java.net.IDN enforces by
+     * default. Without IDN.ALLOW_UNASSIGNED the matcher never decodes it, so it falls
+     * through to treating it as an ordinary registrable domain instead of a public suffix.
+     * Uses the PSL-aware CookieSpec wiring exactly as HttpClientBuilder sets it up by
+     * default (RFC6265CookieSpecFactory with PublicSuffixMatcherLoader.getDefault()).
+     */
+    @Test
+    void testRejectUnassignedCodePointSuffix() throws Exception {
+        final CookieOrigin evilTenant = new CookieOrigin("evil-tenant.xn--9tfky.id", 80, "/", false);
+        final CookieOrigin otherTenant = new CookieOrigin("other-tenant.xn--9tfky.id", 80, "/", false);
+        final CookieOrigin legitOrigin = new CookieOrigin("foo.legit.xn--9tfky.id", 80, "/", false);
+        final CookieOrigin legitSibling = new CookieOrigin("bar.legit.xn--9tfky.id", 80, "/", false);
+        final PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.getDefault();
+        final List<CookieSpec> cookieSpecs = Arrays.asList(
+                new RFC6265CookieSpecFactory(RFC6265CookieSpecFactory.CompatibilityLevel.RELAXED, publicSuffixMatcher)
+                        .create(null),
+                new RFC6265CookieSpecFactory(RFC6265CookieSpecFactory.CompatibilityLevel.STRICT, publicSuffixMatcher)
+                        .create(null));
+
+        for (final CookieSpec cookieSpec : cookieSpecs) {
+            // A cookie for the bare public suffix itself must not reach another tenant under it.
+            final Cookie suffixCookie = cookieSpec.parse(
+                    new BasicHeader("Set-Cookie", "name=value; Domain=xn--9tfky.id"), evilTenant).get(0);
+            Assertions.assertFalse(cookieSpec.match(suffixCookie, otherTenant));
+
+            // A cookie for a genuine registrable domain under the suffix is still a valid
+            // cookie domain and reaches siblings under it, like any ordinary domain.
+            final Cookie legitCookie = cookieSpec.parse(
+                    new BasicHeader("Set-Cookie", "name=value; Domain=legit.xn--9tfky.id"), legitOrigin).get(0);
+            Assertions.assertTrue(cookieSpec.match(legitCookie, legitSibling));
+        }
+    }
 
     @Test
     void testParseCookieBasics() throws Exception {

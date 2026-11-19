@@ -203,6 +203,40 @@ class TestPublicSuffixMatcher {
         Assertions.assertTrue(matcher.verify("foo.xn--h-2fa.no"));
     }
 
+    /**
+     * ᬩᬮᬶ.test (A-label xn--9tfky.test) exercises a public suffix whose
+     * Unicode label is unassigned under Unicode 3.2, unlike hå.no above whose å
+     * has been assigned since Unicode 1.0. {@link java.net.IDN#toUnicode(String)} without
+     * {@link java.net.IDN#ALLOW_UNASSIGNED} silently fails to decode such a label, so the
+     * matcher must still recognise it as the public suffix it is, in both the ACE and the
+     * Unicode form, and a genuine subdomain under it must still be a valid cookie domain.
+     * Confirmed against the crafted fixture and, for verify(), against the real, unmodified
+     * Mozilla Public Suffix List too (rule ᬩᬮᬶ.id, A-label xn--9tfky.id).
+     */
+    @Test
+    void testUnassignedCodePoint() {
+        Assertions.assertEquals("q.xn--9tfky.test", matcher.getDomainRoot("q.xn--9tfky.test"));
+        Assertions.assertEquals("q.ᬩᬮᬶ.test", matcher.getDomainRoot("q.ᬩᬮᬶ.test"));
+        Assertions.assertNull(matcher.getDomainRoot("xn--9tfky.test"));
+        Assertions.assertNull(matcher.getDomainRoot("ᬩᬮᬶ.test"));
+
+        Assertions.assertTrue(matcher.matches(".xn--9tfky.test"));
+        Assertions.assertTrue(matcher.matches(".ᬩᬮᬶ.test"));
+
+        // The bare public suffix, in either form, must never be a valid cookie domain.
+        Assertions.assertFalse(matcher.verify("xn--9tfky.test"));
+        Assertions.assertFalse(matcher.verify("ᬩᬮᬶ.test"));
+        // A genuine registrable domain under it is still allowed, in either form.
+        Assertions.assertTrue(matcher.verify("evil-tenant.xn--9tfky.test"));
+        Assertions.assertTrue(matcher.verify("evil-tenant.ᬩᬮᬶ.test"));
+
+        // Same, against the real, live Mozilla Public Suffix List, not just the fixture.
+        Assertions.assertFalse(pslMatcher.verify("xn--9tfky.id"));
+        Assertions.assertFalse(pslMatcher.verify("ᬩᬮᬶ.id"));
+        Assertions.assertTrue(pslMatcher.verify("evil-tenant.xn--9tfky.id"));
+        Assertions.assertTrue(pslMatcher.verify("evil-tenant.ᬩᬮᬶ.id"));
+    }
+
     private void checkPublicSuffix(final String input, final String expected) {
         Assertions.assertEquals(expected, pslMatcher.getDomainRoot(input));
     }
