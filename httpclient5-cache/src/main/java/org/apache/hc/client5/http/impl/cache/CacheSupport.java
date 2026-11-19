@@ -162,6 +162,9 @@ public final class CacheSupport {
             }
         }
         builder.setFragment(null);
+        // Decode '+' in the query as a blank, as form-urlencoded servers do, so that
+        // the re-encoded query keeps '+' (a blank) and '%2B' (a literal plus) apart
+        builder.setPlusAsBlank(true);
         builder.optimize();
         return builder;
     }
