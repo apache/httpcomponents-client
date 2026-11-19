@@ -93,6 +93,34 @@ class TestRFC6265CookieSpec {
         }
     }
 
+    /**
+     * xn--9tfky.id (ᬩᬮᬶ.id) is a real Mozilla Public Suffix List entry whose
+     * Unicode label is unassigned under the Unicode 3.2 repertoire java.net.IDN enforces by
+     * default. Without IDN.ALLOW_UNASSIGNED the matcher never decodes it, so it falls
+     * through to treating it as an ordinary registrable domain instead of a public suffix.
+     */
+    @Test
+    void testNoArgSpecsRejectUnassignedCodePointSuffix() throws Exception {
+        final CookieOrigin evilTenant = new CookieOrigin("evil-tenant.xn--9tfky.id", 80, "/", false);
+        final CookieOrigin otherTenant = new CookieOrigin("other-tenant.xn--9tfky.id", 80, "/", false);
+        final CookieOrigin legitOrigin = new CookieOrigin("foo.legit.xn--9tfky.id", 80, "/", false);
+        final CookieOrigin legitSibling = new CookieOrigin("bar.legit.xn--9tfky.id", 80, "/", false);
+        final List<CookieSpec> cookieSpecs = Arrays.asList(new RFC6265LaxSpec(), new RFC6265StrictSpec());
+
+        for (final CookieSpec cookieSpec : cookieSpecs) {
+            // A cookie for the bare public suffix itself must not reach another tenant under it.
+            final Cookie suffixCookie = cookieSpec.parse(
+                    new BasicHeader("Set-Cookie", "name=value; Domain=xn--9tfky.id"), evilTenant).get(0);
+            Assertions.assertFalse(cookieSpec.match(suffixCookie, otherTenant));
+
+            // A cookie for a genuine registrable domain under the suffix is still a valid
+            // cookie domain and reaches siblings under it, like any ordinary domain.
+            final Cookie legitCookie = cookieSpec.parse(
+                    new BasicHeader("Set-Cookie", "name=value; Domain=legit.xn--9tfky.id"), legitOrigin).get(0);
+            Assertions.assertTrue(cookieSpec.match(legitCookie, legitSibling));
+        }
+    }
+
     @Test
     void testPathMatchingWithTrailingSlash() throws Exception {
         final CookieSpec cookieSpec = new RFC6265StrictSpec();

@@ -455,6 +455,44 @@ class TestDefaultHostnameVerifier {
                 publicSuffixMatcher);
     }
 
+    /**
+     * matchDNSName normalizes the host and the SAN with DnsUtils.normalizeUnicode before
+     * calling matchIdentity, which in turn calls PublicSuffixMatcher.verifyInternal directly,
+     * bypassing PublicSuffixMatcher.verify. ᬩᬮᬶ.test (A-label xn--9tfky.test)
+     * is a public suffix whose Unicode label is unassigned under Unicode 3.2, so this exercises
+     * the same decode path as the cookie bug, but on the TLS hostname verification path.
+     */
+    @Test
+    void testMatchDNSNameUnassignedCodePoint() throws Exception {
+        // A genuine subdomain under the suffix is a valid identity, in ACE or Unicode form.
+        DefaultHostnameVerifier.matchDNSName(
+                "evil-tenant.xn--9tfky.test",
+                Collections.singletonList(SubjectName.DNS("evil-tenant.xn--9tfky.test")),
+                publicSuffixMatcher);
+        DefaultHostnameVerifier.matchDNSName(
+                "evil-tenant.ᬩᬮᬶ.test",
+                Collections.singletonList(SubjectName.DNS("evil-tenant.ᬩᬮᬶ.test")),
+                publicSuffixMatcher);
+        // A non-wildcard certificate for the bare public suffix itself must be rejected,
+        // in ACE or Unicode form, exactly as it already is for an ASCII multi-label
+        // suffix such as gov.uk (verified below as a control, same shape, no IDN involved).
+        Assertions.assertThrows(SSLException.class, () ->
+                DefaultHostnameVerifier.matchDNSName(
+                        "xn--9tfky.test",
+                        Collections.singletonList(SubjectName.DNS("xn--9tfky.test")),
+                        publicSuffixMatcher));
+        Assertions.assertThrows(SSLException.class, () ->
+                DefaultHostnameVerifier.matchDNSName(
+                        "ᬩᬮᬶ.test",
+                        Collections.singletonList(SubjectName.DNS("ᬩᬮᬶ.test")),
+                        publicSuffixMatcher));
+        Assertions.assertThrows(SSLException.class, () ->
+                DefaultHostnameVerifier.matchDNSName(
+                        "gov.uk",
+                        Collections.singletonList(SubjectName.DNS("gov.uk")),
+                        publicSuffixMatcher));
+    }
+
     @Test
     void testMatchIdentity() {
         // Test 1: IDN matching punycode

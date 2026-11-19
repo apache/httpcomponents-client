@@ -84,7 +84,11 @@ public class DnsUtils {
         }
         String decoded;
         try {
-            decoded = IDN.toUnicode(s);
+            // Unassigned code points must still decode: the Public Suffix List contains
+            // labels (for example Balinese, Unicode 5.0) that are unassigned under the
+            // Unicode 3.2 repertoire IDN enforces by default, and are stored in the PSL
+            // in decoded form.
+            decoded = IDN.toUnicode(s, IDN.ALLOW_UNASSIGNED);
         } catch (final IllegalArgumentException ignore) {
             decoded = s;
         }

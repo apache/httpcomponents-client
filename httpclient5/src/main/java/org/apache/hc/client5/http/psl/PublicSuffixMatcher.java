@@ -141,12 +141,14 @@ public final class PublicSuffixMatcher {
         String normalized = DnsUtils.normalize(domain);
         final boolean punyCoded = normalized.contains("xn-");
         if (punyCoded) {
-            normalized = IDN.toUnicode(normalized);
+            // See DnsUtils.normalizeUnicode: some PSL labels are unassigned under the
+            // Unicode 3.2 repertoire IDN enforces by default and still need to decode.
+            normalized = IDN.toUnicode(normalized, IDN.ALLOW_UNASSIGNED);
         }
         final DomainRootInfo match = resolveDomainRoot(normalized, expectedType);
         String domainRoot = match != null ? match.root : null;
         if (domainRoot != null && punyCoded) {
-            domainRoot = IDN.toASCII(domainRoot);
+            domainRoot = IDN.toASCII(domainRoot, IDN.ALLOW_UNASSIGNED);
         }
         return domainRoot;
     }
