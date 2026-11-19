@@ -257,6 +257,16 @@ class TestCacheKeyGenerator {
                         "/full_episodes?foo=bar")));
     }
 
+    @Test
+    void testPlusAndEncodedPlusInQueryAreNotEquivalent() {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req1 = new BasicHttpRequest("GET", "/search?q=a+b");
+        final HttpRequest req2 = new BasicHttpRequest("GET", "/search?q=a%2Bb");
+        final HttpRequest req3 = new BasicHttpRequest("GET", "/search?q=a%20b");
+        Assertions.assertNotEquals(generateKey(host, req1), generateKey(host, req2));
+        Assertions.assertEquals(generateKey(host, req1), generateKey(host, req3));
+    }
+
     private static Iterator<Header> headers(final Header... headers) {
         return new BasicHeaderIterator(headers, null);
     }
