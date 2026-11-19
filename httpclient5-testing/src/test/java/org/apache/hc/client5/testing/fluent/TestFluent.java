@@ -34,13 +34,17 @@ import java.nio.charset.StandardCharsets;
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpResponseException;
 import org.apache.hc.client5.http.fluent.Content;
+import org.apache.hc.client5.http.fluent.Executor;
 import org.apache.hc.client5.http.fluent.Request;
 import org.apache.hc.client5.testing.extension.sync.ClientProtocolLevel;
 import org.apache.hc.client5.testing.extension.sync.TestClientResources;
 import org.apache.hc.client5.testing.extension.sync.TestServer;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -89,6 +93,16 @@ class TestFluent {
                     final String largeContent = generateLargeString(10000); // Large content string
                     response.setCode(HttpStatus.SC_REDIRECTION);
                     response.setEntity(new StringEntity(largeContent, ContentType.TEXT_PLAIN));
+                })
+                // Handler that requires Basic authentication and echoes the Authorization header
+                .register("/auth", (request, response, context) -> {
+                    final Header authorization = request.getFirstHeader(HttpHeaders.AUTHORIZATION);
+                    if (authorization == null) {
+                        response.setCode(HttpStatus.SC_UNAUTHORIZED);
+                        response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test realm\"");
+                    } else {
+                        response.setEntity(new StringEntity(authorization.getValue(), ContentType.TEXT_PLAIN));
+                    }
                 }));
     }
 
@@ -171,6 +185,38 @@ class TestFluent {
                 tmpFile.delete();
             }
         }
+    }
+
+    @Test
+    void testClearAuthDiscardsCachedCredentials() throws Exception {
+        final HttpHost target = startServer();
+        final String baseURL = "http://localhost:" + target.getPort();
+        final Executor executor = Executor.newInstance()
+                .auth(target, "alice", "secret".toCharArray());
+
+        final Content content = executor.execute(Request.get(baseURL + "/auth")).returnContent();
+        Assertions.assertEquals("Basic YWxpY2U6c2VjcmV0", content.asString());
+
+        executor.clearAuth();
+
+        final HttpResponse response = executor.execute(Request.get(baseURL + "/auth"))
+                .returnResponse();
+        Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+    }
+
+    @Test
+    void testClearAuthDiscardsPreemptiveCredentials() throws Exception {
+        final HttpHost target = startServer();
+        final String baseURL = "http://localhost:" + target.getPort();
+        final Executor executor = Executor.newInstance()
+                .auth(target, "alice", "secret".toCharArray())
+                .authPreemptive(target);
+
+        executor.clearAuth();
+
+        final HttpResponse response = executor.execute(Request.get(baseURL + "/auth"))
+                .returnResponse();
+        Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
     }
 
     private String generateLargeString(final int size) {
