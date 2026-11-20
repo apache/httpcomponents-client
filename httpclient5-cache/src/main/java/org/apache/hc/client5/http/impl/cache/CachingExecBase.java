@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.hc.client5.http.HttpRoute;
@@ -136,6 +137,26 @@ public class CachingExecBase {
         }
         final AuthExchange authExchange = context.getAuthExchanges().get(route.getTargetHost());
         return authExchange != null && authExchange.getState() == AuthExchange.State.SUCCESS;
+    }
+
+    /**
+     * Determines whether the request headers nominated by the {@code Vary} header of
+     * the response have the same values in the request seen by the cache and in the
+     * request last sent to the backend. Headers such as {@code Cookie} are added by the
+     * protocol layer below the cache, so a response varying on them would otherwise be
+     * stored under the variant of a request that did not carry them.
+     */
+    static boolean isVaryConsistent(
+            final HttpRequest request,
+            final HttpResponse backendResponse,
+            final HttpClientContext context) {
+        final HttpRequest sentRequest = context.getRequest();
+        if (sentRequest == null || sentRequest == request || !backendResponse.containsHeader(HttpHeaders.VARY)) {
+            return true;
+        }
+        final List<String> variantNames = CacheKeyGenerator.variantNames(backendResponse);
+        return CacheKeyGenerator.INSTANCE.generateVariantKey(request, variantNames).equals(
+                CacheKeyGenerator.INSTANCE.generateVariantKey(sentRequest, variantNames));
     }
 
     SimpleHttpResponse generateCachedResponse(

@@ -302,6 +302,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final ClassicHttpRequest backendRequest = ClassicRequestBuilder.copy(request)
                 .setEntity(entity)
                 .build();
+        scope.clientContext.setRequest(backendRequest);
         return chain.proceed(backendRequest, scope);
     }
 
@@ -553,7 +554,8 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         context.setResponseCacheControl(responseCacheControl);
         final boolean cacheable = responseCachingPolicy.isResponseCacheable(
                 requestCacheControl, responseCacheControl, request, backendResponse,
-                isTargetAuthenticated(context, scope.route));
+                isTargetAuthenticated(context, scope.route))
+                && isVaryConsistent(request, backendResponse, context);
         if (cacheable) {
             storeRequestIfModifiedSinceFor304Response(request, backendResponse);
             if (LOG.isDebugEnabled()) {
