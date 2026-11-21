@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.ssl;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.net.IDN;
 import java.security.MessageDigest;
@@ -38,6 +39,7 @@ import java.security.Principal;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Date;
@@ -57,6 +59,11 @@ class SpkiPinningClientTlsStrategyTest {
     private static String sha256Pin(final byte[] spki) throws Exception {
         final byte[] digest = MessageDigest.getInstance("SHA-256").digest(spki);
         return "sha256/" + Base64.getEncoder().encodeToString(digest);
+    }
+
+    private static X509Certificate cert(final byte[] pem) throws Exception {
+        return (X509Certificate) CertificateFactory.getInstance("X.509")
+                .generateCertificate(new ByteArrayInputStream(pem));
     }
 
     @Test
@@ -303,6 +310,43 @@ class SpkiPinningClientTlsStrategyTest {
                 .add("*", pin));
     }
 
+    @Test
+    void pinOnCertificateOutsideSigningChainFails() throws Exception {
+        final X509Certificate leaf = cert(CertificatesToPlayWith.X509_FOO);
+        final X509Certificate intermediate = cert(CertificatesToPlayWith.X509_INTERMEDIATE_CA);
+        final X509Certificate unrelated = cert(CertificatesToPlayWith.S_GOOGLE_COM);
+
+        final SpkiPinningClientTlsStrategy strategy = SpkiPinningClientTlsStrategy
+                .newBuilder(SSLContext.getDefault())
+                .add("foo.com", sha256Pin(unrelated.getPublicKey().getEncoded()))
+                .build();
+
+        // The peer appends a certificate with the pinned key that does not sign anything in its chain
+        final SSLSession session = new FakeSession(leaf, intermediate, unrelated);
+        assertThrows(SSLException.class, () -> strategy.enforcePins("foo.com", session));
+    }
+
+    @Test
+    void pinOnCertificateInSigningChainSucceeds() throws Exception {
+        final X509Certificate leaf = cert(CertificatesToPlayWith.X509_FOO);
+        final X509Certificate intermediate = cert(CertificatesToPlayWith.X509_INTERMEDIATE_CA);
+        final X509Certificate root = cert(CertificatesToPlayWith.X509_ROOT_CA);
+
+        final SpkiPinningClientTlsStrategy intermediatePin = SpkiPinningClientTlsStrategy
+                .newBuilder(SSLContext.getDefault())
+                .add("foo.com", sha256Pin(intermediate.getPublicKey().getEncoded()))
+                .build();
+        final SpkiPinningClientTlsStrategy rootPin = SpkiPinningClientTlsStrategy
+                .newBuilder(SSLContext.getDefault())
+                .add("foo.com", sha256Pin(root.getPublicKey().getEncoded()))
+                .build();
+
+        assertDoesNotThrow(() -> intermediatePin.enforcePins("foo.com", new FakeSession(leaf, intermediate, root)));
+        assertDoesNotThrow(() -> rootPin.enforcePins("foo.com", new FakeSession(leaf, intermediate, root)));
+        // The peer is not required to send its chain in signing order
+        assertDoesNotThrow(() -> rootPin.enforcePins("foo.com", new FakeSession(leaf, root, intermediate)));
+    }
+
     @SuppressWarnings("deprecation")
     private static final class X509WithKey extends X509Certificate {
         private final PublicKey key;
@@ -467,8 +511,8 @@ class SpkiPinningClientTlsStrategyTest {
     private static final class FakeSession implements SSLSession {
         private final X509Certificate[] chain;
 
-        FakeSession(final X509Certificate cert) {
-            this.chain = new X509Certificate[]{cert};
+        FakeSession(final X509Certificate... chain) {
+            this.chain = chain;
         }
 
         @Override
