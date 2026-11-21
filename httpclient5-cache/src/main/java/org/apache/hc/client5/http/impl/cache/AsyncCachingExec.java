@@ -79,6 +79,7 @@ import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.ByteArrayBuffer;
@@ -534,8 +535,10 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         } else {
             entityProducer = null;
         }
+        final HttpRequest backendRequest = BasicRequestBuilder.copy(request).build();
+        scope.clientContext.setRequest(backendRequest);
         try {
-            chain.proceed(request, entityProducer, scope, asyncExecCallback);
+            chain.proceed(backendRequest, entityProducer, scope, asyncExecCallback);
         } catch (final HttpException | IOException ex) {
             asyncExecCallback.failed(ex);
         }
@@ -753,7 +756,8 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             context.setResponseCacheControl(responseCacheControl);
             final boolean cacheable = responseCachingPolicy.isResponseCacheable(
                     requestCacheControl, responseCacheControl, request, backendResponse,
-                    isTargetAuthenticated(context, scope.route));
+                    isTargetAuthenticated(context, scope.route))
+                    && isVaryConsistent(request, backendResponse, context);
             if (cacheable) {
                 storeRequestIfModifiedSinceFor304Response(request, backendResponse);
                 if (LOG.isDebugEnabled()) {
