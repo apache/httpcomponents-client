@@ -43,8 +43,10 @@ import org.apache.hc.client5.http.observation.impl.ObservationAsyncExecIntercept
 import org.apache.hc.client5.http.observation.impl.ObservationClassicExecInterceptor;
 import org.apache.hc.client5.http.observation.impl.MeteredDnsResolver;
 import org.apache.hc.client5.http.observation.impl.MeteredTlsStrategy;
+import org.apache.hc.client5.http.observation.interceptors.AsyncContentLengthExec;
 import org.apache.hc.client5.http.observation.interceptors.AsyncIoByteCounterExec;
 import org.apache.hc.client5.http.observation.interceptors.AsyncTimerExec;
+import org.apache.hc.client5.http.observation.interceptors.ContentLengthExec;
 import org.apache.hc.client5.http.observation.interceptors.IoByteCounterExec;
 import org.apache.hc.client5.http.observation.interceptors.TimerExec;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
@@ -94,6 +96,8 @@ import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
  *       that surrounds each execution with a start/stop span.</li>
  *   <li>Metric interceptors according to {@link ObservingOptions.MetricSet}:
  *       BASIC (latency timer + response counter), IO (bytes in/out counters),
+ *       CONTENT_LENGTH (declared request/response entity length distribution
+ *       summaries, opt-in),
  *       and CONN_POOL (pool gauges; classic and async variants). Pool lease
  *       timing is available when using {@link #meteredConnectionManager} or
  *       {@link #meteredAsyncConnectionManager}.</li>
@@ -118,6 +122,10 @@ public final class HttpClientObservationSupport {
      * Internal ID for I/O byte counters interceptor.
      */
     private static final String IO_ID = "metric-io";
+    /**
+     * Internal ID for content length distribution summaries interceptor.
+     */
+    private static final String CONTENT_LENGTH_ID = "metric-content-length";
 
     /* ====================== Classic ====================== */
 
@@ -202,6 +210,9 @@ public final class HttpClientObservationSupport {
         }
         if (o.metricSets.contains(ObservingOptions.MetricSet.IO)) {
             builder.addExecInterceptorFirst(IO_ID, new IoByteCounterExec(meterReg, o, config));
+        }
+        if (o.metricSets.contains(ObservingOptions.MetricSet.CONTENT_LENGTH)) {
+            builder.addExecInterceptorFirst(CONTENT_LENGTH_ID, new ContentLengthExec(meterReg, o, config));
         }
         if (o.metricSets.contains(ObservingOptions.MetricSet.CONN_POOL)) {
             ConnPoolMeters.bindTo(builder, meterReg, config);
@@ -294,6 +305,9 @@ public final class HttpClientObservationSupport {
         if (o.metricSets.contains(ObservingOptions.MetricSet.IO)) {
             builder.addExecInterceptorAfter(ChainElement.CACHING.name(), IO_ID, new IoByteCounterExec(meterReg, o, config));
         }
+        if (o.metricSets.contains(ObservingOptions.MetricSet.CONTENT_LENGTH)) {
+            builder.addExecInterceptorAfter(ChainElement.CACHING.name(), CONTENT_LENGTH_ID, new ContentLengthExec(meterReg, o, config));
+        }
         if (o.metricSets.contains(ObservingOptions.MetricSet.CONN_POOL)) {
             ConnPoolMeters.bindTo(builder, meterReg, config);
         }
@@ -380,6 +394,9 @@ public final class HttpClientObservationSupport {
         }
         if (o.metricSets.contains(ObservingOptions.MetricSet.IO)) {
             builder.addExecInterceptorFirst(IO_ID, new AsyncIoByteCounterExec(meterReg, o, config));
+        }
+        if (o.metricSets.contains(ObservingOptions.MetricSet.CONTENT_LENGTH)) {
+            builder.addExecInterceptorFirst(CONTENT_LENGTH_ID, new AsyncContentLengthExec(meterReg, o, config));
         }
         if (o.metricSets.contains(ObservingOptions.MetricSet.CONN_POOL)) {
             ConnPoolMetersAsync.bindTo(builder, meterReg, config);
@@ -470,6 +487,9 @@ public final class HttpClientObservationSupport {
         }
         if (o.metricSets.contains(ObservingOptions.MetricSet.IO)) {
             builder.addExecInterceptorAfter(ChainElement.CACHING.name(), IO_ID, new AsyncIoByteCounterExec(meterReg, o, config));
+        }
+        if (o.metricSets.contains(ObservingOptions.MetricSet.CONTENT_LENGTH)) {
+            builder.addExecInterceptorAfter(ChainElement.CACHING.name(), CONTENT_LENGTH_ID, new AsyncContentLengthExec(meterReg, o, config));
         }
         if (o.metricSets.contains(ObservingOptions.MetricSet.CONN_POOL)) {
             ConnPoolMetersAsync.bindTo(builder, meterReg, config);
