@@ -185,7 +185,9 @@ public class RFC6265CookieSpec implements CookieSpec {
                     }
                 }
             }
-            if (!Cookie.DOMAIN_ATTR.equals(paramName) || !TextUtils.isBlank(paramValue)) {
+            // Ignore empty 'Domain' attributes and those ending with '.' so the cookie stays host-only
+            if (!Cookie.DOMAIN_ATTR.equals(paramName)
+                    || !TextUtils.isBlank(paramValue) && !paramValue.endsWith(".")) {
                 attribMap.put(paramName, paramValue);
             }
         }

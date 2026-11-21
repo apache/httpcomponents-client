@@ -75,6 +75,25 @@ class TestRFC6265CookieSpec {
     }
 
     @Test
+    void testTrailingDotDomainAttributeIgnored() throws Exception {
+        final RFC6265CookieSpec cookiespec = new RFC6265StrictSpec();
+        final CookieOrigin origin = new CookieOrigin("example.com", 80, "/", false);
+
+        final Cookie hostOnlyCookie = cookiespec.parse(
+                new BasicHeader("Set-Cookie", "name=value; Domain=example.com."), origin).get(0);
+        cookiespec.validate(hostOnlyCookie, origin);
+        Assertions.assertEquals("example.com", hostOnlyCookie.getDomain());
+        Assertions.assertFalse(hostOnlyCookie.containsAttribute(Cookie.DOMAIN_ATTR));
+        Assertions.assertTrue(cookiespec.match(hostOnlyCookie, origin));
+        Assertions.assertFalse(cookiespec.match(hostOnlyCookie,
+                new CookieOrigin("sub.example.com", 80, "/", false)));
+
+        final Cookie cookie = cookiespec.parse(
+                new BasicHeader("Set-Cookie", "name=value; Domain=example.com; Domain=foo."), origin).get(0);
+        Assertions.assertEquals("example.com", cookie.getAttribute(Cookie.DOMAIN_ATTR));
+    }
+
+    @Test
     void testNoArgSpecsUsePublicSuffixMatcher() throws Exception {
         final CookieOrigin publicSuffixOrigin = new CookieOrigin("foo.com", 80, "/", false);
         final CookieOrigin exampleOrigin = new CookieOrigin("foo.example.com", 80, "/", false);
