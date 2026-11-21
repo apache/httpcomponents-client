@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.cookie.CookieSpec;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
+import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -77,7 +78,7 @@ public class RFC6265CookieSpecFactory implements CookieSpecFactory {
     }
 
     public RFC6265CookieSpecFactory() {
-        this(CompatibilityLevel.RELAXED, null);
+        this(CompatibilityLevel.RELAXED, PublicSuffixMatcherLoader.getDefault());
     }
 
     @Override
