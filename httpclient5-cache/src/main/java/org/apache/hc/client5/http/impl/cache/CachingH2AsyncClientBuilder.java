@@ -157,7 +157,7 @@ public class CachingH2AsyncClientBuilder extends H2AsyncClientBuilder {
                 httpCache,
                 cacheRevalidator,
                 config);
-        execChainDefinition.addBefore(ChainElement.PROTOCOL.name(), cachingExec, ChainElement.CACHING.name());
+        execChainDefinition.addAfter(ChainElement.PROTOCOL.name(), cachingExec, ChainElement.CACHING.name());
     }
 
 }

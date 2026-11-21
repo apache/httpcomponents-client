@@ -154,7 +154,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
                 httpCache,
                 cacheRevalidator,
                 config);
-        execChainDefinition.addBefore(ChainElement.PROTOCOL.name(), cachingExec, ChainElement.CACHING.name());
+        execChainDefinition.addAfter(ChainElement.PROTOCOL.name(), cachingExec, ChainElement.CACHING.name());
     }
 
     @Override

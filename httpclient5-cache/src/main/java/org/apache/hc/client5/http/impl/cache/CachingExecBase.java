@@ -129,9 +129,8 @@ public class CachingExecBase {
      * request last sent to the backend. A connection-based scheme does not resend
      * the header once the exchange has succeeded, so check the exchange state as well.
      */
-    static boolean isTargetAuthenticated(final HttpClientContext context, final HttpRoute route) {
-        final HttpRequest sentRequest = context.getRequest();
-        if (sentRequest != null && sentRequest.containsHeader(HttpHeaders.AUTHORIZATION)) {
+    static boolean isTargetAuthenticated(final HttpRequest request, final HttpRoute route, final HttpClientContext context) {
+        if (request.containsHeader(HttpHeaders.AUTHORIZATION)) {
             return true;
         }
         final AuthExchange authExchange = context.getAuthExchanges().get(route.getTargetHost());
