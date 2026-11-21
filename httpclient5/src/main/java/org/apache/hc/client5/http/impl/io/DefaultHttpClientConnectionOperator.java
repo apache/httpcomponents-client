@@ -32,6 +32,7 @@ import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -89,11 +90,24 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
 
     static final DetachedSocketFactory PLAIN_SOCKET_FACTORY = socksProxy -> socksProxy == null ? new Socket() : new Socket(socksProxy);
 
+    /**
+     * RFC 8305, Section 8: "When a reasonable value is unknown, implementations SHOULD use a
+     * Connection Attempt Delay of 250 milliseconds".
+     */
+    static final TimeValue DEFAULT_CONNECTION_ATTEMPT_DELAY = TimeValue.ofMilliseconds(250);
+
+    /**
+     * RFC 8305, Section 8: "this value SHOULD NOT be below 10 ms".
+     */
+    private static final long MIN_CONNECTION_ATTEMPT_DELAY_MS = 10;
+
     private final DetachedSocketFactory detachedSocketFactory;
     private final UnixDomainSocketFactory unixDomainSocketFactory = UnixDomainSocketFactory.getSocketFactory();
     private final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup;
     private final SchemePortResolver schemePortResolver;
     private final DnsResolver dnsResolver;
+    private final boolean happyEyeballsEnabled;
+    private final TimeValue connectionAttemptDelay;
 
     /**
      * @deprecated Provided for backward compatibility
@@ -115,6 +129,19 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
             final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup) {
+        this(detachedSocketFactory, schemePortResolver, dnsResolver, tlsSocketStrategyLookup, false, null);
+    }
+
+    /**
+     * @since 5.7
+     */
+    public DefaultHttpClientConnectionOperator(
+            final DetachedSocketFactory detachedSocketFactory,
+            final SchemePortResolver schemePortResolver,
+            final DnsResolver dnsResolver,
+            final Lookup<TlsSocketStrategy> tlsSocketStrategyLookup,
+            final boolean happyEyeballsEnabled,
+            final TimeValue connectionAttemptDelay) {
         super();
         this.detachedSocketFactory = Args.notNull(detachedSocketFactory, "Plain socket factory");
         this.tlsSocketStrategyLookup = Args.notNull(tlsSocketStrategyLookup, "Socket factory registry");
@@ -122,6 +149,13 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 DefaultSchemePortResolver.INSTANCE;
         this.dnsResolver = dnsResolver != null ? dnsResolver :
                 SystemDefaultDnsResolver.INSTANCE;
+        this.happyEyeballsEnabled = happyEyeballsEnabled;
+        final TimeValue delay = connectionAttemptDelay != null ? connectionAttemptDelay : DEFAULT_CONNECTION_ATTEMPT_DELAY;
+        if (happyEyeballsEnabled) {
+            Args.check(delay.toMilliseconds() >= MIN_CONNECTION_ATTEMPT_DELAY_MS,
+                    "Connection attempt delay must be at least %s ms (RFC 8305, Section 8)", MIN_CONNECTION_ATTEMPT_DELAY_MS);
+        }
+        this.connectionAttemptDelay = delay;
     }
 
     /**
@@ -200,6 +234,105 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final int port = this.schemePortResolver.resolve(endpointHost.getSchemeName(), endpointHost);
             remoteAddresses = this.dnsResolver.resolve(endpointHost.getHostName(), port);
         }
+
+        // A specific, non-ephemeral local port can only ever be bound by one socket at a
+        // time; racing would bind several attempts to it concurrently, and the OS would
+        // reject all but one with a bind conflict instead of a real connect failure. Fall
+        // back to the existing sequential path in that case, exactly as before this feature,
+        // since only one attempt is ever in flight there.
+        final boolean canRace = localAddress == null || localAddress.getPort() == 0;
+        if (happyEyeballsEnabled && canRace && remoteAddresses.size() > 1) {
+            onBeforeSocketConnect(context, endpointHost);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} racing connection attempts across {} ({})", endpointHost, remoteAddresses, connectTimeout);
+            }
+            final HappyEyeballsSocketConnector connector = new HappyEyeballsSocketConnector(connectionAttemptDelay);
+            final Socket socket = connector.connect(endpointHost, remoteAddresses, (remoteAddress, socketConsumer) -> {
+                final Socket attemptSocket = detachedSocketFactory.create(endpointHost.getSchemeName(), socksProxy);
+                socketConsumer.accept(attemptSocket);
+                try {
+                    if (localAddress != null) {
+                        attemptSocket.bind(localAddress);
+                    }
+                    configureSocket(attemptSocket, socketConfig, true);
+                    attemptSocket.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisecondsIntBound() : 0);
+                    return attemptSocket;
+                } catch (final IOException | RuntimeException ex) {
+                    Closer.closeQuietly(attemptSocket);
+                    throw ex;
+                }
+            });
+            // The winner is already TCP-connected; identify its address so a TLS failure
+            // below can fall back to whichever addresses the race did not settle on,
+            // without retrying this one.
+            final InetSocketAddress winnerAddress = (InetSocketAddress) socket.getRemoteSocketAddress();
+            try {
+                conn.bind(socket);
+                onAfterSocketConnect(context, endpointHost);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} {} connected {}->{}", ConnPoolSupport.getId(conn), endpointHost, conn.getLocalAddress(), conn.getRemoteAddress());
+                }
+                final TlsSocketStrategy tlsSocketStrategy = tlsSocketStrategyLookup != null ? tlsSocketStrategyLookup.lookup(endpointHost.getSchemeName()) : null;
+                if (tlsSocketStrategy != null) {
+                    upgradeToTls(conn, endpointHost, endpointName, connectTimeout, attachment, context, tlsSocketStrategy, socket);
+                }
+            } catch (final RuntimeException ex) {
+                Closer.closeQuietly(socket);
+                throw ex;
+            } catch (final IOException ex) {
+                Closer.closeQuietly(socket);
+                final List<InetSocketAddress> remaining = withoutAddress(remoteAddresses, winnerAddress);
+                if (remaining.isEmpty()) {
+                    throw ConnectExceptionSupport.enhance(ex, endpointHost);
+                }
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} connection to {} failed after racing ({}); retrying connection to the remaining address(es)", endpointHost, winnerAddress, ex.getClass());
+                }
+                connectSequentially(conn, endpointHost, endpointName, localAddress, remaining, connectTimeout, socketConfig, attachment, context, socksProxy);
+                return;
+            }
+            return;
+        }
+
+        connectSequentially(conn, endpointHost, endpointName, localAddress, remoteAddresses, connectTimeout, socketConfig, attachment, context, socksProxy);
+    }
+
+    /**
+     * Removes the first occurrence of {@code excluded} from {@code addresses}, preserving the
+     * order of the rest.
+     */
+    private static List<InetSocketAddress> withoutAddress(
+            final List<InetSocketAddress> addresses, final InetSocketAddress excluded) {
+        final List<InetSocketAddress> remaining = new ArrayList<>(addresses.size());
+        boolean removedOne = false;
+        for (final InetSocketAddress address : addresses) {
+            if (!removedOne && address.equals(excluded)) {
+                removedOne = true;
+                continue;
+            }
+            remaining.add(address);
+        }
+        return remaining;
+    }
+
+    /**
+     * Connects to each of {@code remoteAddresses} in turn, stopping at the first one that
+     * completes both the TCP connection and, where configured, the TLS handshake. An
+     * {@link IOException} from either step moves on to the next address; the last address's
+     * failure is rethrown, enhanced via {@link ConnectExceptionSupport}. A {@link
+     * RuntimeException} is never retried, exactly as on the address it was thrown for.
+     */
+    private void connectSequentially(
+            final ManagedHttpClientConnection conn,
+            final HttpHost endpointHost,
+            final NamedEndpoint endpointName,
+            final InetSocketAddress localAddress,
+            final List<InetSocketAddress> remoteAddresses,
+            final Timeout connectTimeout,
+            final SocketConfig socketConfig,
+            final Object attachment,
+            final HttpContext context,
+            final Proxy socksProxy) throws IOException {
         for (int i = 0; i < remoteAddresses.size(); i++) {
             final InetSocketAddress remoteAddress = remoteAddresses.get(i);
             final boolean last = i == remoteAddresses.size() - 1;
