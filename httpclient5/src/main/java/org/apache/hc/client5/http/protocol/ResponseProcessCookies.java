@@ -30,9 +30,11 @@ package org.apache.hc.client5.http.protocol;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
+import org.apache.hc.client5.http.cookie.CookieRestrictionViolationException;
 import org.apache.hc.client5.http.cookie.CookieSpec;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
@@ -121,6 +123,10 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
                 for (final Cookie cookie : cookies) {
                     try {
                         cookieSpec.validate(cookie, cookieOrigin);
+                        if (!cookieOrigin.isSecure() && overlaysSecureCookie(cookie, cookieStore)) {
+                            throw new CookieRestrictionViolationException(
+                                    "Insecure origin may not overwrite secure cookie \"" + cookie.getName() + "\"");
+                        }
                         cookieStore.addCookie(cookie);
 
                         if (LOG.isDebugEnabled()) {
@@ -138,6 +144,42 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
                 }
             }
         }
+    }
+
+    /**
+     * RFC 6265bis, 5.7: a cookie received from an insecure origin is ignored if the store
+     * holds a secure cookie with the same name whose domain domain-matches the new cookie's
+     * domain (or vice versa) and whose path is path-matched by the new cookie's path.
+     */
+    private static boolean overlaysSecureCookie(final Cookie cookie, final CookieStore cookieStore) {
+        for (final Cookie existing : cookieStore.getCookies()) {
+            if (existing.isSecure()
+                    && existing.getName().equals(cookie.getName())
+                    && (domainMatch(existing.getDomain(), cookie.getDomain())
+                        || domainMatch(cookie.getDomain(), existing.getDomain()))
+                    && pathMatch(cookie.getPath(), existing.getPath())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean domainMatch(final String host, final String domain) {
+        if (host == null || domain == null) {
+            return false;
+        }
+        final String h = host.toLowerCase(Locale.ROOT);
+        final String d = domain.toLowerCase(Locale.ROOT);
+        return h.equals(d) || h.endsWith("." + d);
+    }
+
+    private static boolean pathMatch(final String path, final String cookiePath) {
+        final String p = path != null ? path : "/";
+        final String c = cookiePath != null ? cookiePath : "/";
+        if (p.equals(c)) {
+            return true;
+        }
+        return p.startsWith(c) && (c.endsWith("/") || p.charAt(c.length()) == '/');
     }
 
     private static String formatCookie(final Cookie cookie) {

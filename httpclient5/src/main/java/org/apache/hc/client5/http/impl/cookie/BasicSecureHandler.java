@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.cookie;
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
+import org.apache.hc.client5.http.cookie.CookieRestrictionViolationException;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.client5.http.cookie.SetCookie;
 import org.apache.hc.core5.annotation.Contract;
@@ -59,6 +60,18 @@ public class BasicSecureHandler extends AbstractCookieAttributeHandler implement
             throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
         cookie.setSecure(true);
+    }
+
+    @Override
+    public void validate(final Cookie cookie, final CookieOrigin origin)
+            throws MalformedCookieException {
+        Args.notNull(cookie, "Cookie");
+        Args.notNull(origin, "Cookie origin");
+        // RFC 6265bis, 5.7: only a secure origin may set a cookie with the Secure attribute
+        if (cookie.isSecure() && !origin.isSecure()) {
+            throw new CookieRestrictionViolationException(
+                    "Secure cookie \"" + cookie.getName() + "\" may not be set by an insecure origin");
+        }
     }
 
     @Override

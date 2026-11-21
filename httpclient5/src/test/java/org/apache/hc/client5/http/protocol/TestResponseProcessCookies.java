@@ -147,4 +147,60 @@ class TestResponseProcessCookies {
         Assertions.assertEquals(0, cookies.size());
     }
 
+    @Test
+    void testInsecureOriginCannotSetSecureCookie() throws Exception {
+        final HttpResponse response = new BasicHttpResponse(200, "OK");
+        response.addHeader("Set-Cookie", "name1=value1; Secure");
+
+        final HttpClientContext context = HttpClientContext.create();
+        context.setCookieOrigin(this.cookieOrigin);
+        context.setCookieSpec(this.cookieSpec);
+        context.setCookieStore(this.cookieStore);
+
+        final HttpResponseInterceptor interceptor = ResponseProcessCookies.INSTANCE;
+        interceptor.process(response, null, context);
+
+        Assertions.assertEquals(0, this.cookieStore.getCookies().size());
+    }
+
+    @Test
+    void testInsecureOriginCannotOverwriteSecureCookie() throws Exception {
+        final HttpResponseInterceptor interceptor = ResponseProcessCookies.INSTANCE;
+
+        final HttpResponse secureResponse = new BasicHttpResponse(200, "OK");
+        secureResponse.addHeader("Set-Cookie", "session=secure-value; Secure; Path=/");
+        final HttpClientContext secureContext = HttpClientContext.create();
+        secureContext.setCookieOrigin(new CookieOrigin("www.example.com", 443, "/", true));
+        secureContext.setCookieSpec(this.cookieSpec);
+        secureContext.setCookieStore(this.cookieStore);
+        interceptor.process(secureResponse, null, secureContext);
+
+        final HttpResponse insecureResponse = new BasicHttpResponse(200, "OK");
+        insecureResponse.addHeader("Set-Cookie", "session=insecure-value; Path=/");
+        insecureResponse.addHeader("Set-Cookie", "session=insecure-value; Domain=example.com; Path=/sub");
+        insecureResponse.addHeader("Set-Cookie", "other=insecure-value; Path=/");
+        final HttpClientContext insecureContext = HttpClientContext.create();
+        insecureContext.setCookieOrigin(new CookieOrigin("www.example.com", 80, "/", false));
+        insecureContext.setCookieSpec(this.cookieSpec);
+        insecureContext.setCookieStore(this.cookieStore);
+        interceptor.process(insecureResponse, null, insecureContext);
+
+        final List<Cookie> cookies = this.cookieStore.getCookies();
+        Assertions.assertEquals(2, cookies.size());
+        for (final Cookie cookie : cookies) {
+            if (cookie.getName().equals("session")) {
+                Assertions.assertEquals("secure-value", cookie.getValue());
+                Assertions.assertTrue(cookie.isSecure());
+            } else {
+                Assertions.assertEquals("other", cookie.getName());
+            }
+        }
+
+        final HttpResponse secureUpdate = new BasicHttpResponse(200, "OK");
+        secureUpdate.addHeader("Set-Cookie", "session=new-secure-value; Secure; Path=/");
+        interceptor.process(secureUpdate, null, secureContext);
+        Assertions.assertTrue(this.cookieStore.getCookies().stream().anyMatch(c ->
+                c.getName().equals("session") && c.getValue().equals("new-secure-value")));
+    }
+
 }
