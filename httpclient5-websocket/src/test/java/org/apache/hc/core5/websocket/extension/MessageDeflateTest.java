@@ -126,6 +126,19 @@ final class MessageDeflateTest {
     }
 
     @Test
+    void decode_messagesEndingWithBfinalBlock_withContextTakeover() throws Exception {
+        // RFC 7692 section 7.2.3.4: "Hello" compressed using a DEFLATE block with BFINAL set to 1.
+        final byte[] wire = {(byte) 0xf3, 0x48, (byte) 0xcd, (byte) 0xc9, (byte) 0xc9, 0x07, 0x00, 0x00};
+        final byte[] plain = "Hello".getBytes(StandardCharsets.UTF_8);
+
+        final PerMessageDeflate pmce = new PerMessageDeflate(true, false, false, null, null);
+        final WebSocketExtensionChain.Decoder dec = pmce.newDecoder();
+
+        assertArrayEquals(plain, dec.decode(wire));
+        assertArrayEquals(plain, dec.decode(wire), "message after a BFINAL block must not decode to empty");
+    }
+
+    @Test
     void decode_withinLimit_succeeds() throws Exception {
         final PerMessageDeflate pmce = new PerMessageDeflate(true, true, true, null, null);
         final WebSocketExtensionChain.Encoder enc = pmce.newEncoder();

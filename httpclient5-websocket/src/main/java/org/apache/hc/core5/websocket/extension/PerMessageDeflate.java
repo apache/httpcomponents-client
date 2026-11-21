@@ -190,7 +190,9 @@ public final class PerMessageDeflate implements WebSocketExtensionChain {
                         break;
                     }
                 }
-                if (serverNoContextTakeover) {
+                // A DEFLATE block with BFINAL set ends the stream (RFC 7692 section 7.2.3.4);
+                // the next message then starts a new one.
+                if (serverNoContextTakeover || inf.finished()) {
                     inf.reset();
                 }
                 return out.toByteArray();

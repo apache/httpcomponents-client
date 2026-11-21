@@ -106,7 +106,7 @@ public final class PerMessageDeflateExtension implements WebSocketExtension {
         final byte[] buffer = new byte[Math.min(16384, Math.max(1024, input.length * 2))];
         long produced = 0L;
         try {
-            while (!inflater.needsInput()) {
+            while (!inflater.needsInput() && !inflater.finished()) {
                 final int count = inflater.inflate(buffer);
                 if (count == 0 && inflater.needsInput()) {
                     break;
@@ -123,6 +123,11 @@ public final class PerMessageDeflateExtension implements WebSocketExtension {
             throw wspe;
         } catch (final Exception ex) {
             throw new WebSocketException("Unable to inflate payload", ex);
+        }
+        if (inflater.finished()) {
+            // A DEFLATE block with BFINAL set ends the stream (RFC 7692 section 7.2.3.4);
+            // the sender starts a new one for the data that follows.
+            inflater.reset();
         }
         if (fin) {
             decodingMessage = false;
