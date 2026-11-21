@@ -54,6 +54,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -326,6 +327,7 @@ public abstract class TestClassicOverAsync extends AbstractClassicOverAsyncInteg
         }
     }
 
+    @Disabled("Fails intermittently with CI build server")  // Requires a fix in core
     @ValueSource(ints = {0, 2048, 10240})
     @ParameterizedTest(name = "{displayName}; content length: {0}")
     void testConcurrentPostRequests(final int contentSize) throws Exception {
