@@ -32,6 +32,7 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -40,6 +41,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
@@ -53,11 +55,13 @@ import org.apache.hc.client5.http.cache.RequestCacheControl;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.client5.http.impl.ExecSupport;
+import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.client5.http.validator.ETag;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.ComplexFuture;
@@ -79,6 +83,7 @@ import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.ByteArrayBuffer;
@@ -108,6 +113,24 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
     AsyncCachingExec(final HttpAsyncCache cache, final DefaultAsyncCacheRevalidator cacheRevalidator, final CacheConfig config) {
         super(config);
+        this.responseCache = Args.notNull(cache, "Response cache");
+        this.cacheRevalidator = cacheRevalidator;
+        this.conditionalRequestBuilder = new ConditionalRequestBuilder();
+        this.requestCollapsingEnabled = config.isRequestCollapsingEnabled();
+        this.collapser = this.requestCollapsingEnabled ? new CacheRequestCollapser() : null;
+    }
+
+    /**
+     * @since 5.7
+     */
+    AsyncCachingExec(
+            final HttpAsyncCache cache,
+            final DefaultAsyncCacheRevalidator cacheRevalidator,
+            final CacheConfig config,
+            final SchemePortResolver schemePortResolver,
+            final AuthCacheKeeper authCacheKeeper,
+            final boolean cookieManagementEnabled) {
+        super(config, schemePortResolver, authCacheKeeper, cookieManagementEnabled);
         this.responseCache = Args.notNull(cache, "Response cache");
         this.cacheRevalidator = cacheRevalidator;
         this.conditionalRequestBuilder = new ConditionalRequestBuilder();
@@ -310,10 +333,12 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             return;
         }
 
-        operation.setDependency(responseCache.match(target, cacheRequest, new FutureCallback<CacheMatch>() {
+        operation.setDependency(lookup(target, cacheRequest, scope, new FutureCallback<VaryLookupResult>() {
 
             @Override
-            public void completed(final CacheMatch result) {
+            public void completed(final VaryLookupResult lookupResult) {
+                final CacheMatch result = lookupResult != null ? lookupResult.match : null;
+                final SimpleHttpRequest effectiveRequest = lookupResult != null ? lookupResult.effectiveRequest : cacheRequest;
                 final CacheHit hit = result != null ? result.hit : null;
                 final CacheHit root = result != null ? result.root : null;
                 if (hit == null) {
@@ -374,10 +399,12 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                                 if (follower.isCancelled()) {
                                     return;
                                 }
-                                follower.setDependency(responseCache.match(target, cacheRequest, new FutureCallback<CacheMatch>() {
+                                follower.setDependency(lookup(target, cacheRequest, scope, new FutureCallback<VaryLookupResult>() {
 
                                     @Override
-                                    public void completed(final CacheMatch result) {
+                                    public void completed(final VaryLookupResult lookupResult) {
+                                        final CacheMatch result = lookupResult != null ? lookupResult.match : null;
+                                        final SimpleHttpRequest effectiveRequest = lookupResult != null ? lookupResult.effectiveRequest : cacheRequest;
                                         final CacheHit hit = result != null ? result.hit : null;
                                         final CacheHit root = result != null ? result.root : null;
                                         if (hit == null) {
@@ -388,7 +415,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                                                 LOG.debug("{} response cache control: {}", exchangeId, responseCacheControl);
                                             }
                                             context.setResponseCacheControl(responseCacheControl);
-                                            handleCacheHit(requestCacheControl, responseCacheControl, hit, target, cacheRequest, scope, chain, asyncExecCallback);
+                                            handleCacheHit(requestCacheControl, responseCacheControl, hit, target, cacheRequest, effectiveRequest, scope, chain, asyncExecCallback);
                                         }
                                     }
 
@@ -414,7 +441,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                         LOG.debug("{} response cache control: {}", exchangeId, responseCacheControl);
                     }
                     context.setResponseCacheControl(responseCacheControl);
-                    handleCacheHit(requestCacheControl, responseCacheControl, hit, target, cacheRequest, scope, chain, asyncExecCallback);
+                    handleCacheHit(requestCacheControl, responseCacheControl, hit, target, cacheRequest, effectiveRequest, scope, chain, asyncExecCallback);
                 }
             }
 
@@ -429,6 +456,84 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             }
 
         }));
+    }
+
+    /**
+     * Looks up a cache entry for the given request. Whenever the matched root entry varies on
+     * {@code Cookie} and/or {@code Authorization} and the request does not already carry the header,
+     * previews what the protocol layer below the cache is about to add and looks up again with that
+     * preview; the previewed match, not the first one, is then authoritative, whether it is a hit or a
+     * miss. This runs regardless of whether the first, pre-preview match already happened to return a
+     * hit: a root entry whose stored variant happens to be, say, the anonymous one must not be handed
+     * back as-is to a request that is about to carry real credentials, any more than a miss should be.
+     * On a successful preview match, the previewed request (never sent anywhere) is delivered alongside
+     * the match so that later checks against the hit, notably {@code CachedResponseSuitabilityChecker}'s
+     * own {@code Vary} comparison, agree with it. When the preview had to be declined (an {@code
+     * Authorization} value that cannot be previewed safely, such as Digest), the lookup is forced to a
+     * miss for this root entry instead of trusting the first, unpreviewed match.
+     */
+    Cancellable lookup(
+            final HttpHost target,
+            final SimpleHttpRequest cacheRequest,
+            final AsyncExecChain.Scope scope,
+            final FutureCallback<VaryLookupResult> callback) {
+        final ComplexCancellable cancellable = new ComplexCancellable();
+        cancellable.setDependency(responseCache.match(target, cacheRequest, new FutureCallback<CacheMatch>() {
+
+            @Override
+            public void completed(final CacheMatch result) {
+                final CacheHit root = result != null ? result.root : null;
+                if (root == null || !root.entry.hasVariants()) {
+                    callback.completed(new VaryLookupResult(result, cacheRequest));
+                    return;
+                }
+                final List<String> variantNames = CacheKeyGenerator.variantNames(root.entry);
+                final HttpHost authTarget = resolveAuthTarget(cacheRequest, scope.route);
+                final VaryPreview preview = previewVaryRequest(
+                        authTarget, cacheRequest, variantNames, scope.route, HttpCacheContext.cast(scope.clientContext));
+                if (preview.declined) {
+                    callback.completed(new VaryLookupResult(new CacheMatch(null, root), cacheRequest));
+                    return;
+                }
+                if (preview.request == null) {
+                    callback.completed(new VaryLookupResult(result, cacheRequest));
+                    return;
+                }
+                final SimpleHttpRequest previewed = preview.request;
+                cancellable.setDependency(responseCache.match(target, previewed, new FutureCallback<CacheMatch>() {
+
+                    @Override
+                    public void completed(final CacheMatch previewedResult) {
+                        callback.completed(new VaryLookupResult(previewedResult, previewed));
+                    }
+
+                    @Override
+                    public void failed(final Exception ex) {
+                        // The previewed match is authoritative; falling back to the original,
+                        // un-previewed result here could serve a credentialed request the wrong variant.
+                        callback.failed(ex);
+                    }
+
+                    @Override
+                    public void cancelled() {
+                        callback.cancelled();
+                    }
+
+                }));
+            }
+
+            @Override
+            public void failed(final Exception cause) {
+                callback.failed(cause);
+            }
+
+            @Override
+            public void cancelled() {
+                callback.cancelled();
+            }
+
+        }));
+        return cancellable;
     }
 
     SimpleHttpRequest prepareRequest(final HttpRequest request,
@@ -534,8 +639,13 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         } else {
             entityProducer = null;
         }
+        // Send a copy down the chain: the protocol layer adds headers (Cookie, Authorization,
+        // User-Agent) directly to the request instance it is given, and this request is reused
+        // for more than one purpose (variant key generation, a possible second attempt during
+        // revalidation). The cache's own request must stay exactly as the layers above it built it.
+        final HttpRequest backendRequest = BasicRequestBuilder.copy(request).build();
         try {
-            chain.proceed(request, entityProducer, scope, asyncExecCallback);
+            chain.proceed(backendRequest, entityProducer, scope, asyncExecCallback);
         } catch (final HttpException | IOException ex) {
             asyncExecCallback.failed(ex);
         }
@@ -779,9 +889,14 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final String exchangeId = scope.exchangeId;
             final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
             final CancellableDependency operation = scope.cancellableDependency;
+            // The request actually sent to the backend, headers and all, as recorded by
+            // HttpAsyncMainClientExec/H2AsyncMainClientExec. Used, in place of the cache's own
+            // request, as the key material for whichever of Cookie and Authorization the response
+            // itself varies on; see CachingExecBase#effectiveRequestForStorage.
+            final SimpleHttpRequest effectiveRequest = effectiveRequestForStorage(request, backendResponse, context.getRequest());
             operation.setDependency(responseCache.store(
                     target,
-                    request,
+                    effectiveRequest,
                     backendResponse,
                     buffer,
                     requestDate,
@@ -827,9 +942,117 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             }
         }
 
+        /**
+         * Finds the cache entry to revalidate for a 304 response and updates it, or stores the response
+         * as a new entry if none was found. RFC 9110 15.4.5 requires a 304 to repeat Vary, but plenty of
+         * origins violate that MUST and omit it anyway; the matched root entry's own Vary is discovered
+         * first, with a plain match, the same way the ordinary lookup() does, so a Vary-less 304 can
+         * never collapse Vary matching to nothing and select the wrong variant.
+         */
+        private void updateFromNotModified(final HttpResponse backendResponse, final Instant responseDate, final ByteArrayBuffer buffer) {
+            final String exchangeId = scope.exchangeId;
+            final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
+            responseCache.match(target, request, new FutureCallback<CacheMatch>() {
+
+                @Override
+                public void completed(final CacheMatch rootMatch) {
+                    final CacheHit root = rootMatch != null ? rootMatch.root : null;
+                    if (root == null) {
+                        proceed(rootMatch, null);
+                        return;
+                    }
+                    final SimpleHttpRequest effective304Request = effectiveRequestForStorage(request, root.entry, context.getRequest());
+                    responseCache.match(target, effective304Request, new FutureCallback<CacheMatch>() {
+
+                        @Override
+                        public void completed(final CacheMatch result) {
+                            proceed(result, root);
+                        }
+
+                        @Override
+                        public void failed(final Exception cause) {
+                            asyncExecCallback.failed(cause);
+                        }
+
+                        @Override
+                        public void cancelled() {
+                            asyncExecCallback.failed(new InterruptedIOException());
+                        }
+
+                    });
+                }
+
+                private void proceed(final CacheMatch result, final CacheHit root) {
+                    final CacheHit hit = result != null ? result.hit : null;
+                    if (hit != null) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} existing cache entry found, updating cache entry", exchangeId);
+                        }
+                        // The matched entry's own Vary is the one that matters, not a Vary-less 304's
+                        final SimpleHttpRequest effectiveRequest = effectiveRequestForStorage(request, hit.entry, context.getRequest());
+                        responseCache.update(
+                                hit,
+                                target,
+                                effectiveRequest,
+                                backendResponse,
+                                requestDate,
+                                responseDate,
+                                new FutureCallback<CacheHit>() {
+
+                                    @Override
+                                    public void completed(final CacheHit updated) {
+                                        if (LOG.isDebugEnabled()) {
+                                            LOG.debug("{} cache entry updated, generating response from updated entry", exchangeId);
+                                        }
+                                        triggerCachedResponse(updated.entry);
+                                    }
+                                    @Override
+                                    public void failed(final Exception cause) {
+                                        if (LOG.isDebugEnabled()) {
+                                            LOG.debug("{} request failed: {}", exchangeId, cause.getMessage());
+                                        }
+                                        asyncExecCallback.failed(cause);
+                                    }
+
+                                    @Override
+                                    public void cancelled() {
+                                        if (LOG.isDebugEnabled()) {
+                                            LOG.debug("{} cache entry updated aborted", exchangeId);
+                                        }
+                                        asyncExecCallback.failed(new InterruptedIOException());
+                                    }
+
+                                });
+                    } else {
+                        if (root != null && !backendResponse.containsHeader(HttpHeaders.VARY)) {
+                            // No existing variant actually matched (this is a genuinely new one), but the
+                            // resource is known, from the root entry, to vary; a non-compliant 304 that
+                            // omits Vary must not make the entry created for it look variant-less below,
+                            // or storing it would replace the root outright and evict every other variant
+                            // already recorded under it.
+                            for (final Iterator<Header> it = root.entry.headerIterator(HttpHeaders.VARY); it.hasNext(); ) {
+                                backendResponse.addHeader(it.next());
+                            }
+                        }
+                        triggerNewCacheEntryResponse(backendResponse, responseDate, buffer);
+                    }
+                }
+
+                @Override
+                public void failed(final Exception cause) {
+                    asyncExecCallback.failed(cause);
+                }
+
+                @Override
+                public void cancelled() {
+                    asyncExecCallback.failed(new InterruptedIOException());
+                }
+
+            });
+        }
+
         @Override
         public void completed() {
-            final String exchangeId = scope.exchangeId;
             final CachingAsyncDataConsumer cachingDataConsumer = cachingConsumerRef.getAndSet(null);
             if (cachingDataConsumer == null || cachingDataConsumer.writtenThrough.get()) {
                 asyncExecCallback.completed();
@@ -840,68 +1063,20 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
             // Handle 304 Not Modified responses
             if (backendResponse.getCode() == HttpStatus.SC_NOT_MODIFIED) {
-                responseCache.match(target, request, new FutureCallback<CacheMatch>() {
-
-                    @Override
-                    public void completed(final CacheMatch result) {
-                        final CacheHit hit = result != null ? result.hit : null;
-                        if (hit != null) {
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("{} existing cache entry found, updating cache entry", exchangeId);
-                            }
-                            responseCache.update(
-                                    hit,
-                                    target,
-                                    request,
-                                    backendResponse,
-                                    requestDate,
-                                    responseDate,
-                                    new FutureCallback<CacheHit>() {
-
-                                        @Override
-                                        public void completed(final CacheHit updated) {
-                                            if (LOG.isDebugEnabled()) {
-                                                LOG.debug("{} cache entry updated, generating response from updated entry", exchangeId);
-                                            }
-                                            triggerCachedResponse(updated.entry);
-                                        }
-                                        @Override
-                                        public void failed(final Exception cause) {
-                                            if (LOG.isDebugEnabled()) {
-                                                LOG.debug("{} request failed: {}", exchangeId, cause.getMessage());
-                                            }
-                                            asyncExecCallback.failed(cause);
-                                        }
-
-                                        @Override
-                                        public void cancelled() {
-                                            if (LOG.isDebugEnabled()) {
-                                                LOG.debug("{} cache entry updated aborted", exchangeId);
-                                            }
-                                            asyncExecCallback.failed(new InterruptedIOException());
-                                        }
-
-                                    });
-                        } else {
-                            triggerNewCacheEntryResponse(backendResponse, responseDate, buffer);
-                        }
-                    }
-
-                    @Override
-                    public void failed(final Exception cause) {
-                        asyncExecCallback.failed(cause);
-                    }
-
-                    @Override
-                    public void cancelled() {
-                        asyncExecCallback.failed(new InterruptedIOException());
-                    }
-
-                });
+                updateFromNotModified(backendResponse, responseDate, buffer);
             } else {
+                final HttpCacheContext context = HttpCacheContext.cast(scope.clientContext);
+                // The request actually sent to the backend, headers and all, as recorded by
+                // HttpAsyncMainClientExec/H2AsyncMainClientExec. Used, in place of the cache's own request,
+                // as the key material for whichever of Cookie and Authorization the response itself varies
+                // on; see CachingExecBase#effectiveRequestForStorage. The cache's own held request never
+                // picks up Cookie/Authorization by side effect here, unlike on master: callChain sends a
+                // copy down the chain, not this instance.
+                final SimpleHttpRequest matchRequest = effectiveRequestForStorage(request, backendResponse, context.getRequest());
                 if (cacheConfig.isFreshnessCheckEnabled()) {
+                    final String exchangeId = scope.exchangeId;
                     final CancellableDependency operation = scope.cancellableDependency;
-                    operation.setDependency(responseCache.match(target, request, new FutureCallback<CacheMatch>() {
+                    operation.setDependency(responseCache.match(target, matchRequest, new FutureCallback<CacheMatch>() {
 
                         @Override
                         public void completed(final CacheMatch result) {
@@ -946,6 +1121,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final CacheHit hit,
             final HttpHost target,
             final SimpleHttpRequest request,
+            final SimpleHttpRequest effectiveRequest,
             final AsyncExecChain.Scope scope,
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) {
@@ -960,7 +1136,11 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
         final Instant now = getCurrentDate();
 
-        final CacheSuitability cacheSuitability = suitabilityChecker.assessSuitability(requestCacheControl, responseCacheControl, request, hit.entry, now);
+        // effectiveRequest, not request: it carries whatever Cookie/Authorization value the preview found
+        // the hit with, so this agrees with the match instead of re-declaring it a Vary mismatch. It must
+        // never be used below for anything that reaches the backend (request is used there instead): it
+        // was never sent and must not be treated as if it had been.
+        final CacheSuitability cacheSuitability = suitabilityChecker.assessSuitability(requestCacheControl, responseCacheControl, effectiveRequest, hit.entry, now);
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} cache suitability: {}", exchangeId, cacheSuitability);
         }
@@ -1092,10 +1272,13 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
             void triggerUpdatedCacheEntryResponse(final HttpResponse backendResponse, final Instant responseDate) {
                 final CancellableDependency operation = scope.cancellableDependency;
+                // The origin may omit Vary on this 304 even though RFC 9110 15.4.5 requires it to be
+                // repeated, so the stale entry's own Vary is the one that matters
+                final SimpleHttpRequest effectiveRequest = effectiveRequestForStorage(request, hit.entry, context.getRequest());
                 operation.setDependency(responseCache.update(
                         hit,
                         target,
-                        request,
+                        effectiveRequest,
                         backendResponse,
                         requestDate,
                         responseDate,
@@ -1460,10 +1643,13 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 cacheUpdates.getAndIncrement();
                 cacheStatus(context).forwardStatus(HttpStatus.SC_NOT_MODIFIED);
 
+                // The origin may omit Vary on this 304 even though RFC 9110 15.4.5 requires it to be
+                // repeated, so the matched variant's own Vary is the one that matters
+                final SimpleHttpRequest effectiveRequest = effectiveRequestForStorage(request, match.entry, context.getRequest());
                 operation.setDependency(responseCache.storeFromNegotiated(
                         match,
                         target,
-                        request,
+                        effectiveRequest,
                         backendResponse,
                         requestDate,
                         responseDate,

@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.async.methods.SimpleBody;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -48,6 +49,7 @@ import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.impl.ExecSupport;
+import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.validator.ETag;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -110,6 +112,22 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
 
     CachingExec(final HttpCache cache, final DefaultCacheRevalidator cacheRevalidator, final CacheConfig config) {
         super(config);
+        this.responseCache = Args.notNull(cache, "Response cache");
+        this.cacheRevalidator = cacheRevalidator;
+        this.conditionalRequestBuilder = new ConditionalRequestBuilder();
+    }
+
+    /**
+     * @since 5.7
+     */
+    CachingExec(
+            final HttpCache cache,
+            final DefaultCacheRevalidator cacheRevalidator,
+            final CacheConfig config,
+            final SchemePortResolver schemePortResolver,
+            final AuthCacheKeeper authCacheKeeper,
+            final boolean cookieManagementEnabled) {
+        super(config, schemePortResolver, authCacheKeeper, cookieManagementEnabled);
         this.responseCache = Args.notNull(cache, "Response cache");
         this.cacheRevalidator = cacheRevalidator;
         this.conditionalRequestBuilder = new ConditionalRequestBuilder();
@@ -197,7 +215,9 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             return callBackend(requestCacheControl, target, cacheRequest, scope, chain);
         }
 
-        final CacheMatch result = responseCache.match(target, cacheRequest);
+        final VaryLookupResult lookupResult = lookup(target, cacheRequest, scope);
+        final CacheMatch result = lookupResult.match;
+        final SimpleHttpRequest effectiveRequest = lookupResult.effectiveRequest;
         final CacheHit hit = result != null ? result.hit : null;
         final CacheHit root = result != null ? result.root : null;
 
@@ -209,7 +229,40 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} response cache control: {}", exchangeId, responseCacheControl);
         }
-        return handleCacheHit(requestCacheControl, responseCacheControl, hit, target, cacheRequest, scope, chain);
+        return handleCacheHit(requestCacheControl, responseCacheControl, hit, target, cacheRequest, effectiveRequest, scope, chain);
+    }
+
+    /**
+     * Looks up a cache entry for the given request. Whenever the matched root entry varies on
+     * {@code Cookie} and/or {@code Authorization} and the request does not already carry the header,
+     * previews what the protocol layer below the cache is about to add and looks up again with that
+     * preview; the previewed match, not the first one, is then authoritative, whether it is a hit or a
+     * miss. This runs regardless of whether the first, pre-preview match already happened to return a
+     * hit: a root entry whose stored variant happens to be, say, the anonymous one must not be handed
+     * back as-is to a request that is about to carry real credentials, any more than a miss should be.
+     * On a successful preview match, the previewed request (never sent anywhere) is returned alongside
+     * the match so that later checks against the hit, notably {@code CachedResponseSuitabilityChecker}'s
+     * own {@code Vary} comparison, agree with it. When the preview had to be declined (an {@code
+     * Authorization} value that cannot be previewed safely, such as Digest), the lookup is forced to a
+     * miss for this root entry instead of trusting the first, unpreviewed match.
+     */
+    private VaryLookupResult lookup(final HttpHost target, final SimpleHttpRequest cacheRequest, final ExecChain.Scope scope) {
+        final CacheMatch result = responseCache.match(target, cacheRequest);
+        final CacheHit root = result != null ? result.root : null;
+        if (root == null || !root.entry.hasVariants()) {
+            return new VaryLookupResult(result, cacheRequest);
+        }
+        final List<String> variantNames = CacheKeyGenerator.variantNames(root.entry);
+        final HttpHost authTarget = resolveAuthTarget(cacheRequest, scope.route);
+        final VaryPreview preview = previewVaryRequest(
+                authTarget, cacheRequest, variantNames, scope.route, HttpCacheContext.cast(scope.clientContext));
+        if (preview.declined) {
+            return new VaryLookupResult(new CacheMatch(null, root), cacheRequest);
+        }
+        if (preview.request == null) {
+            return new VaryLookupResult(result, cacheRequest);
+        }
+        return new VaryLookupResult(responseCache.match(target, preview.request), preview.request);
     }
 
     private static ClassicHttpResponse convert(final SimpleHttpResponse cacheResponse) {
@@ -311,6 +364,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final CacheHit hit,
             final HttpHost target,
             final SimpleHttpRequest request,
+            final SimpleHttpRequest effectiveRequest,
             final ExecChain.Scope scope,
             final ExecChain chain) throws IOException, HttpException {
         final String exchangeId = scope.exchangeId;
@@ -324,7 +378,11 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
 
         final Instant now = getCurrentDate();
 
-        final CacheSuitability cacheSuitability = suitabilityChecker.assessSuitability(requestCacheControl, responseCacheControl, request, hit.entry, now);
+        // effectiveRequest, not request: it carries whatever Cookie/Authorization value the preview found
+        // the hit with, so this agrees with the match instead of re-declaring it a Vary mismatch. It must
+        // never be used below for anything that reaches the backend (request is used there instead): it
+        // was never sent and must not be treated as if it had been.
+        final CacheSuitability cacheSuitability = suitabilityChecker.assessSuitability(requestCacheControl, responseCacheControl, effectiveRequest, hit.entry, now);
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} cache suitability: {}", exchangeId, cacheSuitability);
         }
@@ -453,7 +511,10 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 cacheUpdates.getAndIncrement();
             }
             if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
-                final CacheHit updated = responseCache.update(hit, target, request, backendResponse, requestDate, responseDate);
+                // The origin may omit Vary on this 304 even though RFC 9110 15.4.5 requires it to be
+                // repeated, so the stale entry's own Vary is the one that matters
+                final SimpleHttpRequest effectiveRequest = effectiveRequestForStorage(request, hit.entry, context.getRequest());
+                final CacheHit updated = responseCache.update(hit, target, effectiveRequest, backendResponse, requestDate, responseDate);
                 final SimpleHttpResponse cacheResponse = generateCachedResponse(request, updated.entry, responseDate);
                 context.setCacheEntry(updated.entry);
                 return convert(cacheResponse);
@@ -579,13 +640,22 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final int statusCode = backendResponse.getCode();
         // handle 304 Not Modified responses
         if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
-            final CacheMatch result = responseCache.match(target ,request);
+            // RFC 9110 15.4.5 requires a 304 to repeat Vary, but plenty of origins violate that MUST
+            // and omit it anyway; discover the matched root entry's own Vary first, the same way the
+            // ordinary lookup() does with a plain match, so a Vary-less 304 can never collapse Vary
+            // matching to nothing and select the wrong variant.
+            final CacheMatch rootMatch = responseCache.match(target, request);
+            final CacheHit root = rootMatch != null ? rootMatch.root : null;
+            final SimpleHttpRequest effective304Request = root != null
+                    ? effectiveRequestForStorage(request, root.entry, context.getRequest())
+                    : effectiveRequestForStorage(request, backendResponse, context.getRequest());
+            final CacheMatch result = root != null ? responseCache.match(target, effective304Request) : rootMatch;
             final CacheHit hit = result != null ? result.hit : null;
             if (hit != null) {
                 final CacheHit updated = responseCache.update(
                         hit,
                         target,
-                        request,
+                        effective304Request,
                         backendResponse,
                         requestSent,
                         responseReceived);
@@ -593,7 +663,21 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 context.setCacheEntry(hit.entry);
                 return convert(cacheResponse);
             }
+            if (root != null && !backendResponse.containsHeader(HttpHeaders.VARY)) {
+                // No existing variant actually matched (this is a genuinely new one), but the resource
+                // is known, from the root entry, to vary; a non-compliant 304 that omits Vary must not
+                // make the entry created for it look variant-less below, or storing it would replace the
+                // root outright and evict every other variant already recorded under it.
+                for (final Iterator<Header> it = root.entry.headerIterator(HttpHeaders.VARY); it.hasNext(); ) {
+                    backendResponse.addHeader(it.next());
+                }
+            }
         }
+
+        // The request actually sent to the backend, headers and all, as recorded by MainClientExec.
+        // Used, in place of the cache's own request, as the key material for whichever of Cookie and
+        // Authorization the response itself varies on; see CachingExecBase#effectiveRequestForStorage.
+        final SimpleHttpRequest effectiveRequest = effectiveRequestForStorage(request, backendResponse, context.getRequest());
 
         final ByteArrayBuffer buf;
         final HttpEntity entity = backendResponse.getEntity();
@@ -621,20 +705,20 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
 
         CacheHit hit;
         if (cacheConfig.isFreshnessCheckEnabled() && statusCode != HttpStatus.SC_NOT_MODIFIED) {
-            final CacheMatch result = responseCache.match(target ,request);
+            final CacheMatch result = responseCache.match(target, effectiveRequest);
             hit = result != null ? result.hit : null;
             if (HttpCacheEntry.isNewer(hit != null ? hit.entry : null, backendResponse)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} backend already contains fresher cache entry", exchangeId);
                 }
             } else {
-                hit = responseCache.store(target, request, backendResponse, buf, requestSent, responseReceived);
+                hit = responseCache.store(target, effectiveRequest, backendResponse, buf, requestSent, responseReceived);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} backend response successfully cached", exchangeId);
                 }
             }
         } else {
-            hit = responseCache.store(target, request, backendResponse, buf, requestSent, responseReceived);
+            hit = responseCache.store(target, effectiveRequest, backendResponse, buf, requestSent, responseReceived);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} backend response successfully cached (freshness check skipped)", exchangeId);
             }
@@ -739,7 +823,10 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             cacheUpdates.getAndIncrement();
             cacheStatus(context).forwardStatus(HttpStatus.SC_NOT_MODIFIED);
 
-            final CacheHit hit = responseCache.storeFromNegotiated(match, target, request, backendResponse, requestDate, responseDate);
+            // The origin may omit Vary on this 304 even though RFC 9110 15.4.5 requires it to be
+            // repeated, so the matched variant's own Vary is the one that matters
+            final SimpleHttpRequest effectiveRequest = effectiveRequestForStorage(request, match.entry, context.getRequest());
+            final CacheHit hit = responseCache.storeFromNegotiated(match, target, effectiveRequest, backendResponse, requestDate, responseDate);
             final SimpleHttpResponse cacheResponse = generateCachedResponse(request, hit.entry, responseDate);
             context.setCacheEntry(hit.entry);
             return convert(cacheResponse);

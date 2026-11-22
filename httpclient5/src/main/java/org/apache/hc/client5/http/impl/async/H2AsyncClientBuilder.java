@@ -795,6 +795,45 @@ public class H2AsyncClientBuilder {
         closeables.add(closeable);
     }
 
+    /**
+     * Returns the scheme port resolver this builder is configured with, so that handlers added by
+     * {@link #customizeExecChain(NamedElementChain)} can resolve target hosts exactly the way
+     * {@link AsyncProtocolExec} does.
+     * <p>
+     * For internal use.
+     * </p>
+     */
+    @Internal
+    protected SchemePortResolver getSchemePortResolver() {
+        return schemePortResolver;
+    }
+
+    /**
+     * Returns {@code true} if cookie management was disabled on this builder, so that handlers added
+     * by {@link #customizeExecChain(NamedElementChain)} know whether {@link RequestAddCookies} runs as
+     * part of the real exchange.
+     * <p>
+     * For internal use.
+     * </p>
+     */
+    @Internal
+    protected boolean isCookieManagementDisabled() {
+        return cookieManagementDisabled;
+    }
+
+    /**
+     * Returns {@code true} if auth caching was disabled on this builder, so that handlers added by
+     * {@link #customizeExecChain(NamedElementChain)} know whether {@link AsyncProtocolExec} preemptively
+     * loads auth schemes from the {@link org.apache.hc.client5.http.auth.AuthCache}.
+     * <p>
+     * For internal use.
+     * </p>
+     */
+    @Internal
+    protected boolean isAuthCachingDisabled() {
+        return authCachingDisabled;
+    }
+
     public CloseableHttpAsyncClient build() {
         AuthenticationStrategy targetAuthStrategyCopy = this.targetAuthStrategy;
         if (targetAuthStrategyCopy == null) {

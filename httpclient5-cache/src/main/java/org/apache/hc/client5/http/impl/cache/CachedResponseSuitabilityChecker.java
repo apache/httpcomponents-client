@@ -226,6 +226,15 @@ class CachedResponseSuitabilityChecker {
                 if (headerName.equalsIgnoreCase("*")) {
                     return false;
                 }
+                // Authorization is always stripped from the stored request headers (HttpCacheEntryFactory
+                // never persists it in the clear), so entry.requestHeaders() can never carry a value to
+                // compare against here. That comparison is instead already done, correctly, against the
+                // request actually sent at storage time, by the (case-sensitive, digested) variant key
+                // match that produced this hit; redoing it here would always "mismatch" and make
+                // Vary: Authorization caching a no-op.
+                if (headerName.equalsIgnoreCase(HttpHeaders.AUTHORIZATION)) {
+                    continue;
+                }
                 CacheKeyGenerator.normalizeElements(request, headerName, tokensInRequest::add);
                 CacheKeyGenerator.normalizeElements(entry.requestHeaders(), headerName, tokensInCache::add);
                 if (!Objects.equals(tokensInRequest, tokensInCache)) {

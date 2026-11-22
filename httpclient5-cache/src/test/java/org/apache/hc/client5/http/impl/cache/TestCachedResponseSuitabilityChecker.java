@@ -224,6 +224,45 @@ class TestCachedResponseSuitabilityChecker {
         Assertions.assertFalse(impl.requestHeadersMatch(request, entry));
     }
 
+    /**
+     * {@code Authorization} is always stripped from the stored request headers (the cache never
+     * persists credentials), so it must be excluded from this comparison: otherwise a {@code Vary:
+     * Authorization} entry could never be matched again, since entry.requestHeaders() can never carry
+     * a value to compare the request's own {@code Authorization} header against.
+     */
+    @Test
+    void testRequestHeadersMatchIgnoresAuthorization() {
+        request = BasicRequestBuilder.get("/foo")
+                .addHeader("Authorization", "Basic d2hhdGV2ZXI=")
+                .build();
+        entry = makeEntry(
+                Method.GET, "/foo",
+                new Header[]{},
+                200,
+                new Header[]{
+                        new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                        new BasicHeader("Vary", "Authorization")
+                });
+        Assertions.assertTrue(impl.requestHeadersMatch(request, entry));
+
+        // a Vary naming both Authorization and another header must still enforce the other header
+        request = BasicRequestBuilder.get("/foo")
+                .addHeader("Authorization", "Basic d2hhdGV2ZXI=")
+                .addHeader("Accept-Encoding", "gzip")
+                .build();
+        entry = makeEntry(
+                Method.GET, "/foo",
+                new Header[]{
+                        new BasicHeader("Accept-Encoding", "deflate")
+                },
+                200,
+                new Header[]{
+                        new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                        new BasicHeader("Vary", "Authorization, Accept-Encoding")
+                });
+        Assertions.assertFalse(impl.requestHeadersMatch(request, entry));
+    }
+
     @Test
     void testResponseNoCache() {
         entry = makeEntry(new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));

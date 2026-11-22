@@ -229,9 +229,43 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
             if (header != null) {
                 consumer.accept(header.getValue().toLowerCase(Locale.ROOT));
             }
+        } else if (headerName.equalsIgnoreCase(HttpHeaders.AUTHORIZATION)) {
+            // Authorization as a special case: the credential value is opaque and must stay
+            // case-sensitive (unlike a value-less header element, which the general path below
+            // lowercases), and must not be persisted in the clear in a cache storage key, so it is
+            // digested instead of being embedded verbatim. All headers of that name are folded into one
+            // digest, the same way the general path below folds all headers of a name together.
+            final Iterator<Header> headers = message.headerIterator(headerName);
+            if (headers.hasNext()) {
+                consumer.accept(digestHeaderValues(headers));
+            }
         } else {
             normalizeElements(message.headerIterator(headerName), consumer);
         }
+    }
+
+    /**
+     * Digests one or more opaque header values for inclusion in a cache storage key: case-sensitive,
+     * never embedded in the clear, and folded together so that a different set of values - not just a
+     * different first value - produces a different result. A missing value (a header added with a null
+     * value) is treated the same as an empty one rather than throwing.
+     */
+    private static String digestHeaderValues(final Iterator<Header> headers) {
+        final MessageDigest digester;
+        try {
+            digester = MessageDigest.getInstance("SHA-256");
+        } catch (final NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("SHA-256 message digest is not supported", ex);
+        }
+        while (headers.hasNext()) {
+            final String value = headers.next().getValue();
+            if (value != null) {
+                digester.update(value.getBytes(StandardCharsets.UTF_8));
+            }
+            // 0 separates consecutive values so {"a", "bc"} cannot collide with {"ab", "c"}
+            digester.update((byte) 0);
+        }
+        return Hex.encodeHexString(digester.digest());
     }
 
     @Internal

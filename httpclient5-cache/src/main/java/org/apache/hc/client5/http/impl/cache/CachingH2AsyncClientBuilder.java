@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorageAdaptor;
@@ -37,7 +38,9 @@ import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.impl.ChainElement;
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.async.H2AsyncClientBuilder;
+import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.schedule.ImmediateSchedulingStrategy;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.core5.http.config.NamedElementChain;
@@ -153,10 +156,16 @@ public class CachingH2AsyncClientBuilder extends H2AsyncClientBuilder {
                     this.schedulingStrategy != null ? this.schedulingStrategy : ImmediateSchedulingStrategy.INSTANCE);
         }
 
+        final SchemePortResolver schemePortResolverCopy = getSchemePortResolver();
+        final AuthCacheKeeper authCacheKeeper = isAuthCachingDisabled() ? null : new AuthCacheKeeper(
+                schemePortResolverCopy != null ? schemePortResolverCopy : DefaultSchemePortResolver.INSTANCE);
         final AsyncCachingExec cachingExec = new AsyncCachingExec(
                 httpCache,
                 cacheRevalidator,
-                config);
+                config,
+                schemePortResolverCopy,
+                authCacheKeeper,
+                !isCookieManagementDisabled());
         execChainDefinition.addBefore(ChainElement.PROTOCOL.name(), cachingExec, ChainElement.CACHING.name());
     }
 

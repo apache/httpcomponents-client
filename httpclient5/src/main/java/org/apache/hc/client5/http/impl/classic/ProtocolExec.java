@@ -44,6 +44,7 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.RequestSupport;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
+import org.apache.hc.client5.http.impl.auth.AuthSupport;
 import org.apache.hc.client5.http.impl.auth.AuthenticationHandler;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
@@ -173,19 +174,12 @@ public final class ProtocolExec implements ExecChainHandler {
             final AuthExchange targetAuthExchange = context.getAuthExchange(target);
             final AuthExchange proxyAuthExchange = proxy != null ? context.getAuthExchange(proxy) : new AuthExchange();
 
-            if (!targetAuthExchange.isConnectionBased() &&
-                    targetAuthExchange.getPathPrefix() != null &&
-                    !pathPrefixSupplier.get().startsWith(targetAuthExchange.getPathPrefix())) {
-                // force re-authentication if the current path prefix does not match
-                // that of the previous authentication exchange.
-                targetAuthExchange.reset();
-            }
-
-            if (authCacheKeeper != null && context.getAuthCache() != null) {
-                authCacheKeeper.loadPreemptivelyFromCache(target, pathPrefixSupplier, targetAuthExchange, context);
-                if (proxy != null) {
-                    authCacheKeeper.loadPreemptivelyFromCache(proxy, null, proxyAuthExchange, context);
-                }
+            // force re-authentication if the current path prefix does not match
+            // that of the previous authentication exchange, then attempt to preemptively
+            // populate the auth exchange from the auth cache
+            AuthSupport.primeAuthExchange(target, pathPrefixSupplier, targetAuthExchange, authCacheKeeper, context);
+            if (proxy != null && authCacheKeeper != null && context.getAuthCache() != null) {
+                authCacheKeeper.loadPreemptivelyFromCache(proxy, null, proxyAuthExchange, context);
             }
 
             RequestEntityProxy.enhance(request);

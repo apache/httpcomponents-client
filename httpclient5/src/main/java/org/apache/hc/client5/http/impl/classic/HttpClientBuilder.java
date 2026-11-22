@@ -847,6 +847,45 @@ public class HttpClientBuilder {
         return connManager;
     }
 
+    /**
+     * Returns the scheme port resolver this builder is configured with, so that handlers added by
+     * {@link #customizeExecChain(NamedElementChain)} can resolve target hosts exactly the way
+     * {@link ProtocolExec} does.
+     * <p>
+     * For internal use.
+     * </p>
+     */
+    @Internal
+    protected SchemePortResolver getSchemePortResolver() {
+        return schemePortResolver;
+    }
+
+    /**
+     * Returns {@code true} if cookie management was disabled on this builder, so that handlers added
+     * by {@link #customizeExecChain(NamedElementChain)} know whether {@link RequestAddCookies} runs as
+     * part of the real exchange.
+     * <p>
+     * For internal use.
+     * </p>
+     */
+    @Internal
+    protected boolean isCookieManagementDisabled() {
+        return cookieManagementDisabled;
+    }
+
+    /**
+     * Returns {@code true} if auth caching was disabled on this builder, so that handlers added by
+     * {@link #customizeExecChain(NamedElementChain)} know whether {@link ProtocolExec} preemptively
+     * loads auth schemes from the {@link org.apache.hc.client5.http.auth.AuthCache}.
+     * <p>
+     * For internal use.
+     * </p>
+     */
+    @Internal
+    protected boolean isAuthCachingDisabled() {
+        return authCachingDisabled;
+    }
+
     @Internal
     protected Function<HttpContext, HttpClientContext> contextAdaptor() {
         return HttpClientContext::castOrCreate;

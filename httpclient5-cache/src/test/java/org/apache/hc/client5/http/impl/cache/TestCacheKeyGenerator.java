@@ -345,6 +345,89 @@ class TestCacheKeyGenerator {
                 extractor.generateVariantKey(request, Arrays.asList(HttpHeaders.ACCEPT_ENCODING, HttpHeaders.USER_AGENT)));
     }
 
+    /**
+     * Unlike a value-less header element (lowercased by the general path above), the {@code Authorization}
+     * value is opaque credential material: it must be treated case-sensitively, since two case-differing
+     * values are different credentials, and must never appear verbatim in the key.
+     */
+    @Test
+    void testGetVariantKeyTreatsAuthorizationAsOpaqueAndCaseSensitive() {
+        final HttpRequest request1 = BasicRequestBuilder.get("/blah")
+                .addHeader(HttpHeaders.AUTHORIZATION, "Bearer TokenA")
+                .build();
+        final HttpRequest request2 = BasicRequestBuilder.get("/blah")
+                .addHeader(HttpHeaders.AUTHORIZATION, "Bearer tokena")
+                .build();
+
+        final String key1 = extractor.generateVariantKey(request1, Collections.singletonList(HttpHeaders.AUTHORIZATION));
+        final String key2 = extractor.generateVariantKey(request2, Collections.singletonList(HttpHeaders.AUTHORIZATION));
+
+        Assertions.assertNotEquals(key1, key2, "case-differing Authorization values must not share a variant key");
+        Assertions.assertFalse(key1.contains("TokenA"), "the raw credential value must not appear in the key");
+        Assertions.assertFalse(key2.contains("tokena"), "the raw credential value must not appear in the key");
+    }
+
+    @Test
+    void testGetVariantKeySameAuthorizationValueIsStable() {
+        final HttpRequest request = BasicRequestBuilder.get("/blah")
+                .addHeader(HttpHeaders.AUTHORIZATION, "Basic YWxpY2U6c2VjcmV0")
+                .build();
+
+        Assertions.assertEquals(
+                extractor.generateVariantKey(request, Collections.singletonList(HttpHeaders.AUTHORIZATION)),
+                extractor.generateVariantKey(request, Collections.singletonList(HttpHeaders.AUTHORIZATION)));
+    }
+
+    /**
+     * A header added with a {@code null} value (possible via a header constructed directly rather
+     * than parsed) must not throw: the general path below treats an absent or blank value as
+     * present-but-empty rather than failing, and the {@code Authorization} digest must behave the
+     * same way instead of propagating a {@code NullPointerException}.
+     */
+    @Test
+    void testGetVariantKeyNullValuedAuthorizationHeaderDoesNotThrow() {
+        final HttpRequest request = BasicRequestBuilder.get("/blah").build();
+        request.addHeader(new BasicHeader(HttpHeaders.AUTHORIZATION, null));
+
+        final String key = Assertions.assertDoesNotThrow(() ->
+                extractor.generateVariantKey(request, Collections.singletonList(HttpHeaders.AUTHORIZATION)));
+        Assertions.assertEquals(key,
+                extractor.generateVariantKey(request, Collections.singletonList(HttpHeaders.AUTHORIZATION)),
+                "the digest of a null-valued header must be a stable value, not vary between calls");
+    }
+
+    /**
+     * The general path folds every header sharing a name into the key, not just the first (see
+     * {@link #testGetVariantKeyInputNoMatchingHeaders}); the {@code Authorization} digest must do
+     * the same, or two requests whose second {@code Authorization} header differs would wrongly
+     * collapse onto the same variant key.
+     */
+    @Test
+    void testGetVariantKeyFoldsAllAuthorizationHeadersNotJustTheFirst() {
+        final HttpRequest request1 = BasicRequestBuilder.get("/blah")
+                .addHeader(HttpHeaders.AUTHORIZATION, "Bearer first")
+                .addHeader(HttpHeaders.AUTHORIZATION, "Bearer second-A")
+                .build();
+        final HttpRequest request2 = BasicRequestBuilder.get("/blah")
+                .addHeader(HttpHeaders.AUTHORIZATION, "Bearer first")
+                .addHeader(HttpHeaders.AUTHORIZATION, "Bearer second-B")
+                .build();
+
+        final String key1 = extractor.generateVariantKey(request1, Collections.singletonList(HttpHeaders.AUTHORIZATION));
+        final String key2 = extractor.generateVariantKey(request2, Collections.singletonList(HttpHeaders.AUTHORIZATION));
+
+        Assertions.assertNotEquals(key1, key2,
+                "requests whose first Authorization header matches but second differs must not share a variant key");
+
+        final HttpRequest request1Repeat = BasicRequestBuilder.get("/blah")
+                .addHeader(HttpHeaders.AUTHORIZATION, "Bearer first")
+                .addHeader(HttpHeaders.AUTHORIZATION, "Bearer second-A")
+                .build();
+        Assertions.assertEquals(key1,
+                extractor.generateVariantKey(request1Repeat, Collections.singletonList(HttpHeaders.AUTHORIZATION)),
+                "the same set of Authorization header values must reproduce the same key");
+    }
+
     @Test
     void testGetVariantKeyFromCachedResponse() {
         final HttpRequest request = BasicRequestBuilder.get("/blah")
