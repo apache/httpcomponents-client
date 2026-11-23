@@ -67,9 +67,10 @@ public class BasicDomainHandler implements CommonCookieAttributeHandler {
         if (TextUtils.isBlank(value)) {
             throw new MalformedCookieException("Blank or null value for domain attribute");
         }
-        // Ignore domain attributes ending with '.' per RFC 6265, 4.1.2.3
+        // Reject domain attributes ending with '.' (RFC 6265, 4.1.2.3). Silently ignoring
+        // the attribute would leave the cookie marked as a domain cookie for the origin host.
         if (value.endsWith(".")) {
-            return;
+            throw new MalformedCookieException("Domain attribute \"" + value + "\" ends with '.'");
         }
         String domain = value;
         if (domain.startsWith(".")) {

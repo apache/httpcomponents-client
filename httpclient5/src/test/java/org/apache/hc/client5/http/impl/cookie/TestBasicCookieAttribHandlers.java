@@ -67,6 +67,14 @@ class TestBasicCookieAttribHandlers {
     }
 
     @Test
+    void testBasicDomainParseInvalid3() {
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieAttributeHandler h = BasicDomainHandler.INSTANCE;
+        Assertions.assertThrows(MalformedCookieException.class, () ->
+                h.parse(cookie, "somedomain.com."));
+    }
+
+    @Test
     void testBasicDomainValidate1() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false);
