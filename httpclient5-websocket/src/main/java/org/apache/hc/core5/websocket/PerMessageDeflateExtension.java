@@ -106,28 +106,33 @@ public final class PerMessageDeflateExtension implements WebSocketExtension {
         final byte[] buffer = new byte[Math.min(16384, Math.max(1024, input.length * 2))];
         long produced = 0L;
         try {
-            while (!inflater.needsInput() && !inflater.finished()) {
+            while (true) {
                 final int count = inflater.inflate(buffer);
-                if (count == 0 && inflater.needsInput()) {
+                if (count > 0) {
+                    // Enforce the decoded size cap during inflation, not after, so a small
+                    // compressed payload cannot expand into a huge buffer before we react.
+                    if (maxOutputSize > 0L && produced + count > maxOutputSize) {
+                        throw new WebSocketProtocolException(1009, "Message too big");
+                    }
+                    out.write(buffer, 0, count);
+                    produced += count;
+                }
+                if (inflater.finished()) {
+                    // A DEFLATE block with BFINAL set ends the stream but not necessarily the
+                    // message: the next block follows its byte padding (RFC 7692 section 7.2.1)
+                    // and starts a new stream, so carry the unconsumed input over to a reset
+                    // inflater instead of dropping it.
+                    final int remaining = inflater.getRemaining();
+                    inflater.reset();
+                    inflater.setInput(withTail, withTail.length - remaining, remaining);
+                } else if (count == 0) {
                     break;
                 }
-                // Enforce the decoded size cap during inflation, not after, so a small
-                // compressed payload cannot expand into a huge buffer before we react.
-                if (maxOutputSize > 0L && produced + count > maxOutputSize) {
-                    throw new WebSocketProtocolException(1009, "Message too big");
-                }
-                out.write(buffer, 0, count);
-                produced += count;
             }
         } catch (final WebSocketProtocolException wspe) {
             throw wspe;
         } catch (final Exception ex) {
             throw new WebSocketException("Unable to inflate payload", ex);
-        }
-        if (inflater.finished()) {
-            // A DEFLATE block with BFINAL set ends the stream (RFC 7692 section 7.2.3.4);
-            // the sender starts a new one for the data that follows.
-            inflater.reset();
         }
         if (fin) {
             decodingMessage = false;

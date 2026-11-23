@@ -139,6 +139,23 @@ final class MessageDeflateTest {
     }
 
     @Test
+    void decode_blocksFollowingBfinalBlock_withContextTakeover() throws Exception {
+        // RFC 7692 section 7.2.1: a BFINAL block may be followed by further blocks. "Hello" in a
+        // DEFLATE block with BFINAL set to 1 (section 7.2.3.4) followed by "Hello" in a DEFLATE
+        // block with no compression (section 7.2.3.3).
+        final byte[] wire = {
+                (byte) 0xf3, 0x48, (byte) 0xcd, (byte) 0xc9, (byte) 0xc9, 0x07, 0x00,
+                0x00, 0x05, 0x00, (byte) 0xfa, (byte) 0xff, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x00};
+        final byte[] plain = "HelloHello".getBytes(StandardCharsets.UTF_8);
+
+        final PerMessageDeflate pmce = new PerMessageDeflate(true, false, false, null, null);
+        final WebSocketExtensionChain.Decoder dec = pmce.newDecoder();
+
+        assertArrayEquals(plain, dec.decode(wire), "blocks after a BFINAL block must not be dropped");
+        assertArrayEquals(plain, dec.decode(wire), "message after a BFINAL block must not decode to empty");
+    }
+
+    @Test
     void decode_withinLimit_succeeds() throws Exception {
         final PerMessageDeflate pmce = new PerMessageDeflate(true, true, true, null, null);
         final WebSocketExtensionChain.Encoder enc = pmce.newEncoder();

@@ -176,7 +176,7 @@ public final class PerMessageDeflate implements WebSocketExtensionChain {
                 final ByteArrayOutputStream out = new ByteArrayOutputStream(Math.max(128, withTail.length * 2));
                 final byte[] buf = new byte[Math.min(16384, Math.max(1024, withTail.length * 2))];
                 long produced = 0L;
-                while (!inf.needsInput()) {
+                while (true) {
                     final int n = inf.inflate(buf);
                     if (n > 0) {
                         // Enforce the decoded size cap during inflation, not after, so a small
@@ -186,13 +186,20 @@ public final class PerMessageDeflate implements WebSocketExtensionChain {
                         }
                         out.write(buf, 0, n);
                         produced += n;
-                    } else {
+                    }
+                    if (inf.finished()) {
+                        // A DEFLATE block with BFINAL set ends the stream but not necessarily the
+                        // message: the next block follows its byte padding (RFC 7692 section 7.2.1)
+                        // and starts a new stream, so carry the unconsumed input over to a reset
+                        // inflater instead of dropping it.
+                        final int remaining = inf.getRemaining();
+                        inf.reset();
+                        inf.setInput(withTail, withTail.length - remaining, remaining);
+                    } else if (n == 0) {
                         break;
                     }
                 }
-                // A DEFLATE block with BFINAL set ends the stream (RFC 7692 section 7.2.3.4);
-                // the next message then starts a new one.
-                if (serverNoContextTakeover || inf.finished()) {
+                if (serverNoContextTakeover) {
                     inf.reset();
                 }
                 return out.toByteArray();
