@@ -112,6 +112,46 @@ class PerMessageDeflateExtensionTest {
     }
 
     @Test
+    void decodesBlocksFollowingBfinalBlock() {
+        // RFC 7692 section 7.2.1: a BFINAL block may be followed by further blocks. "Hello" in a
+        // DEFLATE block with BFINAL set to 1 (section 7.2.3.4) followed by "Hello" in a DEFLATE
+        // block with no compression (section 7.2.3.3).
+        final byte[] compressed = {
+                (byte) 0xf3, 0x48, (byte) 0xcd, (byte) 0xc9, (byte) 0xc9, 0x07, 0x00,
+                0x00, 0x05, 0x00, (byte) 0xfa, (byte) 0xff, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x00};
+        final byte[] plain = "HelloHello".getBytes(StandardCharsets.UTF_8);
+
+        final PerMessageDeflateExtension ext = new PerMessageDeflateExtension();
+        assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+            assertArrayEquals(plain, toBytes(ext.decode(WebSocketFrameType.TEXT, true, ByteBuffer.wrap(compressed))));
+            assertArrayEquals(plain, toBytes(ext.decode(WebSocketFrameType.TEXT, true, ByteBuffer.wrap(compressed))));
+        });
+    }
+
+    @Test
+    void decodesFragmentedMessageWithBfinalBlock() {
+        // Same message as above, split into two frames at every possible point: at the BFINAL
+        // block boundary, inside the BFINAL block and inside the block that follows it.
+        final byte[] compressed = {
+                (byte) 0xf3, 0x48, (byte) 0xcd, (byte) 0xc9, (byte) 0xc9, 0x07, 0x00,
+                0x00, 0x05, 0x00, (byte) 0xfa, (byte) 0xff, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x00};
+        final byte[] plain = "HelloHello".getBytes(StandardCharsets.UTF_8);
+
+        assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+            for (int split = 1; split < compressed.length; split++) {
+                final PerMessageDeflateExtension ext = new PerMessageDeflateExtension();
+                final ByteBuffer part1 = ByteBuffer.wrap(compressed, 0, split);
+                final ByteBuffer part2 = ByteBuffer.wrap(compressed, split, compressed.length - split);
+
+                final ByteArrayOutputStream joined = new ByteArrayOutputStream();
+                joined.write(toBytes(ext.decode(WebSocketFrameType.TEXT, false, part1)));
+                joined.write(toBytes(ext.decode(WebSocketFrameType.CONTINUATION, true, part2)));
+                assertArrayEquals(plain, joined.toByteArray(), "split at " + split);
+            }
+        });
+    }
+
+    @Test
     void fragmentedEncodeRoundTripsThroughDecode() throws Exception {
         // Encode a message as three frames (fin=false, false, true), then decode them back.
         // Non-final fragments must retain the 00 00 FF FF flush trailer so the reassembled
