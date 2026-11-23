@@ -423,6 +423,36 @@ class TestResponseCachingPolicy {
     }
 
     @Test
+    void testVaryCookieIsNotCacheable() {
+        response.setHeader("Vary", "Cookie");
+        Assertions.assertFalse(policy.isResponseCacheable(requestCacheControl, responseCacheControl, request, response));
+    }
+
+    @Test
+    void testVaryAuthorizationIsNotCacheable() {
+        response.setHeader("Vary", "Authorization");
+        Assertions.assertFalse(policy.isResponseCacheable(requestCacheControl, responseCacheControl, request, response));
+    }
+
+    @Test
+    void testVaryCookieIsNotCacheableRegardlessOfHeaderNameCase() {
+        response.setHeader("Vary", "cOOkIe");
+        Assertions.assertFalse(policy.isResponseCacheable(requestCacheControl, responseCacheControl, request, response));
+    }
+
+    @Test
+    void testVaryCookieCombinedWithOtherHeaderIsNotCacheable() {
+        response.setHeader("Vary", "Cookie, Accept-Encoding");
+        Assertions.assertFalse(policy.isResponseCacheable(requestCacheControl, responseCacheControl, request, response));
+    }
+
+    @Test
+    void testVaryAuthorizationCombinedWithOtherHeaderIsNotCacheable() {
+        response.setHeader("Vary", "Accept-Encoding, Authorization");
+        Assertions.assertFalse(policy.isResponseCacheable(requestCacheControl, responseCacheControl, request, response));
+    }
+
+    @Test
     void testIsArbitraryMethodCacheableUsingSharedPublicCache() {
         policy = new ResponseCachingPolicy(true, false, false);
 
