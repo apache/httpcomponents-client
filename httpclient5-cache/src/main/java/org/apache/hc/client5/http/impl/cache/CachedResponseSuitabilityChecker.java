@@ -226,6 +226,11 @@ class CachedResponseSuitabilityChecker {
                 if (headerName.equalsIgnoreCase("*")) {
                     return false;
                 }
+                // The cache cannot see Cookie or Authorization as sent on the wire, so an entry
+                // varying on either must never be served as a hit.
+                if (headerName.equalsIgnoreCase(HttpHeaders.COOKIE) || headerName.equalsIgnoreCase(HttpHeaders.AUTHORIZATION)) {
+                    return false;
+                }
                 CacheKeyGenerator.normalizeElements(request, headerName, tokensInRequest::add);
                 CacheKeyGenerator.normalizeElements(entry.requestHeaders(), headerName, tokensInCache::add);
                 if (!Objects.equals(tokensInRequest, tokensInCache)) {

@@ -225,6 +225,91 @@ class TestCachedResponseSuitabilityChecker {
     }
 
     @Test
+    void testRequestHeadersMatchCookieOrAuthorizationNeverMatch() {
+        // an entry varying on Cookie can only be a leftover from an older version of the cache;
+        // it must never be treated as a hit, even when the recorded request headers are identical
+        request = BasicRequestBuilder.get("/foo")
+                .addHeader("Cookie", "session=abc")
+                .build();
+        entry = makeEntry(
+                Method.GET, "/foo",
+                new Header[]{
+                        new BasicHeader("Cookie", "session=abc")
+                },
+                200,
+                new Header[]{
+                        new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                        new BasicHeader("Vary", "Cookie")
+                });
+        Assertions.assertFalse(impl.requestHeadersMatch(request, entry));
+
+        request = BasicRequestBuilder.get("/foo")
+                .addHeader("Authorization", "Bearer token")
+                .build();
+        entry = makeEntry(
+                Method.GET, "/foo",
+                new Header[]{
+                        new BasicHeader("Authorization", "Bearer token")
+                },
+                200,
+                new Header[]{
+                        new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                        new BasicHeader("Vary", "Authorization")
+                });
+        Assertions.assertFalse(impl.requestHeadersMatch(request, entry));
+
+        // header name comparison is case-insensitive
+        request = BasicRequestBuilder.get("/foo")
+                .addHeader("Cookie", "session=abc")
+                .build();
+        entry = makeEntry(
+                Method.GET, "/foo",
+                new Header[]{
+                        new BasicHeader("Cookie", "session=abc")
+                },
+                200,
+                new Header[]{
+                        new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                        new BasicHeader("Vary", "cOOkIe")
+                });
+        Assertions.assertFalse(impl.requestHeadersMatch(request, entry));
+
+        // combined with another, unrelated Vary-named header, the entry is still never a match
+        request = BasicRequestBuilder.get("/foo")
+                .addHeader("Accept-Encoding", "gzip")
+                .addHeader("Cookie", "session=abc")
+                .build();
+        entry = makeEntry(
+                Method.GET, "/foo",
+                new Header[]{
+                        new BasicHeader("Accept-Encoding", "gzip"),
+                        new BasicHeader("Cookie", "session=abc")
+                },
+                200,
+                new Header[]{
+                        new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                        new BasicHeader("Vary", "Cookie, Accept-Encoding")
+                });
+        Assertions.assertFalse(impl.requestHeadersMatch(request, entry));
+
+        // an ordinary Vary on an unrelated header is unaffected and still matches as before
+        request = BasicRequestBuilder.get("/foo")
+                .addHeader("Accept-Encoding", "gzip")
+                .build();
+        entry = makeEntry(
+                Method.GET, "/foo",
+                new Header[]{
+                        new BasicHeader("Accept-Encoding", "gzip")
+                },
+                200,
+                new Header[]{
+                        new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                        new BasicHeader("Vary", "Accept-Encoding")
+                });
+        Assertions.assertTrue(impl.requestHeadersMatch(request, entry));
+    }
+
+    @Test
     void testResponseNoCache() {
         entry = makeEntry(new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
         responseCacheControl = ResponseCacheControl.builder()

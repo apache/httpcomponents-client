@@ -189,13 +189,23 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        // Treat responses with `Vary: *` as essentially non-cacheable.
+        // Treat responses with `Vary: *` as essentially non-cacheable. The same applies to
+        // `Vary: Cookie` and `Vary: Authorization`: both headers are added below the cache -
+        // Cookie by the request processor, Authorization by the protocol exec - so the cache
+        // can never see the value a variant would need to be selected on and must not store
+        // the response at all.
         final Iterator<String> it = MessageSupport.iterateTokens(response, HttpHeaders.VARY);
         while (it.hasNext()) {
             final String token = it.next();
             if ("*".equals(token)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Vary: * found");
+                }
+                return false;
+            }
+            if (HttpHeaders.COOKIE.equalsIgnoreCase(token) || HttpHeaders.AUTHORIZATION.equalsIgnoreCase(token)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Vary: {} found", token);
                 }
                 return false;
             }
