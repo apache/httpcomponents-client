@@ -53,14 +53,17 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  * <p>This strategy enforces one or more {@code sha256/<base64(SPKI)>} pins for a given
  * host or single-label wildcard (e.g. {@code *.example.com}) <em>after</em> the standard
  * trust manager and hostname verification succeed. Pins are matched against the
- * {@code SubjectPublicKeyInfo} (SPKI) of any certificate in the peer chain.</p>
+ * {@code SubjectPublicKeyInfo} (SPKI) of the peer's end-entity (leaf) certificate only:
+ * {@link SSLSession#getPeerCertificates()} returns the chain as sent by the peer, not the
+ * path validated by PKIX, and only the handshake's proof of possession of the leaf key
+ * can be trusted. A pin for an intermediate or CA certificate will never match.</p>
  *
  * <p>Host matching is performed on the IDNA ASCII (Punycode) lowercase form.
  * Wildcards are <em>single-label only</em> (e.g. {@code *.example.com} matches
  * {@code a.example.com} but not {@code a.b.example.com}).</p>
  *
  * <p><strong>Warning:</strong> Certificate pinning increases operational risk.
- * Always ship at least two pins (active + backup) and keep
+ * Always ship at least two leaf-key pins (active + a spare key for rotation) and keep
  * normal PKI + hostname verification enabled.</p>
  *
  * <p>Thread-safety: immutable and thread-safe.</p>
@@ -175,7 +178,7 @@ public final class SpkiPinningClientTlsStrategy extends DefaultClientTlsStrategy
 
     /**
      * Invoked after the default trust and hostname checks. If one or more rules match the
-     * {@code hostname}, at least one pin must match any SPKI in the peer chain.
+     * {@code hostname}, at least one pin must match the SPKI of the peer's leaf certificate.
      */
     @Override
     protected void verifySession(final String hostname, final SSLSession sslSession) throws SSLException {
@@ -202,18 +205,16 @@ public final class SpkiPinningClientTlsStrategy extends DefaultClientTlsStrategy
             return; // No pins configured for this host.
         }
 
-        final byte[][] peerSpkiHashes = chainSpkiSha256(sslSession);
-        for (int i = 0; i < peerSpkiHashes.length; i++) {
-            final ByteArrayKey key = new ByteArrayKey(peerSpkiHashes[i]);
-            for (int r = 0; r < matched.size(); r++) {
-                if (matched.get(r).pins.contains(key)) {
-                    return; // match found
-                }
+        final byte[] leafSpkiHash = leafSpkiSha256(sslSession);
+        final ByteArrayKey key = new ByteArrayKey(leafSpkiHash);
+        for (int r = 0; r < matched.size(); r++) {
+            if (matched.get(r).pins.contains(key)) {
+                return; // match found
             }
         }
 
         throw new SSLException("SPKI pinning failure for " + hostname
-                + "; peer pins: " + peerPinsForLog(peerSpkiHashes)
+                + "; leaf certificate pin: " + peerPinForLog(leafSpkiHash)
                 + "; configured pins: " + configuredPinsFor(matched));
     }
 
@@ -244,7 +245,9 @@ public final class SpkiPinningClientTlsStrategy extends DefaultClientTlsStrategy
          *
          * @param hostPattern exact host (e.g. {@code api.example.com}) or single-label wildcard
          *                    (e.g. {@code *.example.com}).
-         * @param pins        one or more pins in the form {@code sha256/BASE64}.
+         * @param pins        one or more pins in the form {@code sha256/BASE64}, each the SPKI
+         *                    hash of a server end-entity (leaf) key. A pin for an intermediate
+         *                    or CA certificate is accepted but will never match.
          * @return this
          * @throws IllegalArgumentException if a pin is not {@code sha256/...}, has invalid Base64, or wrong length.
          */
@@ -305,24 +308,22 @@ public final class SpkiPinningClientTlsStrategy extends DefaultClientTlsStrategy
         return out;
     }
 
-    private static byte[][] chainSpkiSha256(final SSLSession session) throws SSLException {
+    /**
+     * Computes the SHA-256 of the SPKI of the peer's end-entity certificate, i.e. the
+     * first entry of {@link SSLSession#getPeerCertificates()}. Only that certificate is
+     * structurally guaranteed by the handshake and hostname check to be the one the peer
+     * is authenticating as; any other entry is peer-supplied chain data that may not have
+     * been part of the path the trust manager actually validated.
+     */
+    private static byte[] leafSpkiSha256(final SSLSession session) throws SSLException {
         final Certificate[] chain = session.getPeerCertificates();
+        if (chain.length == 0 || !(chain[0] instanceof X509Certificate)) {
+            throw new SSLException("Peer's leaf certificate is not an X509Certificate");
+        }
         try {
             final MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-            final List<byte[]> out = new ArrayList<>(chain.length);
-            for (int i = 0; i < chain.length; i++) {
-                final Certificate c = chain[i];
-                if (c instanceof X509Certificate) {
-                    final byte[] spki = ((X509Certificate) c).getPublicKey().getEncoded();
-                    out.add(sha256.digest(spki));
-                }
-            }
-            if (out.isEmpty()) {
-                throw new SSLException("No X509Certificate in peer chain");
-            }
-            return out.toArray(new byte[out.size()][]);
-        } catch (final SSLException e) {
-            throw e;
+            final byte[] spki = ((X509Certificate) chain[0]).getPublicKey().getEncoded();
+            return sha256.digest(spki);
         } catch (final Exception e) {
             throw new SSLException("Cannot compute SPKI sha256", e);
         }
@@ -338,11 +339,7 @@ public final class SpkiPinningClientTlsStrategy extends DefaultClientTlsStrategy
         return pins.toString();
     }
 
-    private static String peerPinsForLog(final byte[][] hashes) {
-        final List<String> pins = new ArrayList<>(hashes.length);
-        for (int i = 0; i < hashes.length; i++) {
-            pins.add(PIN_PREFIX + Base64.getEncoder().encodeToString(hashes[i]));
-        }
-        return pins.toString();
+    private static String peerPinForLog(final byte[] hash) {
+        return PIN_PREFIX + Base64.getEncoder().encodeToString(hash);
     }
 }

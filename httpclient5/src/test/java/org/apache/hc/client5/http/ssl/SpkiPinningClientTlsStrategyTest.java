@@ -212,6 +212,65 @@ class SpkiPinningClientTlsStrategyTest {
     }
 
     @Test
+    void pinOnNonLeafCertificateRejected() throws Exception {
+        // A pin that only matches a non-leaf chain entry must NOT satisfy pinning:
+        // SSLSession.getPeerCertificates() is peer-supplied, not the PKIX-validated path.
+        final byte[] leafSpki = new byte[]{1, 1, 1, 1};
+        final byte[] otherSpki = new byte[]{2, 2, 2, 2};
+        final String pinOnOther = sha256Pin(otherSpki);
+
+        final SpkiPinningClientTlsStrategy strategy = SpkiPinningClientTlsStrategy
+                .newBuilder(SSLContext.getDefault())
+                .add("api.example.com", pinOnOther)
+                .build();
+
+        final SSLSession session = new FakeSession(new X509WithKey(leafSpki), new X509WithKey(otherSpki));
+        assertThrows(SSLException.class, () -> strategy.enforcePins("api.example.com", session));
+    }
+
+    @Test
+    void pinOnLeafMatchesRegardlessOfOtherChainEntries() throws Exception {
+        final byte[] leafSpki = new byte[]{3, 3, 3, 3};
+        final byte[] otherSpki = new byte[]{4, 4, 4, 4};
+        final String pinOnLeaf = sha256Pin(leafSpki);
+
+        final SpkiPinningClientTlsStrategy strategy = SpkiPinningClientTlsStrategy
+                .newBuilder(SSLContext.getDefault())
+                .add("api.example.com", pinOnLeaf)
+                .build();
+
+        final SSLSession session = new FakeSession(new X509WithKey(leafSpki), new X509WithKey(otherSpki));
+        assertDoesNotThrow(() -> strategy.enforcePins("api.example.com", session));
+    }
+
+    @Test
+    void nonX509LeafWithX509PinMatchElsewhereInChainRejected() throws Exception {
+        // A non-X509 entry at position 0 must fail closed, even when a later chain
+        // entry is an X509Certificate whose SPKI matches a configured pin.
+        final byte[] otherSpki = new byte[]{5, 5, 5, 5};
+        final String pinOnOther = sha256Pin(otherSpki);
+
+        final SpkiPinningClientTlsStrategy strategy = SpkiPinningClientTlsStrategy
+                .newBuilder(SSLContext.getDefault())
+                .add("api.example.com", pinOnOther)
+                .build();
+
+        final SSLSession session = new FakeSession(new NonX509Certificate(), new X509WithKey(otherSpki));
+        assertThrows(SSLException.class, () -> strategy.enforcePins("api.example.com", session));
+    }
+
+    @Test
+    void emptyPeerChainRejected() throws Exception {
+        final SpkiPinningClientTlsStrategy strategy = SpkiPinningClientTlsStrategy
+                .newBuilder(SSLContext.getDefault())
+                .add("api.example.com", sha256Pin(new byte[]{6, 6, 6, 6}))
+                .build();
+
+        final SSLSession session = new FakeSession();
+        assertThrows(SSLException.class, () -> strategy.enforcePins("api.example.com", session));
+    }
+
+    @Test
     void verifySessionInvalidIdnThrowsSslException() throws NoSuchAlgorithmException {
         final SpkiPinningClientTlsStrategy s = SpkiPinningClientTlsStrategy
                 .newBuilder(SSLContext.getDefault())
@@ -301,6 +360,35 @@ class SpkiPinningClientTlsStrategyTest {
         assertThrows(IllegalArgumentException.class, () -> SpkiPinningClientTlsStrategy
                 .newBuilder(SSLContext.getDefault())
                 .add("*", pin));
+    }
+
+    private static final class NonX509Certificate extends Certificate {
+        NonX509Certificate() {
+            super("Fake");
+        }
+
+        @Override
+        public byte[] getEncoded() {
+            return new byte[0];
+        }
+
+        @Override
+        public void verify(final PublicKey key) {
+        }
+
+        @Override
+        public void verify(final PublicKey key, final String sigProvider) {
+        }
+
+        @Override
+        public String toString() {
+            return "NonX509Certificate";
+        }
+
+        @Override
+        public PublicKey getPublicKey() {
+            return null;
+        }
     }
 
     @SuppressWarnings("deprecation")
@@ -465,10 +553,10 @@ class SpkiPinningClientTlsStrategyTest {
 
     @SuppressWarnings({"deprecation", "removal"})
     private static final class FakeSession implements SSLSession {
-        private final X509Certificate[] chain;
+        private final java.security.cert.Certificate[] chain;
 
-        FakeSession(final X509Certificate cert) {
-            this.chain = new X509Certificate[]{cert};
+        FakeSession(final java.security.cert.Certificate... chain) {
+            this.chain = chain;
         }
 
         @Override

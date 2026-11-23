@@ -42,8 +42,9 @@ import org.apache.hc.core5.ssl.SSLContexts;
 /**
  * Example: using SPKI pinning with the classic (blocking) client.
  *
- * <p><strong>Warning:</strong> Replace the pins with real values for your hosts and always ship a
- * backup pin. Keep PKI + hostname verification enabled.</p>
+ * <p><strong>Warning:</strong> Replace the pins with real values for your hosts. Pins match only
+ * the server's end-entity (leaf) key, so always ship a backup pin for a spare leaf key, not an
+ * intermediate or CA certificate. Keep PKI + hostname verification enabled.</p>
  */
 public class ClientSpkiPinningExample {
 
