@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -152,6 +153,58 @@ class PerMessageDeflateExtensionTest {
     }
 
     @Test
+    void decodesIndependentMessageAfterBfinalMessage_noSharedWindowNeeded() throws Exception {
+        // Deflater.finish() alone omits the extra 0x00 octet section 7.2.3.4 requires a BFINAL
+        // message to end with, so these two unrelated messages are themselves non-conformant on
+        // the wire; a conformant sender never produces this. It still has to decode: with no extra
+        // octet, only this method's own synthetic sync-flush tail (the 4 bytes appended to every
+        // fin frame) is left unconsumed when the block finishes, and feeding just that into the
+        // reset inflater leaves it mid-header rather than at a clean block boundary, corrupting
+        // whatever this decoder processes next. Independent of the window-sharing fix above:
+        // message 2 needs none of message 1's LZ77 window, so this isolates the tail-handling
+        // guard, regardless of whether a dictionary is involved.
+        final byte[] compressed1 = deflateFinish("Hello".getBytes(StandardCharsets.UTF_8), null);
+        final byte[] compressed2 = deflateFinish("World!!".getBytes(StandardCharsets.UTF_8), null);
+
+        final PerMessageDeflateExtension ext = new PerMessageDeflateExtension();
+        assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+            assertArrayEquals("Hello".getBytes(StandardCharsets.UTF_8),
+                    toBytes(ext.decode(WebSocketFrameType.TEXT, true, ByteBuffer.wrap(compressed1))));
+            assertArrayEquals("World!!".getBytes(StandardCharsets.UTF_8),
+                    toBytes(ext.decode(WebSocketFrameType.TEXT, true, ByteBuffer.wrap(compressed2))));
+        });
+    }
+
+    @Test
+    void decodesMessageAfterLargeBfinalMessage_windowCoversLast32KiB() throws Exception {
+        // Message 1: a real BFINAL-terminated DEFLATE stream (Deflater.finish(), not SYNC_FLUSH)
+        // producing more than 32 KiB of plaintext, so the sliding window the mid-stream reset
+        // re-primes must have wrapped at least once by the time message 1 finishes.
+        final byte[] prefix = new byte[40_000];
+        for (int i = 0; i < prefix.length; i++) {
+            prefix[i] = (byte) (i % 251);
+        }
+        final byte[] compressed1 = deflateFinish(prefix, null);
+
+        // Message 2 is only producible by a sender holding the same last-32-KiB window this
+        // decoder is expected to retain: it is compressed against exactly that window as its
+        // dictionary, so it decodes correctly only if the decoder's own window matches it byte
+        // for byte, not just "some" window.
+        final byte[] window = Arrays.copyOfRange(prefix, prefix.length - 32768, prefix.length);
+        final byte[] message2Plain = Arrays.copyOfRange(window, window.length - 300, window.length);
+        final byte[] compressed2 = deflateFinish(message2Plain, window);
+        assertTrue(compressed2.length < message2Plain.length,
+                "message 2 must compress to a real back-reference, not literal bytes");
+
+        final PerMessageDeflateExtension ext = new PerMessageDeflateExtension();
+        assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+            assertArrayEquals(prefix, toBytes(ext.decode(WebSocketFrameType.TEXT, true, ByteBuffer.wrap(compressed1))));
+            assertArrayEquals(message2Plain,
+                    toBytes(ext.decode(WebSocketFrameType.TEXT, true, ByteBuffer.wrap(compressed2))));
+        });
+    }
+
+    @Test
     void fragmentedEncodeRoundTripsThroughDecode() throws Exception {
         // Encode a message as three frames (fin=false, false, true), then decode them back.
         // Non-final fragments must retain the 00 00 FF FF flush trailer so the reassembled
@@ -216,6 +269,24 @@ class PerMessageDeflateExtensionTest {
         // After close() the Deflater has been ended; reusing the extension must fail.
         assertThrows(Exception.class,
                 () -> ext.encode(WebSocketFrameType.TEXT, true, ByteBuffer.wrap("again".getBytes(StandardCharsets.UTF_8))));
+    }
+
+    /** Real BFINAL=1-terminated raw DEFLATE stream, optionally primed with a dictionary. */
+    private static byte[] deflateFinish(final byte[] input, final byte[] dictionary) {
+        final Deflater deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, true);
+        if (dictionary != null) {
+            deflater.setDictionary(dictionary);
+        }
+        deflater.setInput(input);
+        deflater.finish();
+        final ByteArrayOutputStream out = new ByteArrayOutputStream(Math.max(128, input.length / 2));
+        final byte[] buffer = new byte[8192];
+        while (!deflater.finished()) {
+            final int count = deflater.deflate(buffer);
+            out.write(buffer, 0, count);
+        }
+        deflater.end();
+        return out.toByteArray();
     }
 
     private static byte[] deflateWithSyncFlush(final byte[] input) {

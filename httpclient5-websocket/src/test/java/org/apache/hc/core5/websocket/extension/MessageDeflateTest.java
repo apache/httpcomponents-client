@@ -33,8 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.zip.Deflater;
 
 import org.apache.hc.core5.websocket.exceptions.WebSocketProtocolException;
 import org.apache.hc.core5.websocket.frame.FrameHeaderBits;
@@ -156,6 +158,45 @@ final class MessageDeflateTest {
     }
 
     @Test
+    void decode_messageAfterBfinalFlushedMessage_withContextTakeover() throws Exception {
+        // RFC 7692 section 7.2.2: without *_no_context_takeover, the decoder MUST reuse the LZ77
+        // window from the last compressed message. Message 1 is section 7.2.3.4's BFINAL-flush
+        // "Hello"; message 2 is section 7.2.3.2's "Hello" again, a back-reference into message 1's
+        // window. A mid-stream reset() for message 1's own BFINAL block (section 7.2.1) must not
+        // discard that window before message 2 needs it.
+        final byte[] msg1BfinalFlushHello = {(byte) 0xf3, 0x48, (byte) 0xcd, (byte) 0xc9, (byte) 0xc9, 0x07, 0x00, 0x00};
+        final byte[] msg2ContextTakeoverBackrefHello = {(byte) 0xf2, 0x00, 0x11, 0x00, 0x00};
+        final byte[] plain = "Hello".getBytes(StandardCharsets.UTF_8);
+
+        final PerMessageDeflate pmce = new PerMessageDeflate(true, false, false, null, null);
+        final WebSocketExtensionChain.Decoder dec = pmce.newDecoder();
+
+        assertArrayEquals(plain, dec.decode(msg1BfinalFlushHello));
+        assertArrayEquals(plain, dec.decode(msg2ContextTakeoverBackrefHello),
+                "message after a BFINAL-flushed message must still see its LZ77 window");
+    }
+
+    @Test
+    void decode_independentMessageAfterBfinalMessage_noSharedWindowNeeded() throws Exception {
+        // Deflater.finish() alone omits the extra 0x00 octet section 7.2.3.4 requires a BFINAL
+        // message to end with, so these two unrelated messages are themselves non-conformant on
+        // the wire; a conformant sender never produces this. It still has to decode: with no extra
+        // octet, only this decoder's own synthetic sync-flush tail is left unconsumed when the
+        // block finishes, and feeding just that into the reset inflater leaves it mid-header,
+        // corrupting whatever is decoded next. Message 2 needs none of message 1's LZ77 window,
+        // so this isolates the tail-handling guard on the client decoder from the window-sharing
+        // fix exercised above.
+        final byte[] msg1 = deflateFinish("Hello".getBytes(StandardCharsets.UTF_8), null);
+        final byte[] msg2 = deflateFinish("World!!".getBytes(StandardCharsets.UTF_8), null);
+
+        final PerMessageDeflate pmce = new PerMessageDeflate(true, false, false, null, null);
+        final WebSocketExtensionChain.Decoder dec = pmce.newDecoder();
+
+        assertArrayEquals("Hello".getBytes(StandardCharsets.UTF_8), dec.decode(msg1));
+        assertArrayEquals("World!!".getBytes(StandardCharsets.UTF_8), dec.decode(msg2));
+    }
+
+    @Test
     void decode_withinLimit_succeeds() throws Exception {
         final PerMessageDeflate pmce = new PerMessageDeflate(true, true, true, null, null);
         final WebSocketExtensionChain.Encoder enc = pmce.newEncoder();
@@ -232,5 +273,23 @@ final class MessageDeflateTest {
             return false;
         }
         return b[b.length - 4] == 0x00 && b[b.length - 3] == 0x00 && (b[b.length - 2] & 0xFF) == 0xFF && (b[b.length - 1] & 0xFF) == 0xFF;
+    }
+
+    /** Real BFINAL=1-terminated raw DEFLATE stream, optionally primed with a dictionary. */
+    private static byte[] deflateFinish(final byte[] input, final byte[] dictionary) {
+        final Deflater deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, true);
+        if (dictionary != null) {
+            deflater.setDictionary(dictionary);
+        }
+        deflater.setInput(input);
+        deflater.finish();
+        final ByteArrayOutputStream out = new ByteArrayOutputStream(Math.max(128, input.length / 2));
+        final byte[] buffer = new byte[8192];
+        while (!deflater.finished()) {
+            final int count = deflater.deflate(buffer);
+            out.write(buffer, 0, count);
+        }
+        deflater.end();
+        return out.toByteArray();
     }
 }
