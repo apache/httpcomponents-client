@@ -16,7 +16,7 @@
 # under the License.
 
 notifications:
-  issues: commits@hc.apache.org
+  issues: commits@httpcomponents.apache.org
 
 github:
   features:
