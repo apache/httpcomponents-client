@@ -16,6 +16,8 @@
 # under the License.
 
 notifications:
+  # Re-saved 2026-11-26 after the httpcomponents->hc domain mapping fix in
+  # apache/infrastructure-asfyaml#152, to force re-validation.
   issues: notifications@hc.apache.org
 
 github:
