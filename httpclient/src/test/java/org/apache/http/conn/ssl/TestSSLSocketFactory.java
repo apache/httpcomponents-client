@@ -37,6 +37,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
@@ -300,7 +302,14 @@ public class TestSSLSocketFactory {
 
                     @Override
                     public void initialize(final SSLServerSocket socket) throws SSLException {
-                        socket.setEnabledProtocols(new String[] {"TLSv1"});
+                        // Keep the TLS protocols enabled by the runtime's security policy.
+                        final List<String> protocols = new ArrayList<String>();
+                        for (final String protocol : socket.getEnabledProtocols()) {
+                            if (protocol.startsWith("TLS")) {
+                                protocols.add(protocol);
+                            }
+                        }
+                        socket.setEnabledProtocols(protocols.toArray(new String[protocols.size()]));
                     }
 
                 })
@@ -316,8 +325,13 @@ public class TestSSLSocketFactory {
         final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
         final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, target, remoteAddress, null,
                 context);
-        final SSLSession sslsession = sslSocket.getSession();
-        Assert.assertNotNull(sslsession);
+        try {
+            final SSLSession sslsession = sslSocket.getSession();
+            Assert.assertNotNull(sslsession);
+            Assert.assertTrue(sslsession.getProtocol().startsWith("TLS"));
+        } finally {
+            sslSocket.close();
+        }
     }
 
     @Test(expected = IOException.class)
