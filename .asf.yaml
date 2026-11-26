@@ -16,11 +16,7 @@
 # under the License.
 
 notifications:
-  # Temporary revert, 2026-11-26: Infra (Bob) asked for an explicit
-  # value change (not a no-op comment) to force the Git Service to
-  # reprocess notifications::issues end to end. Restored to
-  # notifications@hc.apache.org in a follow-up commit/push.
-  issues: dev@hc.apache.org
+  issues: notifications@hc.apache.org
 
 github:
   features:
