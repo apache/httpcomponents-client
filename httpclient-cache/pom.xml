@@ -58,12 +58,6 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jcl</artifactId>
-      <scope>compile</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
       <groupId>net.spy</groupId>
       <artifactId>spymemcached</artifactId>
       <scope>compile</scope>

@@ -3,7 +3,8 @@ Building HttpComponents Client
 
 (1) Requisites
 --------------
-JDK 1.6+ is required in order to compile and run HttpClient.
+A Java 8 toolchain is required to compile HttpClient with its Java 6 source
+and target settings. The default dependencies require Java 8 or later at runtime.
 
 HttpClient utilizes Maven as a distribution management and packaging tool.
 Version 3.0.3 or later is required. 
