@@ -9,7 +9,13 @@ Release 4.5.15 (SNAPSHOT)
 
 * Bump commons-codec.version from 1.11 to 1.23.0
   Contributed by Gary Gregory <ggregory at apache.org>
-  
+
+* Bump commons-logging.version from 1.2 to 1.4.0.
+  The default dependencies require Java 8 or later at runtime.
+  Remove the optional slf4j-jcl dependency to avoid a logging delegation loop,
+  and explicitly select the legacy logging factory for NoOpLog in unit tests.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
 
 Release 4.5.14
 -------------------
