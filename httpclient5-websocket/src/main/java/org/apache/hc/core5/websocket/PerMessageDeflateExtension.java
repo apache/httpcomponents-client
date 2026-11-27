@@ -49,6 +49,12 @@ public final class PerMessageDeflateExtension implements WebSocketExtension {
     private final Inflater inflater = new Inflater(true);
     private final Deflater deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, true);
     private boolean decodingMessage;
+    // Tracks the last MAX_WINDOW_SIZE bytes this inflater has decoded, across both the
+    // in-message reset below and message boundaries under context takeover, so a mid-stream
+    // reset() (needed to keep inflating after a BFINAL block per RFC 7692 section 7.2.1) does
+    // not silently discard LZ77 history a later block, or a later message under context
+    // takeover, is entitled to back-reference (RFC 7692 section 7.2.2).
+    private final WebSocketSlidingWindow slidingWindow = new WebSocketSlidingWindow(WebSocketSlidingWindow.MAX_WINDOW_SIZE);
 
     public PerMessageDeflateExtension() {
         this(false, false, MAX_WINDOW_BITS, MAX_WINDOW_BITS);
@@ -116,15 +122,30 @@ public final class PerMessageDeflateExtension implements WebSocketExtension {
                     }
                     out.write(buffer, 0, count);
                     produced += count;
+                    slidingWindow.append(buffer, count);
                 }
                 if (inflater.finished()) {
                     // A DEFLATE block with BFINAL set ends the stream but not necessarily the
                     // message: the next block follows its byte padding (RFC 7692 section 7.2.1)
-                    // and starts a new stream, so carry the unconsumed input over to a reset
-                    // inflater instead of dropping it.
+                    // and starts a new stream, so carry genuinely unconsumed input over to a
+                    // reset inflater instead of dropping it. reset() alone would also drop the
+                    // LZ77 window a subsequent block, or a later message under context takeover,
+                    // may back-reference (RFC 7692 section 7.2.2), so re-prime it from
+                    // slidingWindow. The 4-octet tail this method appends to a fin frame is not
+                    // part of the real stream; feeding only that leftover into the reset inflater
+                    // leaves it mid-header, corrupting whatever this decoder processes next, so
+                    // only continue when more than just that tail remains unconsumed.
                     final int remaining = inflater.getRemaining();
                     inflater.reset();
-                    inflater.setInput(withTail, withTail.length - remaining, remaining);
+                    if (!slidingWindow.isEmpty()) {
+                        inflater.setDictionary(slidingWindow.snapshot());
+                    }
+                    final int tailAllowance = fin ? TAIL.length : 0;
+                    if (remaining > tailAllowance) {
+                        inflater.setInput(withTail, withTail.length - remaining, remaining);
+                    } else {
+                        break;
+                    }
                 } else if (count == 0) {
                     break;
                 }
@@ -138,6 +159,7 @@ public final class PerMessageDeflateExtension implements WebSocketExtension {
             decodingMessage = false;
             if (clientNoContextTakeover) {
                 inflater.reset();
+                slidingWindow.clear();
             }
         } else {
             decodingMessage = true;

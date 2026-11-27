@@ -31,6 +31,7 @@ import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
 import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.websocket.WebSocketSlidingWindow;
 import org.apache.hc.core5.websocket.exceptions.WebSocketProtocolException;
 import org.apache.hc.core5.websocket.frame.FrameHeaderBits;
 
@@ -155,6 +156,10 @@ public final class PerMessageDeflate implements WebSocketExtensionChain {
         }
         return new Decoder() {
             private final Inflater inf = new Inflater(true);
+            // Mirrors PerMessageDeflateExtension's slidingWindow: a mid-stream reset() for a
+            // BFINAL-terminated block (RFC 7692 section 7.2.1) must not discard LZ77 history a
+            // later block or message is entitled to back-reference (RFC 7692 section 7.2.2).
+            private final WebSocketSlidingWindow slidingWindow = new WebSocketSlidingWindow(WebSocketSlidingWindow.MAX_WINDOW_SIZE);
 
             @Override
             public byte[] decode(final byte[] compressedMessage) throws Exception {
@@ -186,21 +191,36 @@ public final class PerMessageDeflate implements WebSocketExtensionChain {
                         }
                         out.write(buf, 0, n);
                         produced += n;
+                        slidingWindow.append(buf, n);
                     }
                     if (inf.finished()) {
                         // A DEFLATE block with BFINAL set ends the stream but not necessarily the
                         // message: the next block follows its byte padding (RFC 7692 section 7.2.1)
-                        // and starts a new stream, so carry the unconsumed input over to a reset
-                        // inflater instead of dropping it.
+                        // and starts a new stream, so carry genuinely unconsumed input over to a
+                        // reset inflater instead of dropping it. reset() alone would also drop the
+                        // LZ77 window a subsequent block, or a later message under context
+                        // takeover, may back-reference (RFC 7692 section 7.2.2), so re-prime it.
+                        // The 4-octet tail this method always appends is not part of the real
+                        // stream; feeding only that leftover into the reset inflater leaves it
+                        // mid-header, corrupting whatever this decoder processes next, so only
+                        // continue when more than just that tail remains unconsumed.
                         final int remaining = inf.getRemaining();
                         inf.reset();
-                        inf.setInput(withTail, withTail.length - remaining, remaining);
+                        if (!slidingWindow.isEmpty()) {
+                            inf.setDictionary(slidingWindow.snapshot());
+                        }
+                        if (remaining > TAIL.length) {
+                            inf.setInput(withTail, withTail.length - remaining, remaining);
+                        } else {
+                            break;
+                        }
                     } else if (n == 0) {
                         break;
                     }
                 }
                 if (serverNoContextTakeover) {
                     inf.reset();
+                    slidingWindow.clear();
                 }
                 return out.toByteArray();
             }
