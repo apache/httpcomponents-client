@@ -1,3 +1,16 @@
+Release 4.5.15 (SNAPSHOT)
+-------------------
+
+* Fix TLS-only socket factory test on modern JDKs (#1686)
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Bump junit.version from 4.11 to 4.13.2
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Bump commons-codec.version from 1.11 to 1.23.0
+  Contributed by Gary Gregory <ggregory at apache.org>
+  
+
 Release 4.5.14
 -------------------
 
