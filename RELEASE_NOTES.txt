@@ -1,6 +1,11 @@
 Release 4.5.15 (SNAPSHOT)
 -------------------
 
+* Harden default Memcached cache entry deserialization with an exact class allowlist
+  and rejection of dynamic proxies. Rejected entries are treated as cache misses.
+  Custom entry graphs require a custom MemcachedCacheEntryFactory and
+  MemcachedCacheEntry implementation. The serialized format is unchanged.
+
 * Fix TLS-only socket factory test on modern JDKs (#1686)
   Contributed by Gary Gregory <ggregory at apache.org>
 
@@ -14,6 +19,10 @@ Release 4.5.15 (SNAPSHOT)
   The default dependencies require Java 8 or later at runtime.
   Remove the optional slf4j-jcl dependency to avoid a logging delegation loop,
   and explicitly select the legacy logging factory for NoOpLog in unit tests.
+  Contributed by Gary Gregory <ggregory at apache.org>
+  
+* Bump maven.compiler.target from 1.6 to 1.8 to support Java 8 compilation.
+  maven.compiler.source stays at 1.6 to support Java 6 runtimes.
   Contributed by Gary Gregory <ggregory at apache.org>
 
 
